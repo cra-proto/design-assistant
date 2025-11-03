@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
-  selector: 'ca-llm-evaluation',
+  selector: 'aida-llm-evaluation',
   imports: [CommonModule, TranslateModule],
   template: `
     <h1 id="wb-cont">{{ 'title.llmEvaluation' | translate }}</h1>

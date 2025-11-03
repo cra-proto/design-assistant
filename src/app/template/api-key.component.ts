@@ -12,7 +12,7 @@ import { IftaLabel } from 'primeng/iftalabel';
 import { CardModule } from 'primeng/card';
 
 @Component({
-  selector: 'ca-api-key',
+  selector: 'aida-api-key',
   imports: [CommonModule, FormsModule, TranslateModule, ButtonModule, InputGroupModule, InputGroupAddon, IftaLabel, CardModule],
   templateUrl: './api-key.component.html',
   styles: ``

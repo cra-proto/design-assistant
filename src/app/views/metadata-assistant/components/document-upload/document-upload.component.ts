@@ -5,7 +5,7 @@ import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 
 @Component({
-  selector: 'ca-document-upload',
+  selector: 'aida-document-upload',
   standalone: true,
   imports: [
     CommonModule,

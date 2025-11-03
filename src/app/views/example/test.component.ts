@@ -16,7 +16,7 @@ import { Button } from 'primeng/button';
 import { FetchService } from '../../services/fetch.service';
 
 @Component({
-  selector: 'ca-test',
+  selector: 'aida-test',
   imports: [TranslateModule, HorizontalRadioButtonsComponent, TableModule, Button],
   templateUrl: './test.component.html',
   styles: ``

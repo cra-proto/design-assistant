@@ -22,7 +22,7 @@ import { ImageResultComponent } from './components/image-result/image-result.com
 import { CsvDownloadComponent } from './components/csv-download/csv-download.component';
 
 @Component({
-  selector: 'ca-image-assistant',
+  selector: 'aida-image-assistant',
   standalone: true,
   imports: [
     CommonModule,
@@ -47,12 +47,12 @@ import { CsvDownloadComponent } from './components/csv-download/csv-download.com
 export class ImageAssistantComponent implements OnInit, OnDestroy {
   // Processing State
   selectedVisionModel = 'qwen/qwen2.5-vl-32b-instruct:free';
-  filesToProcess: {file: File, displayName: string}[] = [];
+  filesToProcess: { file: File, displayName: string }[] = [];
   state$!: Observable<ProcessingState>;
-  
+
   // Timing tracking
   private processingStartTime = 0;
-  
+
   // Model options for the shared selector
   visionModels: ModelOption[] = [
     {
@@ -76,7 +76,7 @@ export class ImageAssistantComponent implements OnInit, OnDestroy {
       description: 'image.model.llamaDescription'
     }
   ];
-  
+
   private subscriptions: Subscription[] = [];
 
   public readonly apiKeyService = inject(ApiKeyService);
@@ -111,35 +111,35 @@ export class ImageAssistantComponent implements OnInit, OnDestroy {
   onFilesSelected(files: FileList): void {
     console.log('Files selected:', files);
     console.time("Image processing time");
-    
+
     // Start timing
     this.processingStartTime = performance.now();
-    
+
     // Convert FileList to Array and count non-PDF files
     this.filesToProcess = [];
     let actualFileCount = 0;
-    
+
     for (const file of files) {
       this.filesToProcess.push({
         file: file,
         displayName: file.name
       });
-      
+
       // Only count non-PDF files for the progress indicator
       if (file.type !== 'application/pdf') {
         actualFileCount++;
       }
     }
-    
+
     // Reset state and start processing. i need to look aty this it's a bit funky
     this.stateService.resetState();
     this.stateService.updateState({
-      filesInProgress: actualFileCount, 
+      filesInProgress: actualFileCount,
       processedCount: 0,
       showProgressArea: true,
       progressText: this.translate.instant('image.progress.starting', { count: actualFileCount })
     });
-    
+
     this.processNextFile();
   }
 
@@ -166,7 +166,7 @@ export class ImageAssistantComponent implements OnInit, OnDestroy {
     const file = fileInfo.file;
     const displayName = fileInfo.displayName;
     const isPdfPage = displayName.includes(' - Page ');
-    
+
     // Only initialize result for non-PDF files
     if (file.type !== 'application/pdf') {
       const result: FileProcessingResult = {
@@ -176,10 +176,10 @@ export class ImageAssistantComponent implements OnInit, OnDestroy {
         data: { imageBase64: null, english: null, french: null, error: null },
         showFullText: false
       };
-      
+
       this.stateService.addResult(displayName, result);
     }
-    
+
     // Update progress
     const state = this.stateService.getCurrentState();
     this.stateService.updateState({
@@ -189,34 +189,34 @@ export class ImageAssistantComponent implements OnInit, OnDestroy {
         total: state.filesInProgress
       })
     });
-    
+
     try {
       // Handle PDFs by converting to images first
       if (file.type === 'application/pdf') {
         console.log('Converting PDF to images:', displayName);
         const images = await this.pdfConverterService.convertPdfToImages(file);
-        
+
         if (images.length > 0) {
           console.log(`PDF has ${images.length} pages. Processing all pages...`);
-          
+
           // Add each page as a separate file to process
           images.forEach((imageDataUrl, index) => {
             const pageFileName = `${displayName} - Page ${index + 1}`;
             const imageFile = this.pdfConverterService.dataUrlToFile(imageDataUrl, `${displayName}_page${index + 1}.png`);
-            
+
             // Add to processing queue with custom display name
             this.filesToProcess.push({
               file: imageFile,
               displayName: pageFileName
             });
-            
+
             // Update total files count
             const currentState = this.stateService.getCurrentState();
             this.stateService.updateState({
               filesInProgress: currentState.filesInProgress + 1
             });
           });
-          
+
           // Don't add the PDF filename as a result and don't increment count (PDFs aren't counted)
           this.processNextFile();
         } else {
@@ -236,7 +236,7 @@ export class ImageAssistantComponent implements OnInit, OnDestroy {
             if (errorMessage === 'KEY_LIMIT_EXCEEDED') {
               errorMessage = this.translate.instant('image.error.paidModel');
             }
-            
+
             this.stateService.updateResult(displayName, {
               status: result.error ? 'error' : 'completed',
               data: {
@@ -246,19 +246,19 @@ export class ImageAssistantComponent implements OnInit, OnDestroy {
                 error: errorMessage
               }
             });
-            
+
             this.stateService.incrementProcessedCount();
             this.processNextFile();
           },
           error: (err: Error) => {
             console.error(`Error analyzing image ${displayName}:`, err);
-            
+
             // Check for specific error types
             let errorMessage = err.message || this.translate.instant('image.error.unknown');
             if (err.message === 'KEY_LIMIT_EXCEEDED' || (err.message && err.message.includes('KEY_LIMIT_EXCEEDED'))) {
               errorMessage = this.translate.instant('image.error.paidModel');
             }
-            
+
             this.stateService.updateResult(displayName, {
               status: 'error',
               data: {
@@ -268,7 +268,7 @@ export class ImageAssistantComponent implements OnInit, OnDestroy {
                 error: errorMessage
               }
             });
-            
+
             this.stateService.incrementProcessedCount();
             this.processNextFile();
           }
@@ -289,9 +289,9 @@ export class ImageAssistantComponent implements OnInit, OnDestroy {
       }
     } catch (error: unknown) {
       console.error(`Error processing file ${displayName}:`, error);
-      
+
       const errorMessage = error instanceof Error ? error.message : this.translate.instant('image.error.failedToProcess');
-      
+
       // Only update result if it's not a PDF (PDFs don't have result entries)
       if (file.type !== 'application/pdf') {
         this.stateService.updateResult(displayName, {
@@ -314,12 +314,12 @@ export class ImageAssistantComponent implements OnInit, OnDestroy {
     this.stateService.updateState({
       progressText: this.translate.instant('image.progress.complete', { count: state.processedCount })
     });
-    
+
     // Calculate and show processing time
     console.timeEnd("Image processing time");
     const endTime = performance.now();
     const durationInSeconds = ((endTime - this.processingStartTime) / 1000).toFixed(2);
-    
+
     // Show toast with processing time
     this.messageService.add({
       severity: 'success',
@@ -327,7 +327,7 @@ export class ImageAssistantComponent implements OnInit, OnDestroy {
       detail: this.translate.instant('common.totalTime', { time: durationInSeconds }),
       life: 10000
     });
-    
+
     setTimeout(() => {
       this.stateService.updateState({ showProgressArea: false });
     }, 3000);
@@ -337,7 +337,7 @@ export class ImageAssistantComponent implements OnInit, OnDestroy {
   getResultsArray(results: Record<string, FileProcessingResult>): FileProcessingResult[] {
     return Object.values(results);
   }
-  
+
   // Reset the tool to process new images
   resetTool(): void {
     this.stateService.resetState();

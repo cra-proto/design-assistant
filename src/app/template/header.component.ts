@@ -1,4 +1,4 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
@@ -14,7 +14,7 @@ import { ThemeService } from '../services/theme.service';
 import { IaStateService } from '../views/ia-assistant/services/ia-state.service';
 
 @Component({
-  selector: 'ca-header',
+  selector: 'aida-header',
   imports: [CommonModule, FormsModule, TranslateModule, ToolbarModule, ButtonModule, ToggleButtonModule, ApiResetComponent],
   template: `
   <header id="header" class="pb-2">
@@ -32,9 +32,9 @@ import { IaStateService } from '../views/ia-assistant/services/ia-state.service'
 
       <p-button (onClick)="goToProject()" rounded outlined severity="primary" styleClass="border-dashed surface-border" [label]="project | translate"></p-button>
 
-      <ca-api-reset
+      <aida-api-reset
         *ngIf="this.localStore.getData('apiKey') !== null">
-      </ca-api-reset>
+      </aida-api-reset>
 
       <p-button (onClick)="theme.toggle()" rounded outlined size="small" severity="secondary" [icon]="theme.icon()" styleClass="darkmode-toggle surface-border"  ariaLabel="Toggle between dark and light mode"></p-button>
 

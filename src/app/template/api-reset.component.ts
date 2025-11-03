@@ -4,7 +4,7 @@ import { LocalStorageService } from '../services/local-storage.service';
 import { ButtonModule } from 'primeng/button';
 
 @Component({
-  selector: 'ca-api-reset',
+  selector: 'aida-api-reset',
   imports: [TranslateModule, ButtonModule],
   template: `
     <p-button icon="pi pi-key" [label]="'apiKey.change' | translate" [rounded]="true" outlined severity="secondary"

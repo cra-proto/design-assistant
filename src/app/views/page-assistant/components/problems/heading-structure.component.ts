@@ -26,7 +26,7 @@ interface RowData {
 }
 
 @Component({
-  selector: 'ca-heading-structure',
+  selector: 'aida-heading-structure',
   imports: [CommonModule, FormsModule,
     TranslateModule,
     TableModule, ButtonModule

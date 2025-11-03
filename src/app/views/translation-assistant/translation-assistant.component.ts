@@ -22,7 +22,7 @@ import { FileParseService } from '../../services/file-parse.service';
 import { TranslationService } from '../../services/translation.service';
 
 @Component({
-  selector: 'ca-translation-assistant', // was 'app-translation-assistant'
+  selector: 'aida-translation-assistant', // was 'app-translation-assistant'
   imports: [
     CommonModule,
     RouterModule,

@@ -29,7 +29,7 @@ import { SearchCriteriaComponent } from './components/search-criteria.component'
 import { IaTreeComponent } from './components/ia-tree.component';
 
 @Component({
-  selector: 'ca-ia-assistant',
+  selector: 'aida-ia-assistant',
   imports: [CommonModule, FormsModule, TranslateModule,
     TextareaModule, InputTextModule, IftaLabelModule, InputGroupModule, InputGroupAddonModule, ButtonModule, FileUploadModule,
     ProgressBarModule, ChipModule, StepperModule, ConfirmPopupModule, TableModule, BadgeModule, TooltipModule, ToolbarModule, PopoverModule, DropdownModule,

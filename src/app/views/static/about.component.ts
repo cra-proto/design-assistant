@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { TranslateModule } from "@ngx-translate/core";
 
 @Component({
-  selector: 'ca-about',
+  selector: 'aida-about',
   imports: [TranslateModule],
   template: `
     <h1 id="wb-cont">{{ 'title.about' | translate}}</h1>

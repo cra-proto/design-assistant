@@ -12,7 +12,7 @@ import { CustomTitleStrategy } from './common/custom-title-strategy';
 import { PrimeNG } from 'primeng/config';
 
 @Component({
-  selector: 'ca-root',
+  selector: 'aida-root',
   imports: [CommonModule, RouterOutlet, RouterModule, TranslateModule, HeaderComponent, SidebarComponent, FooterComponent, ApiKeyComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'

@@ -35,50 +35,50 @@
           <!-- Left Column: Input & Settings -->
           <div class="col-12 lg:col-6">
             <!-- URL Input -->
-            <ca-url-input
-              [disabled]="state.isProcessing"
-              (urlsChange)="onUrlsChange($event)"
-              (urlInputChange)="onUrlInputChange($event)">
-            </ca-url-input>
+            <aida-url-input
+                            [disabled]="state.isProcessing"
+                            (urlsChange)="onUrlsChange($event)"
+                            (urlInputChange)="onUrlInputChange($event)">
+            </aida-url-input>
 
             <!-- Model Selector with Translation Option -->
             <div class="mt-3">
-              <ca-shared-model-selector
-                [selectedModel]="state.selectedModel"
-                [models]="models"
-                [label]="'metadata.modelSelector.modelLabel'"
-                [cardTitle]="'metadata.modelSelector.title'"
-                [showCard]="true"
-                [showTranslateOption]="true"
-                [translateToFrench]="state.translateToFrench"
-                [disabled]="state.isProcessing"
-                (modelChange)="onModelChange($event)"
-                (translateChange)="onTranslateToggle($event)">
-              </ca-shared-model-selector>
+              <aida-shared-model-selector
+                                          [selectedModel]="state.selectedModel"
+                                          [models]="models"
+                                          [label]="'metadata.modelSelector.modelLabel'"
+                                          [cardTitle]="'metadata.modelSelector.title'"
+                                          [showCard]="true"
+                                          [showTranslateOption]="true"
+                                          [translateToFrench]="state.translateToFrench"
+                                          [disabled]="state.isProcessing"
+                                          (modelChange)="onModelChange($event)"
+                                          (translateChange)="onTranslateToggle($event)">
+              </aida-shared-model-selector>
             </div>
 
             <!-- Process Button -->
             <div class="mt-3">
               <p-button
-                [label]="state.isProcessing ? ('metadata.button.processing' | translate) : ('metadata.button.process' | translate)"
-                icon="pi pi-sparkles"
-                [disabled]="!canProcess()"
-                [loading]="state.isProcessing"
-                severity="primary"
-                styleClass="w-full"
-                (onClick)="startProcessing()">
+                        [label]="state.isProcessing ? ('metadata.button.processing' | translate) : ('metadata.button.process' | translate)"
+                        icon="pi pi-sparkles"
+                        [disabled]="!canProcess()"
+                        [loading]="state.isProcessing"
+                        severity="primary"
+                        styleClass="w-full"
+                        (onClick)="startProcessing()">
               </p-button>
             </div>
 
             <!-- Reset Button -->
             <div class="mt-2" *ngIf="state.results.length > 0 && !state.isProcessing">
               <p-button
-                [label]="'metadata.button.reset' | translate"
-                icon="pi pi-refresh"
-                severity="secondary"
-                [outlined]="true"
-                styleClass="w-full"
-                (onClick)="reset()">
+                        [label]="'metadata.button.reset' | translate"
+                        icon="pi pi-refresh"
+                        severity="secondary"
+                        [outlined]="true"
+                        styleClass="w-full"
+                        (onClick)="reset()">
               </p-button>
             </div>
           </div>
@@ -87,21 +87,21 @@
           <div class="col-12 lg:col-6">
             <!-- Progress Indicator -->
             <div *ngIf="state.isProcessing || state.currentStep === 'complete'">
-              <ca-progress-indicator
-                [progressText]="getProgressText()"
-                [processedCount]="state.processedUrls"
-                [totalFiles]="state.totalUrls"
-                [showProgress]="true"
-                [showSpinner]="state.isProcessing">
-              </ca-progress-indicator>
+              <aida-progress-indicator
+                                       [progressText]="getProgressText()"
+                                       [processedCount]="state.processedUrls"
+                                       [totalFiles]="state.totalUrls"
+                                       [showProgress]="true"
+                                       [showSpinner]="state.isProcessing">
+              </aida-progress-indicator>
             </div>
 
             <!-- Error Message -->
             <div *ngIf="state.error" class="mt-3">
               <p-message
-                severity="error"
-                [text]="state.error"
-                styleClass="w-full">
+                         severity="error"
+                         [text]="state.error"
+                         styleClass="w-full">
               </p-message>
             </div>
           </div>
@@ -110,19 +110,19 @@
         <!-- Results Section -->
         <div class="results-section mt-4" *ngIf="state.results.length > 0">
           <!-- Metadata Results -->
-          <ca-metadata-result
-            [results]="state.results"
-            [showTranslations]="state.translateToFrench"
-            [isProcessing]="state.isProcessing"
-            [processingIndex]="state.documentProcessingIndex"
-            (documentSelected)="onDocumentSelected($event.file, $event.index)">
-          </ca-metadata-result>
+          <aida-metadata-result
+                                [results]="state.results"
+                                [showTranslations]="state.translateToFrench"
+                                [isProcessing]="state.isProcessing"
+                                [processingIndex]="state.documentProcessingIndex"
+                                (documentSelected)="onDocumentSelected($event.file, $event.index)">
+          </aida-metadata-result>
 
           <!-- CSV Export -->
-          <ca-metadata-csv-export
-            [results]="state.results"
-            [includeTranslations]="state.translateToFrench">
-          </ca-metadata-csv-export>
+          <aida-metadata-csv-export
+                                    [results]="state.results"
+                                    [includeTranslations]="state.translateToFrench">
+          </aida-metadata-csv-export>
         </div>
       </p-tabpanel>
 
@@ -132,56 +132,56 @@
           <!-- Left Column: Document Upload & Settings -->
           <div class="col-12 lg:col-6">
             <!-- Document Upload -->
-            <ca-document-upload
-              [disabled]="state.isProcessing"
-              (fileSelected)="onDocumentFileSelected($event)">
-            </ca-document-upload>
+            <aida-document-upload
+                                  [disabled]="state.isProcessing"
+                                  (fileSelected)="onDocumentFileSelected($event)">
+            </aida-document-upload>
 
             <!-- Model Selector -->
             <div class="mt-3">
-              <ca-shared-model-selector
-                [selectedModel]="state.selectedModel"
-                [models]="models"
-                [label]="'metadata.modelSelector.modelLabel'"
-                [cardTitle]="'metadata.modelSelector.title'"
-                [showCard]="true"
-                [showTranslateOption]="false"
-                [disabled]="state.isProcessing"
-                (modelChange)="onModelChange($event)">
-              </ca-shared-model-selector>
+              <aida-shared-model-selector
+                                          [selectedModel]="state.selectedModel"
+                                          [models]="models"
+                                          [label]="'metadata.modelSelector.modelLabel'"
+                                          [cardTitle]="'metadata.modelSelector.title'"
+                                          [showCard]="true"
+                                          [showTranslateOption]="false"
+                                          [disabled]="state.isProcessing"
+                                          (modelChange)="onModelChange($event)">
+              </aida-shared-model-selector>
             </div>
 
             <!-- Help Message -->
             <div class="mt-3">
               <p-message
-                severity="info"
-                [text]="'metadata.document.help' | translate"
-                styleClass="w-full">
+                         severity="info"
+                         [text]="'metadata.document.help' | translate"
+                         styleClass="w-full">
               </p-message>
             </div>
 
             <!-- Process Button -->
             <div class="mt-3">
               <p-button
-                [label]="state.isProcessing ? ('metadata.button.processing' | translate) : ('metadata.button.process' | translate)"
-                icon="pi pi-sparkles"
-                [disabled]="!canProcessDocument()"
-                [loading]="state.isProcessing"
-                severity="primary"
-                styleClass="w-full"
-                (onClick)="startDocumentProcessing()">
+                        [label]="state.isProcessing ? ('metadata.button.processing' | translate) : ('metadata.button.process' | translate)"
+                        icon="pi pi-sparkles"
+                        [disabled]="!canProcessDocument()"
+                        [loading]="state.isProcessing"
+                        severity="primary"
+                        styleClass="w-full"
+                        (onClick)="startDocumentProcessing()">
               </p-button>
             </div>
 
             <!-- Reset Button -->
             <div class="mt-2" *ngIf="documentResults.length > 0 && !state.isProcessing">
               <p-button
-                [label]="'metadata.button.reset' | translate"
-                icon="pi pi-refresh"
-                severity="secondary"
-                [outlined]="true"
-                styleClass="w-full"
-                (onClick)="resetDocumentTab()">
+                        [label]="'metadata.button.reset' | translate"
+                        icon="pi pi-refresh"
+                        severity="secondary"
+                        [outlined]="true"
+                        styleClass="w-full"
+                        (onClick)="resetDocumentTab()">
               </p-button>
             </div>
           </div>
@@ -190,29 +190,29 @@
           <div class="col-12 lg:col-6">
             <!-- Progress Indicator -->
             <div *ngIf="state.isProcessing || state.currentStep === 'complete'">
-              <ca-progress-indicator
-                [progressText]="getProgressText()"
-                [processedCount]="state.processedUrls"
-                [totalFiles]="state.totalUrls"
-                [showProgress]="true"
-                [showSpinner]="state.isProcessing">
-              </ca-progress-indicator>
+              <aida-progress-indicator
+                                       [progressText]="getProgressText()"
+                                       [processedCount]="state.processedUrls"
+                                       [totalFiles]="state.totalUrls"
+                                       [showProgress]="true"
+                                       [showSpinner]="state.isProcessing">
+              </aida-progress-indicator>
             </div>
 
             <!-- Error Message -->
             <div *ngIf="state.error" class="mt-3">
               <p-message
-                severity="error"
-                [text]="state.error"
-                styleClass="w-full">
+                         severity="error"
+                         [text]="state.error"
+                         styleClass="w-full">
               </p-message>
             </div>
 
             <!-- Language Detection Result -->
             <div *ngIf="documentLanguage && !state.isProcessing" class="mt-3">
               <p-message
-                severity="success"
-                styleClass="w-full">
+                         severity="success"
+                         styleClass="w-full">
                 <ng-template #default>
                   <strong>{{ 'metadata.document.languageDetected' | translate }}:</strong>
                   {{ documentLanguage === 'en' ? ('common.language.english' | translate) : ('common.language.french' | translate) }}
@@ -224,18 +224,18 @@
 
         <!-- Results Section for Documents -->
         <div class="results-section mt-4" *ngIf="documentResults.length > 0">
-          <ca-metadata-result
-            [results]="documentResults"
-            [showTranslations]="false"
-            [isProcessing]="state.isProcessing"
-            [processingIndex]="null">
-          </ca-metadata-result>
+          <aida-metadata-result
+                                [results]="documentResults"
+                                [showTranslations]="false"
+                                [isProcessing]="state.isProcessing"
+                                [processingIndex]="null">
+          </aida-metadata-result>
 
           <!-- CSV Export -->
-          <ca-metadata-csv-export
-            [results]="documentResults"
-            [includeTranslations]="false">
-          </ca-metadata-csv-export>
+          <aida-metadata-csv-export
+                                    [results]="documentResults"
+                                    [includeTranslations]="false">
+          </aida-metadata-csv-export>
         </div>
       </p-tabpanel>
     </p-tabpanels>
@@ -245,8 +245,8 @@
 <!-- No API Key Message -->
 <div *ngIf="(apiKeyService.hasApiKey$ | async) === false" class="mt-4">
   <p-message
-    severity="warn"
-    [text]="'metadata.errors.noApiKey' | translate"
-    styleClass="w-full">
+             severity="warn"
+             [text]="'metadata.errors.noApiKey' | translate"
+             styleClass="w-full">
   </p-message>
 </div>

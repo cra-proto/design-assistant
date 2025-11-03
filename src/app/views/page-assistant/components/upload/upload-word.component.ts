@@ -14,7 +14,7 @@ import { UrlDataService } from '../../services/url-data.service';
 import { UploadStateService } from '../../services/upload-state.service';
 
 @Component({
-  selector: 'ca-upload-word',
+  selector: 'aida-upload-word',
   imports: [CommonModule,
     TranslateModule,
     FormsModule,

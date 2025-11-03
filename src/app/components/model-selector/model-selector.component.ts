@@ -14,12 +14,12 @@ export interface ModelOption {
 }
 
 @Component({
-  selector: 'ca-shared-model-selector',
+  selector: 'aida-shared-model-selector',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    TranslateModule, 
+    CommonModule,
+    FormsModule,
+    TranslateModule,
     DropdownModule,
     CardModule,
     CheckboxModule
@@ -45,7 +45,7 @@ export class SharedModelSelectorComponent implements OnInit, OnDestroy {
   localModels: ModelOption[] = [];
   private destroy$ = new Subject<void>();
 
-  constructor(private translate: TranslateService) {}
+  constructor(private translate: TranslateService) { }
 
   ngOnInit(): void {
     // Initialize models with translations
@@ -63,7 +63,7 @@ export class SharedModelSelectorComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
-  
+
   private initializeModels(): void {
     // If models are provided as input, translate their names
     if (this.models && this.models.length > 0) {

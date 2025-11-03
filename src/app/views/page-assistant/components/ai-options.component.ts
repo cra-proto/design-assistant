@@ -21,7 +21,7 @@ import { UploadPasteComponent } from './upload/upload-paste.component';
 import { UploadWordComponent } from './upload/upload-word.component';
 
 @Component({
-  selector: 'ca-ai-options',
+  selector: 'aida-ai-options',
   imports: [TranslateModule, CommonModule, FormsModule,
     ButtonModule, DrawerModule, RadioButtonModule, CheckboxModule, AccordionModule, TextareaModule, IftaLabelModule, SliderModule,
     UploadUrlComponent, UploadPasteComponent, UploadWordComponent],

@@ -5,7 +5,7 @@ import { FileUploadModule, FileUpload } from 'primeng/fileupload';
 import { CardModule } from 'primeng/card';
 
 @Component({
-  selector: 'ca-file-upload',
+  selector: 'aida-file-upload',
   standalone: true,
   imports: [CommonModule, TranslateModule, FileUploadModule, CardModule],
   templateUrl: './file-upload.component.html',

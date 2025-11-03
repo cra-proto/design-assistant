@@ -12,7 +12,7 @@ import { MetadataData } from '../../data/data.model';
 import { UploadStateService } from '../../services/upload-state.service';
 
 @Component({
-  selector: 'ca-seo',
+  selector: 'aida-seo',
   imports: [CommonModule, FormsModule,
     TranslateModule,
     ButtonModule, TextareaModule, IftaLabel],

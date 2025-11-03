@@ -39,7 +39,7 @@ interface GuidanceRow {
 }
 
 @Component({
-  selector: 'ca-component-guidance',
+  selector: 'aida-component-guidance',
   standalone: true,
   imports: [
     CommonModule,

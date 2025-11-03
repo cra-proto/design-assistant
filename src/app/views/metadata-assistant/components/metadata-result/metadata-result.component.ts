@@ -11,7 +11,7 @@ import { MetadataResult } from '../../../../services/metadata-assistant.service'
 import { DocumentUploadComponent } from '../document-upload/document-upload.component';
 
 @Component({
-  selector: 'ca-metadata-result',
+  selector: 'aida-metadata-result',
   standalone: true,
   imports: [
     CommonModule,
@@ -74,9 +74,9 @@ export class MetadataResultComponent {
 
   canUploadDocument(result: MetadataResult): boolean {
     return this.showTranslations &&
-           !!result.frenchTranslatedDescription &&
-           !!result.frenchTranslatedKeywords &&
-           !result.evaluationResult;
+      !!result.frenchTranslatedDescription &&
+      !!result.frenchTranslatedKeywords &&
+      !result.evaluationResult;
   }
 
   isProcessingDocument(index: number): boolean {

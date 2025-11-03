@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ProgressBarModule } from 'primeng/progressbar';
 
 @Component({
-  selector: 'ca-progress-indicator',
+  selector: 'aida-progress-indicator',
   standalone: true,
   imports: [CommonModule, ProgressBarModule],
   templateUrl: './progress-indicator.component.html',
@@ -43,7 +43,7 @@ export class ProgressIndicatorComponent {
   @Input() totalFiles = 0;
   @Input() showProgress = false;
   @Input() showSpinner = true;
-  
+
   get progressValue(): number {
     if (this.totalFiles === 0) return 0;
     return Math.round((this.processedCount / this.totalFiles) * 100);

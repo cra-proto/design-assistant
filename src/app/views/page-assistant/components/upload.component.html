@@ -31,9 +31,9 @@
     <div class="flex">
         <ng-container [ngSwitch]="selectedUploadType">
 
-            <ca-upload-url *ngSwitchCase="'url'" (uploadComplete)="goToCompare()"></ca-upload-url>
-            <ca-upload-paste *ngSwitchCase="'paste'" (uploadComplete)="goToCompare()"></ca-upload-paste>
-            <ca-upload-word *ngSwitchCase="'word'" (uploadComplete)="goToCompare()"></ca-upload-word>
+            <aida-upload-url *ngSwitchCase="'url'" (uploadComplete)="goToCompare()"></aida-upload-url>
+            <aida-upload-paste *ngSwitchCase="'paste'" (uploadComplete)="goToCompare()"></aida-upload-paste>
+            <aida-upload-word *ngSwitchCase="'word'" (uploadComplete)="goToCompare()"></aida-upload-word>
 
         </ng-container>
     </div>

@@ -5,7 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { FileProcessingResult } from '../../../../services/image-assistant-state.service';
 
 @Component({
-  selector: 'ca-csv-download',
+  selector: 'aida-csv-download',
   standalone: true,
   imports: [CommonModule, TranslateModule, ButtonModule],
   templateUrl: './csv-download.component.html',
@@ -20,13 +20,13 @@ import { FileProcessingResult } from '../../../../services/image-assistant-state
 })
 export class CsvDownloadComponent {
   @Input() results: Record<string, FileProcessingResult> = {};
-  
+
   private readonly translate = inject(TranslateService);
-  
+
   hasResults(): boolean {
     return Object.keys(this.results).length > 0;
   }
-  
+
   hasCompletedResults(): boolean {
     return Object.values(this.results).some(result => result.status === 'completed');
   }
@@ -35,7 +35,7 @@ export class CsvDownloadComponent {
     // Processing is finished when there are results and none are in 'pending' or 'processing' state
     const allResults = Object.values(this.results);
     return allResults.length > 0 &&
-           !allResults.some(result => result.status === 'pending' || result.status === 'processing');
+      !allResults.some(result => result.status === 'pending' || result.status === 'processing');
   }
 
   shouldShowNoDataMessage(): boolean {
@@ -45,22 +45,22 @@ export class CsvDownloadComponent {
 
   downloadCsv(): void {
     let csvContent = this.translate.instant('image.csv.header') + "\n";
-    
+
     // Get sorted keys for consistent CSV output
     const sortedFileNames = Object.keys(this.results).sort();
-    
+
     sortedFileNames.forEach(fileName => {
       const result = this.results[fileName];
       if (result.status === 'completed') {
         const identifier = result.fileName;
         const english = result.data.english || '';
         const french = result.data.french || '';
-        
+
         const escapeCsv = (str: string) => `"${(str || '').replace(/"/g, '""')}"`;
         csvContent += `${escapeCsv(identifier)},${escapeCsv(english)},${escapeCsv(french)}\n`;
       }
     });
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

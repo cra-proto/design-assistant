@@ -19,7 +19,7 @@ import { UrlDataService } from '../../services/url-data.service';
 import { UploadStateService } from '../../services/upload-state.service';
 
 @Component({
-  selector: 'ca-upload-url',
+  selector: 'aida-upload-url',
   imports: [CommonModule,
     TranslateModule,
     FormsModule,

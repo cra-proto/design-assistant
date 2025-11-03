@@ -6,7 +6,7 @@ import { RadioButton } from 'primeng/radiobutton';
 import { ViewOption } from '../../views/page-assistant/data/data.model';
 
 @Component({
-  selector: 'ca-horizontal-radio-buttons',
+  selector: 'aida-horizontal-radio-buttons',
   imports: [CommonModule, FormsModule, TranslateModule, RadioButton],
   template: `
     <div>

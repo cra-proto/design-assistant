@@ -56,7 +56,7 @@ import { PageDataComponent } from './components/data.component';
 import { PageToolsComponent } from './components/tools.component';
 
 @Component({
-  selector: 'ca-page-assistant-compare',
+  selector: 'aida-page-assistant-compare',
   imports: [
     CommonModule,
     FormsModule,
@@ -82,8 +82,7 @@ import { PageToolsComponent } from './components/tools.component';
   styleUrl: './page-assistant.component.css',
 })
 export class PageAssistantCompareComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   problemsFeatureCount = 0;
 
   onProblemsSummary(flags: Record<string, boolean>) {

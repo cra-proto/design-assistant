@@ -39,7 +39,7 @@ import { FullscreenHTMLElement } from '../../../ia-assistant/data/data.model';
 import { environment } from '../../../../../environments/environment';
 
 @Component({
-  selector: 'ca-ia-structure',
+  selector: 'aida-ia-structure',
   imports: [
     CommonModule,
     FormsModule,
@@ -863,7 +863,7 @@ export class IaStructureComponent implements OnInit {
   }
 
   //Placeholder for export function
-  exportTable() {}
+  exportTable() { }
 
   //Open link in new tab
   openNodeUrl() {

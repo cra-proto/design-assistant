@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'ca-ux-testing',
+  selector: 'aida-ux-testing',
   imports: [],
   templateUrl: './uxTesting.component.html',
   styles: ``,
 })
-export class UxTestingComponent {}
+export class UxTestingComponent { }

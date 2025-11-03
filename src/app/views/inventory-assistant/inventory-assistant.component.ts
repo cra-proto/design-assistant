@@ -26,7 +26,7 @@ let csvCache: Record<string, any[]> = {};
 })
 
 @Component({
-  selector: 'ca-inventory-assistant',
+  selector: 'aida-inventory-assistant',
   imports: [TranslateModule, ButtonModule, FormsModule, CommonModule, Textarea, TableModule, RadioButtonModule],
   templateUrl: './inventory-assistant.component.html',
   styleUrl: './inventory-assistant.component.css'

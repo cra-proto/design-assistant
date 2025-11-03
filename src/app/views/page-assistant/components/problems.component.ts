@@ -25,7 +25,7 @@ export interface ProblemsFlags {
 }
 
 @Component({
-  selector: 'ca-page-problems',
+  selector: 'aida-page-problems',
   imports: [
     CommonModule,
     TranslateModule,

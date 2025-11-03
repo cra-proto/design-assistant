@@ -15,7 +15,7 @@ import { IaStateService, SavedProject } from '../ia-assistant/services/ia-state.
 import { ExportGithubComponent } from '../ia-assistant/components/export-github.component';
 
 @Component({
-  selector: 'ca-project-assistant',
+  selector: 'aida-project-assistant',
   standalone: true,
   imports: [CommonModule, TranslateModule,
     CardModule, ButtonModule, DialogModule, InputTextModule, FieldsetModule, SplitButtonModule,
@@ -130,7 +130,7 @@ export class ProjectAssistantComponent {
     this.loadProjects(); // refresh reactive state
   }
 
-  showSave: boolean = false;
+  showSave = false;
   saveProject() {
     console.log(this.iaState.getGitHubData().repo)
     let savedAutoSave = false;

@@ -35,7 +35,7 @@ import { FetchService } from '../../../services/fetch.service';
 import { IaStateService } from '../services/ia-state.service';
 
 @Component({
-  selector: 'ca-ia-tree',
+  selector: 'aida-ia-tree',
   imports: [CommonModule, FormsModule,
     TranslateModule,
     TableModule, ButtonModule, OrganizationChartModule, ProgressBarModule, InputNumberModule, InputTextModule, TreeTableModule, Tree, ContextMenuModule, InputGroupModule, InputGroupAddonModule, TooltipModule, ToggleButtonModule,

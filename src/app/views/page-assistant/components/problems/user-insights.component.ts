@@ -9,7 +9,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { IftaLabel } from 'primeng/iftalabel';
 
 @Component({
-  selector: 'ca-user-insights',
+  selector: 'aida-user-insights',
   imports: [CommonModule, FormsModule,
     TranslateModule,
     ButtonModule, TextareaModule, IftaLabel],

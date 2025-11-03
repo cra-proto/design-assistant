@@ -58,8 +58,8 @@ function isFootnoteLink(a: HTMLAnchorElement): boolean {
   if (
     a.closest(
       '.footnote, .footnotes, #footnotes, section.footnotes, ol.footnotes, ' +
-        '.ref-list, .references, [role="doc-footnote"], [role="doc-endnotes"], ' +
-        '[role="doc-backlink"], nav[aria-label="Footnotes"]',
+      '.ref-list, .references, [role="doc-footnote"], [role="doc-endnotes"], ' +
+      '[role="doc-backlink"], nav[aria-label="Footnotes"]',
     )
   )
     return true;
@@ -174,7 +174,7 @@ interface UploadDataShape {
 }
 
 @Component({
-  selector: 'ca-link-report',
+  selector: 'aida-link-report',
   standalone: true,
   imports: [
     CommonModule,
@@ -470,9 +470,8 @@ export class LinkReportComponent implements OnInit {
     };
 
     const r = (result ?? {}) as DebugExtractResult;
-    const header = `[Link#${row.order}] ${row.type} — ${row.text}  →  ${
-      row.absUrl || row.href || ''
-    }`;
+    const header = `[Link#${row.order}] ${row.type} — ${row.text}  →  ${row.absUrl || row.href || ''
+      }`;
 
     if (this.COLLAPSE_GROUPS) console.groupCollapsed(header);
     else console.group(header);
@@ -847,7 +846,7 @@ export class LinkReportComponent implements OnInit {
     let idx = 0;
 
     const worker = async () => {
-      for (;;) {
+      for (; ;) {
         const i = idx++;
         if (i >= rows.length) break;
         const row = rows[i];

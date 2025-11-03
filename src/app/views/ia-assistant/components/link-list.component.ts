@@ -12,7 +12,7 @@ import { Tooltip } from "primeng/tooltip";
 import { TagModule } from 'primeng/tag';
 
 @Component({
-  selector: 'ca-link-list',
+  selector: 'aida-link-list',
   imports: [CommonModule, FormsModule, IftaLabelModule, InputTextModule, InputGroupModule, InputGroupAddonModule, ButtonModule, Tooltip, TagModule],
   template: `
 <ng-container *ngIf="links?.length">

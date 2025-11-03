@@ -18,9 +18,9 @@
               <div class="flex align-items-center gap-2">
                 <span class="font-semibold">{{ getDomainFromUrl(result.url) }}</span>
                 <p-tag
-                  [value]="result.language === 'en' ? ('common.language.english' | translate) : ('common.language.french' | translate)"
-                  [severity]="result.language === 'en' ? 'success' : 'info'"
-                  [style]="{'font-size': '0.75rem'}">
+                       [value]="result.language === 'en' ? ('common.language.english' | translate) : ('common.language.french' | translate)"
+                       [severity]="result.language === 'en' ? 'success' : 'info'"
+                       [style]="{'font-size': '0.75rem'}">
                 </p-tag>
               </div>
             </div>
@@ -34,13 +34,13 @@
                 <a [href]="result.url" target="_blank" class="text-primary hover:underline text-sm">
                   {{ result.url }}
                 </a>
-                <p-button 
-                  icon="pi pi-external-link" 
-                  [text]="true" 
-                  [rounded]="true"
-                  size="small"
-                  (onClick)="copyToClipboard(result.url)"
-                  [pTooltip]="'metadata.results.openInNewTab' | translate">
+                <p-button
+                          icon="pi pi-external-link"
+                          [text]="true"
+                          [rounded]="true"
+                          size="small"
+                          (onClick)="copyToClipboard(result.url)"
+                          [pTooltip]="'metadata.results.openInNewTab' | translate">
                 </p-button>
               </div>
             </div>
@@ -52,13 +52,13 @@
                   {{ 'metadata.results.metaDescription' | translate }}
                   <span class="text-xs text-400 ml-1">({{ result.metaDescription.length }} chars)</span>
                 </span>
-                <p-button 
-                  icon="pi pi-copy" 
-                  [text]="true"
-                  [rounded]="true"
-                  size="small"
-                  (onClick)="copyToClipboard(result.metaDescription)"
-                  [pTooltip]="'metadata.results.copyToClipboard' | translate">
+                <p-button
+                          icon="pi pi-copy"
+                          [text]="true"
+                          [rounded]="true"
+                          size="small"
+                          (onClick)="copyToClipboard(result.metaDescription)"
+                          [pTooltip]="'metadata.results.copyToClipboard' | translate">
                 </p-button>
               </div>
               <div class="meta-content p-2 surface-50 border-round">
@@ -73,13 +73,13 @@
                   {{ 'metadata.results.metaKeywords' | translate }}
                   <span class="text-xs text-400 ml-1">({{ result.metaKeywords.length }} chars)</span>
                 </span>
-                <p-button 
-                  icon="pi pi-copy" 
-                  [text]="true"
-                  [rounded]="true"
-                  size="small"
-                  (onClick)="copyToClipboard(result.metaKeywords)"
-                  [pTooltip]="'metadata.results.copyToClipboard' | translate">
+                <p-button
+                          icon="pi pi-copy"
+                          [text]="true"
+                          [rounded]="true"
+                          size="small"
+                          (onClick)="copyToClipboard(result.metaKeywords)"
+                          [pTooltip]="'metadata.results.copyToClipboard' | translate">
                 </p-button>
               </div>
               <div class="meta-content p-2 surface-50 border-round">
@@ -102,12 +102,12 @@
                     <span class="text-xs text-400 ml-1">({{ result.frenchTranslatedDescription.length }} chars)</span>
                   </span>
                   <p-button
-                    icon="pi pi-copy"
-                    [text]="true"
-                    [rounded]="true"
-                    size="small"
-                    (onClick)="copyToClipboard(result.frenchTranslatedDescription!)"
-                    [pTooltip]="'metadata.results.copyToClipboard' | translate">
+                            icon="pi pi-copy"
+                            [text]="true"
+                            [rounded]="true"
+                            size="small"
+                            (onClick)="copyToClipboard(result.frenchTranslatedDescription!)"
+                            [pTooltip]="'metadata.results.copyToClipboard' | translate">
                   </p-button>
                 </div>
                 <div class="meta-content p-2 surface-50 border-round">
@@ -123,12 +123,12 @@
                     <span class="text-xs text-400 ml-1">({{ result.frenchTranslatedKeywords!.length }} chars)</span>
                   </span>
                   <p-button
-                    icon="pi pi-copy"
-                    [text]="true"
-                    [rounded]="true"
-                    size="small"
-                    (onClick)="copyToClipboard(result.frenchTranslatedKeywords!)"
-                    [pTooltip]="'metadata.results.copyToClipboard' | translate">
+                            icon="pi pi-copy"
+                            [text]="true"
+                            [rounded]="true"
+                            size="small"
+                            (onClick)="copyToClipboard(result.frenchTranslatedKeywords!)"
+                            [pTooltip]="'metadata.results.copyToClipboard' | translate">
                   </p-button>
                 </div>
                 <div class="meta-content p-2 surface-50 border-round">
@@ -139,10 +139,10 @@
 
             <!-- Document Upload Section -->
             <div *ngIf="canUploadDocument(result)" class="document-upload-section mt-4">
-              <ca-document-upload
-                [disabled]="isProcessingDocument(i)"
-                (fileSelected)="onDocumentFileSelected($event, i)">
-              </ca-document-upload>
+              <aida-document-upload
+                                    [disabled]="isProcessingDocument(i)"
+                                    (fileSelected)="onDocumentFileSelected($event, i)">
+              </aida-document-upload>
             </div>
 
             <!-- Document Metadata (if available) -->
@@ -160,12 +160,12 @@
                     <span class="text-xs text-400 ml-1">({{ result.documentMetadata.description.length }} chars)</span>
                   </span>
                   <p-button
-                    icon="pi pi-copy"
-                    [text]="true"
-                    [rounded]="true"
-                    size="small"
-                    (onClick)="copyToClipboard(result.documentMetadata.description)"
-                    [pTooltip]="'metadata.results.copyToClipboard' | translate">
+                            icon="pi pi-copy"
+                            [text]="true"
+                            [rounded]="true"
+                            size="small"
+                            (onClick)="copyToClipboard(result.documentMetadata.description)"
+                            [pTooltip]="'metadata.results.copyToClipboard' | translate">
                   </p-button>
                 </div>
                 <div class="meta-content p-2 surface-50 border-round">
@@ -181,12 +181,12 @@
                     <span class="text-xs text-400 ml-1">({{ result.documentMetadata.keywords.length }} chars)</span>
                   </span>
                   <p-button
-                    icon="pi pi-copy"
-                    [text]="true"
-                    [rounded]="true"
-                    size="small"
-                    (onClick)="copyToClipboard(result.documentMetadata.keywords)"
-                    [pTooltip]="'metadata.results.copyToClipboard' | translate">
+                            icon="pi pi-copy"
+                            [text]="true"
+                            [rounded]="true"
+                            size="small"
+                            (onClick)="copyToClipboard(result.documentMetadata.keywords)"
+                            [pTooltip]="'metadata.results.copyToClipboard' | translate">
                   </p-button>
                 </div>
                 <div class="meta-content p-2 surface-50 border-round">
@@ -210,13 +210,13 @@
                     <span class="text-xs ml-1 opacity-80">({{ result.evaluationResult.suggestedDescription.length }} chars)</span>
                   </span>
                   <p-button
-                    icon="pi pi-copy"
-                    [text]="true"
-                    [rounded]="true"
-                    size="small"
-                    styleClass="text-white"
-                    (onClick)="copyToClipboard(result.evaluationResult.suggestedDescription)"
-                    [pTooltip]="'metadata.results.copyToClipboard' | translate">
+                            icon="pi pi-copy"
+                            [text]="true"
+                            [rounded]="true"
+                            size="small"
+                            styleClass="text-white"
+                            (onClick)="copyToClipboard(result.evaluationResult.suggestedDescription)"
+                            [pTooltip]="'metadata.results.copyToClipboard' | translate">
                   </p-button>
                 </div>
                 <div class="p-2 border-round" style="background: rgba(255,255,255,0.9); color: #333;">
@@ -232,13 +232,13 @@
                     <span class="text-xs ml-1 opacity-80">({{ result.evaluationResult.suggestedKeywords.length }} chars)</span>
                   </span>
                   <p-button
-                    icon="pi pi-copy"
-                    [text]="true"
-                    [rounded]="true"
-                    size="small"
-                    styleClass="text-white"
-                    (onClick)="copyToClipboard(result.evaluationResult.suggestedKeywords)"
-                    [pTooltip]="'metadata.results.copyToClipboard' | translate">
+                            icon="pi pi-copy"
+                            [text]="true"
+                            [rounded]="true"
+                            size="small"
+                            styleClass="text-white"
+                            (onClick)="copyToClipboard(result.evaluationResult.suggestedKeywords)"
+                            [pTooltip]="'metadata.results.copyToClipboard' | translate">
                   </p-button>
                 </div>
                 <div class="p-2 border-round" style="background: rgba(255,255,255,0.9); color: #333;">

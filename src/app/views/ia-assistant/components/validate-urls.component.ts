@@ -25,7 +25,7 @@ import { ThemeService } from '../../../services/theme.service';
 import { IaStateService } from '../services/ia-state.service';
 
 @Component({
-  selector: 'ca-validate-urls',
+  selector: 'aida-validate-urls',
   imports: [CommonModule, FormsModule, TranslateModule,
     ProgressBarModule, ConfirmPopupModule, TextareaModule, InputTextModule, IftaLabelModule, InputGroupModule, InputGroupAddonModule, ButtonModule, TooltipModule, TableModule, ChipModule,
     LinkListComponent

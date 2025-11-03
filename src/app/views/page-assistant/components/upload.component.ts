@@ -18,7 +18,7 @@ import { UploadWordComponent } from './upload/upload-word.component';
 import { UploadStateService } from '../services/upload-state.service';
 
 @Component({
-  selector: 'ca-page-upload',
+  selector: 'aida-page-upload',
   imports: [CommonModule, FormsModule,
     TranslateModule,
     RadioButtonModule,

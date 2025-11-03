@@ -20,7 +20,7 @@ import { CsvExportComponent } from './components/csv-export/csv-export.component
 import { DocumentUploadComponent } from './components/document-upload/document-upload.component';
 
 @Component({
-  selector: 'ca-metadata-assistant',
+  selector: 'aida-metadata-assistant',
   standalone: true,
   imports: [
     CommonModule,
@@ -50,7 +50,7 @@ export class MetadataAssistantComponent implements OnInit, OnDestroy {
   private stateService = inject(MetadataAssistantStateService);
   public apiKeyService = inject(ApiKeyService);
   private messageService = inject(MessageService);
-  
+
   state: MetadataProcessingState = {
     isProcessing: false,
     currentUrl: '',
@@ -184,7 +184,7 @@ export class MetadataAssistantComponent implements OnInit, OnDestroy {
         if (error.message?.includes('All models failed')) {
           errorMessage = this.translate.instant('metadata.errors.allModelsFailed');
         }
-        
+
         this.stateService.setError(errorMessage);
       },
       complete: () => {
@@ -352,7 +352,7 @@ export class MetadataAssistantComponent implements OnInit, OnDestroy {
           severity: 'success',
           summary: this.translate.instant('metadata.progress.completeTitle'),
           detail: this.translate.instant('metadata.document.languageDetected') + ': ' +
-                  this.translate.instant(result.language === 'en' ? 'common.language.english' : 'common.language.french'),
+            this.translate.instant(result.language === 'en' ? 'common.language.english' : 'common.language.french'),
           life: 4000
         });
       },
@@ -386,7 +386,7 @@ export class MetadataAssistantComponent implements OnInit, OnDestroy {
 
   canProcessDocument(): boolean {
     return this.apiKeyService.hasApiKey$.value &&
-           this.selectedDocument !== null &&
-           !this.state.isProcessing;
+      this.selectedDocument !== null &&
+      !this.state.isProcessing;
   }
 }

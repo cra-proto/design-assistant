@@ -5,7 +5,7 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { ThemeService } from '../services/theme.service';
 
 @Component({
-  selector: 'ca-footer',
+  selector: 'aida-footer',
   imports: [CommonModule, TranslateModule, ToolbarModule],
   template: `
 <footer class="container">

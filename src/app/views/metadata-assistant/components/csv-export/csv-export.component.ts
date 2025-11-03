@@ -7,7 +7,7 @@ import { CardModule } from 'primeng/card';
 import { MetadataResult } from '../../../../services/metadata-assistant.service';
 
 @Component({
-  selector: 'ca-metadata-csv-export',
+  selector: 'aida-metadata-csv-export',
   standalone: true,
   imports: [
     CommonModule,
@@ -41,12 +41,12 @@ export class CsvExportComponent {
   private generateCsvContent(): string {
     const headers = this.getHeaders();
     const rows = this.results.map(result => this.resultToRow(result));
-    
+
     // Combine headers and rows
     const allRows = [headers, ...rows];
-    
+
     // Convert to CSV format
-    return allRows.map(row => 
+    return allRows.map(row =>
       row.map(cell => this.escapeCsvCell(cell)).join(',')
     ).join('\n');
   }
@@ -95,17 +95,17 @@ export class CsvExportComponent {
     if (cell == null) {
       return '';
     }
-    
+
     // Convert to string and handle special characters
     const cellStr = String(cell);
-    
+
     // If cell contains comma, newline, or quotes, wrap in quotes
     if (cellStr.includes(',') || cellStr.includes('\n') || cellStr.includes('"')) {
       // Escape quotes by doubling them
       const escaped = cellStr.replace(/"/g, '""');
       return `"${escaped}"`;
     }
-    
+
     return cellStr;
   }
 
@@ -127,7 +127,7 @@ export class CsvExportComponent {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     URL.revokeObjectURL(url);
   }
 

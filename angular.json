@@ -22,7 +22,7 @@
       "schematics": {},
       "root": "",
       "sourceRoot": "src",
-      "prefix": "ca",
+      "prefix": "aida",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",

@@ -14,7 +14,7 @@ import { UrlDataService } from '../../services/url-data.service';
 import { UploadStateService } from '../../services/upload-state.service';
 
 @Component({
-  selector: 'ca-upload-paste',
+  selector: 'aida-upload-paste',
   imports: [CommonModule,
     TranslateModule,
     FormsModule,

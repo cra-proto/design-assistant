@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
-  selector: 'ca-sidebar',
+  selector: 'aida-sidebar',
   standalone: true,
   imports: [CommonModule, RouterModule, TranslateModule],
   templateUrl: './sidebar.component.html',

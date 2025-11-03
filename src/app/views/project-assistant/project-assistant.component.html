@@ -10,7 +10,7 @@
       <ng-template pTemplate="header">
         <div class="flex justify-content-end">
           <p-button icon="pi pi-save" text rounded size="small" severity="success" (onClick)="showSave = true" *ngIf="project.key === 'autosave'" />
-          <p-button icon="pi pi-minus" text rounded size="small" severity="secondary" (onClick)="newProject()" *ngIf="project.key != 'autosave'" />
+          <p-button icon="pi pi-minus" text rounded size="small" severity="secondary" (onClick)="newProject()" *ngIf="project.key !== 'autosave'" />
           <p-button icon="pi pi-trash" text rounded size="small" severity="danger" (onClick)="deleteProject(project.key)" />
         </div>
       </ng-template>
@@ -118,7 +118,7 @@
 
 <p-dialog header="Save project" [modal]="true" [(visible)]="showSave" styleClass="max-w-25rem">
   <span class="text-color-secondary">Associate your project to a new or existing GitHub repo to save it for later. This step will not export any files to the repo and you can change it later. </span>
-  <ca-export-github mode="select"></ca-export-github>
+  <aida-export-github mode="select"></aida-export-github>
   <div class="flex justify-end gap-2 mt-2">
     <p-button label="Cancel" severity="secondary" (onClick)="showSave = false" />
     <p-button label="Save" (onClick)="showSave = false;saveProject()" />

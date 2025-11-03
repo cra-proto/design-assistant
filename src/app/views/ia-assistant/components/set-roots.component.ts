@@ -12,7 +12,7 @@ import { FetchService } from '../../../services/fetch.service';
 import { IaStateService } from '../services/ia-state.service';
 
 @Component({
-  selector: 'ca-set-roots',
+  selector: 'aida-set-roots',
   imports: [CommonModule, FormsModule, TranslateModule,
     ProgressBarModule, TooltipModule
   ],

@@ -9,7 +9,7 @@ import { ChipModule } from 'primeng/chip';
 import { MessageModule } from 'primeng/message';
 
 @Component({
-  selector: 'ca-url-input',
+  selector: 'aida-url-input',
   standalone: true,
   imports: [
     CommonModule,
@@ -79,7 +79,7 @@ export class UrlInputComponent {
       return false;
     }
   }
-  
+
   getInvalidReason(url: string): string {
     try {
       const urlObj = new URL(url);
@@ -104,7 +104,7 @@ export class UrlInputComponent {
     this.urlText = 'https://www.canada.ca/en/revenue-agency.html\nhttps://www.canada.ca/fr/agence-revenu.html\nhttps://www.canada.ca/en/revenue-agency/services/tax/businesses.html';
     this.parseUrls();
   }
-  
+
   getAllowedDomainsText(): string {
     return Array.from(this.allowedHosts).join(', ');
   }

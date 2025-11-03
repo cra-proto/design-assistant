@@ -10,7 +10,7 @@ import { FileProcessingResult } from '../../../../services/image-assistant-state
 import { ImageProcessorService } from '../../../../services/image-processor';
 
 @Component({
-  selector: 'ca-image-result',
+  selector: 'aida-image-result',
   standalone: true,
   imports: [
     CommonModule,
@@ -26,7 +26,7 @@ import { ImageProcessorService } from '../../../../services/image-processor';
 })
 export class ImageResultComponent {
   @Input() result!: FileProcessingResult;
-  
+
   private readonly translate = inject(TranslateService);
   private readonly imageProcessor = inject(ImageProcessorService);
 
@@ -36,10 +36,10 @@ export class ImageResultComponent {
 
   async copyText(text: string | null, event: MouseEvent): Promise<void> {
     if (!text) return;
-    
+
     const button = event.target as HTMLButtonElement;
     const originalText = button.textContent;
-    
+
     try {
       await navigator.clipboard.writeText(text);
       button.textContent = this.translate.instant('image.result.copied');

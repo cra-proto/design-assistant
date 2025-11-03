@@ -9,7 +9,7 @@ import { BadgeModule } from 'primeng/badge';
 import { IaStateService } from '../services/ia-state.service';
 
 @Component({
-  selector: 'ca-search-criteria',
+  selector: 'aida-search-criteria',
   imports: [CommonModule, FormsModule, TranslateModule,
     TextareaModule, IftaLabelModule, ChipModule, BadgeModule],
   templateUrl: './search-criteria.component.html',

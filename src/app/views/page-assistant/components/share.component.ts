@@ -15,7 +15,7 @@ import { UploadStateService } from '../services/upload-state.service';
 import { htmlProcessingResult } from '../data/data.model';
 
 @Component({
-  selector: 'ca-share',
+  selector: 'aida-share',
   imports: [CommonModule, FormsModule, TranslateModule, ProgressSpinnerModule, InputTextModule, IftaLabelModule],
   template: `   
   <h1 id="wb-cont">{{ 'title.page' | translate}}</h1>

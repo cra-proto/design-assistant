@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule } from "@ngx-translate/core";
 
 @Component({
-  selector: 'ca-landing',
+  selector: 'aida-landing',
   imports: [CommonModule, TranslateModule],
   template: `
     <h1 id="wb-cont">{{ 'title.landing' | translate}}</h1>
@@ -12,6 +12,6 @@ import { TranslateModule } from "@ngx-translate/core";
   styles: ``
 })
 export class LandingComponent {
-  
+
 }
 

@@ -19,50 +19,50 @@
 <!-- Main Tool Area -->
 <section>
   <!-- Model Selector -->
-  <ca-shared-model-selector
-    [selectedModel]="selectedVisionModel"
-    [models]="visionModels"
-    [label]="'image.model.label'"
-    [cardTitle]="'image.model.title'"
-    [showCard]="true"
-    [showTranslateOption]="false"
-    (modelChange)="onModelChange($event)">
-  </ca-shared-model-selector>
-  
+  <aida-shared-model-selector
+                              [selectedModel]="selectedVisionModel"
+                              [models]="visionModels"
+                              [label]="'image.model.label'"
+                              [cardTitle]="'image.model.title'"
+                              [showCard]="true"
+                              [showTranslateOption]="false"
+                              (modelChange)="onModelChange($event)">
+  </aida-shared-model-selector>
+
   <!-- File Upload -->
-  <ca-file-upload
-    (filesSelected)="onFilesSelected($event)">
-  </ca-file-upload>
-  
+  <aida-file-upload
+                    (filesSelected)="onFilesSelected($event)">
+  </aida-file-upload>
+
   <!-- Progress Indicator -->
   <ng-container *ngIf="state$ | async as state">
-    <ca-progress-indicator
-      [progressText]="state.progressText"
-      [processedCount]="state.processedCount"
-      [totalFiles]="state.filesInProgress"
-      [showProgress]="state.showProgressArea">
-    </ca-progress-indicator>
-    
+    <aida-progress-indicator
+                             [progressText]="state.progressText"
+                             [processedCount]="state.processedCount"
+                             [totalFiles]="state.filesInProgress"
+                             [showProgress]="state.showProgressArea">
+    </aida-progress-indicator>
+
     <!-- Results Display -->
     <div class="results-section" *ngIf="getResultsArray(state.results).length > 0">
-      <ca-image-result 
-        *ngFor="let result of getResultsArray(state.results)"
-        [result]="result">
-      </ca-image-result>
-      
+      <aida-image-result
+                         *ngFor="let result of getResultsArray(state.results)"
+                         [result]="result">
+      </aida-image-result>
+
       <!-- CSV Download -->
-      <ca-csv-download
-        [results]="state.results">
-      </ca-csv-download>
-      
+      <aida-csv-download
+                         [results]="state.results">
+      </aida-csv-download>
+
       <!-- Reset Button -->
       <div class="mt-3">
-        <p-button 
-          (click)="resetTool()"
-          [label]="'image.reset.label' | translate"
-          icon="pi pi-refresh"
-          severity="secondary"
-          [pTooltip]="'image.reset.tooltip' | translate">
+        <p-button
+                  (click)="resetTool()"
+                  [label]="'image.reset.label' | translate"
+                  icon="pi pi-refresh"
+                  severity="secondary"
+                  [pTooltip]="'image.reset.tooltip' | translate">
         </p-button>
       </div>
     </div>

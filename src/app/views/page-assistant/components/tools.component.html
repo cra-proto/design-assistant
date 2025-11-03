@@ -8,20 +8,18 @@
 <!--REMINDER: remove *ngIf="!production" as tools are finished (or close enough for people to use them)-->
 
 <p-accordion
-  [(value)]="activePanels"
-  [multiple]="true"
-  class="flex flex-column gap-3"
->
+             [(value)]="activePanels"
+             [multiple]="true"
+             class="flex flex-column gap-3">
   <p-accordion-panel
-    [value]="0"
-    class="border-1 border-round-sm border-surface"
-  >
+                     [value]="0"
+                     class="border-1 border-round-sm border-surface">
     <p-accordion-header>Template conversion</p-accordion-header>
     <p class="mt-0 ml-4 text-color-secondary" *ngIf="!isPanelOpen(0)">
       Add doormat text.
     </p>
     <p-accordion-content>
-      <ca-template-conversion></ca-template-conversion>
+      <aida-template-conversion></aida-template-conversion>
     </p-accordion-content>
   </p-accordion-panel>
 </p-accordion>

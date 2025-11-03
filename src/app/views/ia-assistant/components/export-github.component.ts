@@ -34,7 +34,7 @@ interface FileCompareRow {
 }
 
 @Component({
-  selector: 'ca-export-github',
+  selector: 'aida-export-github',
   imports: [CommonModule, FormsModule, TranslateModule,
     TableModule, IftaLabelModule, InputTextModule, KeyFilterModule, AutoCompleteModule, PasswordModule, ButtonModule, MessageModule, FieldsetModule, ChipModule, TooltipModule],
   templateUrl: './export-github.component.html',
@@ -85,9 +85,9 @@ export class ExportGithubComponent implements OnInit {
     this.filteredRepos = Array.from(new Set([...startsWith, ...includes]));
   }
 
-  ownerFilter: RegExp = /^[a-zA-Z0-9-]*$/;
-  repoFilter: RegExp = /^[a-zA-Z0-9-._]*$/;
-  branchFilter: RegExp = /^[a-zA-Z0-9./-]*$/;
+  ownerFilter = /^[a-zA-Z0-9-]*$/;
+  repoFilter = /^[a-zA-Z0-9-._]*$/;
+  branchFilter = /^[a-zA-Z0-9./-]*$/;
 
   updateOwner() {
     this.gitHubData().owner = this.gitHubData().owner.trim().toLowerCase().replace(/^[-]+|[-]+$/g, '').replace(/[-]{2,}/g, '-');

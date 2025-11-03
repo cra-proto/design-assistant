@@ -15,7 +15,7 @@ import { UxTestingComponent } from './data/uxTesting.component';
 import { environment } from '../../../../environments/environment';
 
 @Component({
-  selector: 'ca-page-data',
+  selector: 'aida-page-data',
   standalone: true,
   imports: [
     CommonModule,

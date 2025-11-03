@@ -12,7 +12,7 @@ import { TemplateConversionComponent } from './tools/template-conversion.compone
 import { environment } from '../../../../environments/environment';
 
 @Component({
-  selector: 'ca-page-tools',
+  selector: 'aida-page-tools',
   standalone: true,
   imports: [
     CommonModule,

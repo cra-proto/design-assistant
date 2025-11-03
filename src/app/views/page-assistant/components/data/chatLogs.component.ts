@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'ca-chat-logs',
+  selector: 'aida-chat-logs',
   imports: [],
   templateUrl: './chatLogs.component.html',
   styles: ``,
 })
-export class ChatLogsComponent {}
+export class ChatLogsComponent { }

@@ -107,9 +107,9 @@
 
     <!--Upload options if task = compare with prototype-->
     <ng-container [ngSwitch]="uploadType" *ngIf="isPrototype">
-      <ca-upload-url *ngSwitchCase="'url'" mode="prototype" [showSampleDataButton]="false" />
-      <ca-upload-paste *ngSwitchCase="'paste'" mode="prototype" [showSampleDataButton]="false" />
-      <ca-upload-word *ngSwitchCase="'word'" mode="prototype" [showSampleDataButton]="false" />
+      <aida-upload-url *ngSwitchCase="'url'" mode="prototype" [showSampleDataButton]="false" />
+      <aida-upload-paste *ngSwitchCase="'paste'" mode="prototype" [showSampleDataButton]="false" />
+      <aida-upload-word *ngSwitchCase="'word'" mode="prototype" [showSampleDataButton]="false" />
     </ng-container>
   </div>
 </p-drawer>
