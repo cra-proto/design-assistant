@@ -1,0 +1,19 @@
+{
+    "name": "github-oauth-lambda",
+    "version": "1.0.0",
+    "description": "Lambda functions for GitHub OAuth",
+    "main": "index.js",
+    "scripts": {
+        "build": "tsc",
+        "clean": "rm -rf dist"
+    },
+    "dependencies": {
+        "@aws-sdk/client-secrets-manager": "^3.0.0",
+        "axios": "^1.6.0"
+    },
+    "devDependencies": {
+        "@types/aws-lambda": "^8.10.0",
+        "@types/node": "^22.0.0",
+        "typescript": "^5.0.0"
+    }
+}
