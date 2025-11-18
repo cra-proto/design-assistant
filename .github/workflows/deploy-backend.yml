@@ -1,0 +1,59 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::013957137556:policy/GitHubActions-Terraform-Backend-design-assistant
+          aws-region: ca-central-1
+
+      - name: Build Lambda function
+        working-directory: backend/functions/github-oauth
+        run: |
+          npm ci
+          npm run build
+          cd dist
+          cp ../package*.json .
+          npm ci --production
+          zip -r ../lambda.zip .
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+      
+      - name: Terraform Init
+        working-directory: backend/terraform
+        run: terraform init
+      
+      - name: Terraform Plan
+        working-directory: backend/terraform
+        run: terraform plan
+      
+      - name: Terraform Apply
+        working-directory: backend/terraform
+        run: terraform apply -auto-approve
