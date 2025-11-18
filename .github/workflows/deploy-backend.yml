@@ -40,13 +40,18 @@ jobs:
           cp package*.json dist/
           cd dist
           npm ci --production
-          zip -r ../lambda.zip .
+          zip -r lambda.zip .
       
+      - name: Debug file tree
+        run: |
+          echo "Backend directory contents:"
+          ls -R backend
+          
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.13.5
-      
+
       - name: Terraform Init
         working-directory: backend/terraform
         run: terraform init
