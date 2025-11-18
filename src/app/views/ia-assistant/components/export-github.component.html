@@ -1,3 +1,25 @@
+<div>
+    @if (authService.isAuthenticated()) {
+    <p-button
+              label="Export to GitHub"
+              icon="pi pi-upload"
+              (onClick)="exportToGitHub()"
+              [loading]="isExporting()" />
+
+    @if (exportMessage()) {
+    <p-message
+               [severity]="exportMessage()!.severity"
+               [text]="exportMessage()!.text"
+               class="mt-2" />
+    }
+    } @else {
+    <p-message
+               severity="info"
+               text="Please connect to GitHub to export your content" />
+    }
+</div>
+
+
 <ng-container *ngIf="mode === 'export'">
     <h2>Export to GitHub</h2>
     <p>Export the current in-scope pages for your project to a GitHub repository. You can specify the owner, repository, branch, and provide a <p-button icon="pi pi-question-circle" (onClick)="showHelp = !showHelp" [rounded]="true" [text]="true" styleClass="-m-3 nohover" iconPos="right" severity="help" label="GitHub token"></p-button> for authentication.</p>

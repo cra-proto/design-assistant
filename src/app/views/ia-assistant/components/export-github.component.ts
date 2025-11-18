@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, Input, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 //PrimeNG Modules
@@ -21,6 +22,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ExportGitHubService } from '../services/export-github.service';
 import { IaStateService } from '../services/ia-state.service';
 import { FetchService } from '../../../services/fetch.service';
+import { GitHubAuthService } from '../../../services/github-auth.service';
 
 export interface PageData {
   url: string;
@@ -322,5 +324,51 @@ export class ExportGithubComponent implements OnInit {
       return file;
     });
     this.filesTable.set(updated);
+  }
+
+  //TESTING
+  public authService = inject(GitHubAuthService);
+  private http = inject(HttpClient);
+
+  isExporting = signal(false);
+  exportMessage = signal<{ severity: string; text: string } | null>(null);
+
+  async exportToGitHub() {
+    const token = this.authService.getToken();
+    if (!token) return;
+
+    this.isExporting.set(true);
+    this.exportMessage.set(null);
+
+    try {
+      // Example: Create a file in a repo
+      const response = await fetch('https://api.github.com/repos/OWNER/REPO/contents/path/to/file.txt', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: 'Add file via app',
+          content: btoa('Your file content here'), // Base64 encode
+        })
+      });
+
+      if (response.ok) {
+        this.exportMessage.set({
+          severity: 'success',
+          text: 'Successfully exported to GitHub!'
+        });
+      } else {
+        throw new Error('Export failed');
+      }
+    } catch (error) {
+      this.exportMessage.set({
+        severity: 'error',
+        text: 'Failed to export to GitHub'
+      });
+    } finally {
+      this.isExporting.set(false);
+    }
   }
 }
