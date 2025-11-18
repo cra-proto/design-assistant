@@ -7,7 +7,9 @@ interface GitHubOAuthSecret {
     client_secret: string;
 }
 
-const secretsClient = new SecretsManagerClient({ region: "ca-central-1" });
+const secretsClient = new SecretsManagerClient({ region: process.env.AWS_REGION || "ca-central-1" });
+const SECRET_NAME = process.env.SECRET_NAME || "prod/design-assistant/GitHub-OAuth";
+
 
 async function getGitHubCredentials(): Promise<GitHubOAuthSecret> {
     const response = await secretsClient.send(
@@ -22,7 +24,7 @@ async function getGitHubCredentials(): Promise<GitHubOAuthSecret> {
 export const getAuthUrl = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
         const { client_id } = await getGitHubCredentials();
-        const redirectUri = process.env.REDIRECT_URI || 'https://your-app.com/auth/callback';
+        const redirectUri = process.env.REDIRECT_URI || 'https://dzdzuh78hslou.cloudfront.net/auth/callback';
 
         const authUrl = `https://github.com/login/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user`;
 
