@@ -36,8 +36,9 @@ jobs:
         run: |
           npm ci
           npm run build
+          mkdir -p dist
+          cp package*.json dist/
           cd dist
-          cp ../package*.json .
           npm ci --production
           zip -r ../lambda.zip .
       
