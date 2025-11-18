@@ -40,7 +40,16 @@ jobs:
           cp package*.json dist/
           cd dist
           npm ci --production
+          sudo apt-get update && sudo apt-get install -y zip
           zip -r lambda.zip .
+          echo ">>> Dist contents after zipping:"
+          ls -la
+          echo ">>> lambda.zip checksum:"
+          sha256sum lambda.zip || true
+          echo ">>> full path:"
+          pwd
+          echo ">>> listing from repo root (sanity):"
+          ls -la ../../..
       
       - name: Debug file tree
         run: |
