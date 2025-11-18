@@ -1,4 +1,4 @@
-name: Deploy Lambda & Terraform Backend to AWS
+name: Deploy AIDA Backend to AWS
 
 on:
   push:
@@ -40,13 +40,27 @@ jobs:
           cp package*.json dist/
           cd dist
           npm ci --production
-          zip -r ../lambda.zip .
+          sudo apt-get update && sudo apt-get install -y zip
+          zip -r lambda.zip .
+          echo ">>> Dist contents after zipping:"
+          ls -la
+          echo ">>> lambda.zip checksum:"
+          sha256sum lambda.zip || true
+          echo ">>> full path:"
+          pwd
+          echo ">>> listing from repo root (sanity):"
+          ls -la ../../..
       
+      - name: Debug file tree
+        run: |
+          echo "Backend directory contents:"
+          ls -R backend
+          
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.13.5
-      
+
       - name: Terraform Init
         working-directory: backend/terraform
         run: terraform init
