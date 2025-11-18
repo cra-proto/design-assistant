@@ -1,4 +1,4 @@
-name: Deploy Backend
+name: Deploy Lambda & Terraform Backend to AWS
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::013957137556:policy/GitHubActions-Terraform-Backend-design-assistant
+          role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Backend-design-assistant
           aws-region: ca-central-1
 
       - name: Build Lambda function
