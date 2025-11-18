@@ -1,13 +1,15 @@
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
 # Compiled output
-/dist
+dist/
 /tmp
 /out-tsc
 /bazel-out
+build/
+*.zip
 
 # Node
-/node_modules
+node_modules/
 npm-debug.log
 yarn-error.log
 
@@ -53,3 +55,11 @@ Thumbs.db
 CLAUDE.md
 .claude/
 AGENTS.md
+
+# Terraform
+backend/terraform/.terraform/
+backend/terraform/.terraform.lock.hcl
+backend/terraform/terraform.tfstate
+backend/terraform/terraform.tfstate.backup
+backend/terraform/*.tfvars
+backend/terraform/tfplan
