@@ -36,9 +36,13 @@ export class AuthCallbackComponent implements OnInit {
 
       try {
         await this.authService.handleCallback(code, state);
-        // Navigate to the page where user clicked "Connect with GitHub"
-        // or a default dashboard/home page
-        this.router.navigate(['/ia-assistant/github']);
+
+        // Get the URL to return to, or use a default
+        const returnUrl = sessionStorage.getItem('github_oauth_return_url') || '/ia-assistant/github';
+        sessionStorage.removeItem('github_oauth_return_url');
+
+        // Navigate back to where the user was or to a default page
+        this.router.navigateByUrl(returnUrl);
       } catch (err) {
         this.error.set('Failed to complete authentication');
         console.error('Auth error:', err);

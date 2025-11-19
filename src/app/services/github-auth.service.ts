@@ -70,6 +70,10 @@ export class GitHubAuthService {
    */
   async login(scopes: string[] = ['repo', 'user']): Promise<void> {
     try {
+      // Store current URL to return here after login
+      const currentUrl = this.router.url;
+      sessionStorage.setItem('github_oauth_return_url', currentUrl);
+
       // Generate and store state for CSRF protection
       const state = this.generateState();
       sessionStorage.setItem('github_oauth_state', state);
