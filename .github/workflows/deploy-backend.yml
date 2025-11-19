@@ -1,4 +1,4 @@
-name: Deploy Lambda & Terraform Backend to AWS
+name: Deploy AIDA Backend to AWS
 
 on:
   push:
