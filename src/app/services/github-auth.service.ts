@@ -1,20 +1,22 @@
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { catchError, tap, of } from 'rxjs';
+import { firstValueFrom, catchError, of } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 interface GitHubUser {
   login: string;
   id: number;
   avatar_url: string;
-  name: string;
+  name: string | null;
+  email: string | null;
+  bio: string | null;
 }
 
-interface GitHubAuthResponse {
+interface GitHubTokenResponse {
   access_token: string;
   scope: string;
   token_type: string;
-  user: GitHubUser;
 }
 
 @Injectable({
@@ -24,8 +26,7 @@ export class GitHubAuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
 
-  private readonly GITHUB_CLIENT_ID = 'your_client_id_here';
-  private readonly BACKEND_URL = 'http://localhost:3000/api/auth';
+  private readonly BACKEND_URL = environment.apiUrl;
   private readonly TOKEN_KEY = 'github_access_token';
   private readonly USER_KEY = 'github_user';
 
@@ -58,82 +59,100 @@ export class GitHubAuthService {
       }
     });
 
-    // Validate token on service initialization
-    if (this.accessToken()) {
-      this.validateToken();
+    // Fetch user info if we have a token but no user data
+    if (this.accessToken() && !this.currentUser()) {
+      this.fetchUserInfo();
     }
   }
 
   /**
-   * Initiate GitHub OAuth flow
+   * Initiate GitHub OAuth flow by calling backend to get authorization URL
    */
-  login(scopes: string[] = ['repo', 'user']): void {
-    const scope = scopes.join(' ');
-    const redirectUri = `${window.location.origin}/auth/callback`;
+  async login(scopes: string[] = ['repo', 'user']): Promise<void> {
+    try {
+      // Generate and store state for CSRF protection
+      const state = this.generateState();
+      sessionStorage.setItem('github_oauth_state', state);
 
-    const authUrl = new URL('https://github.com/login/oauth/authorize');
-    authUrl.searchParams.append('client_id', this.GITHUB_CLIENT_ID);
-    authUrl.searchParams.append('redirect_uri', redirectUri);
-    authUrl.searchParams.append('scope', scope);
-    authUrl.searchParams.append('state', this.generateState());
+      // Call backend to get GitHub authorization URL
+      const response = await firstValueFrom(
+        this.http.get<{ authUrl: string }>(`${this.BACKEND_URL}/auth/github/url`)
+      );
 
-    // Store state for CSRF protection
-    sessionStorage.setItem('github_oauth_state', authUrl.searchParams.get('state')!);
+      // Append state to the auth URL
+      const authUrlWithState = `${response.authUrl}&state=${state}`;
 
-    // Redirect to GitHub
-    window.location.href = authUrl.toString();
+      // Redirect to GitHub
+      window.location.href = authUrlWithState;
+    } catch (error) {
+      console.error('Failed to initiate GitHub login:', error);
+      throw error;
+    }
   }
 
   /**
-   * Handle OAuth callback
+   * Handle OAuth callback from GitHub
    */
-  handleCallback(code: string, state: string): Promise<GitHubAuthResponse> {
+  async handleCallback(code: string, state: string): Promise<void> {
     // Verify state to prevent CSRF
     const storedState = sessionStorage.getItem('github_oauth_state');
     if (state !== storedState) {
-      throw new Error('Invalid state parameter');
+      throw new Error('Invalid state parameter - possible CSRF attack');
     }
     sessionStorage.removeItem('github_oauth_state');
 
-    return new Promise((resolve, reject) => {
-      this.http.post<GitHubAuthResponse>(`${this.BACKEND_URL}/github/token`, { code })
-        .pipe(
-          tap(response => {
-            this.accessToken.set(response.access_token);
-            this.currentUser.set(response.user);
-          }),
-          catchError(error => {
-            console.error('GitHub authentication error:', error);
-            reject(error);
-            return of(null);
-          })
+    try {
+      // Exchange code for access token via backend
+      const response = await firstValueFrom(
+        this.http.post<GitHubTokenResponse>(
+          `${this.BACKEND_URL}/auth/github/callback`,
+          { code }
         )
-        .subscribe(response => {
-          if (response) {
-            resolve(response);
-          }
-        });
-    });
+      );
+
+      // Store the access token
+      this.accessToken.set(response.access_token);
+
+      // Fetch user information from GitHub API
+      await this.fetchUserInfo();
+    } catch (error) {
+      console.error('Failed to handle GitHub callback:', error);
+      throw error;
+    }
   }
 
   /**
-   * Validate stored token
+   * Fetch user information from GitHub API using the access token
    */
-  validateToken(): void {
+  private async fetchUserInfo(): Promise<void> {
     const token = this.accessToken();
     if (!token) {
-      this.logout();
       return;
     }
 
-    this.http.get(`${this.BACKEND_URL}/github/validate`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).pipe(
-      catchError(() => {
-        this.logout();
-        return of(null);
-      })
-    ).subscribe();
+    try {
+      const user = await firstValueFrom(
+        this.http.get<GitHubUser>('https://api.github.com/user', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github.v3+json'
+          }
+        }).pipe(
+          catchError(error => {
+            console.error('Failed to fetch user info:', error);
+            // If token is invalid, clear it
+            this.logout();
+            return of(null);
+          })
+        )
+      );
+
+      if (user) {
+        this.currentUser.set(user);
+      }
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+    }
   }
 
   /**
@@ -146,10 +165,31 @@ export class GitHubAuthService {
   }
 
   /**
-   * Get current access token value
+   * Get current access token value (for making authenticated GitHub API calls)
    */
   getToken(): string | null {
     return this.accessToken();
+  }
+
+  /**
+   * Make an authenticated request to GitHub API
+   */
+  async makeGitHubApiRequest<T>(url: string, options?: any): Promise<T> {
+    const token = this.accessToken();
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
+    return firstValueFrom(
+      this.http.request<T>('GET', url, {
+        ...options,
+        headers: {
+          ...options?.headers,
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github.v3+json'
+        }
+      })
+    );
   }
 
   private getStoredToken(): string | null {

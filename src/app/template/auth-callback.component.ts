@@ -5,46 +5,6 @@ import { CommonModule } from '@angular/common';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageModule } from 'primeng/message';
 
-
-// Use this code snippet in your app.
-// If you need more information about configurations or implementing the sample code, visit the AWS docs:
-// https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/getting-started.html
-
-import {
-  SecretsManagerClient,
-  GetSecretValueCommand,
-} from "@aws-sdk/client-secrets-manager";
-
-interface GitHubOAuthSecret {
-  client_id: string;
-  client_secret: string;
-}
-
-const secret_name = "prod/design-assistant/GitHub-OAuth";
-
-const client = new SecretsManagerClient({
-  region: "ca-central-1",
-});
-
-let response;
-
-try {
-  response = await client.send(
-    new GetSecretValueCommand({
-      SecretId: secret_name,
-      VersionStage: "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified
-    })
-  );
-} catch (error) {
-  // For a list of exceptions thrown, see
-  // https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-  throw error;
-}
-
-const secret = response.SecretString;
-
-// Your code goes here
-
 @Component({
   selector: 'aida-auth-callback',
   imports: [CommonModule, ProgressSpinnerModule, MessageModule],
@@ -59,7 +19,7 @@ export class AuthCallbackComponent implements OnInit {
   error = signal<string | null>(null);
 
   ngOnInit() {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe(async params => {
       const code = params['code'];
       const state = params['state'];
       const error = params['error'];
@@ -69,17 +29,19 @@ export class AuthCallbackComponent implements OnInit {
         return;
       }
 
-      if (code && state) {
-        this.authService.handleCallback(code, state)
-          .then(() => {
-            this.router.navigate(['/dashboard']);
-          })
-          .catch((err) => {
-            this.error.set('Failed to complete authentication');
-            console.error('Auth error:', err);
-          });
-      } else {
+      if (!code || !state) {
         this.error.set('Invalid callback parameters');
+        return;
+      }
+
+      try {
+        await this.authService.handleCallback(code, state);
+        // Navigate to the page where user clicked "Connect with GitHub"
+        // or a default dashboard/home page
+        this.router.navigate(['/ia-assistant/github']);
+      } catch (err) {
+        this.error.set('Failed to complete authentication');
+        console.error('Auth error:', err);
       }
     });
   }
