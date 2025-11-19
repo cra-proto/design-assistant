@@ -1,3 +1,34 @@
+resource "aws_cloudwatch_log_group" "api_logs" {
+  name              = "/aws/apigateway/design-assistant-api"
+  retention_in_days = 7
+  tags = {
+    Environment = "production"
+    Project     = "design-assistant"
+  }
+}
+
+resource "aws_apigatewayv2_stage" "api" {
+  depends_on = [aws_cloudwatch_log_group.api_logs]  # <— ensure log group exists first
+
+  api_id      = aws_apigatewayv2_api.api.id
+  name        = "production"
+  auto_deploy = true
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_logs.arn
+    format          = jsonencode({
+      httpMethod     = "$context.httpMethod"
+      ip             = "$context.identity.sourceIp"
+      protocol       = "$context.protocol"
+      requestId      = "$context.requestId"
+      requestTime    = "$context.requestTime"
+      responseLength = "$context.responseLength"
+      routeKey       = "$context.routeKey"
+      status         = "$context.status"
+    })
+  }
+}
+
 resource "aws_iam_role" "lambda_role" {
   name = "${var.app_name}-lambda-role"
 
