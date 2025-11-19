@@ -171,27 +171,6 @@ export class GitHubAuthService {
     return this.accessToken();
   }
 
-  /**
-   * Make an authenticated request to GitHub API
-   */
-  async makeGitHubApiRequest<T>(url: string, options?: any): Promise<T> {
-    const token = this.accessToken();
-    if (!token) {
-      throw new Error('Not authenticated');
-    }
-
-    return firstValueFrom(
-      this.http.request<T>('GET', url, {
-        ...options,
-        headers: {
-          ...options?.headers,
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/vnd.github.v3+json'
-        }
-      })
-    );
-  }
-
   private getStoredToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
   }
