@@ -79,28 +79,6 @@ resource "aws_apigatewayv2_api" "api" {
   }
 }
 
-# API Gateway Stage
-resource "aws_apigatewayv2_stage" "api" {
-  depends_on = [aws_cloudwatch_log_group.api_logs]
-  api_id      = aws_apigatewayv2_api.api.id
-  name        = var.environment
-  auto_deploy = true
-
-  access_log_settings {
-    destination_arn = aws_cloudwatch_log_group.api_logs.arn
-    format = jsonencode({
-      requestId      = "$context.requestId"
-      ip             = "$context.identity.sourceIp"
-      requestTime    = "$context.requestTime"
-      httpMethod     = "$context.httpMethod"
-      routeKey       = "$context.routeKey"
-      status         = "$context.status"
-      protocol       = "$context.protocol"
-      responseLength = "$context.responseLength"
-    })
-  }
-}
-
 # CloudWatch Log Group for API Gateway
 resource "aws_cloudwatch_log_group" "api_logs" {
   name              = "/aws/apigateway/${var.app_name}-api"
@@ -109,6 +87,28 @@ resource "aws_cloudwatch_log_group" "api_logs" {
     Environment = "var.environment"
     Project     = "var.app_name"
   }
+}
+
+# API Gateway Stage
+resource "aws_apigatewayv2_stage" "api" {
+  depends_on = [aws_cloudwatch_log_group.api_logs]
+  api_id      = aws_apigatewayv2_api.api.id
+  name        = var.environment
+  auto_deploy = true
+
+ # access_log_settings {
+ #  destination_arn = aws_cloudwatch_log_group.api_logs.arn
+ #  format = jsonencode({
+ #    requestId      = "$context.requestId"
+ #    ip             = "$context.identity.sourceIp"
+ #    requestTime    = "$context.requestTime"
+ #    httpMethod     = "$context.httpMethod"
+ #    routeKey       = "$context.routeKey"
+ #    status         = "$context.status"
+ #    protocol       = "$context.protocol"
+ #    responseLength = "$context.responseLength"
+ #  })
+ #}
 }
 
 # Integration for auth URL endpoint
