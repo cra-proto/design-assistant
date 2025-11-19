@@ -89,6 +89,27 @@ resource "aws_cloudwatch_log_group" "api_logs" {
   }
 }
 
+# Policy to allow API Gateway to write logs
+resource "aws_iam_role_policy" "api_gateway_cloudwatch" {
+  name = "${var.app_name}-api-gateway-cloudwatch"
+  role = aws_iam_role.lambda_role.id  # Or create a separate API Gateway role
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:${var.aws_region}:*:log-group:/aws/apigateway/*"
+      }
+    ]
+  })
+}
+
 # API Gateway Stage
 resource "aws_apigatewayv2_stage" "api" {
   depends_on = [aws_cloudwatch_log_group.api_logs]
@@ -96,19 +117,19 @@ resource "aws_apigatewayv2_stage" "api" {
   name        = var.environment
   auto_deploy = true
 
- # access_log_settings {
- #  destination_arn = aws_cloudwatch_log_group.api_logs.arn
- #  format = jsonencode({
- #    requestId      = "$context.requestId"
- #    ip             = "$context.identity.sourceIp"
- #    requestTime    = "$context.requestTime"
- #    httpMethod     = "$context.httpMethod"
- #    routeKey       = "$context.routeKey"
- #    status         = "$context.status"
- #    protocol       = "$context.protocol"
- #    responseLength = "$context.responseLength"
- #  })
- #}
+   access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_logs.arn
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      ip             = "$context.identity.sourceIp"
+      requestTime    = "$context.requestTime"
+      httpMethod     = "$context.httpMethod"
+      routeKey       = "$context.routeKey"
+      status         = "$context.status"
+      protocol       = "$context.protocol"
+      responseLength = "$context.responseLength"
+    })
+  }
 }
 
 # Integration for auth URL endpoint
