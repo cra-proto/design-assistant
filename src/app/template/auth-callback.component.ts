@@ -1,9 +1,11 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { GitHubAuthService } from '../services/github-auth.service';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageModule } from 'primeng/message';
+
+import { GitHubAuthService } from '../services/github-auth.service';
 
 @Component({
   selector: 'aida-auth-callback',
@@ -19,34 +21,42 @@ export class AuthCallbackComponent implements OnInit {
   error = signal<string | null>(null);
 
   ngOnInit() {
-    this.route.queryParams.subscribe(async params => {
-      const code = params['code'];
-      const state = params['state'];
-      const error = params['error'];
+    const params = this.route.snapshot.queryParams;
+    const code = params['code'];
+    const state = params['state'];
+    const error = params['error'];
 
-      if (error) {
-        this.error.set(`GitHub authentication failed: ${error}`);
-        return;
-      }
+    // Handle direct navigation (no parameters)
+    if (!code && !state && !error) {
+      this.router.navigate(['/'], { replaceUrl: true });
+      return;
+    }
 
-      if (!code || !state) {
-        this.error.set('Invalid callback parameters');
-        return;
-      }
+    // Handle OAuth error from GitHub
+    if (error) {
+      this.error.set(`GitHub authentication failed: ${error}`);
+      return;
+    }
 
-      try {
-        await this.authService.handleCallback(code, state);
+    // Handle missing required parameters
+    if (!code || !state) {
+      this.error.set('Invalid callback parameters');
+      return;
+    }
 
-        // Get the URL to return to, or use a default
-        const returnUrl = sessionStorage.getItem('github_oauth_return_url') || '/ia-assistant/github';
-        sessionStorage.removeItem('github_oauth_return_url');
+    // Process successful callback
+    this.handleCallback(code, state);
+  }
 
-        // Navigate back to where the user was or to a default page
-        this.router.navigateByUrl(returnUrl);
-      } catch (err) {
-        this.error.set('Failed to complete authentication');
-        console.error('Auth error:', err);
-      }
-    });
+  private async handleCallback(code: string, state: string) {
+    try {
+      await this.authService.handleCallback(code, state);
+      const returnUrl = sessionStorage.getItem('github_oauth_return_url') || '/ia-assistant/github'; // Return user to original location or default after login
+      sessionStorage.removeItem('github_oauth_return_url');
+      this.router.navigate([returnUrl], { replaceUrl: true });
+    } catch (error) {
+      this.error.set('Failed to complete authentication');
+      console.error('Auth error:', error);
+    }
   }
 }

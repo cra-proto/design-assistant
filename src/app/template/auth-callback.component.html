@@ -1,10 +1,10 @@
-<div class="flex align-items-center justify-content-center" style="min-height: 100vh;">
+<div class="flex align-items-center justify-content-center" style="min-height: 60vh;">
     <div class="text-center">
         @if (!error()) {
-        <p-progressSpinner />
-        <h2 class="mt-3">Authenticating with GitHub...</h2>
+        <p-progressSpinner aria-labelledby="authenticating" />
+        <h2 id="authenticating" class="mt-3">Authenticating with GitHub<span class="loading-dots"></span></h2>
         } @else {
-        <p-message severity="error" [text]="error()!" />
+        <p-message severity="error" size="large" icon="pi pi-exclamation-triangle" [text]="error()!" />
         }
     </div>
 </div>
