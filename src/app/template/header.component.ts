@@ -12,10 +12,11 @@ import { ApiResetComponent } from './api-reset.component';
 import { LocalStorageService } from '../services/local-storage.service';
 import { ThemeService } from '../services/theme.service';
 import { IaStateService } from '../views/ia-assistant/services/ia-state.service';
+import { GithubConnectComponent } from "./github-connect.component";
 
 @Component({
   selector: 'aida-header',
-  imports: [CommonModule, FormsModule, TranslateModule, ToolbarModule, ButtonModule, ToggleButtonModule, ApiResetComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, ToolbarModule, ButtonModule, ToggleButtonModule, ApiResetComponent, GithubConnectComponent],
   template: `
   <header id="header" class="pb-2">
   <p-toolbar>
@@ -30,8 +31,11 @@ import { IaStateService } from '../views/ia-assistant/services/ia-state.service'
     </div>
     <div class="flex align-items-center gap-3">
 
+    
+
       <p-button (onClick)="goToProject()" rounded outlined severity="primary" styleClass="border-dashed surface-border" [label]="project | translate"></p-button>
 
+      <aida-github-connect></aida-github-connect>
       <aida-api-reset
         *ngIf="this.localStore.getData('apiKey') !== null">
       </aida-api-reset>

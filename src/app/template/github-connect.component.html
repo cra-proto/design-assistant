@@ -1,34 +1,44 @@
-<p-card>
-    @if (authService.isAuthenticated()) {
-    @if (authService.user(); as user) {
-    <div class="flex align-items-center gap-3">
-        <p-avatar
-                  [image]="user.avatar_url"
-                  shape="circle"
-                  size="large" />
-        <div class="flex-1">
-            <div class="font-semibold">{{ user.name || user.login }}</div>
-            <div class="text-sm text-color-secondary">Connected to GitHub</div>
-        </div>
-        <p-button
-                  label="Disconnect"
-                  severity="secondary"
-                  (onClick)="authService.logout()" />
+<!--@if (authService.isAuthenticated()) {
+@if (authService.user(); as user) {
+<div class="flex align-items-center gap-3">
+    <p-avatar [image]="user.avatar_url" shape="circle" />
+    <div class="flex-1">
+        <div class="font-semibold">{{ user.name || user.login }}</div>
+        <div class="text-sm text-color-secondary">Connected to GitHub</div>
     </div>
-    }
-    } @else {
-    <div class="flex flex-column align-items-center gap-3 py-4">
-        <i class="pi pi-github text-6xl text-color-secondary"></i>
-        <div class="text-center">
-            <h3 class="mt-0 mb-2">Connect to GitHub</h3>
-            <p class="text-color-secondary mt-0">
-                Authenticate once and stay connected for 30 days
-            </p>
-        </div>
-        <p-button
-                  label="Connect with GitHub"
-                  icon="pi pi-github"
-                  (onClick)="connectGitHub()" />
+    <p-button
+              label="Disconnect"
+              severity="secondary"
+              (onClick)="authService.logout()" />
+</div>
+}
+} @else {
+<div class="flex flex-column align-items-center gap-3 py-4">
+    <i class="pi pi-github text-6xl text-color-secondary"></i>
+    <div class="text-center">
+        <h3 class="mt-0 mb-2">Connect to GitHub</h3>
+        <p class="text-color-secondary mt-0">
+            Authenticate once and stay connected for 30 days
+        </p>
     </div>
-    }
-</p-card>
+    <p-button
+              label="Connect with GitHub"
+              icon="pi pi-github"
+              (onClick)="connectGitHub()" />
+</div>
+}-->
+
+<p-menu #menu [model]="items" [popup]="true" />
+@if (authService.isAuthenticated()) {
+@if (authService.user(); as user) {
+<p-button [outlined]="true" size="small" rounded outlined styleClass="secondary-outline p-1" (onHover)="menu.toggle($event)">
+    <p-avatar [image]="user.avatar_url" shape="circle" />
+    <div class="font-semibold pr-2">{{ user.name || user.login }}</div>
+</p-button>
+}
+} @else {
+<p-button [outlined]="true" size="small" rounded outlined styleClass="secondary-outline p-1" (onClick)="connectGitHub()">
+    <i class="pi pi-github text-4xl text-color-secondary"></i>
+    <div class="font-semibold pr-2">Sign&nbsp;in</div>
+</p-button>
+}
