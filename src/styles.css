@@ -237,3 +237,39 @@ html.dark-mode .secondary-outline {
 .p-chip.text-black .p-chip-icon {
   color: black;
 }
+
+/* Loading dots animation */
+.loading-dots {
+  display: inline-block;
+  width: 1em;
+  text-align: left;
+}
+
+.loading-dots::after {
+  content: '...';
+  animation: dots 1s steps(5, end) infinite;
+}
+
+@keyframes dots {
+
+  0% {
+    content: '';
+  }
+
+  20% {
+    content: '.';
+  }
+
+  40% {
+    content: '..';
+  }
+
+  60% {
+    content: '...';
+  }
+
+  80%,
+  100% {
+    content: '....';
+  }
+}
