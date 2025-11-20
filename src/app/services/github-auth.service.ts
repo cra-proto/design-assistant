@@ -165,7 +165,7 @@ export class GitHubAuthService {
   logout(): void {
     this.accessToken.set(null);
     this.currentUser.set(null);
-    this.router.navigate(['/']);
+    //this.router.navigate(['/']);
   }
 
   /**
