@@ -27,57 +27,43 @@ export class GithubConnectComponent {
     this.authService.login(['repo', 'user']);
   }
 
-  get items(): MenuItem[] {
-    const repoName = this.iaState.getGitHubData()?.repo || 'unsaved';
-
-    return [
-      {
-        label: 'Active Project',
-        items: [
-          {
-            label: `${repoName}`,
-            icon: 'pi pi-file-edit',
-            routerLink: '/project-assistant'
-          },
-        ]
-      },
-      {
-        label: 'Projects',
-        items: [
-          {
-            label: 'New',
-            icon: 'pi pi-plus',
-            command: () => {
-              this.iaState.saveToLocalStorage();
-              this.iaState.setActiveStep(1);
-              this.iaState.resetIaFlow();
-              this.iaState.saveToLocalStorage();
-            }
-          },
-          {
-            label: 'Search',
-            icon: 'pi pi-search',
-            routerLink: '/project-assistant'
+  items: MenuItem[] = [
+    {
+      label: 'Projects',
+      items: [
+        {
+          label: 'New',
+          icon: 'pi pi-plus',
+          command: () => {
+            this.iaState.saveToLocalStorage();
+            this.iaState.setActiveStep(1);
+            this.iaState.resetIaFlow();
+            this.iaState.saveToLocalStorage();
           }
-        ]
-      },
-      {
-        label: 'Profile',
-        items: [
-          {
-            label: 'Settings',
-            icon: 'pi pi-cog',
-            routerLink: '/ia-assistant/github' // Create a new settings page!
-          },
-          {
-            label: 'Sign out',
-            icon: 'pi pi-sign-out',
-            command: () => {
-              this.authService.logout();
-            }
+        },
+        {
+          label: 'Search',
+          icon: 'pi pi-search',
+          routerLink: '/project-assistant'
+        }
+      ]
+    },
+    {
+      label: 'Profile',
+      items: [
+        {
+          label: 'Settings',
+          icon: 'pi pi-cog',
+          routerLink: '/ia-assistant/github' // Create a new settings page!
+        },
+        {
+          label: 'Sign out',
+          icon: 'pi pi-sign-out',
+          command: () => {
+            this.authService.logout();
           }
-        ]
-      }
-    ]
-  }
+        }
+      ]
+    }
+  ]
 }
