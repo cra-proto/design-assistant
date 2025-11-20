@@ -31,7 +31,7 @@
 <p-menu #menu [model]="items" [popup]="true" />
 @if (authService.isAuthenticated()) {
 @if (authService.user(); as user) {
-<p-button [outlined]="true" size="small" rounded outlined styleClass="secondary-outline p-1" (onHover)="menu.toggle($event)">
+<p-button [outlined]="true" size="small" rounded outlined styleClass="secondary-outline p-1" (onClick)="menu.toggle($event)">
     <p-avatar [image]="user.avatar_url" shape="circle" />
     <div class="font-semibold pr-2">{{ user.name || user.login }}</div>
 </p-button>
