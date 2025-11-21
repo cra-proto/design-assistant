@@ -1,0 +1,272 @@
+<h1 id="wb-cont">{{ 'title.dashboard' | translate}}</h1>
+
+<!-- Active Project Card -->
+<div class="surface-card border-round-lg shadow-2 p-4 mb-3">
+    <div class="flex flex-column lg:flex-row justify-content-between align-items-start">
+        <div>
+            <h2 class="text-2xl my-1 flex align-items-center">
+                {{ activeProject.name }}
+                <p-tag
+                       *ngFor="let phase of getCurrentPhases()"
+                       [value]="phase.name"
+                       severity="primary"
+                       [rounded]="true"
+                       styleClass="ml-2 capitalize">
+                </p-tag>
+                <p-tag
+                       *ngIf="getCurrentPhases().length === 0"
+                       value="Completed"
+                       severity="secondary"
+                       [rounded]="true"
+                       styleClass="ml-2 capitalize">
+                </p-tag>
+            </h2>
+            <p-button icon="pi pi-github" label="View Repository" [link]="true" styleClass="p-0" (onClick)="openInNewTab(activeProject.githubUrl)" />
+        </div>
+        <div class="mt-3 lg:mt-0 flex flex-row lg:flex-column gap-2">
+            <p-button
+                      label="Switch Project"
+                      icon="pi pi-arrow-right-arrow-left"
+                      outlined
+                      size="small"
+                      styleClass="secondary-outline"
+                      routerLink="/switch-project">
+            </p-button>
+            <p-button
+                      label="Export Project"
+                      icon="pi pi-file-export"
+                      outlined
+                      size="small"
+                      styleClass="secondary-outline"
+                      (onClick)="menu.toggle($event)">
+            </p-button>
+            <p-menu #menu [model]="exportItems" [popup]="true" />
+        </div>
+    </div>
+
+    <!-- Project Properties -->
+    <div class="grid mt-0 lg:-mt-5">
+
+        <div class="col-12 md:col-6 lg:col-3">
+            <div class="flex flex-row align-content-center gap-2">
+                <i class="pi pi-copy text-primary text-2xl mt-5"></i>
+                <div class="flex flex-column mt-0">
+                    <p class="text-sm text-600 mb-1">Pages</p>
+                    <p class="text-xl font-bold mt-0">{{ activeProject.pageCount }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 md:col-6 lg:col-3">
+            <div class="flex flex-row align-content-center gap-2">
+                <i class="pi pi-clock text-primary text-2xl mt-5"></i>
+                <div class="flex flex-column mt-0">
+                    <p class="text-sm text-600 mb-1">Last Modified</p>
+                    <p class="text-md mt-0">{{ activeProject.lastModified | date:'short' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 md:col-6">
+            <div class="flex flex-row align-content-center gap-2">
+                <i class="pi pi-users text-primary text-2xl mt-5"></i>
+                <div class="flex flex-column mt-0">
+                    <p class="text-sm text-600 mb-1">Collaborators</p>
+                    <div class="flex gap-2 align-items-center">
+                        <p-avatar
+                                  *ngFor="let collaborator of activeProject.collaborators.slice(0, 3)"
+                                  [label]="collaborator.initials"
+                                  [style]="{'background-color': collaborator.color, 'color': '#ffffff'}"
+                                  shape="circle"
+                                  size="normal"
+                                  [pTooltip]="collaborator.name">
+                        </p-avatar>
+                        <span *ngIf="activeProject.collaborators.length > 3" class="text-600 text-sm ml-1">
+                            +{{ activeProject.collaborators.length - 3 }} more
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Project Phase Progress -->
+    <div class="border-top-1 surface-border">
+        <h3 class="mb-2">Project Phase</h3>
+        <div class="flex flex-column lg:flex-row lg:flex-wrap gap-2">
+
+            <div *ngFor="let phase of projectPhases; let i = index" class="flex-1 flex align-items-center">
+
+                <!-- Phase Item -->
+                <div class=" flex align-items-center flex-1" (click)="togglePhaseStatus(phase)">
+                    <div class="border-circle w-3rem h-3rem flex align-items-center justify-content-center font-bold"
+                         [ngClass]="{
+                  'bg-primary text-0': phase.status === 'completed',
+                  'bg-primary-50 text-primary border-2 border-primary': phase.status === 'current',
+                  'surface-200 text-600': phase.status === 'pending'
+                }">
+                        <i *ngIf="phase.status === 'completed'" class="pi pi-check"></i>
+                        <span *ngIf="phase.status !== 'completed'">{{ i + 1 }}</span>
+                    </div>
+                    <div class="ml-3">
+                        <p class="font-semibold text-900 mb-1 capitalize">{{ phase.name }}</p>
+                        <p class="text-sm text-600 m-0 capitalize">{{ phase.status }}</p>
+                    </div>
+                </div>
+
+                <!-- Connector -->
+                <div *ngIf="i < projectPhases.length - 1"
+                     class="hidden xl:block flex-grow-0 w-4rem mx-3">
+                    <i class="text-primary pi"
+                       [class.pi-arrow-right-arrow-left]="phase.name === 'design'"
+                       [class.pi-arrow-right]="phase.name !== 'design'"></i>
+                </div>
+            </div>
+
+
+        </div>
+
+    </div>
+</div>
+
+<!-- Phase Cards Grid -->
+<div class="grid">
+
+    <!-- Discover Card -->
+    <div class="col-12 md:col-6 lg:col-3">
+        <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
+             routerLink="/project/discover"
+             [ngClass]="{'border-2 border-primary': currentPhase === 'discover'}">
+            <div class="flex-1">
+                <div class="flex align-items-center mb-3">
+
+                    <i class="pi pi-search text-orange-500 text-xl"></i>
+                    <h3 class="text-lg font-semibold text-900 ml-2 m-0">Discover</h3>
+
+                </div>
+                <p class="text-600 text-sm mb-3">Build your content inventory and identify problems.</p>
+                <div class="border-top-1 surface-border pt-3">
+                    <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
+                        <li><span class="text-sm text-700">Identify scope</span></li>
+                        <li><span class="text-sm text-700">Review Guidance</span></li>
+                        <li><span class="text-sm text-700">Summarize pain points</span></li>
+                    </ul>
+                </div>
+
+            </div>
+
+
+            <p-progressbar *ngIf="assessmentStats.issuesFound > 0"
+                           [value]="100"
+                           [showValue]="false"
+                           styleClass="h-2rem centered-label">
+                <ng-template #content let-value>
+                    <span>{{assessmentStats.issuesFound}} issues found</span>
+                </ng-template>
+            </p-progressbar>
+
+        </div>
+    </div>
+
+    <!-- Design Card -->
+    <div class="col-12 md:col-6 lg:col-3">
+        <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
+             routerLink="/project/design"
+             [ngClass]="{'border-2 border-primary': currentPhase === 'design'}">
+            <div class="flex-1">
+                <div class="flex align-items-center mb-3">
+
+                    <i class="pi pi-pencil text-purple-500 text-xl"></i>
+                    <h3 class="text-lg font-semibold text-900 ml-2 m-0">Design</h3>
+
+                </div>
+                <p class="text-600 text-sm mb-3">Redesign content and export prototypes to GitHub.</p>
+                <div class="border-top-1 surface-border pt-3">
+                    <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
+                        <li><span class="text-sm text-700">Edit IA diagram</span></li>
+                        <li><span class="text-sm text-700">Get AI recomendations</span></li>
+                        <li><span class="text-sm text-700">Generate metadata</span></li>
+                        <li><span class="text-sm text-700">Create alt text for images</span></li>
+                        <li><span class="text-sm text-700">Export prototypes to GitHub</span></li>
+                    </ul>
+                </div>
+            </div>
+            <p-progressbar *ngIf="activeProject.pageCount > 0"
+                           [value]="pageProgress/activeProject.pageCount * 100"
+                           [showValue]="false"
+                           styleClass="h-2rem centered-label">
+                <ng-template #content let-value>
+                    <span>{{pageProgress}}/{{activeProject.pageCount}}&nbsp;pages&nbsp;edited</span>
+                </ng-template>
+            </p-progressbar>
+        </div>
+    </div>
+
+    <!-- Assess Card -->
+    <div class="col-12 md:col-6 lg:col-3">
+        <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
+             routerLink="/project/assess"
+             [ngClass]="{'border-2 border-primary': currentPhase === 'assess'}">
+            <div class="flex-1">
+                <div class="flex align-items-center mb-3">
+
+                    <i class="pi pi-chart-line text-blue-500 text-xl"></i>
+                    <h3 class="text-lg font-semibold text-900 ml-2 m-0">Assess</h3>
+
+                </div>
+                <p class="text-600 text-sm mb-3">Compare prototypes with baseline pages and evaluate content quality.</p>
+                <div class="border-top-1 surface-border pt-3">
+                    <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
+                        <li><span class="text-sm text-700">Review changes</span></li>
+                        <li><span class="text-sm text-700">Compare pain points</span></li>
+                    </ul>
+                </div>
+
+
+            </div>
+            <p-progressbar *ngIf="assessmentStats.issuesFound > 0"
+                           [value]="problemProgress/assessmentStats.issuesFound * 100"
+                           [showValue]="false"
+                           styleClass="h-2rem centered-label">
+                <ng-template #content let-value>
+                    <span>{{problemProgress}}/{{assessmentStats.issuesFound}} issues fixed</span>
+                </ng-template>
+            </p-progressbar>
+        </div>
+    </div>
+
+
+    <!-- Approve Card -->
+    <div class="col-12 md:col-6 lg:col-3">
+        <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
+             routerLink="/project/approve"
+             [ngClass]="{'border-2 border-primary': currentPhase === 'approve'}">
+
+            <div class="flex-1">
+                <div class="flex align-items-center mb-3">
+                    <i class="pi pi-check-circle text-green-500 text-xl"></i>
+                    <h3 class="text-lg font-semibold text-900 ml-2 m-0">Approve</h3>
+                </div>
+                <p class="text-600 text-sm mb-3">Review changes and get approvals.</p>
+                <div class="border-top-1 surface-border pt-3">
+                    <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
+                        <li><span class="text-sm text-700">Change summary</span></li>
+                        <li><span class="text-sm text-700">Problem summary</span></li>
+                        <li><span class="text-sm text-700">Final approvals</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <p-progressbar [value]="approvalProgress/3 * 100"
+                           [showValue]="false"
+                           styleClass="h-2rem centered-label">
+                <ng-template #content let-value>
+                    <span>{{approvalProgress}}/3 approvals</span>
+                </ng-template>
+            </p-progressbar>
+
+        </div>
+    </div>
+
+</div>

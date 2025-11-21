@@ -15,15 +15,15 @@ import { IaStateService, SavedProject } from '../ia-assistant/services/ia-state.
 import { ExportGithubComponent } from '../ia-assistant/components/export-github.component';
 
 @Component({
-  selector: 'aida-project-assistant',
+  selector: 'aida-switch-project',
   standalone: true,
   imports: [CommonModule, TranslateModule,
     CardModule, ButtonModule, DialogModule, InputTextModule, FieldsetModule, SplitButtonModule,
     ExportGithubComponent],
-  templateUrl: './project-assistant.component.html',
-  styleUrl: './project-assistant.component.css'
+  templateUrl: './switch-project.component.html',
+  styles: ``
 })
-export class ProjectAssistantComponent {
+export class SwitchProjectComponent {
   public iaState = inject(IaStateService);
   public router = inject(Router);
   exportItems: MenuItem[] = [];

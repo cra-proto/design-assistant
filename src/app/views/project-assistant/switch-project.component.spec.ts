@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ProjectAssistantComponent } from './project-assistant.component';
+import { SwitchProjectComponent } from './switch-project.component';
 
 describe('ProjectAssistantComponent', () => {
-  let component: ProjectAssistantComponent;
-  let fixture: ComponentFixture<ProjectAssistantComponent>;
+  let component: SwitchProjectComponent;
+  let fixture: ComponentFixture<SwitchProjectComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ProjectAssistantComponent]
+      imports: [SwitchProjectComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(ProjectAssistantComponent);
+    fixture = TestBed.createComponent(SwitchProjectComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
