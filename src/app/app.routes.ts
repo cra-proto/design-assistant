@@ -1,28 +1,59 @@
 import { Routes, Router } from '@angular/router';
 import { inject } from '@angular/core';
-import { LandingComponent } from './views/static/landing.component';
-import { NotFoundComponent } from './views/static/not-found.component';
-import { PageUploadComponent } from './views/page-assistant/components/upload.component';
+// Project files
+import { DashboardComponent } from './views/project-assistant/dashboard.component';
+import { SwitchProjectComponent } from './views/project-assistant/switch-project.component';
+// Authentication
+import { GithubConnectComponent } from './template/github-connect.component';
+import { AuthCallbackComponent } from './template/auth-callback.component';
+//Export & Share
+import { ExportGithubComponent } from './views/ia-assistant/components/export-github.component';
 import { ShareComponent } from './views/page-assistant/components/share.component';
+// Tools
+import { PageUploadComponent } from './views/page-assistant/components/upload.component';
 import { UploadStateService } from './views/page-assistant/services/upload-state.service';
 import { ImageAssistantComponent } from './views/image-assistant/image-assistant.component';
 import { TranslationAssistantComponent } from './views/translation-assistant/translation-assistant.component';
-import { ProjectAssistantComponent } from './views/project-assistant/project-assistant.component';
 import { InventoryAssistantComponent } from './views/inventory-assistant/inventory-assistant.component';
 import { MetadataAssistantComponent } from './views/metadata-assistant/metadata-assistant.component';
 import { LlmEvaluationComponent } from './views/llm-evaluation/llm-evaluation.component';
-import { AboutComponent } from './views/static/about.component';
-import { TestComponent } from './views/example/test.component';
 import { IaAssistantComponent } from './views/ia-assistant/ia-assistant.component';
-import { ExportGithubComponent } from './views/ia-assistant/components/export-github.component';
-import { GithubConnectComponent } from './template/github-connect.component';
-import { AuthCallbackComponent } from './template/auth-callback.component';
+// Static pages
+import { NotFoundComponent } from './views/static/not-found.component';
+import { AboutComponent } from './views/static/about.component';
+//Test
+import { TestComponent } from './views/example/test.component';
 
 export const routes: Routes = [
     {
         path: '',
-        component: LandingComponent,
+        component: DashboardComponent,
         title: 'title.landing',
+    },
+    {
+        path: 'switch-project',
+        component: SwitchProjectComponent,
+        title: 'title.project',
+    },
+    {
+        path: 'auth/login',
+        component: GithubConnectComponent,
+        title: 'title.ia',
+    },
+    {
+        path: 'auth/callback',
+        component: AuthCallbackComponent,
+        title: 'title.ia',
+    },
+    {
+        path: 'page-assistant/share',
+        component: ShareComponent,
+        title: 'title.page',
+    },
+    {
+        path: 'ia-assistant/github',
+        component: ExportGithubComponent,
+        title: 'title.ia',
     },
     {
         path: 'page-assistant/compare',
@@ -43,11 +74,6 @@ export const routes: Routes = [
 
     },
     {
-        path: 'page-assistant/share',
-        component: ShareComponent,
-        title: 'title.page',
-    },
-    {
         path: 'page-assistant',
         component: PageUploadComponent,
         title: 'title.page',
@@ -55,21 +81,6 @@ export const routes: Routes = [
     {
         path: 'ia-assistant',
         component: IaAssistantComponent,
-        title: 'title.ia',
-    },
-    {
-        path: 'ia-assistant/github',
-        component: ExportGithubComponent,
-        title: 'title.ia',
-    },
-    {
-        path: 'ia-assistant/github/login',
-        component: GithubConnectComponent,
-        title: 'title.ia',
-    },
-    {
-        path: 'auth/callback',
-        component: AuthCallbackComponent,
         title: 'title.ia',
     },
     {
@@ -81,11 +92,6 @@ export const routes: Routes = [
         path: 'translation-assistant',
         component: TranslationAssistantComponent,
         title: 'title.translation',
-    },
-    {
-        path: 'project-assistant',
-        component: ProjectAssistantComponent,
-        title: 'title.project',
     },
     {
         path: 'inventory-assistant',
