@@ -139,7 +139,7 @@ export class ExportGitHubService {
 
       // Fix relative URLs
       mainEl.querySelectorAll<HTMLElement>("*").forEach(el => {
-        for (let attr of Array.from(el.attributes)) {
+        for (const attr of Array.from(el.attributes)) {
           if (attr.value && attr.value.includes('"/')) {
             attr.value = attr.value.replace(/"\//g, '"https://www.canada.ca/');
           }
