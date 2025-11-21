@@ -44,7 +44,7 @@ export class GithubConnectComponent {
         {
           label: 'Search',
           icon: 'pi pi-search',
-          routerLink: '/project-assistant'
+          routerLink: '/switch-project'
         }
       ]
     },
