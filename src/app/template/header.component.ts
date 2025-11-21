@@ -108,7 +108,7 @@ export class HeaderComponent {
 
   goToProject() {
     this.iaState.saveToLocalStorage();
-    this.router.navigate(['/project-assistant']);
+    this.router.navigate(['/switch-project']);
   }
 
 }
