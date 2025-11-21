@@ -99,7 +99,13 @@
             <div *ngFor="let phase of projectPhases; let i = index" class="flex-1 flex align-items-center">
 
                 <!-- Phase Item -->
-                <div class=" flex align-items-center flex-1" (click)="togglePhaseStatus(phase)">
+                <div class="flex align-items-center flex-1 cursor-pointer"
+                     (click)="togglePhaseStatus(phase)"
+                     (keydown.enter)="togglePhaseStatus(phase)"
+                     (keydown.space)="togglePhaseStatus(phase)"
+                     tabindex="0"
+                     role="button"
+                     [attr.aria-label]="'Toggle ' + phase.name + ' phase status'">
                     <div class="border-circle w-3rem h-3rem flex align-items-center justify-content-center font-bold"
                          [ngClass]="{
                   'bg-primary text-0': phase.status === 'completed',
@@ -124,9 +130,7 @@
                 </div>
             </div>
 
-
         </div>
-
     </div>
 </div>
 
