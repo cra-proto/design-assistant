@@ -31,7 +31,7 @@ jobs:
           role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Backend-design-assistant
           aws-region: ca-central-1
 
-      - name: Build Lambda function
+      - name: Build Lambda OAuth function
         working-directory: backend/functions/github-oauth
         run: |
           npm ci
@@ -51,10 +51,25 @@ jobs:
           echo ">>> listing from repo root (sanity):"
           ls -la ../../..
       
-      - name: Debug file tree
+      - name: Build Lambda Project function
+        working-directory: backend/functions/projects
         run: |
-          echo "Backend directory contents:"
-          ls -R backend
+          npm ci
+          npm run build
+          mkdir -p dist
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          sudo apt-get update && sudo apt-get install -y zip
+          zip -r lambda.zip .
+          echo ">>> Dist contents after zipping:"
+          ls -la
+          echo ">>> lambda.zip checksum:"
+          sha256sum lambda.zip || true
+          echo ">>> full path:"
+          pwd
+          echo ">>> listing from repo root (sanity):"
+          ls -la ../../..
           
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
