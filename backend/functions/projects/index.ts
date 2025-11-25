@@ -117,7 +117,7 @@ export const getProject = async (event: APIGatewayProxyEvent): Promise<APIGatewa
         if (!result.Item.isPublic && authHeader) {
             try {
                 const token = authHeader.replace('Bearer ', '');
-                const user = await getUserFromToken(token);
+                const user: any = await getUserFromToken(token);
                 const isCollaborator = result.Item.collaborators?.some(
                     (c: any) => c.githubId === user.id.toString()
                 );
