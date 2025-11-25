@@ -39,16 +39,10 @@ jobs:
           mkdir -p dist
           cp package*.json dist/
           cp -R build/* dist/ 2>/dev/null || true
-          
           cd dist
           npm ci --production
-          #sudo apt-get update && sudo apt-get install -y zip
-          
           cd ..
           zip -r lambda.zip dist/
-          echo ">>> lambda.zip created at: $(pwd)/lambda.zip"
-          echo ">>> lambda.zip checksum:"
-          sha256sum lambda.zip || true
       
       - name: Upload OAuth Artifact
         uses: actions/upload-artifact@v4
@@ -65,15 +59,10 @@ jobs:
           mkdir -p dist
           cp package*.json dist/
           cp -R build/* dist/ 2>/dev/null || true
-          
           cd dist
           npm ci --production
-          
           cd ..
-          zip -r lambda.zip .
-          echo ">>> lambda.zip created at: $(pwd)/lambda.zip"
-          echo ">>> lambda.zip checksum:"
-          sha256sum lambda.zip || true
+          zip -r lambda.zip dist/
        
       - name: Upload Projects Artifact
         uses: actions/upload-artifact@v4
