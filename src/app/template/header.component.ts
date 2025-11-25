@@ -14,9 +14,17 @@ import { ThemeService } from '../services/theme.service';
 import { IaStateService } from '../views/ia-assistant/services/ia-state.service';
 import { GithubConnectComponent } from "./github-connect.component";
 
+import { DividerModule } from 'primeng/divider';
+import { TagModule } from 'primeng/tag';
+import { MenuModule } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
+import { BadgeModule } from 'primeng/badge';
+
 @Component({
   selector: 'aida-header',
-  imports: [CommonModule, FormsModule, TranslateModule, ToolbarModule, ButtonModule, ToggleButtonModule, ApiResetComponent, GithubConnectComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, ToolbarModule, ButtonModule, ToggleButtonModule, ApiResetComponent, GithubConnectComponent,
+    DividerModule, TagModule, MenuModule, BadgeModule
+  ],
   template: `
   <header id="header" class="pb-2">
   <p-toolbar>
@@ -30,15 +38,15 @@ import { GithubConnectComponent } from "./github-connect.component";
       />
     </div>
     <div class="flex align-items-center gap-3">
-
-    
-
       <p-button (onClick)="goToProject()" rounded outlined severity="primary" styleClass="border-dashed surface-border" [label]="project | translate"></p-button>
 
+      <p-divider layout="vertical" styleClass="mx-2"></p-divider>
+
       <aida-github-connect></aida-github-connect>
-      <aida-api-reset
+      
+      <!--aida-api-reset
         *ngIf="this.localStore.getData('apiKey') !== null">
-      </aida-api-reset>
+      </aida-api-reset-->
 
       <p-button (onClick)="theme.toggle()" rounded outlined size="small" severity="secondary" [icon]="theme.icon()" styleClass="darkmode-toggle surface-border"  ariaLabel="Toggle between dark and light mode"></p-button>
 
@@ -47,7 +55,7 @@ import { GithubConnectComponent } from "./github-connect.component";
     </div>
   </p-toolbar>
 </header>
-  `,
+`,
   styles: `
   ::ng-deep .p-toolbar {
       background-color: transparent !important;
@@ -108,7 +116,7 @@ export class HeaderComponent {
 
   goToProject() {
     this.iaState.saveToLocalStorage();
-    this.router.navigate(['/switch-project']);
+    this.router.navigate(['']);
   }
 
 }
