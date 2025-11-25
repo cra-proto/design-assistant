@@ -42,7 +42,7 @@ jobs:
           cd dist
           npm ci --production
           cd ..
-          zip -r lambda.zip dist/
+          zip -r -q lambda.zip dist/
       
       - name: Upload OAuth Artifact
         uses: actions/upload-artifact@v4
@@ -62,7 +62,7 @@ jobs:
           cd dist
           npm ci --production
           cd ..
-          zip -r lambda.zip dist/
+          zip -r -q lambda.zip dist/
        
       - name: Upload Projects Artifact
         uses: actions/upload-artifact@v4
