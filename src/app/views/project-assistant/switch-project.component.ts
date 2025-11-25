@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from "@ngx-translate/core";
@@ -35,6 +35,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { IaStateService, SavedProject } from '../ia-assistant/services/ia-state.service';
 import { ExportGithubComponent } from '../ia-assistant/components/export-github.component';
 import { GitHubAuthService } from '../../services/github-auth.service';
+import { CloudStorageService, CloudProject } from '../../services/cloud-storage.service';
 
 export interface Project {
   key: string;
@@ -60,9 +61,11 @@ export interface Project {
   templateUrl: './switch-project.component.html',
   styles: ``
 })
-export class SwitchProjectComponent {
+export class SwitchProjectComponent implements OnInit {
   public authService = inject(GitHubAuthService);
+  private cloudStorage = inject(CloudStorageService);
   public iaState = inject(IaStateService);
+  public router = inject(Router);
   public message = inject(MessageService);
   public filterService = inject(FilterService);
 
@@ -225,6 +228,81 @@ export class SwitchProjectComponent {
       'Complete': 'verified'
     };
     return iconMap[phase || 'Draft'] || 'pencil';
+  }
+
+  //more testing
+  // Combined projects (local + cloud)
+  combinedProjects = computed(() => {
+    const local = this.savedProjects().map(p => ({
+      ...p,
+      storageType: 'local' as const,
+      canEdit: true
+    }));
+
+    const cloud = this.cloudStorage.projects().map(p => ({
+      key: p.key,
+      timestamp: p.timestamp,
+      pages: p.pages,
+      phase: p.phase,
+      local: false,
+      storageType: 'cloud' as const,
+      cloudId: p.id,
+      collaborators: p.collaborators,
+      canEdit: this.cloudStorage.canEdit(p)
+    }));
+
+    return [...local, ...cloud].sort((a, b) => b.timestamp - a.timestamp);
+  });
+
+  async ngOnInit() {
+    this.loadProjects();
+    await this.cloudStorage.loadProjects();
+  }
+
+  async uploadToCloud(project: SavedProject) {
+    if (!this.authService.isAuthenticated()) {
+      this.showSave = true;
+      return;
+    }
+
+    // Load the project state from localStorage
+    const projectState = localStorage.getItem(project.key);
+    if (!projectState) return;
+
+    const state = JSON.parse(projectState);
+    const cloudId = await this.cloudStorage.saveProject(state);
+
+    if (cloudId) {
+      // Optional: Remove from local storage after successful upload
+      // this.deleteProject(project.key);
+
+      // Show success message
+      console.log('Project uploaded to cloud with ID:', cloudId);
+    }
+  }
+
+  async loadCloudProject(cloudId: string) {
+    const project = await this.cloudStorage.getProject(cloudId);
+    if (!project || !project.content) return;
+
+    // Parse the content and load it into the state
+    const state = JSON.parse(project.content);
+    this.iaState.setActiveStep(state.activeStep);
+    this.iaState.setUrlData(state.urlData);
+    this.iaState.setBreadcrumbData(state.breadcrumbData);
+    this.iaState.setSearchData(state.searchData);
+    this.iaState.setIaData(state.iaData);
+    this.iaState.setGitHubData(state.gitHubData);
+
+    // Navigate to the project
+    this.router.navigate(['/']);
+  }
+
+  async deleteCloudProject(cloudId: string) {
+    const success = await this.cloudStorage.deleteProject(cloudId);
+    if (success) {
+      console.log('Cloud project deleted');
+    }
   }
 
 }
