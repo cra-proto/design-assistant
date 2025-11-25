@@ -173,7 +173,7 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
         }
 
         const token = authHeader.replace('Bearer ', '');
-        const user = await getUserFromToken(token);
+        const user: any = await getUserFromToken(token);
         const projectData = JSON.parse(event.body || '{}');
 
         const now = Date.now();
@@ -264,7 +264,7 @@ export const deleteProject = async (event: APIGatewayProxyEvent): Promise<APIGat
         }
 
         const token = authHeader.replace('Bearer ', '');
-        const user = await getUserFromToken(token);
+        const user: any = await getUserFromToken(token);
         const projectId = event.pathParameters?.id;
 
         if (!projectId) {
