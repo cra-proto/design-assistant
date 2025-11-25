@@ -44,7 +44,7 @@ resource "aws_lambda_function" "github_auth_url" {
   function_name    = "${var.app_name}-github-auth-url"
   role            = aws_iam_role.lambda_role.arn
   handler         = "index.getAuthUrl"
-  source_code_hash = filebase64sha256("${path.module}/../functions/github-oauth/dist/lambda.zip")
+  source_code_hash = filebase64sha256("${path.module}/../functions/github-oauth/lambda.zip")
   runtime         = "nodejs22.x"
   timeout         = 30
 
@@ -61,7 +61,7 @@ resource "aws_lambda_function" "github_callback" {
   function_name    = "${var.app_name}-github-callback"
   role            = aws_iam_role.lambda_role.arn
   handler         = "index.handleCallback"
-  source_code_hash = filebase64sha256("${path.module}/../functions/github-oauth/dist/lambda.zip")
+  source_code_hash = filebase64sha256("${path.module}/../functions/github-oauth/lambda.zip")
   runtime         = "nodejs22.x"
   timeout         = 30
 }
@@ -190,7 +190,7 @@ resource "aws_lambda_function" "projects" {
   function_name    = "${var.app_name}-projects"
   role            = aws_iam_role.lambda_role.arn
   handler         = "index.handler"
-  source_code_hash = filebase64sha256("${path.module}/../functions/projects/dist/lambda.zip")
+  source_code_hash = filebase64sha256("${path.module}/../functions/projects/lambda.zip")
   runtime         = "nodejs22.x"
   timeout         = 30
 
