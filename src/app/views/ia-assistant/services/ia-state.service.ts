@@ -8,6 +8,8 @@ export interface SavedProject {
   key: string;
   timestamp: number;
   pages: number;
+  phase: 'Draft' | 'Discover' | 'Design' | 'Assess' | 'Approve' | 'Complete'
+  local: boolean;
 }
 
 export interface UrlData {
@@ -240,11 +242,13 @@ export class IaStateService {
     const existingIndex = savedProjects.findIndex(p => p.key === key);
     const timestamp = Date.now();
     const pages = this.countInScopePages();
+    const local = true;
+    const phase = 'Draft'; //only used for new projects
     if (existingIndex >= 0) {
       savedProjects[existingIndex].timestamp = timestamp; //update timestamp for existing projects
       savedProjects[existingIndex].pages = pages; //update in-scope pages for existing projects
     } else {
-      savedProjects.push({ key, timestamp, pages }); //add new project
+      savedProjects.push({ key, timestamp, pages, local, phase }); //add new project
     }
     savedProjects.sort((a, b) => b.timestamp - a.timestamp);
     localStorage.setItem('savedProjects', JSON.stringify(savedProjects));
