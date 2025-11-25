@@ -1,64 +1,74 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { TranslateModule } from "@ngx-translate/core";
 import { Router } from '@angular/router';
 
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
 import { FieldsetModule } from 'primeng/fieldset';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { MenuItem } from 'primeng/api';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { TagModule } from 'primeng/tag';
+import { TableModule } from 'primeng/table';
+import { TabsModule } from 'primeng/tabs';
+import { BadgeModule } from 'primeng/badge';
+import { AvatarModule } from 'primeng/avatar';
+import { MessageModule } from 'primeng/message';
+import { MessageService } from 'primeng/api';
+
+import { DividerModule } from 'primeng/divider';
+import { CheckboxModule } from 'primeng/checkbox';
+import { ChipModule } from 'primeng/chip';
+import { TimelineModule } from 'primeng/timeline';
+import { ProgressBarModule } from 'primeng/progressbar';
+
+import { FilterService } from 'primeng/api';
+import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { SelectModule } from 'primeng/select';
+import { MultiSelectModule } from 'primeng/multiselect';
 
 import { IaStateService, SavedProject } from '../ia-assistant/services/ia-state.service';
 import { ExportGithubComponent } from '../ia-assistant/components/export-github.component';
+import { GitHubAuthService } from '../../services/github-auth.service';
+
+export interface Project {
+  key: string;
+  name: string;
+  description?: string;
+  pages: number;
+  timestamp: Date;
+  storageType: 'local' | 'cloud';
+  githubRepo?: string;
+  githubUrl?: string;
+  collaborators?: Array<{ name: string; initials: string; color: string }>;
+  isEditable?: boolean;
+}
 
 @Component({
   selector: 'aida-switch-project',
   standalone: true,
-  imports: [CommonModule, TranslateModule,
-    CardModule, ButtonModule, DialogModule, InputTextModule, FieldsetModule, SplitButtonModule,
+  imports: [CommonModule, FormsModule, TranslateModule,
+    CardModule, ButtonModule, DialogModule, FieldsetModule, TimelineModule, ProgressBarModule, SplitButtonModule, ChipModule,
+    InputTextModule, IconFieldModule, InputIconModule, SelectModule, MultiSelectModule,
+    CheckboxModule, DividerModule, SelectButtonModule, TagModule, TableModule, TabsModule, BadgeModule, AvatarModule, MessageModule,
     ExportGithubComponent],
   templateUrl: './switch-project.component.html',
   styles: ``
 })
 export class SwitchProjectComponent {
+  public authService = inject(GitHubAuthService);
   public iaState = inject(IaStateService);
-  public router = inject(Router);
-  exportItems: MenuItem[] = [];
+  public message = inject(MessageService);
+  public filterService = inject(FilterService);
+
 
   constructor() {
     this.loadProjects();
-    this.exportItems = [
-      {
-        label: 'Export CSV (content inventory)',
-        icon: 'pi pi-list-check',
-        command: () => {
-
-        },
-        disabled: true,
-      },
-      {
-        label: 'Export CSV (tree testing)',
-        icon: 'pi pi-align-right',
-        command: () => {
-
-        },
-        disabled: true,
-      },
-      {
-        separator: true,
-      },
-      {
-        label: 'Export JSON file',
-        icon: 'pi pi-code',
-        command: () => {
-
-        },
-        disabled: true,
-      },
-    ];
   }
 
   //Load all projects
@@ -158,4 +168,64 @@ export class SwitchProjectComponent {
     }
   }
 
+
+
+  //testing
+
+  //Sort
+  selectedSort = signal<string>('date_desc');
+  sortOptions = [
+    { label: 'Date (newest first)', value: 'date_desc' },
+    { label: 'Date (oldest first)', value: 'date_asc' },
+    { label: 'Name (A-Z)', value: 'name_asc' },
+    { label: 'Name (Z-A)', value: 'name_desc' },
+  ];
+
+  //Filter
+  selectedFilter = signal<string>('');
+  groupedFilters = [
+    {
+      label: 'Storage type',
+      value: 'storage',
+      items: [
+        { label: 'Cloud', value: 'Cloud' },
+        { label: 'Local', value: 'Local' },
+      ]
+    },
+    {
+      label: 'Collaborators',
+      value: 'collab',
+      items: [
+        { label: 'Amber', value: 'Amber' },
+        { label: 'Miguel', value: 'Miguel' },
+        { label: 'Naomi', value: 'Naomi' },
+        { label: 'Marvin', value: 'Marvin' }
+      ]
+    },
+    {
+      label: 'Project Phase',
+      value: 'phase',
+      items: [
+        { label: 'Draft', value: 'Draft' },
+        { label: 'Discover', value: 'Discover' },
+        { label: 'Design', value: 'Design' },
+        { label: 'Assess', value: 'Assess' },
+        { label: 'Approve', value: 'Approve' },
+        { label: 'Complete', value: 'Complete' },
+      ]
+    },
+  ];
+
+  getPhaseIcon(phase: string | undefined): string {
+    const iconMap: { [key: string]: string } = {
+      'Discover': 'search',
+      'Design': 'pencil',
+      'Assess': 'chart-line',
+      'Approve': 'check-circle',
+      'Complete': 'verified'
+    };
+    return iconMap[phase || 'Draft'] || 'pencil';
+  }
+
 }
+

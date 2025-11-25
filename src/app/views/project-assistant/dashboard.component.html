@@ -29,7 +29,7 @@
                       icon="pi pi-arrow-right-arrow-left"
                       outlined
                       size="small"
-                      styleClass="secondary-outline"
+                      styleClass="secondary-outline w-full"
                       routerLink="/switch-project">
             </p-button>
             <p-button
@@ -37,7 +37,7 @@
                       icon="pi pi-file-export"
                       outlined
                       size="small"
-                      styleClass="secondary-outline"
+                      styleClass="secondary-outline w-full"
                       (onClick)="menu.toggle($event)">
             </p-button>
             <p-menu #menu [model]="exportItems" [popup]="true" />

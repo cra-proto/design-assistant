@@ -1,121 +1,137 @@
-<h1 id="wb-cont">{{ 'title.project' | translate}}</h1>
-<p>{{'project.description' | translate }}</p>
+<h1 id="wb-cont">{{ 'title.saves' | translate}}</h1>
+<p>{{'saves.description' | translate }}</p>
 
-<h2>Active project</h2>
-<div class="grid">
-  <div class="col-12 lg:col-4">
+<!-- Authentication Banner -->
+<p-message severity="info" styleClass="mb-2" *ngIf="!authService.isAuthenticated()">
+  <div class="flex align-items-center gap-2">
+    <i class="pi pi-info-circle font-bold"></i>
+    <span>Sign in with GitHub to edit cloud projects and save your local projects to the cloud.</span>
+  </div>
+</p-message>
 
-    <p-card *ngIf="activeProject() as project" styleClass="h-12rem">
+<!-- All Projects -->
+<div class="surface-card border-round-lg shadow-2 p-4 mb-3">
+  <div class="flex flex-column-reverse xl:flex-row justify-content-between align-items-start gap-2 mb-3">
 
-      <ng-template pTemplate="header">
-        <div class="flex justify-content-end">
-          <p-button icon="pi pi-save" text rounded size="small" severity="success" (onClick)="showSave = true" *ngIf="project.key === 'autosave'" />
-          <p-button icon="pi pi-minus" text rounded size="small" severity="secondary" (onClick)="newProject()" *ngIf="project.key !== 'autosave'" />
-          <p-button icon="pi pi-trash" text rounded size="small" severity="danger" (onClick)="deleteProject(project.key)" />
-        </div>
-      </ng-template>
-
-      <ng-template pTemplate="title">
-        <div class="text-xl font-bold -mt-5">
-          {{ getDisplayName(project) | translate }}
-        </div>
-      </ng-template>
-
-      <!--Loading-->
-      <div class="flex flex-row gap-2 justify-content-center mt-5"
-           *ngIf="loadingKey; else projectActive">
-        <i class="pi pi-spin pi-spinner text-primary-500 text-2xl"></i>
-        <span class="text-sm text-color-secondary">Saving project<span class="loading-dots"></span></span>
-      </div>
-
-      <!--Project details-->
-      <ng-template #projectActive>
-        <div class="flex flex-column gap-2 text-color-secondary">
-          <div class="text-sm">
-            <i class="pi pi-github mr-2"></i><ng-container *ngIf="project.key !== 'autosave'">{{ project.key }}</ng-container>
+    <div class="flex flex-column lg:flex-row gap-2 w-full">
+      <!--Search-->
+      <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input type="text" pInputText placeholder="Search" class="min-w-min md:min-w-max w-full" />
+      </p-iconfield>
+      <!--Sort-->
+      <p-select [options]="sortOptions" [(ngModel)]="selectedSort" placeholder="Sort by" styleClass="min-w-min md:min-w-max" />
+      <!--Filter-->
+      <p-multiselect [options]="groupedFilters" [group]="true" [(ngModel)]="selectedFilter" placeholder="Filter files" styleClass="min-w-min md:min-w-max">
+        <ng-template let-group #group>
+          <div class="flex items-center">
+            <span>{{ group.label }}</span>
           </div>
-          <div class="text-sm">
-            <i class="pi pi-copy mr-2"></i>Pages: {{ project.pages }}
-          </div>
-          <div class="text-xs">
-            <i class="pi pi-clock mr-2"></i>Modified: {{ formatDate(project.timestamp) }}
-          </div>
-        </div>
-      </ng-template>
+        </ng-template>
+      </p-multiselect>
+    </div>
 
-    </p-card>
+    <div class="flex flex-row xl:flex-column gap-2">
+      <!--New-->
+      <p-button
+                label="New&nbsp;Project"
+                icon="pi pi-plus"
+                outlined
+                size="small"
+                styleClass="secondary-outline w-full"
+                (onClick)="newProject()">
+      </p-button>
+      <!--Import-->
+      <p-button
+                label="Import&nbsp;Project"
+                icon="pi pi-upload"
+                outlined
+                size="small"
+                styleClass="secondary-outline w-full">
+      </p-button>
+    </div>
 
   </div>
-  <div class="col-12 xl:col-8">
-    <p-fieldset legend="Quick links" styleClass="h-13rem shadow-1 border-top-none surface-border lg:-mt-3">
-      <div class="flex flex-column align-items-stretch gap-2">
-        <div class="flex flex-row gap-2">
-          <p-splitbutton class="flex flex-1" label="Export to GitHub" icon="pi pi-github" outlined styleClass="secondary-outline" (onClick)="router.navigate(['/ia-assistant/github']);" [model]="exportItems" fluid />
-          <p-button class="flex flex-1" label="Edit IA Tree" icon="pi pi-sitemap" outlined styleClass="secondary-outline" (onClick)="router.navigate(['/ia-assistant']);" fluid />
-        </div>
-        <div class="flex flex-row gap-2">
-          <p-button class="flex flex-1" label="Generate Metadata" icon="pi pi-list" outlined styleClass="secondary-outline" (onClick)="router.navigate(['/metadata-assistant'])" fluid />
-          <p-button class="flex flex-1" label="Placeholder" icon="pi pi-list" outlined styleClass="secondary-outline" fluid disabled />
-        </div>
-        <div class="flex flex-row gap-2">
-          <p-button class="flex flex-1" label="Placeholder" icon="pi pi-list" outlined styleClass="secondary-outline" fluid disabled />
-          <p-button class="flex flex-1" label="Placeholder" icon="pi pi-list" outlined styleClass="secondary-outline" fluid disabled />
-        </div>
+
+  <!--Saved projects-->
+  <ng-container *ngIf=" projects.length> 0; else none">
+    <div class="grid">
+      <div class="col-12 md:col-6 lg:col-4" *ngFor="let project of projects">
+        <p-card styleClass="h-full border-1 surface-border cursor-pointer" (click)="loadProject(project.key)">
+
+          <ng-template pTemplate="header">
+            <div class="flex justify-content-between align-items-start p-3 pb-0">
+              <!--Tags-->
+              <div class="flex gap-2">
+                <p-tag value="Local" icon="pi pi-home" severity="secondary" [style]="{'font-size': '0.75rem'}" *ngIf="project.local === true"></p-tag>
+                <p-tag value="Cloud" icon="pi pi-cloud" severity="info" [style]="{'font-size': '0.75rem'}" *ngIf="project.local !== true"></p-tag>
+                <p-tag value="Read-only" icon="pi pi-eye" severity="warning" [style]="{'font-size': '0.75rem'}" *ngIf="project.local !== true && !authService.isAuthenticated()"></p-tag>
+                <p-tag value="Unsaved" icon="pi pi-exclamation-triangle" severity="danger" [style]="{'font-size': '0.75rem'}" *ngIf="project.key === 'autosave'"></p-tag>
+              </div>
+              <!--Actions-->
+              <div class="flex gap-1">
+                <p-button icon="pi pi-save" text rounded size="small" severity="success" pTooltip="Save locally" (onClick)="showSave = true" *ngIf="project.key === 'autosave' && !authService.isAuthenticated()" />
+                <p-button icon="pi pi-cloud-upload" text rounded size="small" severity="primary" pTooltip="Upload to cloud" *ngIf="authService.isAuthenticated()"></p-button>
+                <p-button icon="pi pi-trash" text rounded size="small" severity="danger" pTooltip="Delete" (onClick)="deleteProject(project.key, $event)"></p-button>
+              </div>
+            </div>
+          </ng-template>
+
+          <ng-template pTemplate="title">
+            <div class="text-xl font-bold -mt-3">
+              {{ getDisplayName(project) | translate }}
+            </div>
+          </ng-template>
+
+          <!--Loading-->
+          <div class="flex flex-row gap-2 justify-content-center mt-5"
+               *ngIf="loadingKey === project.key; else projectSaved">
+            <i class="pi pi-spin pi-spinner text-primary-500 text-2xl"></i>
+            <span class="text-sm text-color-secondary">Loading project<span class="loading-dots"></span></span>
+          </div>
+
+          <!--Project details-->
+          <ng-template #projectSaved>
+            <div class="flex flex-column gap-2 text-sm text-color-secondary">
+              <div>
+                <i class="pi pi-github mr-2"></i><ng-container *ngIf="project.key !== 'autosave'">{{ project.key }}</ng-container>
+              </div>
+              <div>
+                <i class="pi pi-copy mr-2"></i>Pages: {{ project.pages }}
+              </div>
+              <div *ngIf="project.phase !== 'Draft'">
+                <i [class]="'pi pi-' + getPhaseIcon(project.phase) + ' mr-2'"></i>Phase: {{ project.phase }}
+              </div>
+              <div>
+                <i class="pi pi-clock mr-2"></i>Modified: {{ formatDate(project.timestamp) }}
+              </div>
+            </div>
+            <!-- Collaborators -->
+            <div class="flex justify-content-between border-top-1 surface-border mt-3 pt-2 -mb-3" *ngIf="project.local !== true">
+              <div class="flex align-items-center gap-2">
+                <i class="pi pi-users mr-2"></i>
+                <p-avatar label="AL" size="normal" shape="circle" [style]="{'background-color': '#2196F3', 'color': '#ffffff'}"></p-avatar>
+                <p-avatar label="MB" size="normal" shape="circle" [style]="{'background-color': '#4CAF50', 'color': '#ffffff'}"></p-avatar>
+                <p-avatar label="NH" size="normal" shape="circle" [style]="{'background-color': '#FF9800', 'color': '#ffffff'}"></p-avatar>
+                <span class="text-sm text-600">+2 more</span>
+              </div>
+              <p-button icon="pi pi-share-alt" text rounded size="small" pTooltip="Share" *ngIf="authService.isAuthenticated()"></p-button>
+            </div>
+          </ng-template>
+
+        </p-card>
       </div>
-    </p-fieldset>
-  </div>
+    </div>
+  </ng-container>
+
+  <!--Fallback if no saved projects-->
+  <ng-template #none>
+    <p class="text-color-secondary ml-2">No saved projects.</p>
+  </ng-template>
+
 </div>
 
-<h2>Saved projects</h2>
-<ng-container *ngIf="projects.length > 0; else none">
-  <div class="grid">
-    <div class="col-12 md:col-6 lg:col-4" *ngFor="let project of projects">
-      <p-card class="cursor-pointer" styleClass="h-12rem" (click)="loadProject(project.key)">
-
-        <ng-template pTemplate="header">
-          <div class="flex justify-content-end">
-            <p-button icon="pi pi-save" text rounded size="small" severity="success" (onClick)="showSave = true" *ngIf="project.key === 'autosave'" />
-            <p-button icon="pi pi-trash" text rounded size="small" severity="danger" (onClick)="deleteProject(project.key, $event)" />
-          </div>
-        </ng-template>
-
-        <ng-template pTemplate="title">
-          <div class="text-xl font-bold -mt-5">
-            {{ getDisplayName(project) | translate }}
-          </div>
-        </ng-template>
-
-        <!--Loading-->
-        <div class="flex flex-row gap-2 justify-content-center mt-5"
-             *ngIf="loadingKey === project.key; else projectSaved">
-          <i class="pi pi-spin pi-spinner text-primary-500 text-2xl"></i>
-          <span class="text-sm text-color-secondary">Loading project<span class="loading-dots"></span></span>
-        </div>
-
-        <!--Project details-->
-        <ng-template #projectSaved>
-          <div class="flex flex-column gap-2 text-color-secondary">
-            <div class="text-sm">
-              <i class="pi pi-github mr-2"></i><ng-container *ngIf="project.key !== 'autosave'">{{ project.key }}</ng-container>
-            </div>
-            <div class="text-sm">
-              <i class="pi pi-copy mr-2"></i>Pages: {{ project.pages }}
-            </div>
-            <div class="text-xs">
-              <i class="pi pi-clock mr-2"></i>Modified: {{ formatDate(project.timestamp) }}
-            </div>
-          </div>
-        </ng-template>
-
-      </p-card>
-    </div>
-  </div>
-</ng-container>
-
-<ng-template #none>
-  <p class="text-color-secondary ml-2">No saved projects.</p>
-</ng-template>
-
+<!-- Save Project Dialog -->
 <p-dialog header="Save project" [modal]="true" [(visible)]="showSave" styleClass="max-w-25rem">
   <span class="text-color-secondary">Associate your project to a new or existing GitHub repo to save it for later. This step will not export any files to the repo and you can change it later. </span>
   <aida-export-github mode="select"></aida-export-github>
@@ -124,29 +140,3 @@
     <p-button label="Save" (onClick)="showSave = false;saveProject()" />
   </div>
 </p-dialog>
-
-<!--div class="container mx-auto px-4 py-6">
-  <h1 id="wb-cont" class="text-4xl font-bold mb-4">{{ 'title.project' | translate}}</h1>
-  <p class="mb-6">{{'project.content' | translate }}</p>
-  
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <p-card>
-      <ng-template pTemplate="header">
-        <div class="p-4">
-          <h3 class="text-xl font-semibold">{{ 'metadata.title' | translate }}</h3>
-        </div>
-      </ng-template>
-      <p class="mb-4">{{ 'metadata.cardDescription' | translate }}</p>
-      <ng-template pTemplate="footer">
-        <div class="flex justify-end">
-          <p-button 
-            [label]="'common.goTo' | translate" 
-            icon="pi pi-arrow-right" 
-            iconPos="right"
-            [routerLink]="['/metadata-assistant']">
-          </p-button>
-        </div>
-      </ng-template>
-    </p-card>
-  </div>
-</div-->
