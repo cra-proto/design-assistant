@@ -40,7 +40,7 @@ resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
 
 # Lambda function for getting auth URL
 resource "aws_lambda_function" "github_auth_url" {
-  filename         = "${path.module}/../functions/github-oauth/dist/lambda.zip"
+  filename         = "${path.module}/../functions/github-oauth/lambda.zip"
   function_name    = "${var.app_name}-github-auth-url"
   role            = aws_iam_role.lambda_role.arn
   handler         = "index.getAuthUrl"
@@ -57,7 +57,7 @@ resource "aws_lambda_function" "github_auth_url" {
 
 # Lambda function for OAuth callback
 resource "aws_lambda_function" "github_callback" {
-  filename         = "${path.module}/../functions/github-oauth/dist/lambda.zip"
+  filename         = "${path.module}/../functions/github-oauth/lambda.zip"
   function_name    = "${var.app_name}-github-callback"
   role            = aws_iam_role.lambda_role.arn
   handler         = "index.handleCallback"
@@ -186,7 +186,7 @@ resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
 
 # Projects Lambda function
 resource "aws_lambda_function" "projects" {
-  filename         = "${path.module}/../functions/projects/dist/lambda.zip"
+  filename         = "${path.module}/../functions/projects/lambda.zip"
   function_name    = "${var.app_name}-projects"
   role            = aws_iam_role.lambda_role.arn
   handler         = "index.handler"
