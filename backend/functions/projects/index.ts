@@ -68,9 +68,11 @@ async function getUserFromToken(token: string) {
 
 // List all public projects (no auth required)
 export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const corsHeaders = getCorsHeaders(event.headers.origin || event.headers.Origin);
+    const corsHeaders = getCorsHeaders(event.headers?.origin || event.headers?.Origin);
 
     try {
+        console.log('Listing projects from table:', TABLE_NAME);
+
         // Scan for all public projects
         const result = await docClient.send(new ScanCommand({
             TableName: TABLE_NAME,
@@ -87,6 +89,8 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
             }
         }));
 
+        console.log('Found projects:', result.Items?.length || 0);
+
         return {
             statusCode: 200,
             headers: corsHeaders,
@@ -94,17 +98,21 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
         };
     } catch (error) {
         console.error('Error listing projects:', error);
+        console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
         return {
             statusCode: 500,
             headers: corsHeaders,
-            body: JSON.stringify({ error: 'Failed to list projects' })
+            body: JSON.stringify({
+                error: 'Failed to list projects',
+                details: error instanceof Error ? error.message : 'Unknown error'
+            })
         };
     }
 };
 
 // Get a specific project (no auth required for public projects)
 export const getProject = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const corsHeaders = getCorsHeaders(event.headers.origin || event.headers.Origin);
+    const corsHeaders = getCorsHeaders(event.headers?.origin || event.headers?.Origin);
 
     try {
         const projectId = event.pathParameters?.id;
@@ -131,7 +139,7 @@ export const getProject = async (event: APIGatewayProxyEvent): Promise<APIGatewa
         }
 
         // Check if project is public or user is authorized
-        const authHeader = event.headers.Authorization || event.headers.authorization;
+        const authHeader = event.headers?.Authorization || event.headers?.authorization;
         if (!result.Item.isPublic && authHeader) {
             try {
                 const token = authHeader.replace('Bearer ', '');
@@ -180,10 +188,10 @@ export const getProject = async (event: APIGatewayProxyEvent): Promise<APIGatewa
 
 // Create or update project (requires auth)
 export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const corsHeaders = getCorsHeaders(event.headers.origin || event.headers.Origin);
+    const corsHeaders = getCorsHeaders(event.headers?.origin || event.headers?.Origin);
 
     try {
-        const authHeader = event.headers.Authorization || event.headers.authorization;
+        const authHeader = event.headers?.Authorization || event.headers?.authorization;
         if (!authHeader) {
             return {
                 statusCode: 401,
@@ -192,19 +200,45 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
             };
         }
 
+        console.log('Auth header present, validating token...');
         const token = authHeader.replace('Bearer ', '');
         const user: any = await getUserFromToken(token);
-        const projectData = JSON.parse(event.body || '{}');
+        console.log('User authenticated:', user.login);
+
+        // Parse body - handle both base64 encoded (v2.0) and plain text (v1.0)
+        let bodyText = event.body;
+        if (event.isBase64Encoded && bodyText) {
+            bodyText = Buffer.from(bodyText, 'base64').toString('utf-8');
+        }
+
+        console.log('Request body:', bodyText);
+        const projectData = JSON.parse(bodyText || '{}');
+        console.log('Parsed project data:', JSON.stringify(projectData, null, 2));
+
+        // Validate required fields for DynamoDB GSI
+        const repo = projectData.gitHubData?.repo || projectData.repo || '';
+        const owner = projectData.gitHubData?.owner || projectData.owner || user.login;
+
+        if (!repo || repo.trim() === '') {
+            return {
+                statusCode: 400,
+                headers: corsHeaders,
+                body: JSON.stringify({
+                    error: 'Repository name is required',
+                    details: 'Please specify a GitHub repository for this project'
+                })
+            };
+        }
 
         const now = Date.now();
 
         // Create project object
         const project: Project = {
             id: projectData.id || uuidv4(),
-            key: projectData.gitHubData?.repo || projectData.key || 'untitled',
-            name: projectData.name || projectData.gitHubData?.repo || 'Untitled Project',
-            owner: projectData.gitHubData?.owner || user.login,
-            repo: projectData.gitHubData?.repo || '',
+            key: repo,
+            name: projectData.name || repo.replace(/-/g, ' ').replace(/^\w/, (c: string) => c.toUpperCase()) || 'Untitled Project',
+            owner: owner,
+            repo: repo,
             branch: projectData.gitHubData?.branch || 'main',
             pages: projectData.pages || 0,
             phase: projectData.phase || 'Draft',
@@ -221,8 +255,11 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
             updatedAt: now
         };
 
+        console.log('Project to save:', JSON.stringify(project, null, 2));
+
         // Check if user is authorized to update (must be a collaborator)
         if (projectData.id) {
+            console.log('Checking existing project:', projectData.id);
             const existing = await docClient.send(new GetCommand({
                 TableName: TABLE_NAME,
                 Key: { id: projectData.id }
@@ -248,10 +285,13 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
         }
 
         // Save to DynamoDB
+        console.log('Saving to DynamoDB...');
         await docClient.send(new PutCommand({
             TableName: TABLE_NAME,
             Item: project
         }));
+
+        console.log('Project saved successfully:', project.id);
 
         return {
             statusCode: 200,
@@ -263,6 +303,7 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
         };
     } catch (error) {
         console.error('Error saving project:', error);
+        console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
         return {
             statusCode: 500,
             headers: corsHeaders,
@@ -276,10 +317,10 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
 
 // Delete project (requires auth)
 export const deleteProject = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const corsHeaders = getCorsHeaders(event.headers.origin || event.headers.Origin);
+    const corsHeaders = getCorsHeaders(event.headers?.origin || event.headers?.Origin);
 
     try {
-        const authHeader = event.headers.Authorization || event.headers.authorization;
+        const authHeader = event.headers?.Authorization || event.headers?.authorization;
         if (!authHeader) {
             return {
                 statusCode: 401,
