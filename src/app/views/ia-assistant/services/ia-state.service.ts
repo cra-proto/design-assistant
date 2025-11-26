@@ -1,8 +1,10 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { UrlPair, BreadcrumbNode, PageData, SearchMatches, BrokenLinks } from '../data/data.model';
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../../../environments/environment';
 import { FileUploadHandlerEvent } from 'primeng/fileupload';
+
+import { CloudStorageService } from '../../../services/cloud-storage.service';
 
 export interface SavedProject {
   key: string;
@@ -64,6 +66,8 @@ export interface IaState {
   providedIn: 'root'
 })
 export class IaStateService {
+
+  private cloudStorage = inject(CloudStorageService);
 
   production = environment.production;
 
@@ -478,6 +482,64 @@ export class IaStateService {
     a.click();
 
     URL.revokeObjectURL(url);
+  }
+
+  //TESTING
+  // Add cloud project ID tracking
+  private cloudProjectId = signal<string | null>(null);
+  getCloudProjectId = computed(() => this.cloudProjectId());
+  setCloudProjectId(id: string | null) { this.cloudProjectId.set(id); }
+  // Add this method to save to cloud
+  async saveToCloud(): Promise<boolean> {
+    try {
+      const state = this.getIaState();
+      const projectId = this.cloudProjectId() || undefined;
+
+      const savedId = await this.cloudStorage.saveProject(state, projectId);
+
+      if (savedId) {
+        this.cloudProjectId.set(savedId);
+        console.log('Project saved to cloud with ID:', savedId);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to save to cloud:', error);
+      return false;
+    }
+  }
+
+  // Add method to load from cloud
+  async loadFromCloud(projectId: string): Promise<boolean> {
+    try {
+      const project = await this.cloudStorage.getProject(projectId);
+
+      if (!project || !project.content) {
+        console.error('Project not found or has no content');
+        return false;
+      }
+
+      const state = JSON.parse(project.content);
+
+      // Load the state
+      this.activeStep.set(state.activeStep || 1);
+      this.urlData.set(state.urlData || this.getUrlData());
+      this.breadcrumbData.set(state.breadcrumbData || this.getBreadcrumbData());
+      this.searchData.set(state.searchData || this.getSearchData());
+      this.iaData.set(state.iaData || this.getIaData());
+      this.gitHubData.set(state.gitHubData || this.getGitHubData());
+
+      // Track the cloud project ID
+      this.cloudProjectId.set(projectId);
+
+      // Also save to local storage for offline access
+      this.saveToLocalStorage();
+
+      return true;
+    } catch (error) {
+      console.error('Failed to load from cloud:', error);
+      return false;
+    }
   }
 }
 

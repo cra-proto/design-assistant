@@ -28,12 +28,17 @@ import { SetRootsComponent } from "./components/set-roots.component";
 import { SearchCriteriaComponent } from './components/search-criteria.component';
 import { IaTreeComponent } from './components/ia-tree.component';
 
+import { GitHubAuthService } from '../../services/github-auth.service';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+
 @Component({
   selector: 'aida-ia-assistant',
   imports: [CommonModule, FormsModule, TranslateModule,
     TextareaModule, InputTextModule, IftaLabelModule, InputGroupModule, InputGroupAddonModule, ButtonModule, FileUploadModule,
     ProgressBarModule, ChipModule, StepperModule, ConfirmPopupModule, TableModule, BadgeModule, TooltipModule, ToolbarModule, PopoverModule, DropdownModule,
-    SearchCriteriaComponent, IaTreeComponent, ValidateUrlsComponent, SetRootsComponent],
+    SearchCriteriaComponent, IaTreeComponent, ValidateUrlsComponent, SetRootsComponent,
+    ToastModule],
   templateUrl: './ia-assistant.component.html',
   styles: `
   ::ng-deep .upload-secondary-outline .p-button {
@@ -54,10 +59,30 @@ import { IaTreeComponent } from './components/ia-tree.component';
 export class IaAssistantComponent {
   public iaState = inject(IaStateService);
   private router = inject(Router);
+  public authService = inject(GitHubAuthService);
+  private messageService = inject(MessageService);
 
   goToGitHubExport() {
     this.iaState.saveToLocalStorage();
     this.router.navigate(['/ia-assistant/github']);
+  }
+
+  async saveToCloud() {
+    const success = await this.iaState.saveToCloud();
+
+    if (success) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Project saved to cloud'
+      });
+    } else {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to save project to cloud'
+      });
+    }
   }
 }
 

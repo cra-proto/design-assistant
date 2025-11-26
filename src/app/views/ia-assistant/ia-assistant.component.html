@@ -7,6 +7,17 @@
             <ng-template #start>
                 <div class="flex gap-1">
                     <p-button icon="pi pi-save" pTooltip="Save session" tooltipPosition="top" outlined styleClass="secondary-outline" severity="secondary" (onClick)="iaState.saveToLocalStorage()" />
+
+                    <p-button
+                              icon="pi pi-cloud-upload"
+                              pTooltip="Save to cloud"
+                              tooltipPosition="top"
+                              outlined
+                              styleClass="secondary-outline"
+                              severity="primary"
+                              (onClick)="saveToCloud()"
+                              [disabled]="!authService.isAuthenticated()" />
+
                     <p-button icon="pi pi-file-export" pTooltip="Export JSON file" tooltipPosition="top" outlined styleClass="secondary-outline" severity="secondary" (onClick)="iaState.exportIaState()" />
 
                     <p-button icon="pi pi-download" pTooltip="Download CSV" tooltipPosition="top" outlined styleClass="secondary-outline" severity="secondary" (onClick)="iaState.exportIaTreeAsCsv()" [disabled]="iaState.getIaData().iaTree.length === 0" />
