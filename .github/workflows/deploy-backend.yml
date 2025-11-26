@@ -36,11 +36,20 @@ jobs:
         run: |
           npm ci
           npm run build
+          mkdir -p dist
           cp package*.json dist/
           cd dist
           npm ci --production
-          cd ..
-          zip -r -q lambda.zip dist/
+          sudo apt-get update && sudo apt-get install -y zip
+          zip -r lambda.zip .
+          echo ">>> Dist contents after zipping:"
+          ls -la
+          echo ">>> lambda.zip checksum:"
+          sha256sum lambda.zip || true
+          echo ">>> full path:"
+          pwd
+          echo ">>> listing from repo root (sanity):"
+          ls -la ../../..
       
       - name: Upload OAuth Artifact
         uses: actions/upload-artifact@v4
