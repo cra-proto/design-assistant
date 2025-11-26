@@ -32,10 +32,9 @@ interface Project {
 }
 
 const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': '*',
-    'Access-Control-Allow-Methods': '*',
-    'Access-Control-Allow-Credentials': '*',
+    'Access-Control-Allow-Origin': '*', // Allow all origins temporarily
+    'Access-Control-Allow-Headers': '*', // Allow all headers
+    'Access-Control-Allow-Methods': '*', // Allow all methods
     'Content-Type': 'application/json',
 };
 
