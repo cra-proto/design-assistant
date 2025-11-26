@@ -50,13 +50,6 @@ jobs:
           pwd
           echo ">>> listing from repo root (sanity):"
           ls -la ../../..
-      
-      - name: Upload OAuth Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: github-oauth-lambda
-          path: backend/functions/github-oauth/lambda.zip
-          retention-days: 1
 
       - name: Build Lambda Project function
         working-directory: backend/functions/projects
