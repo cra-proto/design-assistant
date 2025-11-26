@@ -6,8 +6,11 @@ import { v4 as uuidv4 } from 'uuid';
 const client = new DynamoDBClient({ region: process.env.AWS_REGION || "ca-central-1" });
 const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME || "design-assistant-projects";
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://dzdzuh78hslou.cloudfront.net';
 
+const ALLOWED_ORIGINS = [
+    'https://dzdzuh78hslou.cloudfront.net',
+    'http://localhost:4200'
+];
 
 interface Project {
     id: string;
@@ -31,12 +34,21 @@ interface Project {
     updatedAt: number;
 }
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*', // Allow all origins temporarily
-    'Access-Control-Allow-Headers': '*', // Allow all headers
-    'Access-Control-Allow-Methods': '*', // Allow all methods
-    'Content-Type': 'application/json',
-};
+// Function to get CORS headers based on request origin
+function getCorsHeaders(origin?: string): Record<string, string> {
+    const requestOrigin = origin || '';
+    const allowedOrigin = ALLOWED_ORIGINS.includes(requestOrigin)
+        ? requestOrigin
+        : ALLOWED_ORIGINS[0];
+
+    return {
+        'Access-Control-Allow-Origin': allowedOrigin,
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
+        'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+        'Access-Control-Allow-Credentials': 'true',
+        'Content-Type': 'application/json',
+    };
+}
 
 // Get user info from GitHub token
 async function getUserFromToken(token: string) {
@@ -56,6 +68,8 @@ async function getUserFromToken(token: string) {
 
 // List all public projects (no auth required)
 export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const corsHeaders = getCorsHeaders(event.headers.origin || event.headers.Origin);
+
     try {
         // Scan for all public projects
         const result = await docClient.send(new ScanCommand({
@@ -90,6 +104,8 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
 
 // Get a specific project (no auth required for public projects)
 export const getProject = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const corsHeaders = getCorsHeaders(event.headers.origin || event.headers.Origin);
+
     try {
         const projectId = event.pathParameters?.id;
 
@@ -115,7 +131,7 @@ export const getProject = async (event: APIGatewayProxyEvent): Promise<APIGatewa
         }
 
         // Check if project is public or user is authorized
-        const authHeader = event.headers.Authorization;
+        const authHeader = event.headers.Authorization || event.headers.authorization;
         if (!result.Item.isPublic && authHeader) {
             try {
                 const token = authHeader.replace('Bearer ', '');
@@ -164,8 +180,10 @@ export const getProject = async (event: APIGatewayProxyEvent): Promise<APIGatewa
 
 // Create or update project (requires auth)
 export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const corsHeaders = getCorsHeaders(event.headers.origin || event.headers.Origin);
+
     try {
-        const authHeader = event.headers.Authorization;
+        const authHeader = event.headers.Authorization || event.headers.authorization;
         if (!authHeader) {
             return {
                 statusCode: 401,
@@ -248,15 +266,20 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
         return {
             statusCode: 500,
             headers: corsHeaders,
-            body: JSON.stringify({ error: 'Failed to save project' })
+            body: JSON.stringify({
+                error: 'Failed to save project',
+                details: error instanceof Error ? error.message : 'Unknown error'
+            })
         };
     }
 };
 
 // Delete project (requires auth)
 export const deleteProject = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const corsHeaders = getCorsHeaders(event.headers.origin || event.headers.Origin);
+
     try {
-        const authHeader = event.headers.Authorization;
+        const authHeader = event.headers.Authorization || event.headers.authorization;
         if (!authHeader) {
             return {
                 statusCode: 401,
@@ -326,9 +349,12 @@ export const deleteProject = async (event: APIGatewayProxyEvent): Promise<APIGat
 
 // Main handler that routes to appropriate function
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const corsHeaders = getCorsHeaders(event.headers.origin || event.headers.Origin);
+
     console.log('Request:', {
         method: event.httpMethod,
         path: event.path,
+        origin: event.headers.origin || event.headers.Origin,
         headers: event.headers
     });
 
