@@ -36,22 +36,20 @@ jobs:
         run: |
           npm ci
           npm run build
-          mkdir -p dist
           cp package*.json dist/
           cd dist
           npm ci --production
-          sudo apt-get update && sudo apt-get install -y zip
           zip -r lambda.zip .
-          echo ">>> Dist contents after zipping:"
-          ls -la
-          echo ">>> lambda.zip checksum:"
-          sha256sum lambda.zip || true
-          echo ">>> full path:"
-          pwd
-          echo ">>> listing from repo root (sanity):"
-          ls -la ../../..
+          mv lambda.zip ..
+      
+      - name: Upload OAuth Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-oauth-lambda
+          path: backend/functions/github-oauth/lambda.zip
+          retention-days: 1
 
-      - name: Build Lambda Project function
+      - name: Build Lambda Projects function
         working-directory: backend/functions/projects
         run: |
           npm ci
@@ -59,8 +57,8 @@ jobs:
           cp package*.json dist/
           cd dist
           npm ci --production
-          cd ..
-          zip -r -q lambda.zip dist/
+          zip -r lambda.zip .
+          mv lambda.zip ..
        
       - name: Upload Projects Artifact
         uses: actions/upload-artifact@v4
