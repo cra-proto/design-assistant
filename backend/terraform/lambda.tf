@@ -72,10 +72,12 @@ resource "aws_apigatewayv2_api" "api" {
   protocol_type = "HTTP"
   
   cors_configuration {
-    allow_origins = ["https://dzdzuh78hslou.cloudfront.net"]  # Update with your domain
-    allow_methods = ["GET", "POST", "OPTIONS"]
-    allow_headers = ["content-type"]
+    allow_origins = ["https://dzdzuh78hslou.cloudfront.net","http://localhost:4200"]  # Remove localhost for prod
+    allow_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    allow_headers = ["content-type", "authorization", "x-amz-date", "x-api-key", "x-amz-security-token"]
+    expose_headers = ["x-amzn-requestid", "x-amzn-trace-id"]
     max_age       = 300
+    allow_credentials = true
   }
 }
 
@@ -197,70 +199,63 @@ resource "aws_lambda_function" "projects" {
   environment {
     variables = {
       TABLE_NAME = aws_dynamodb_table.projects.name
+      ALLOWED_ORIGIN = "https://dzdzuh78hslou.cloudfront.net"
     }
   }
 }
 
-# API Gateway routes for projects
-resource "aws_apigatewayv2_integration" "list_projects" {
+# Single integration for all project routes
+resource "aws_apigatewayv2_integration" "projects" {
   api_id           = aws_apigatewayv2_api.api.id
   integration_type = "AWS_PROXY"
   integration_uri  = aws_lambda_function.projects.invoke_arn
   payload_format_version = "2.0"
 }
 
-resource "aws_apigatewayv2_route" "list_projects" {
+# Routes for projects
+resource "aws_apigatewayv2_route" "projects_get" {
   api_id    = aws_apigatewayv2_api.api.id
   route_key = "GET /projects"
-  target    = "integrations/${aws_apigatewayv2_integration.list_projects.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.projects.id}"
 }
 
-resource "aws_apigatewayv2_integration" "get_project" {
-  api_id           = aws_apigatewayv2_api.api.id
-  integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.projects.invoke_arn
-  payload_format_version = "2.0"
-}
-
-resource "aws_apigatewayv2_route" "get_project" {
-  api_id    = aws_apigatewayv2_api.api.id
-  route_key = "GET /projects/{id}"
-  target    = "integrations/${aws_apigatewayv2_integration.get_project.id}"
-}
-
-resource "aws_apigatewayv2_integration" "save_project" {
-  api_id           = aws_apigatewayv2_api.api.id
-  integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.projects.invoke_arn
-  payload_format_version = "2.0"
-}
-
-resource "aws_apigatewayv2_route" "save_project" {
+resource "aws_apigatewayv2_route" "projects_post" {
   api_id    = aws_apigatewayv2_api.api.id
   route_key = "POST /projects"
-  target    = "integrations/${aws_apigatewayv2_integration.save_project.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.projects.id}"
 }
 
-resource "aws_apigatewayv2_route" "update_project" {
+resource "aws_apigatewayv2_route" "projects_get_id" {
   api_id    = aws_apigatewayv2_api.api.id
-  route_key = "PUT /projects/{id}"
-  target    = "integrations/${aws_apigatewayv2_integration.save_project.id}"
+  route_key = "GET /projects/{id+}"
+  target    = "integrations/${aws_apigatewayv2_integration.projects.id}"
 }
 
-resource "aws_apigatewayv2_integration" "delete_project" {
-  api_id           = aws_apigatewayv2_api.api.id
-  integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.projects.invoke_arn
-  payload_format_version = "2.0"
-}
-
-resource "aws_apigatewayv2_route" "delete_project" {
+resource "aws_apigatewayv2_route" "projects_put_id" {
   api_id    = aws_apigatewayv2_api.api.id
-  route_key = "DELETE /projects/{id}"
-  target    = "integrations/${aws_apigatewayv2_integration.delete_project.id}"
+  route_key = "PUT /projects/{id+}"
+  target    = "integrations/${aws_apigatewayv2_integration.projects.id}"
 }
 
-# Lambda permissions for API Gateway
+resource "aws_apigatewayv2_route" "projects_delete_id" {
+  api_id    = aws_apigatewayv2_api.api.id
+  route_key = "DELETE /projects/{id+}"
+  target    = "integrations/${aws_apigatewayv2_integration.projects.id}"
+}
+
+resource "aws_apigatewayv2_route" "projects_options" {
+  api_id    = aws_apigatewayv2_api.api.id
+  route_key = "OPTIONS /projects"
+  target    = "integrations/${aws_apigatewayv2_integration.projects.id}"
+}
+
+resource "aws_apigatewayv2_route" "projects_options_id" {
+  api_id    = aws_apigatewayv2_api.api.id
+  route_key = "OPTIONS /projects/{id+}"
+  target    = "integrations/${aws_apigatewayv2_integration.projects.id}"
+}
+
+# Lambda permission for API Gateway
 resource "aws_lambda_permission" "projects" {
   statement_id  = "AllowAPIGatewayInvokeProjects"
   action        = "lambda:InvokeFunction"

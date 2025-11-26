@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from 'uuid';
 const client = new DynamoDBClient({ region: process.env.AWS_REGION || "ca-central-1" });
 const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME || "design-assistant-projects";
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://dzdzuh78hslou.cloudfront.net';
+
 
 interface Project {
     id: string;
@@ -30,9 +32,10 @@ interface Project {
 }
 
 const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+    'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
     'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
     'Content-Type': 'application/json',
 };
 
@@ -324,11 +327,14 @@ export const deleteProject = async (event: APIGatewayProxyEvent): Promise<APIGat
 
 // Main handler that routes to appropriate function
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const method = event.httpMethod;
-    const path = event.path;
+    console.log('Request:', {
+        method: event.httpMethod,
+        path: event.path,
+        headers: event.headers
+    });
 
-    // Handle CORS preflight
-    if (method === 'OPTIONS') {
+    // Handle CORS preflight requests
+    if (event.httpMethod === 'OPTIONS') {
         return {
             statusCode: 200,
             headers: corsHeaders,
@@ -337,23 +343,36 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     try {
-        if (path === '/projects' && method === 'GET') {
-            return listProjects(event);
-        } else if (path.startsWith('/projects/') && method === 'GET') {
-            return getProject(event);
-        } else if (path === '/projects' && method === 'POST') {
-            return saveProject(event);
-        } else if (path.startsWith('/projects/') && method === 'PUT') {
-            return saveProject(event);
-        } else if (path.startsWith('/projects/') && method === 'DELETE') {
-            return deleteProject(event);
-        } else {
-            return {
-                statusCode: 404,
-                headers: corsHeaders,
-                body: JSON.stringify({ error: 'Not found' })
-            };
+        // Route based on path and method
+        if (event.path === '/projects' || event.path === '/production/projects') {
+            if (event.httpMethod === 'GET') {
+                return listProjects(event);
+            } else if (event.httpMethod === 'POST') {
+                return saveProject(event);
+            }
+        } else if (event.path.includes('/projects/')) {
+            const pathParts = event.path.split('/');
+            const projectId = pathParts[pathParts.length - 1];
+
+            // Set the path parameters if not already set
+            if (!event.pathParameters) {
+                event.pathParameters = { id: projectId };
+            }
+
+            if (event.httpMethod === 'GET') {
+                return getProject(event);
+            } else if (event.httpMethod === 'PUT') {
+                return saveProject(event);
+            } else if (event.httpMethod === 'DELETE') {
+                return deleteProject(event);
+            }
         }
+
+        return {
+            statusCode: 404,
+            headers: corsHeaders,
+            body: JSON.stringify({ error: 'Not found' })
+        };
     } catch (error) {
         console.error('Handler error:', error);
         return {
