@@ -23,16 +23,21 @@ function getCorsHeaders(origin?: string): Record<string, string> {
     };
 }
 
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const corsHeaders = getCorsHeaders(event.headers.origin || event.headers.Origin);
+export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
+    const corsHeaders = getCorsHeaders(event.headers?.origin || event.headers?.Origin);
+
+    // Handle both v1.0 and v2.0 payload formats
+    const httpMethod = event.httpMethod || event.requestContext?.http?.method;
+    const path = event.path || event.requestContext?.http?.path || event.rawPath;
 
     console.log('=== LAMBDA INVOKED ===');
-    console.log('Method:', event.httpMethod);
-    console.log('Path:', event.path);
-    console.log('Origin:', event.headers.origin || event.headers.Origin);
+    console.log('Method:', httpMethod);
+    console.log('Path:', path);
+    console.log('Origin:', event.headers?.origin || event.headers?.Origin);
+    console.log('Full event:', JSON.stringify(event, null, 2));
 
     // Handle OPTIONS
-    if (event.httpMethod === 'OPTIONS') {
+    if (httpMethod === 'OPTIONS') {
         console.log('Handling OPTIONS request');
         return {
             statusCode: 200,
@@ -42,7 +47,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     // Handle GET
-    if (event.httpMethod === 'GET' && event.path.includes('/projects')) {
+    if (httpMethod === 'GET' && path?.includes('/projects')) {
         console.log('Handling GET /projects');
         return {
             statusCode: 200,
@@ -56,7 +61,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     // Handle POST
-    if (event.httpMethod === 'POST' && event.path.includes('/projects')) {
+    if (httpMethod === 'POST' && path?.includes('/projects')) {
         console.log('Handling POST /projects');
         console.log('Body:', event.body);
         return {
@@ -77,8 +82,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         headers: corsHeaders,
         body: JSON.stringify({
             error: 'Not found',
-            path: event.path,
-            method: event.httpMethod
+            path: path,
+            method: httpMethod
         })
     };
 };
