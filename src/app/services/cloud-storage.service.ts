@@ -122,6 +122,12 @@ export class CloudStorageService {
             return null;
         }
 
+        // Validate that we have a repository name
+        if (!projectState.gitHubData?.repo) {
+            this.error.set('Repository name is required. Please set up your GitHub repository first.');
+            return null;
+        }
+
         this.loading.set(true);
         this.error.set(null);
 
@@ -140,14 +146,16 @@ export class CloudStorageService {
 
             const payload = {
                 id: projectId,
-                key: projectState.gitHubData?.repo || 'untitled',
-                name: projectState.gitHubData?.repo?.replace(/-/g, ' ').replace(/^\w/, (c: string) => c.toUpperCase()) || 'Untitled Project',
-                //gitHubData: projectState.gitHubData,
+                key: projectState.gitHubData.repo,
+                name: projectState.gitHubData.repo.replace(/-/g, ' ').replace(/^\w/, (c: string) => c.toUpperCase()),
+                gitHubData: projectState.gitHubData,
                 pages,
-                phase: 'Draft', // You can determine this from project state
+                phase: 'Draft',
                 isPublic: true,
-                //...projectState
+                //...projectState  
             };
+
+            console.log('Saving project payload:', payload);
 
             const url = projectId ? `${this.API_URL}/${projectId}` : this.API_URL;
             const method = projectId ? 'PUT' : 'POST';
@@ -159,7 +167,17 @@ export class CloudStorageService {
                 }).pipe(
                     catchError(error => {
                         console.error('Failed to save project:', error);
-                        this.error.set('Failed to save project to cloud');
+
+                        // Extract error message from response
+                        let errorMsg = 'Failed to save project to cloud';
+                        if (error.error?.error) {
+                            errorMsg = error.error.error;
+                        }
+                        if (error.error?.details) {
+                            errorMsg += ': ' + error.error.details;
+                        }
+
+                        this.error.set(errorMsg);
                         throw error;
                     })
                 )
