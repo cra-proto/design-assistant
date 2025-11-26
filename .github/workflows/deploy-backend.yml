@@ -36,9 +36,7 @@ jobs:
         run: |
           npm ci
           npm run build
-          mkdir -p dist
           cp package*.json dist/
-          cp -R build/* dist/ 2>/dev/null || true
           cd dist
           npm ci --production
           cd ..
@@ -56,9 +54,7 @@ jobs:
         run: |
           npm ci
           npm run build
-          mkdir -p dist
           cp package*.json dist/
-          cp -R build/* dist/ 2>/dev/null || true
           cd dist
           npm ci --production
           cd ..
