@@ -146,7 +146,7 @@ export class CloudStorageService {
                 pages,
                 phase: 'Draft', // You can determine this from project state
                 isPublic: true,
-                ...projectState
+                //...projectState
             };
 
             const url = projectId ? `${this.API_URL}/${projectId}` : this.API_URL;
