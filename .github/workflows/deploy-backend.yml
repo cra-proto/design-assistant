@@ -39,7 +39,7 @@ jobs:
           cp package*.json dist/
           cd dist
           npm ci --production
-          zip -r lambda.zip .
+          zip -r -q lambda.zip .
           mv lambda.zip ..
       
       - name: Upload OAuth Artifact
@@ -57,7 +57,7 @@ jobs:
           cp package*.json dist/
           cd dist
           npm ci --production
-          zip -r lambda.zip .
+          zip -r -q lambda.zip .
           mv lambda.zip ..
        
       - name: Upload Projects Artifact
