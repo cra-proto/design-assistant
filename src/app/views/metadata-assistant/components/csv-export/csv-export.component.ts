@@ -4,7 +4,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { CardModule } from 'primeng/card';
-import { MetadataResult } from '../../../../services/metadata-assistant.service';
+import { MetadataResult } from '../../services/metadata-assistant.service';
 
 @Component({
   selector: 'aida-metadata-csv-export',

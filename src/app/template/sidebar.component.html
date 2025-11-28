@@ -17,12 +17,14 @@
           </div>
           <div class="nav_section_body" id="project" role="region" aria-labelledby="menu-project" [class.hidden]="!isExpanded.project">
             <a [routerLink]="['/dashboard']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
+               class="nav_link flex hover:bg-primary-600 border-round"
+               *ngIf="projectLoaded">
               <span class="material-icons">view_compact</span>
               <span class="nav_link_text">{{ 'menu.dashboard' | translate }}</span>
             </a>
             <a [routerLink]="['/new-project']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
+               class="nav_link flex hover:bg-primary-600 border-round"
+               *ngIf="!projectLoaded">
               <span class="material-icons">add</span>
               <span class="nav_link_text">{{ 'menu.new' | translate }}</span>
             </a>
@@ -31,6 +33,15 @@
               <span class="material-icons">folder_open</span>
               <span class="nav_link_text">{{ 'menu.saved' | translate }}</span>
             </a>
+          </div>
+        </div>
+        <div class="section">
+          <div class="nav_header text-primary-200 hover:text-primary-400" (click)="toggleSection('main')" (keydown)="toggleOnEnter($event, 'main')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.main" aria-controls="main">
+            <span id="menu-content" class="nav_section_text">{{ 'menu.tools' | translate }}</span>
+            <span class="material-icons toggle-icon">{{ isExpanded.main ? 'expand_less' : 'expand_more' }}</span>
+          </div>
+          <div class="nav_section_body" id="main" role="region" aria-labelledby="menu-content" [class.hidden]="!isExpanded.main">
+
             <a [routerLink]="['/ia-assistant']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons">lan</span>
@@ -80,21 +91,13 @@
               <span class="material-icons">language</span>
               <span class="nav_link_text">{{ 'menu.translation' | translate }}</span>
             </a>
-          </div>
-        </div>
 
-        <!-- Monitoring Tools -->
-        <div class="section">
-          <div class="nav_header text-primary-200 hover:text-primary-400 hover:font-bold" (click)="toggleSection('monitoring')" (keydown)="toggleOnEnter($event, 'monitoring')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.monitoring" aria-controls="monitoring">
-            <span id="menu-monitoring" class="nav_section_text">{{ 'menu.monitoring' | translate }}</span>
-            <span class="material-icons toggle-icon">{{ isExpanded.monitoring ? 'expand_less' : 'expand_more' }}</span>
-          </div>
-          <div class="nav_section_body" id="monitoring" role="region" aria-labelledby="menu-monitoring" [class.hidden]="!isExpanded.monitoring">
             <a [routerLink]="['/llm-evaluation']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons">assessment</span>
               <span class="nav_link_text">{{ 'menu.llmEvaluation' | translate }}</span>
             </a>
+
           </div>
         </div>
 

@@ -2,7 +2,7 @@ import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
-import { FileProcessingResult } from '../../../../services/image-assistant-state.service';
+import { FileProcessingResult } from '../../services/image-assistant-state.service';
 
 @Component({
   selector: 'aida-csv-download',

@@ -4,23 +4,23 @@ import { inject } from '@angular/core';
 import { DashboardComponent } from './views/project-assistant/dashboard.component';
 import { SwitchProjectComponent } from './views/project-assistant/switch-project.component';
 // Authentication
-import { GithubConnectComponent } from './template/github-connect.component';
-import { AuthCallbackComponent } from './template/auth-callback.component';
+import { GithubConnectComponent } from './template/sign-in/github-connect.component';
+import { AuthCallbackComponent } from './template/sign-in/auth-callback.component';
 //Export & Share
 import { ExportGithubComponent } from './views/ia-assistant/components/export-github.component';
 import { ShareComponent } from './views/page-assistant/components/share.component';
 // Tools
 import { PageUploadComponent } from './views/page-assistant/components/upload.component';
 import { UploadStateService } from './views/page-assistant/services/upload-state.service';
-import { ImageAssistantComponent } from './views/image-assistant/image-assistant.component';
-import { TranslationAssistantComponent } from './views/translation-assistant/translation-assistant.component';
+import { ImageAssistantComponent } from './views/standalone/image-assistant/image-assistant.component';
+import { TranslationAssistantComponent } from './views/standalone/translation-assistant/translation-assistant.component';
 import { InventoryAssistantComponent } from './views/inventory-assistant/inventory-assistant.component';
 import { MetadataAssistantComponent } from './views/metadata-assistant/metadata-assistant.component';
-import { LlmEvaluationComponent } from './views/llm-evaluation/llm-evaluation.component';
+import { LlmEvaluationComponent } from './views/standalone/llm-evaluation/llm-evaluation.component';
 import { IaAssistantComponent } from './views/ia-assistant/ia-assistant.component';
 // Static pages
-import { NotFoundComponent } from './views/static/not-found.component';
-import { AboutComponent } from './views/static/about.component';
+import { NotFoundComponent } from './views/standalone/not-found.component';
+import { AboutComponent } from './views/standalone/about.component';
 //Test
 import { TestComponent } from './views/example/test.component';
 

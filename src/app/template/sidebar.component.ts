@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { IaStateService } from '../views/ia-assistant/services/ia-state.service';
 
 @Component({
   selector: 'aida-sidebar',
@@ -11,6 +12,13 @@ import { TranslateModule } from '@ngx-translate/core';
   styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent {
+
+  public iaState = inject(IaStateService);
+  get projectLoaded(): boolean {
+    const repo = this.iaState.getGitHubData().repo;
+    return !!repo;
+  }
+
   // Section toggle state
   isExpanded = {
     main: true,

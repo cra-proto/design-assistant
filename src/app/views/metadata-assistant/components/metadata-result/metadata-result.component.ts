@@ -7,7 +7,7 @@ import { ChipModule } from 'primeng/chip';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { TagModule } from 'primeng/tag';
-import { MetadataResult } from '../../../../services/metadata-assistant.service';
+import { MetadataResult } from '../../services/metadata-assistant.service';
 import { DocumentUploadComponent } from '../document-upload/document-upload.component';
 
 @Component({

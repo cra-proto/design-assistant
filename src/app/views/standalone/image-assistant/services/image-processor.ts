@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, map, switchMap, timeout, retry } from 'rxjs/operators';
-import { ApiKeyService } from './api-key.service';
+import { ApiKeyService } from '../../../../services/api-key.service';
 
 // Define interfaces for better type safety
 export interface VisionAnalysisResult {
@@ -202,39 +202,39 @@ export class ImageProcessorService {
     const errorLower = typeof errorMessage === 'string' ? errorMessage.toLowerCase() : '';
 
     return errorLower.includes('rate limit') ||
-           errorLower.includes('quota exceeded') ||
-           errorLower.includes('too many requests') ||
-           errorLower.includes('429') ||
-           errorLower.includes('key limit exceeded') ||
-           errorAny.status === 403 ||
-           errorAny.status === 429;
+      errorLower.includes('quota exceeded') ||
+      errorLower.includes('too many requests') ||
+      errorLower.includes('429') ||
+      errorLower.includes('key limit exceeded') ||
+      errorAny.status === 403 ||
+      errorAny.status === 429;
   }
 
   private getVisionAnalysis(base64Data: string, selectedVisionModel: string, apiKey: string, identifier: string, isPdfPage = false): Observable<VisionAnalysisResult> {
     console.log('getVisionAnalysis called for:', identifier, 'model:', selectedVisionModel, 'isPdfPage:', isPdfPage);
-    
+
     let prompt: string;
     let max_tokens: number;
-    
+
     if (isPdfPage) {
       // Full description for PDF pages
       prompt = "Provide a comprehensive, well-structured description of this document page. Format your response with clear sections and bullet points where appropriate.\n\n" +
-               "Include:\n" +
-               "• All visible text content (quotes, headings, paragraphs)\n" +
-               "• Document structure and layout\n" +
-               "• Forms, fields, and what information they request\n" +
-               "• Tables and their contents\n" +
-               "• Any important visual elements or logos\n\n" +
-               "Use line breaks between sections for readability. If there are multiple sections or forms, clearly separate them.\n" +
-               "Be thorough and detailed to help someone understand the full content without seeing the page.";
+        "Include:\n" +
+        "• All visible text content (quotes, headings, paragraphs)\n" +
+        "• Document structure and layout\n" +
+        "• Forms, fields, and what information they request\n" +
+        "• Tables and their contents\n" +
+        "• Any important visual elements or logos\n\n" +
+        "Use line breaks between sections for readability. If there are multiple sections or forms, clearly separate them.\n" +
+        "Be thorough and detailed to help someone understand the full content without seeing the page.";
       max_tokens = 2000;
     } else {
       // Short alt text for regular images
       prompt = "Create a short, concise alt text for this image suitable for a website. " +
-               "DO NOT start with phrases like 'The image depicts', 'The image shows', or similar. " +
-               "Instead, directly describe the main subject in 15-20 words maximum. " +
-               "Focus only on the key elements necessary for accessibility. " +
-               "Use simple, direct language without unnecessary words.";
+        "DO NOT start with phrases like 'The image depicts', 'The image shows', or similar. " +
+        "Instead, directly describe the main subject in 15-20 words maximum. " +
+        "Focus only on the key elements necessary for accessibility. " +
+        "Use simple, direct language without unnecessary words.";
       max_tokens = 50;
     }
 
@@ -291,12 +291,12 @@ export class ImageProcessorService {
         } else if (typeof error.error === 'string') {
           errorMessage += ` - ${error.error}`;
         }
-        
+
         // Check if this is a key limit exceeded error
         if (error.status === 403 && errorMessage.toLowerCase().includes('key limit exceeded')) {
           errorMessage = 'KEY_LIMIT_EXCEEDED';
         }
-        
+
         console.error(`Error in vision API call for ${identifier}:`, errorMessage, error);
         // Return error as part of result instead of throwing
         return from([{ english: null, french: null, error: errorMessage }]);
@@ -351,28 +351,28 @@ export class ImageProcessorService {
           console.error(`Invalid response structure from translation model for ${identifier}:`, response);
           throw new Error("Invalid response structure from translation model.");
         }
-        
+
         let translation = response.choices[0]?.message?.content;
-        
+
         // Check if content exists
         if (!translation || typeof translation !== 'string') {
           console.error(`No content in translation response for ${identifier}. Full response:`, JSON.stringify(response, null, 2));
           throw new Error("Translation model returned empty content.");
         }
-        
+
         translation = translation.trim();
-        
+
         // If still empty after trimming
         if (!translation) {
           console.error(`Translation content is empty after trimming for ${identifier}`);
           throw new Error("Translation model returned empty content after trimming.");
         }
-        
+
         // Basic cleanup (though prompt aims to prevent this)
         translation = translation.replace(/^Voici la traduction\s*:\s*/i, '');
         translation = translation.replace(/^Translation\s*:\s*/i, '');
         translation = translation.replace(/^Here is the translation\s*:\s*/i, '');
-        
+
         return translation;
       }),
       catchError((error: HttpErrorResponse) => {
@@ -380,12 +380,12 @@ export class ImageProcessorService {
         if (error.error && error.error.error && error.error.error.message) {
           errorMessage += ` - ${error.error.error.message}`;
         }
-        
+
         // Check if this is a key limit exceeded error for translation
         if (error.status === 403 && error.error?.error?.message?.toLowerCase().includes('key limit exceeded')) {
           errorMessage = 'KEY_LIMIT_EXCEEDED';
         }
-        
+
         console.error(`Error translating text for ${identifier}:`, errorMessage, error);
         return throwError(() => new Error(errorMessage));
       })
@@ -410,10 +410,10 @@ export class ImageProcessorService {
     formatted = formatted.replace(/\n/g, '<br>');
 
     if (!formatted.startsWith('<p>') && formatted.trim() !== '') {
-        formatted = '<p>' + formatted;
+      formatted = '<p>' + formatted;
     }
     if (!formatted.endsWith('</p>') && formatted.trim() !== '') {
-        formatted = formatted + '</p>';
+      formatted = formatted + '</p>';
     }
 
     formatted = formatted.replace(/<p>(\s*[-*•][\s\S]*?)<\/p>/g, '<ul><li>$1</li></ul>');

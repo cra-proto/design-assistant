@@ -17,9 +17,9 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faFilePowerpoint } from '@fortawesome/free-regular-svg-icons';
 
 // services
-import { ApiKeyService } from '../../services/api-key.service';
-import { FileParseService } from '../../services/file-parse.service';
-import { TranslationService } from '../../services/translation.service';
+import { ApiKeyService } from '../../../services/api-key.service';
+import { FileParseService } from '../../../services/file-parse.service';
+import { TranslationService } from './services/translation.service';
 
 @Component({
   selector: 'aida-translation-assistant', // was 'app-translation-assistant'

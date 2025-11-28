@@ -23,7 +23,7 @@ export interface PhaseDisplay {
     status: PhaseStatus;
 }
 
-//GitHub user info
+//GitHub
 export interface GitHubUser {
     login: string;
     id: number;
@@ -31,6 +31,35 @@ export interface GitHubUser {
     name: string | null;
     email: string | null;
     bio: string | null;
+}
+
+export interface GitHubRepo {
+    githubOwner: string;
+    githubRepo: number;
+    githubBranch: string;
+    baselineRepo: boolean;
+}
+
+//Page metadata
+export interface PageMetadata {
+    title?: string;
+    description?: string;
+    keywords?: string[];
+    owner?: string;
+    email?: string;
+    lastModified?: Date;
+}
+
+//Page problems
+export interface PageProblem {
+    type: 'broken-link' | 'invalid-link-text' | 'missing-alt' | 'accessibility' | 'other';
+    severity: 'error' | 'warning' | 'info';
+    message: string;
+    location?: string; // where in the page
+    foundAt: Date;
+    // For broken links specifically:
+    linkUrl?: string;
+    linkText?: string;
 }
 
 //Project interface
@@ -44,10 +73,7 @@ export interface Project {
     storageLocation: 'local' | 'cloud';
     collaborators?: GitHubUser[];
     //GitHub repo data
-    githubOwner: string;
-    githubRepo: string;
-    githubBranch: string;
-    baselineRepo: boolean;
+    githubRepo: GitHubRepo;
     //Project data
     projectData: TreeNode[];
 }

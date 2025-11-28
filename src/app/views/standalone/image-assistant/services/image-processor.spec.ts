@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { ImageProcessor } from './image-processor';
+import { ImageProcessor } from '../../../../services/image-processor';
 
 describe('ImageProcessor', () => {
   let service: ImageProcessor;

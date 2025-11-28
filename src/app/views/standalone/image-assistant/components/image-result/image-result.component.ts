@@ -6,8 +6,8 @@ import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
 import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { FileProcessingResult } from '../../../../services/image-assistant-state.service';
-import { ImageProcessorService } from '../../../../services/image-processor';
+import { FileProcessingResult } from '../../services/image-assistant-state.service';
+import { ImageProcessorService } from '../../services/image-processor';
 
 @Component({
   selector: 'aida-image-result',

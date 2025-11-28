@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, from, of, throwError } from 'rxjs';
 import { catchError, map, retry, timeout, switchMap } from 'rxjs/operators';
-import { ApiKeyService } from './api-key.service';
-import { FileParseService } from './file-parse.service';
+import { ApiKeyService } from '../../../services/api-key.service';
+import { FileParseService } from '../../../services/file-parse.service';
 
 export interface DocumentMetadata {
   description: string;
@@ -54,7 +54,7 @@ export class MetadataAssistantService {
   private readonly SCRAPING_TIMEOUT = 30000; // 30 seconds
   private readonly API_TIMEOUT = 60000; // 60 seconds
   private readonly TRANSLATION_TIMEOUT = 90000; // 90 seconds with retry
-  
+
   // Default fallback models in order of preference
   private readonly DEFAULT_FALLBACK_MODELS = [
     'mistralai/mistral-small-3.2-24b-instruct:free',
@@ -69,7 +69,7 @@ export class MetadataAssistantService {
   processUrls(options: ProcessingOptions): Observable<MetadataResult[]> {
     const results: MetadataResult[] = [];
     const fallbackModels = options.fallbackModels || this.DEFAULT_FALLBACK_MODELS;
-    
+
     return from(options.urls).pipe(
       switchMap(url => this.processUrl(url, options.model, options.translateToFrench, fallbackModels)),
       map(result => {
@@ -91,7 +91,7 @@ export class MetadataAssistantService {
         }
 
         const language = this.detectLanguage(scrapedContent);
-        
+
         return this.generateMetadataWithFallback(scrapedContent, model, language, fallbackModels).pipe(
           switchMap(metadata => {
             const result: MetadataResult = {
@@ -164,7 +164,7 @@ export class MetadataAssistantService {
     // Parse HTML using DOMParser
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    
+
     // Find main element - matching Python's _find_main_element logic
     let mainElement = this.findMainElement(doc);
 
@@ -248,12 +248,12 @@ export class MetadataAssistantService {
             return;
           }
         }
-        
+
         // Skip li elements that are part of "On this page" navigation
         if (tag === 'li' && element.hasAttribute('data-on-this-page')) {
           return;
         }
-        
+
         const text = element.textContent?.trim();
         if (text && text.length > 0) {  // Only add non-empty text
           textContent.push(text);
@@ -263,7 +263,7 @@ export class MetadataAssistantService {
 
     // Join with space and truncate to 2500 characters
     const fullText = textContent.join(' ');
-    
+
     // Log extraction details for debugging
     console.log(`Extracted ${fullText.length} characters of content`);
     if (fullText.length < 100) {
@@ -271,7 +271,7 @@ export class MetadataAssistantService {
     } else if (fullText.length > 2500) {
       console.log(`Content truncated from ${fullText.length} to 2500 characters`);
     }
-    
+
     return fullText.substring(0, 2500);
   }
 
@@ -350,14 +350,14 @@ export class MetadataAssistantService {
     return frenchRatio > 0.05 ? 'fr' : 'en';
   }
 
-  private generateMetadataWithFallback(content: string, primaryModel: string, language: 'en' | 'fr', fallbackModels: string[]): Observable<{description: string, keywords: string, modelUsed: string, fallbackUsed: boolean}> {
+  private generateMetadataWithFallback(content: string, primaryModel: string, language: 'en' | 'fr', fallbackModels: string[]): Observable<{ description: string, keywords: string, modelUsed: string, fallbackUsed: boolean }> {
     // Try primary model first, then fallbacks
     const modelsToTry = [primaryModel, ...fallbackModels.filter(m => m !== primaryModel)];
-    
+
     return this.tryModelsInSequence(content, modelsToTry, language, 0, primaryModel);
   }
 
-  private tryModelsInSequence(content: string, models: string[], language: 'en' | 'fr', attemptIndex: number, primaryModel: string): Observable<{description: string, keywords: string, modelUsed: string, fallbackUsed: boolean}> {
+  private tryModelsInSequence(content: string, models: string[], language: 'en' | 'fr', attemptIndex: number, primaryModel: string): Observable<{ description: string, keywords: string, modelUsed: string, fallbackUsed: boolean }> {
     if (attemptIndex >= models.length) {
       return throwError(() => new Error('All models failed due to rate limits or other errors'));
     }
@@ -374,19 +374,19 @@ export class MetadataAssistantService {
       })),
       catchError(error => {
         console.warn(`Model ${currentModel} failed:`, error.message);
-        
+
         // Check if it's a rate limit error
         if (this.isRateLimitError(error)) {
           console.log(`Rate limit detected for ${currentModel}, trying next model...`);
           return this.tryModelsInSequence(content, models, language, attemptIndex + 1, primaryModel);
         }
-        
+
         // For other errors, still try fallback if available
         if (attemptIndex < models.length - 1) {
           console.log(`Error with ${currentModel}, trying next model...`);
           return this.tryModelsInSequence(content, models, language, attemptIndex + 1, primaryModel);
         }
-        
+
         // Re-throw the error if no more models to try
         return throwError(() => error);
       })
@@ -395,25 +395,25 @@ export class MetadataAssistantService {
 
   private isRateLimitError(error: unknown): boolean {
     if (!error) return false;
-    
+
     const errorMessage = (error as Error)?.message || (error as object)?.toString() || '';
     const errorLower = errorMessage.toLowerCase();
-    
-    return errorLower.includes('rate limit') || 
-           errorLower.includes('quota exceeded') || 
-           errorLower.includes('too many requests') ||
-           errorLower.includes('429') ||
-           ((error as { status?: number })?.status === 429);
+
+    return errorLower.includes('rate limit') ||
+      errorLower.includes('quota exceeded') ||
+      errorLower.includes('too many requests') ||
+      errorLower.includes('429') ||
+      ((error as { status?: number })?.status === 429);
   }
 
-  private generateMetadata(content: string, model: string, language: 'en' | 'fr'): Observable<{description: string, keywords: string}> {
+  private generateMetadata(content: string, model: string, language: 'en' | 'fr'): Observable<{ description: string, keywords: string }> {
     const apiKey = this.apiKeyService.getCurrentKey();
     if (!apiKey) {
       return throwError(() => new Error('API key not configured'));
     }
 
     // Generate description
-    const descriptionPrompt = language === 'en' 
+    const descriptionPrompt = language === 'en'
       ? `As a search engine optimization expert, analyze the following content carefully and provide a concise, complete summary suitable for a meta description in English. The summary MUST be highly relevant to the specific content provided and capture its main topic and purpose. Use topic-specific terms found in the content, write in full sentences, and ensure the summary ends concisely within 275 characters. IMPORTANT: Provide ONLY the meta description itself with NO additional commentary or explanations.\n\n${content}\n\nSummary:`
       : `En tant qu'expert en référencement, analysez attentivement le contenu suivant et fournissez un résumé concis et complet adapté à une méta-description en français. Le résumé DOIT être parfaitement adapté au contenu spécifique fourni. Utilisez des termes spécifiques au sujet, écrivez en phrases complètes, et assurez-vous que le résumé se termine de manière concise dans les 275 caractères. IMPORTANT: Fournissez UNIQUEMENT la méta-description elle-même SANS commentaire supplémentaire.\n\n${content}\n\nRésumé:`;
 
@@ -433,7 +433,7 @@ export class MetadataAssistantService {
     );
   }
 
-  private translateMetadata(metadata: {description: string, keywords: string}): Observable<{description: string, keywords: string}> {
+  private translateMetadata(metadata: { description: string, keywords: string }): Observable<{ description: string, keywords: string }> {
     const apiKey = this.apiKeyService.getCurrentKey();
     if (!apiKey) {
       return throwError(() => new Error('API key not configured'));
@@ -512,7 +512,7 @@ French keywords (comma-separated):`;
       }),
       catchError(error => {
         console.error('OpenRouter API error:', error);
-        
+
         // Preserve the original error structure for better fallback detection
         const httpError = error as { status?: number; error?: { error?: { code?: number; message?: string } }; message?: string };
         if (httpError.status === 429 || (httpError.error?.error?.code === 429)) {
@@ -523,7 +523,7 @@ French keywords (comma-separated):`;
             return rateLimitError;
           });
         }
-        
+
         // For other errors, preserve status if available
         const newError = new Error(httpError.error?.error?.message || httpError.message || 'Failed to generate content') as Error & { status?: number; originalError: unknown };
         newError.status = httpError.status;
@@ -605,7 +605,7 @@ French keywords (comma-separated):`;
   }
 
   // New method for document tab - extracts text, detects language, generates metadata
-  processDocumentForMetadata(file: File, model: string): Observable<{language: 'en' | 'fr', text: string, metadata: MetadataResult}> {
+  processDocumentForMetadata(file: File, model: string): Observable<{ language: 'en' | 'fr', text: string, metadata: MetadataResult }> {
     return from(this.extractDocumentText(file)).pipe(
       switchMap(content => {
         if (!content || content.length < 50) {

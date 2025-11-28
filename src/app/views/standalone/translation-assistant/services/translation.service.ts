@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
-import { ApiKeyService } from './api-key.service';
+import { ApiKeyService } from '../../../../services/api-key.service';
 
 /** Minimal OpenRouter chat types */
 type ChatRole = 'system' | 'user' | 'assistant';

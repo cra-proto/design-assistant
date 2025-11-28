@@ -9,15 +9,15 @@ import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 // Services
-import { ApiKeyService } from '../../services/api-key.service';
-import { ImageProcessorService, VisionAnalysisResult } from '../../services/image-processor';
-import { ImageAssistantStateService, FileProcessingResult, ProcessingState } from '../../services/image-assistant-state.service';
-import { PdfConverterService } from '../../services/pdf-converter.service';
+import { ApiKeyService } from '../../../services/api-key.service';
+import { ImageProcessorService, VisionAnalysisResult } from './services/image-processor';
+import { ImageAssistantStateService, FileProcessingResult, ProcessingState } from './services/image-assistant-state.service';
+import { PdfConverterService } from './services/pdf-converter.service';
 
 // Components
 import { FileUploadComponent } from './components/file-upload/file-upload.component';
-import { SharedModelSelectorComponent, ModelOption } from '../../components/model-selector/model-selector.component';
-import { ProgressIndicatorComponent } from '../../components/progress-indicator/progress-indicator.component';
+import { SharedModelSelectorComponent, ModelOption } from '../../../components/model-selector/model-selector.component';
+import { ProgressIndicatorComponent } from '../../../components/progress-indicator/progress-indicator.component';
 import { ImageResultComponent } from './components/image-result/image-result.component';
 import { CsvDownloadComponent } from './components/csv-download/csv-download.component';
 

@@ -3,16 +3,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
 import { Router } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 
 import { ToolbarModule } from 'primeng/toolbar';
 import { ButtonModule } from 'primeng/button';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 
-import { ApiResetComponent } from './api-reset.component';
+import { ApiResetComponent } from './ai-api/api-reset.component';
 import { LocalStorageService } from '../services/local-storage.service';
 import { ThemeService } from '../services/theme.service';
 import { IaStateService } from '../views/ia-assistant/services/ia-state.service';
-import { GithubConnectComponent } from "./github-connect.component";
+import { GithubConnectComponent } from "./sign-in/github-connect.component";
 
 import { DividerModule } from 'primeng/divider';
 import { TagModule } from 'primeng/tag';
@@ -84,6 +85,7 @@ export class HeaderComponent {
   public theme = inject(ThemeService);
   private iaState = inject(IaStateService);
   private router = inject(Router);
+  private title = inject(Title);
 
   get project(): string {
     const repo = this.iaState.getGitHubData().repo;
@@ -112,6 +114,14 @@ export class HeaderComponent {
     else { oppLang = "en" }
     this.translate.use(oppLang);
     this.localStore.saveData('lang', oppLang);
+
+    //Update title on language change
+    const titleKey = this.router.routerState.snapshot.root.firstChild?.title;
+    if (titleKey) {
+      this.translate.get(titleKey).subscribe((translated: string) => {
+        this.title.setTitle(translated);
+      });
+    }
   }
 
   goToProject() {
