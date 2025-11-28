@@ -19,7 +19,7 @@
             <a [routerLink]="['/dashboard']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round"
                *ngIf="projectLoaded">
-              <span class="material-icons">view_compact</span>
+              <span class="material-icons">view_quilt</span>
               <span class="nav_link_text">{{ 'menu.dashboard' | translate }}</span>
             </a>
             <a [routerLink]="['/new-project']" routerLinkActive="active"
@@ -42,9 +42,14 @@
           </div>
           <div class="nav_section_body" id="main" role="region" aria-labelledby="menu-content" [class.hidden]="!isExpanded.main">
 
+            <a [routerLink]="['/scope']" routerLinkActive="active"
+               class="nav_link flex hover:bg-primary-600 border-round">
+              <span class="material-icons-outlined">inventory</span>
+              <span class="nav_link_text">{{ 'menu.scope' | translate }}</span>
+            </a>
             <a [routerLink]="['/ia-assistant']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons">lan</span>
+              <span class="material-icons-outlined">lan</span>
               <span class="nav_link_text">{{ 'menu.ia' | translate }}</span>
             </a>
             <a [routerLink]="['/inventory-assistant']" routerLinkActive="active"
@@ -69,8 +74,13 @@
             </a>
             <a [routerLink]="['/export-github']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round ">
-              <span class="material-icons">terminal</span>
+              <span class="material-icons-outlined">drive_folder_upload</span>
               <span class="nav_link_text">{{ 'menu.github' | translate }}</span>
+            </a>
+            <a [routerLink]="['/search']" routerLinkActive="active"
+               class="nav_link flex hover:bg-primary-600 border-round ">
+              <span class="material-icons-outlined">manage_search</span>
+              <span class="nav_link_text">{{ 'menu.search' | translate }}</span>
             </a>
           </div>
         </div>
