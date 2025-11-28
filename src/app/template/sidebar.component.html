@@ -9,19 +9,67 @@
             <span class="logo_text">{{ 'title.landing' | translate }}</span>
           </a>
         </div>
-
-        <!-- Main Tools -->
+        <!-- Project Tools -->
+        <div class="section">
+          <div class="nav_header text-primary-200 hover:text-primary-400 hover:font-bold" (click)="toggleSection('project')" (keydown)="toggleOnEnter($event, 'project')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.project" aria-controls="project">
+            <span id="menu-project" class="nav_section_text">{{ 'menu.project' | translate }}</span>
+            <span class="material-icons toggle-icon">{{ isExpanded.project ? 'expand_less' : 'expand_more' }}</span>
+          </div>
+          <div class="nav_section_body" id="project" role="region" aria-labelledby="menu-project" [class.hidden]="!isExpanded.project">
+            <a [routerLink]="['/dashboard']" routerLinkActive="active"
+               class="nav_link flex hover:bg-primary-600 border-round">
+              <span class="material-icons">view_compact</span>
+              <span class="nav_link_text">{{ 'menu.dashboard' | translate }}</span>
+            </a>
+            <a [routerLink]="['/new-project']" routerLinkActive="active"
+               class="nav_link flex hover:bg-primary-600 border-round">
+              <span class="material-icons">add</span>
+              <span class="nav_link_text">{{ 'menu.new' | translate }}</span>
+            </a>
+            <a [routerLink]="['/switch-project']" routerLinkActive="active"
+               class="nav_link flex hover:bg-primary-600 border-round">
+              <span class="material-icons">folder_open</span>
+              <span class="nav_link_text">{{ 'menu.saved' | translate }}</span>
+            </a>
+            <a [routerLink]="['/ia-assistant']" routerLinkActive="active"
+               class="nav_link flex hover:bg-primary-600 border-round">
+              <span class="material-icons">lan</span>
+              <span class="nav_link_text">{{ 'menu.ia' | translate }}</span>
+            </a>
+            <a [routerLink]="['/inventory-assistant']" routerLinkActive="active"
+               class="nav_link flex hover:bg-primary-600 border-round">
+              <span class="material-icons">checklist_rtl</span>
+              <span class="nav_link_text">{{ 'menu.inventory' | translate }}</span>
+            </a>
+            <a [routerLink]="['/page-assistant']" routerLinkActive="active"
+               class="nav_link flex hover:bg-primary-600 border-round ">
+              <span class="material-icons">library_books</span>
+              <span class="nav_link_text">{{ 'menu.page' | translate }}</span>
+            </a>
+            <a [routerLink]="['/pain-points']" routerLinkActive="active"
+               class="nav_link flex hover:bg-primary-600 border-round ">
+              <span class="material-icons">troubleshoot</span>
+              <span class="nav_link_text">{{ 'menu.problem' | translate }}</span>
+            </a>
+            <a [routerLink]="['/metadata-assistant']" routerLinkActive="active"
+               class="nav_link flex hover:bg-primary-600 border-round">
+              <span class="material-icons">description</span>
+              <span class="nav_link_text">{{ 'menu.metadata' | translate }}</span>
+            </a>
+            <a [routerLink]="['/export-github']" routerLinkActive="active"
+               class="nav_link flex hover:bg-primary-600 border-round ">
+              <span class="material-icons">terminal</span>
+              <span class="nav_link_text">{{ 'menu.github' | translate }}</span>
+            </a>
+          </div>
+        </div>
+        <!-- Standalone Tools -->
         <div class="section">
           <div class="nav_header text-primary-200 hover:text-primary-400" (click)="toggleSection('main')" (keydown)="toggleOnEnter($event, 'main')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.main" aria-controls="main">
-            <span id="menu-content" class="nav_section_text">{{ 'menu.content' | translate }}</span>
+            <span id="menu-content" class="nav_section_text">{{ 'menu.standalone' | translate }}</span>
             <span class="material-icons toggle-icon">{{ isExpanded.main ? 'expand_less' : 'expand_more' }}</span>
           </div>
           <div class="nav_section_body" id="main" role="region" aria-labelledby="menu-content" [class.hidden]="!isExpanded.main">
-            <a [routerLink]="['/page-assistant']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round ">
-              <span class="material-icons">article</span>
-              <span class="nav_link_text">{{ 'menu.page' | translate }}</span>
-            </a>
             <a [routerLink]="['/image-assistant']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons">photo</span>
@@ -31,31 +79,6 @@
                class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons">language</span>
               <span class="nav_link_text">{{ 'menu.translation' | translate }}</span>
-            </a>
-          </div>
-        </div>
-
-        <!-- Project Tools -->
-        <div class="section">
-          <div class="nav_header text-primary-200 hover:text-primary-400 hover:font-bold" (click)="toggleSection('project')" (keydown)="toggleOnEnter($event, 'project')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.project" aria-controls="project">
-            <span id="menu-project" class="nav_section_text">{{ 'menu.project' | translate }}</span>
-            <span class="material-icons toggle-icon">{{ isExpanded.project ? 'expand_less' : 'expand_more' }}</span>
-          </div>
-          <div class="nav_section_body" id="project" role="region" aria-labelledby="menu-project" [class.hidden]="!isExpanded.project">
-            <a [routerLink]="['/ia-assistant']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons">lan</span>
-              <span class="nav_link_text">{{ 'menu.ia' | translate }}</span>
-            </a>
-            <a [routerLink]="['/inventory-assistant']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons">inventory</span>
-              <span class="nav_link_text">{{ 'menu.inventory' | translate }}</span>
-            </a>
-            <a [routerLink]="['/metadata-assistant']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons">description</span>
-              <span class="nav_link_text">{{ 'menu.metadata' | translate }}</span>
             </a>
           </div>
         </div>
@@ -74,13 +97,11 @@
             </a>
           </div>
         </div>
+
       </div>
+
       <!-- App Info -->
       <div class="section">
-        <!--div class="nav_header text-primary-200 hover:text-primary-400" (click)="toggleSection('info')">
-          <span class="nav_section_text">{{ 'menu.appInfo' | translate }}</span>
-          <span class="material-icons toggle-icon">{{ isExpanded.info ? 'expand_less' : 'expand_more' }}</span>
-        </div-->
         <div class="nav_section_body" [class.hidden]="!isExpanded.info">
           <a [routerLink]="['/about-us']" routerLinkActive="active" class="nav_link flex hover:bg-primary-600 border-round">
             <span class="material-icons">web_asset</span>
@@ -92,6 +113,7 @@
           </a>
         </div>
       </div>
+
     </div>
   </nav>
 </div>

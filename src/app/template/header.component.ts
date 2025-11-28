@@ -44,9 +44,9 @@ import { BadgeModule } from 'primeng/badge';
 
       <aida-github-connect></aida-github-connect>
       
-      <!--aida-api-reset
+      <aida-api-reset
         *ngIf="this.localStore.getData('apiKey') !== null">
-      </aida-api-reset-->
+      </aida-api-reset>
 
       <p-button (onClick)="theme.toggle()" rounded outlined size="small" severity="secondary" [icon]="theme.icon()" styleClass="darkmode-toggle surface-border"  ariaLabel="Toggle between dark and light mode"></p-button>
 

@@ -2,91 +2,82 @@
   <h1 class="p-text-bold">Translation Assistant</h1>
 </div>
 
-<div class="surface-100 border-round shadow-3 p-4 max-w-3xl mx-auto">
-  <p-card class="p-mb-4">
-    <h2 class="p-m-0 p-text-bold p-text-2xl" style="color: black">
-      Upload source language file
-    </h2>
 
-    <p>
-      Please upload a Word (.docx) or PowerPoint (.pptx) file containing your
-      source language content.
-    </p>
+<p-card>
+  <h2 class="mt-0">Upload source language file</h2>
 
-    <!-- Upload Section -->
-    <div
-      class="flex flex-column align-items-center justify-content-center p-3 border-dashed border-round border-200 surface-100 hover:surface-200 hover:border-primary-400 transition-colors transition-duration-300 cursor-pointer w-full max-w-30rem min-h-12rem"
-      role="button"
-      tabindex="0"
-      aria-label="Select a source .docx or .pptx file"
-      (click)="fileInput.click()"
-      (keyup.enter)="fileInput.click()"
-      (keyup.space)="fileInput.click()"
-      (dragover)="onDragOver($event)"
-      (dragleave)="onDragLeave($event)"
-      (drop)="onDrop($event)"
-    >
-      <input
-        type="file"
-        accept=".docx,.pptx"
-        #fileInput
-        style="display: none"
-        (change)="onFileSelected($event)"
-      />
-      <ng-container *ngIf="selectedFile; else dragArea">
-        <p class="text-xl text-center">
-          <i
-            *ngIf="isDocx(selectedFile)"
-            class="pi pi-file-word text-blue-500 text-2xl mr-1"
-            aria-hidden="true"
-          ></i>
-          <fa-icon
-            *ngIf="isPptx(selectedFile)"
-            [icon]="faFilePowerpoint"
-            class="text-orange-500 text-2xl mr-1"
-            aria-hidden="true"
-          ></fa-icon>
+  <p>
+    Please upload a Word (.docx) or PowerPoint (.pptx) file containing your
+    source language content.
+  </p>
 
-          {{ selectedFile.name }}
-        </p>
-      </ng-container>
-      <ng-template #dragArea>
+  <!-- Upload Section -->
+  <div
+       class="flex flex-column align-items-center justify-content-center p-3 border-dashed border-round border-200 surface-100 hover:surface-200 hover:border-primary-400 transition-colors transition-duration-300 cursor-pointer w-full max-w-30rem min-h-12rem"
+       role="button"
+       tabindex="0"
+       aria-label="Select a source .docx or .pptx file"
+       (click)="fileInput.click()"
+       (keyup.enter)="fileInput.click()"
+       (keyup.space)="fileInput.click()"
+       (dragover)="onDragOver($event)"
+       (dragleave)="onDragLeave($event)"
+       (drop)="onDrop($event)">
+    <input
+           type="file"
+           accept=".docx,.pptx"
+           #fileInput
+           style="display: none"
+           (change)="onFileSelected($event)" />
+    <ng-container *ngIf="selectedFile; else dragArea">
+      <p class="text-xl text-center">
         <i
-          class="pi pi-upload border-2 border-circle border-300 p-3 text-3xl text-color-secondary mb-2 hover:bg-primary hover:text-white transition-colors transition-duration-300"
-          aria-hidden="true"
-        ></i>
-        <p class="m-0 text-center text-sm">
-          Drag and drop .docx or .pptx source language file here.
-        </p>
-      </ng-template>
-    </div>
+           *ngIf="isDocx(selectedFile)"
+           class="pi pi-file-word text-blue-500 text-2xl mr-1"
+           aria-hidden="true"></i>
+        <fa-icon
+                 *ngIf="isPptx(selectedFile)"
+                 [icon]="faFilePowerpoint"
+                 class="text-orange-500 text-2xl mr-1"
+                 aria-hidden="true"></fa-icon>
 
-    <div class="flex gap-2 mt-3">
-      <button
-        pButton
-        type="button"
-        icon="pi pi-upload"
-        class="p-button p-component p-button-primary"
-        [disabled]="!selectedFile"
-        (click)="previewSource()"
-      >
-        Upload file
-      </button>
-    </div>
+        {{ selectedFile.name }}
+      </p>
+    </ng-container>
+    <ng-template #dragArea>
+      <i
+         class="pi pi-upload border-2 border-circle border-300 p-3 text-3xl text-color-secondary mb-2 hover:bg-primary hover:text-white transition-colors transition-duration-300"
+         aria-hidden="true"></i>
+      <p class="m-0 text-center text-sm">
+        Drag and drop .docx or .pptx source language file here.
+      </p>
+    </ng-template>
+  </div>
 
-    <!-- Preview Panel -->
-    <div *ngIf="previewText" class="mt-3">
-      <div
-        class="p-panel p-component border-1 border-round surface-100"
-        style="
+  <div class="flex gap-2 mt-3">
+    <button
+            pButton
+            type="button"
+            icon="pi pi-upload"
+            class="p-button p-component p-button-primary"
+            [disabled]="!selectedFile"
+            (click)="previewSource()">
+      Upload file
+    </button>
+  </div>
+
+  <!-- Preview Panel -->
+  <div *ngIf="previewText" class="mt-3">
+    <div
+         class="p-panel p-component border-1 border-round surface-100"
+         style="
           border-color: #00000023;
           font-size: 1rem;
           font-family: &quot;Segoe UI&quot;, Roboto, sans-serif;
-        "
-      >
-        <div
-          class="p-panel-header d-flex justify-content-between align-items-center cursor-pointer"
-          style="
+        ">
+      <div
+           class="p-panel-header d-flex justify-content-between align-items-center cursor-pointer"
+           style="
             height: 4rem;
             padding: 0 1rem;
             display: flex;
@@ -97,70 +88,63 @@
             gap: 0.5rem;
             width: 100%;
           "
-          role="button"
-          tabindex="0"
-          (click)="isExpanded = !isExpanded"
-          (keyup.enter)="isExpanded = !isExpanded"
-          (keyup.space)="isExpanded = !isExpanded"
-          [attr.aria-expanded]="isExpanded"
-          aria-controls="preview-panel-content"
-        >
-          <div class="d-flex align-items-center">
-            <i
-              class="pi"
-              [ngClass]="{
+           role="button"
+           tabindex="0"
+           (click)="isExpanded = !isExpanded"
+           (keyup.enter)="isExpanded = !isExpanded"
+           (keyup.space)="isExpanded = !isExpanded"
+           [attr.aria-expanded]="isExpanded"
+           aria-controls="preview-panel-content">
+        <div class="d-flex align-items-center">
+          <i
+             class="pi"
+             [ngClass]="{
                 'pi-plus': !isExpanded,
                 'pi-minus': isExpanded,
               }"
-              style="margin-right: 0.5rem"
-              aria-hidden="true"
-            ></i>
-            <span class="p-panel-title font-semibold" style="color: black">
-              Preview source language file
-            </span>
-          </div>
-
-          <button
-            pButton
-            type="button"
-            class="p-button-text p-button-icon-only flex-shrink-0"
-            title="Copy All"
-            aria-label="Copy all preview text"
-            (click)="copyAll($event)"
-            style="width: 3rem; height: 3rem"
-          >
-            <span
-              class="pi pi-copy"
-              style="font-size: 1.4rem"
-              aria-hidden="true"
-            ></span>
-            <span class="sr-only">Copy All</span>
-          </button>
+             style="margin-right: 0.5rem"
+             aria-hidden="true"></i>
+          <span class="p-panel-title font-semibold" style="color: black">
+            Preview source language file
+          </span>
         </div>
 
-        <div
-          *ngIf="isExpanded"
-          id="preview-panel-content"
-          class="p-panel-content p-mt-2"
-          style="
+        <button
+                pButton
+                type="button"
+                class="p-button-text p-button-icon-only flex-shrink-0"
+                title="Copy All"
+                aria-label="Copy all preview text"
+                (click)="copyAll($event)"
+                style="width: 3rem; height: 3rem">
+          <span
+                class="pi pi-copy"
+                style="font-size: 1.4rem"
+                aria-hidden="true"></span>
+          <span class="sr-only">Copy All</span>
+        </button>
+      </div>
+
+      <div
+           *ngIf="isExpanded"
+           id="preview-panel-content"
+           class="p-panel-content p-mt-2"
+           style="
             background-color: white;
             padding: 1rem;
             border-top: 1px solid #ccc;
-          "
-        >
-          <span>{{ previewText }}</span>
-        </div>
+          ">
+        <span>{{ previewText }}</span>
       </div>
     </div>
-  </p-card>
-</div>
+  </div>
+</p-card>
 
 <!-- Target Language Content Card -->
 <div
-  *ngIf="showSecondUpload"
-  class="surface-100 border-round shadow-3"
-  style="border: 2px solid #00000000; padding: 1rem"
->
+     *ngIf="showSecondUpload"
+     class="surface-100 border-round shadow-3"
+     style="border: 2px solid #00000000; padding: 1rem">
   <p-card>
     <h2 class="p-mb-3" style="color: black">Paste target language content</h2>
     <p>
@@ -168,12 +152,12 @@
       below.
     </p>
     <textarea
-      pInputTextarea
-      rows="15"
-      cols="70"
-      placeholder=""
-      class="p-inputtext p-mb-3 w-full"
-      style="
+              pInputTextarea
+              rows="15"
+              cols="70"
+              placeholder=""
+              class="p-inputtext p-mb-3 w-full"
+              style="
         border-color: #00000052;
         min-height: 10rem;
         resize: vertical text;
@@ -181,17 +165,15 @@
         font-size: 1rem;
         color: #000000be;
       "
-      [(ngModel)]="frenchText"
-    ></textarea>
+              [(ngModel)]="frenchText"></textarea>
 
     <div class="flex gap-2 mt-3">
       <button
-        pButton
-        type="button"
-        icon="pi pi-align-left"
-        class="p-button-primary"
-        (click)="onFormatTargetLanguageContent()"
-      >
+              pButton
+              type="button"
+              icon="pi pi-align-left"
+              class="p-button-primary"
+              (click)="onFormatTargetLanguageContent()">
         Format target language content
       </button>
     </div>
@@ -205,10 +187,9 @@
 </div>
 
 <div
-  *ngIf="showDownloadSection"
-  class="surface-100 border-round shadow-3"
-  style="border: 2px solid #00000000; padding: 1rem"
->
+     *ngIf="showDownloadSection"
+     class="surface-100 border-round shadow-3"
+     style="border: 2px solid #00000000; padding: 1rem">
   <p-card>
     <h2 class="p-mb-3" style="color: black">Formatting complete</h2>
     <p>
@@ -217,12 +198,11 @@
     </p>
     <div class="flex gap-2 mt-3">
       <button
-        pButton
-        type="button"
-        icon="pi pi-download"
-        class="p-button-primary"
-        (click)="onDownloadFile()"
-      >
+              pButton
+              type="button"
+              icon="pi pi-download"
+              class="p-button-primary"
+              (click)="onDownloadFile()">
         Download file
       </button>
     </div>

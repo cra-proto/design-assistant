@@ -54,7 +54,7 @@ export class GithubConnectComponent {
         {
           label: 'Settings',
           icon: 'pi pi-cog',
-          routerLink: '/ia-assistant/github' // Create a new settings page!
+          routerLink: '/export-github' // Create a new settings page!
         },
         {
           label: 'Sign out',

@@ -51,7 +51,7 @@ export class AuthCallbackComponent implements OnInit {
   private async handleCallback(code: string, state: string) {
     try {
       await this.authService.handleCallback(code, state);
-      const returnUrl = sessionStorage.getItem('github_oauth_return_url') || '/ia-assistant/github'; // Return user to original location or default after login
+      const returnUrl = sessionStorage.getItem('github_oauth_return_url') || '/export-github'; // Return user to original location or default after login
       sessionStorage.removeItem('github_oauth_return_url');
       this.router.navigate([returnUrl], { replaceUrl: true });
     } catch (error) {

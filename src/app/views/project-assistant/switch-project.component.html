@@ -1,4 +1,4 @@
-<h1 id="wb-cont">{{ 'title.saves' | translate}}</h1>
+<h1 id="wb-cont">{{ 'title.saved' | translate}}</h1>
 <p>{{'saves.description' | translate }}</p>
 
 <!-- Authentication Banner -->
@@ -79,7 +79,7 @@
 
           <ng-template pTemplate="title">
             <div class="text-xl font-bold -mt-3">
-              {{ getDisplayName(project) | translate }}
+              {{ getDisplayName(project.key) | translate }}
             </div>
           </ng-template>
 

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { TranslateModule } from "@ngx-translate/core";
 import { RouterLink } from '@angular/router';
 
@@ -9,6 +10,7 @@ import { TagModule } from 'primeng/tag';
 import { AvatarModule } from 'primeng/avatar';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TooltipModule } from 'primeng/tooltip';
+import { CheckboxModule } from 'primeng/checkbox';
 
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
@@ -20,7 +22,7 @@ interface ProjectPhase {
 
 @Component({
   selector: 'aida-dashboard',
-  imports: [CommonModule, TranslateModule, RouterLink, CardModule, ButtonModule, TagModule, AvatarModule, ProgressBarModule, TooltipModule, MenuModule],
+  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, CardModule, ButtonModule, TagModule, AvatarModule, ProgressBarModule, TooltipModule, MenuModule, CheckboxModule],
   templateUrl: './dashboard.component.html',
   styles: `
 ::ng-deep .centered-label .p-progressbar-value {
@@ -61,12 +63,12 @@ export class DashboardComponent {
       status: 'completed' // completed, in progress, pending
     },
     {
-      name: 'design',
-      status: 'current'
-    },
-    {
       name: 'assess',
       status: 'pending'
+    },
+    {
+      name: 'design',
+      status: 'current'
     },
     {
       name: 'approve',
@@ -86,7 +88,7 @@ export class DashboardComponent {
     {
       label: 'GitHub',
       icon: 'pi pi-github',
-      routerLink: '/ia-assistant/github'
+      routerLink: '/export-github'
     },
     {
       separator: true,
@@ -148,6 +150,51 @@ export class DashboardComponent {
   getCurrentPhases() {
     return this.projectPhases.filter(phase => phase.status === 'current');
   }
+
+  selectedItems: any[] = [];
+
+  checklist: any[] = [
+    { name: 'Metadata', value: 'meta' },
+    { name: 'Translations', value: 'translate' },
+    { name: 'Validation', value: 'valid' },
+    { name: 'Approval', value: 'approve' },
+  ];
+
+
+  /* Pull phase from project state
+  togglePhaseStatus(phase: PhaseDisplay) {
+      const clickedIndex = PROJECT_PHASES.indexOf(phase.phase);
+      
+      // Advance to next phase if current
+      if (phase.status === 'current') {
+          if (clickedIndex < PROJECT_PHASES.length - 1) {
+              this.currentPhase = PROJECT_PHASES[clickedIndex + 1];
+          } else {
+              this.currentPhase = ProjectPhase.Complete; // Last phase -> Complete
+          }
+          this.updatePhaseDisplay();
+          this.saveProject(); // Save to storage
+          return;
+      }
+      
+      // Set clicked phase to current
+      this.currentPhase = phase.phase;
+      this.updatePhaseDisplay();
+      this.saveProject(); // Save to storage
+  }
+  
+  // Compute the display from stored currentPhase
+  updatePhaseDisplay() {
+      const currentIndex = PROJECT_PHASES.indexOf(this.currentPhase);
+      
+      this.projectPhases = PROJECT_PHASES.map((phase, index) => ({
+          phase,
+          status: index < currentIndex ? 'completed' 
+                : index === currentIndex ? 'current' 
+                : 'pending'
+      }));
+  }
+      */
 
 }
 

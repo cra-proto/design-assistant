@@ -31,9 +31,14 @@ export const routes: Routes = [
         title: 'title.landing',
     },
     {
+        path: 'dashboard',
+        component: DashboardComponent,
+        title: 'title.dashboard',
+    },
+    {
         path: 'switch-project',
         component: SwitchProjectComponent,
-        title: 'title.project',
+        title: 'title.saved',
     },
     {
         path: 'auth/login',
@@ -51,7 +56,7 @@ export const routes: Routes = [
         title: 'title.page',
     },
     {
-        path: 'ia-assistant/github',
+        path: 'export-github',
         component: ExportGithubComponent,
         title: 'title.ia',
     },

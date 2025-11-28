@@ -64,7 +64,7 @@ export class IaAssistantComponent {
 
   goToGitHubExport() {
     this.iaState.saveToLocalStorage();
-    this.router.navigate(['/ia-assistant/github']);
+    this.router.navigate(['/export-github']);
   }
 
   async saveToCloud() {

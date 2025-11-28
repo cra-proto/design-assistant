@@ -125,17 +125,25 @@
                 <div *ngIf="i < projectPhases.length - 1"
                      class="hidden xl:block flex-grow-0 w-4rem mx-3">
                     <i class="text-primary pi"
-                       [class.pi-arrow-right-arrow-left]="phase.name === 'design'"
-                       [class.pi-arrow-right]="phase.name !== 'design'"></i>
+                       [class.pi-arrow-right-arrow-left]="phase.name === 'assess'"
+                       [class.pi-arrow-right]="phase.name !== 'assess'"></i>
                 </div>
             </div>
 
         </div>
     </div>
 </div>
-
 <!-- Phase Cards Grid -->
 <div class="grid">
+    <!-- Baseline Header -->
+    <div class="col-12 lg:col-6">
+        <h3 class="mx-0 mb-0 surface-card p-2 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center">Baseline</h3>
+    </div>
+
+    <!-- Prototype Header (desktop only) -->
+    <div class="hidden lg:block lg:col-6">
+        <h3 class="mx-0 mb-0 surface-card p-2 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center">Prototype</h3>
+    </div>
 
     <!-- Discover Card -->
     <div class="col-12 md:col-6 lg:col-3">
@@ -144,66 +152,27 @@
              [ngClass]="{'border-2 border-primary': currentPhase === 'discover'}">
             <div class="flex-1">
                 <div class="flex align-items-center mb-3">
-
                     <i class="pi pi-search text-orange-500 text-xl"></i>
                     <h3 class="text-lg font-semibold text-900 ml-2 m-0">Discover</h3>
-
                 </div>
-                <p class="text-600 text-sm mb-3">Build your content inventory and identify problems.</p>
+                <p class="text-600 text-sm mb-3 min-h-2rem">Build your content inventory and identify tasks.</p>
                 <div class="border-top-1 surface-border pt-3">
                     <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
                         <li><span class="text-sm text-700">Identify scope</span></li>
+                        <li><span class="text-sm text-700">Identify tasks</span></li>
                         <li><span class="text-sm text-700">Review Guidance</span></li>
-                        <li><span class="text-sm text-700">Summarize pain points</span></li>
-                    </ul>
-                </div>
-
-            </div>
-
-
-            <p-progressbar *ngIf="assessmentStats.issuesFound > 0"
-                           [value]="100"
-                           [showValue]="false"
-                           styleClass="h-2rem centered-label">
-                <ng-template #content let-value>
-                    <span>{{assessmentStats.issuesFound}} issues found</span>
-                </ng-template>
-            </p-progressbar>
-
-        </div>
-    </div>
-
-    <!-- Design Card -->
-    <div class="col-12 md:col-6 lg:col-3">
-        <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
-             routerLink="/project/design"
-             [ngClass]="{'border-2 border-primary': currentPhase === 'design'}">
-            <div class="flex-1">
-                <div class="flex align-items-center mb-3">
-
-                    <i class="pi pi-pencil text-purple-500 text-xl"></i>
-                    <h3 class="text-lg font-semibold text-900 ml-2 m-0">Design</h3>
-
-                </div>
-                <p class="text-600 text-sm mb-3">Redesign content and export prototypes to GitHub.</p>
-                <div class="border-top-1 surface-border pt-3">
-                    <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
-                        <li><span class="text-sm text-700">Edit IA diagram</span></li>
-                        <li><span class="text-sm text-700">Get AI recomendations</span></li>
-                        <li><span class="text-sm text-700">Generate metadata</span></li>
-                        <li><span class="text-sm text-700">Create alt text for images</span></li>
-                        <li><span class="text-sm text-700">Export prototypes to GitHub</span></li>
+                        <li><span class="text-sm text-700">Export baseline pages to GitHub</span></li>
                     </ul>
                 </div>
             </div>
-            <p-progressbar *ngIf="activeProject.pageCount > 0"
-                           [value]="pageProgress/activeProject.pageCount * 100"
-                           [showValue]="false"
-                           styleClass="h-2rem centered-label">
-                <ng-template #content let-value>
-                    <span>{{pageProgress}}/{{activeProject.pageCount}}&nbsp;pages&nbsp;edited</span>
-                </ng-template>
-            </p-progressbar>
+
+            <div class="flex flex-row justify-content-center align-content-center gap-2">
+                <span class="material-icons text-primary text-7xl mt-5">library_books</span>
+                <div class="flex flex-column mt-0">
+                    <p class="text-3xl text-600 mb-0">{{ activeProject.pageCount }}</p>
+                    <p class="text-xl font-bold mt-0">pages</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -214,63 +183,115 @@
              [ngClass]="{'border-2 border-primary': currentPhase === 'assess'}">
             <div class="flex-1">
                 <div class="flex align-items-center mb-3">
-
                     <i class="pi pi-chart-line text-blue-500 text-xl"></i>
                     <h3 class="text-lg font-semibold text-900 ml-2 m-0">Assess</h3>
-
                 </div>
-                <p class="text-600 text-sm mb-3">Compare prototypes with baseline pages and evaluate content quality.</p>
+                <p class="text-600 text-sm mb-3 min-h-2rem">Compare prototypes with baseline pages and evaluate content quality.</p>
                 <div class="border-top-1 surface-border pt-3">
                     <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
                         <li><span class="text-sm text-700">Review changes</span></li>
                         <li><span class="text-sm text-700">Compare pain points</span></li>
                     </ul>
                 </div>
-
-
             </div>
-            <p-progressbar *ngIf="assessmentStats.issuesFound > 0"
-                           [value]="problemProgress/assessmentStats.issuesFound * 100"
-                           [showValue]="false"
-                           styleClass="h-2rem centered-label">
-                <ng-template #content let-value>
-                    <span>{{problemProgress}}/{{assessmentStats.issuesFound}} issues fixed</span>
-                </ng-template>
-            </p-progressbar>
+            <div class="flex flex-row justify-content-center align-content-center gap-2">
+                <span class="material-icons text-primary text-7xl mt-5">troubleshoot</span>
+                <div class="flex flex-column mt-0">
+                    <p class="text-3xl text-600 mb-0">{{ assessmentStats.issuesFound }}</p>
+                    <p class="text-xl font-bold mt-0">Problems</p>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Prototype Header (mobile/tablet only) -->
+    <div class="col-12 lg:hidden">
+        <h3 class="mx-0 mb-0 surface-card p-2 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center">Prototype</h3>
+    </div>
+
+    <!-- Design Card -->
+    <div class="col-12 md:col-6 lg:col-3">
+        <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
+             routerLink="/project/design"
+             [ngClass]="{'border-2 border-primary': currentPhase === 'design'}">
+            <div class="flex-1">
+                <div class="flex align-items-center mb-3">
+                    <i class="pi pi-pencil text-purple-500 text-xl"></i>
+                    <h3 class="text-lg font-semibold text-900 ml-2 m-0">Design</h3>
+                </div>
+                <p class="text-600 text-sm mb-3 min-h-2rem">Redesign content and export prototypes to GitHub.</p>
+                <div class="border-top-1 surface-border pt-3">
+                    <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
+                        <li><span class="text-sm text-700">Edit IA diagram</span></li>
+                        <li><span class="text-sm text-700">Get AI recomendations</span></li>
+                        <li><span class="text-sm text-700">Generate metadata</span></li>
+                        <li><span class="text-sm text-700">Create alt text for images</span></li>
+                        <li><span class="text-sm text-700">Export prototypes to GitHub</span></li>
+                        <li><span class="text-sm text-700">Reassess problems</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="flex flex-column gap-2">
+                <p-progressbar *ngIf="activeProject.pageCount > 0"
+                               [value]="pageProgress/activeProject.pageCount * 100"
+                               [showValue]="false"
+                               styleClass="h-2rem centered-label">
+                    <ng-template #content let-value>
+                        <span>{{pageProgress}}/{{activeProject.pageCount}}&nbsp;pages&nbsp;edited</span>
+                    </ng-template>
+                </p-progressbar>
+                <p-progressbar *ngIf="assessmentStats.issuesFound > 0"
+                               [value]="problemProgress/assessmentStats.issuesFound * 100"
+                               [showValue]="false"
+                               styleClass="h-2rem centered-label">
+                    <ng-template #content let-value>
+                        <span>{{problemProgress}}/{{assessmentStats.issuesFound}} issues fixed</span>
+                    </ng-template>
+                </p-progressbar>
+            </div>
+        </div>
+    </div>
+
 
 
     <!-- Approve Card -->
     <div class="col-12 md:col-6 lg:col-3">
         <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
-             routerLink="/project/approve"
              [ngClass]="{'border-2 border-primary': currentPhase === 'approve'}">
-
             <div class="flex-1">
                 <div class="flex align-items-center mb-3">
-                    <i class="pi pi-check-circle text-green-500 text-xl"></i>
+                    <i class="pi pi-check-circle text-xl" [ngClass]="{'text-green-500': selectedItems.length/checklist.length * 100 === 100,
+                        'text-red-500': selectedItems.length/checklist.length * 100 !== 100}"></i>
                     <h3 class="text-lg font-semibold text-900 ml-2 m-0">Approve</h3>
                 </div>
-                <p class="text-600 text-sm mb-3">Review changes and get approvals.</p>
+                <p class="text-600 text-sm mb-3 min-h-2rem">Review changes and get approvals.</p>
                 <div class="border-top-1 surface-border pt-3">
                     <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
                         <li><span class="text-sm text-700">Change summary</span></li>
                         <li><span class="text-sm text-700">Problem summary</span></li>
-                        <li><span class="text-sm text-700">Final approvals</span></li>
+                        <li><span class="text-sm text-700">Design Checklist</span>
+                            <div class="flex flex-column gap-1 mt-1">
+                                <div *ngFor="let item of checklist" class="flex items-center">
+                                    <p-checkbox [inputId]="item.key" name="group" [value]="item" [(ngModel)]="selectedItems" />
+                                    <label [for]="item.key" class="ml-2"> {{ item.name }} </label>
+                                </div>
+                            </div>
+                        </li>
                     </ul>
+
+
                 </div>
             </div>
 
-            <p-progressbar [value]="approvalProgress/3 * 100"
+            <p-progressbar *ngIf="assessmentStats.issuesFound > 0"
+                           [value]="selectedItems.length/checklist.length * 100"
                            [showValue]="false"
                            styleClass="h-2rem centered-label">
                 <ng-template #content let-value>
-                    <span>{{approvalProgress}}/3 approvals</span>
+                    <span>{{selectedItems.length}}/{{checklist.length}}</span>
                 </ng-template>
             </p-progressbar>
 
         </div>
     </div>
-
 </div>

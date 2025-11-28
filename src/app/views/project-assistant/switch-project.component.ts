@@ -95,11 +95,12 @@ export class SwitchProjectComponent implements OnInit {
 
   //Display formats
   get projects() {
-    return this.savedProjects() || [];
+    //return this.savedProjects() || [];
+    return this.combinedProjects() || [];
   }
 
-  getDisplayName(project: SavedProject): string {
-    return project.key
+  getDisplayName(projectName: string): string {
+    return projectName
       .replace(/-/g, " ")
       .replace(/^\w/, char => char.toUpperCase());
   }

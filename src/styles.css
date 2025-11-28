@@ -273,3 +273,11 @@ html.dark-mode .secondary-outline {
     content: '....';
   }
 }
+
+.min-h-2rem {
+  min-height: 2rem;
+}
+
+.min-h-3rem {
+  min-height: 3rem;
+}

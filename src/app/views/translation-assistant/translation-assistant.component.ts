@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
@@ -38,9 +38,7 @@ import { TranslationService } from '../../services/translation.service';
   templateUrl: './translation-assistant.component.html',
   styles: ``,
 })
-export class TranslationAssistantComponent implements OnInit {
-  // prefer-inject: replace constructor DI with inject()
-  public readonly apiKeyService = inject(ApiKeyService);
+export class TranslationAssistantComponent {
   private readonly translationService = inject(TranslationService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -64,17 +62,6 @@ export class TranslationAssistantComponent implements OnInit {
     this.router
       .navigateByUrl('/', { skipLocationChange: true })
       .then(() => this.router.navigate([this.router.url]));
-  }
-
-  ngOnInit(): void {
-    // check for API key in URL parameters
-    this.route.queryParams.subscribe((params) => {
-      const apiKey = params['key'];
-      if (apiKey) {
-        // set the API key from URL parameter
-        this.apiKeyService.setKey(apiKey);
-      }
-    });
   }
 
   onFileSelected(event: Event) {
