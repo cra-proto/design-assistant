@@ -9,11 +9,11 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { ButtonModule } from 'primeng/button';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 
-import { ApiResetComponent } from './ai-api/api-reset.component';
+import { ApiResetComponent } from '../components/ai-api/api-reset.component';
 import { LocalStorageService } from '../services/local-storage.service';
 import { ThemeService } from '../services/theme.service';
 import { IaStateService } from '../views/ia-assistant/services/ia-state.service';
-import { GithubConnectComponent } from "./sign-in/github-connect.component";
+import { GithubConnectComponent } from "../components/sign-in/github-connect.component";
 
 import { DividerModule } from 'primeng/divider';
 import { TagModule } from 'primeng/tag';

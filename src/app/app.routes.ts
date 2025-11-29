@@ -4,8 +4,8 @@ import { inject } from '@angular/core';
 import { DashboardComponent } from './views/project-assistant/dashboard.component';
 import { SwitchProjectComponent } from './views/project-assistant/switch-project.component';
 // Authentication
-import { GithubConnectComponent } from './template/sign-in/github-connect.component';
-import { AuthCallbackComponent } from './template/sign-in/auth-callback.component';
+import { GithubConnectComponent } from './components/sign-in/github-connect.component';
+import { AuthCallbackComponent } from './components/sign-in/auth-callback.component';
 //Export & Share
 import { ExportGithubComponent } from './views/ia-assistant/components/export-github.component';
 import { ShareComponent } from './views/page-assistant/components/share.component';

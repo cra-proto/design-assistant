@@ -6,7 +6,7 @@ import { TranslateModule } from "@ngx-translate/core";
 import { HeaderComponent } from './template/header.component';
 import { SidebarComponent } from './template/sidebar.component';
 import { FooterComponent } from './template/footer.component';
-import { ApiKeyComponent } from './template/ai-api/api-key.component';
+import { ApiKeyComponent } from './components/ai-api/api-key.component';
 import { LocalStorageService } from './services/local-storage.service';
 import { CustomTitleStrategy } from './common/custom-title-strategy';
 import { PrimeNG } from 'primeng/config';

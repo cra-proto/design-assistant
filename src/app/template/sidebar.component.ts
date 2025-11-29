@@ -21,9 +21,9 @@ export class SidebarComponent {
 
   // Section toggle state
   isExpanded = {
-    main: true,
     project: true,
-    monitoring: true,
+    main: false,
+    utilities: false,
     info: true
   };
 
