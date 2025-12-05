@@ -60,17 +60,25 @@ export class FetchService {
       try {
         const response =
           mode === "HEAD"
-            ? await fetch(url, { method: "HEAD", cache: "no-store" })
+            ? await fetch(url, { method: "HEAD" }) //removed cache: "no-store" from { method: "HEAD", cache: "no-store" } 
             : await fetch(url); // plain GET to avoid CORS error
         if (response.ok) return response;
         else {
           if (!suppressErrors) { console.warn(`Fetch attempt #${attempt}. Status: ${response.status}. Method: ${mode}`); }
-          if (attempt < retries) { await this.delay(50); continue; } //50ms delay before retry
+          if (attempt < retries) {
+            const backoffDelay = Math.pow(2, attempt - 1) * 200; // 200ms, 400ms, 800ms delay before retry
+            await this.delay(backoffDelay);
+            continue;
+          }
           if (suppressErrors) return this.suppressError(url);
           throw new Error(`Fetch failed ${attempt} times. Method: ${mode}. Status: ${response.status} for ${url}`);
         }
       } catch (error) {
-        if (attempt < retries) { await this.delay(50); continue; }
+        if (attempt < retries) {
+          const backoffDelay = Math.pow(2, attempt - 1) * 200; // 200ms, 400ms, 800ms
+          await this.delay(backoffDelay);
+          continue;
+        }
         if (suppressErrors === true) return this.suppressError(url);
         else if (attempt === retries) throw new Error((error as Error).message);
       }
@@ -96,9 +104,11 @@ export class FetchService {
     url: string,
     hostMode: "prod" | "proto" | "both" | "none" = "both",
     retries = 3,
-    delay: number | "random" | "none" = "none"
+    delay: number | "random" | "none" = "none",
+    delayBetweenRequests = 50 //ms
   ): Promise<Response> {
     url = this.validateHost(url, hostMode);
+    if (delayBetweenRequests > 0) { await this.delay(delayBetweenRequests); }
     return this.fetchWithRetry(url, "HEAD", retries, delay);
   }
 

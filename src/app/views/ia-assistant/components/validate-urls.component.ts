@@ -92,7 +92,7 @@ export class ValidateUrlsComponent implements OnInit {
   /*** Validate a single URL item ***/
   private async checkStatus(link: UrlItem) {
     try {
-      const response = await this.fetchService.fetchStatus(link.href, "prod", 5, "random");
+      const response = await this.fetchService.fetchStatus(link.href, "prod", 3, "random", 100);
 
       if (!response.ok || response.url.includes('404.html')) {
         link.status = 'bad';
@@ -117,33 +117,32 @@ export class ValidateUrlsComponent implements OnInit {
 
   /*** Validate a URL item array (half of the URL pair) ***/
   private async validateUrlItems(urls: UrlItem[]) {
-    //Check all URLs
-    const urlsToCheck = urls.map(url =>
-      this.checkStatus(url).finally(() => {
-        const { urlChecked, urlTotal } = this.iaState.getUrlData();
-        this.iaState.setUrlData({
-          urlChecked: urlChecked + 1,
-          urlPercent: ((urlChecked + 1) / urlTotal) * 100,
-        });
-      })
-    );
-    await Promise.all(urlsToCheck);
+    //Check all URLs sequentially (concurrency can cause issues with Akamai rate limiting)
+    for (const url of urls) {
+      await this.checkStatus(url);
+      const { urlChecked, urlTotal } = this.iaState.getUrlData();
+      this.iaState.setUrlData({
+        urlChecked: urlChecked + 1,
+        urlPercent: ((urlChecked + 1) / urlTotal) * 100,
+      });
+    }
 
-    //Recheck bad URLs
+    // Recheck bad URLs sequentially
     const badUrls = urls.filter(url => url.status === 'bad');
-    badUrls.forEach(badUrl => (badUrl.status = 'checking'));
-    const { urlChecked } = this.iaState.getUrlData();
-    this.iaState.setUrlData({ urlChecked: urlChecked - badUrls.length });
-    const urlsToRecheck = badUrls.map(badUrl =>
-      this.checkStatus(badUrl).finally(() => {
+    if (badUrls.length > 0) {
+      badUrls.forEach(badUrl => (badUrl.status = 'checking'));
+      const { urlChecked } = this.iaState.getUrlData();
+      this.iaState.setUrlData({ urlChecked: urlChecked - badUrls.length });
+
+      for (const badUrl of badUrls) {
+        await this.checkStatus(badUrl);
         const { urlChecked, urlTotal } = this.iaState.getUrlData();
         this.iaState.setUrlData({
           urlChecked: urlChecked + 1,
           urlPercent: ((urlChecked + 1) / urlTotal) * 100,
         });
-      })
-    );
-    await Promise.all(urlsToRecheck);
+      }
+    }
   }
 
   /*** Validate URL pairs ***/
