@@ -6,7 +6,7 @@ import { TranslateModule } from "@ngx-translate/core";
   imports: [TranslateModule],
   template: `
     <h1 id="wb-cont">{{ 'title.about' | translate}}</h1>
-    <p>{{'about.content' | translate }}</p>    
+    <p>{{'about.content' | translate }}</p>
   `,
   styles: ``
 })
