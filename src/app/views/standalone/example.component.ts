@@ -18,10 +18,10 @@ import { FetchService } from '../../services/fetch.service';
 @Component({
   selector: 'aida-test',
   imports: [TranslateModule, HorizontalRadioButtonsComponent, TableModule, Button],
-  templateUrl: './test.component.html',
+  templateUrl: './example.component.html',
   styles: ``
 })
-export class TestComponent implements OnInit {
+export class ExampleComponent implements OnInit {
   //inject any services you're using
   private urlDataService = inject(UrlDataService);
   private uploadState = inject(UploadStateService);
