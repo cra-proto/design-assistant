@@ -22,7 +22,7 @@ import { IaAssistantComponent } from './views/ia-assistant/ia-assistant.componen
 import { NotFoundComponent } from './views/standalone/not-found.component';
 import { AboutComponent } from './views/standalone/about.component';
 //Test
-import { TestComponent } from './views/example/test.component';
+import { ExampleComponent } from './views/standalone/example.component';
 
 export const routes: Routes = [
     {
@@ -120,7 +120,7 @@ export const routes: Routes = [
     },
     {
         path: 'test',
-        component: TestComponent,
+        component: ExampleComponent,
         title: 'title.test',
     },
     {
