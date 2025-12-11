@@ -50,7 +50,7 @@ resource "aws_lambda_function" "github_auth_url" {
 
   environment {
     variables = {
-      REDIRECT_URI = "https://dzdzuh78hslou.cloudfront.net/auth/callback"
+      REDIRECT_URI = var.github_oauth_redirect_uri
     }
   }
 }
@@ -72,7 +72,7 @@ resource "aws_apigatewayv2_api" "api" {
   protocol_type = "HTTP"
   
   cors_configuration {
-    allow_origins = ["https://dzdzuh78hslou.cloudfront.net","http://localhost:4200"]  # Remove localhost for prod
+    allow_origins = var.allowed_origins
     allow_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     allow_headers = ["content-type", "authorization", "x-amz-date", "x-api-key", "x-amz-security-token"]
     expose_headers = ["x-amzn-requestid", "x-amzn-trace-id"]
@@ -199,7 +199,7 @@ resource "aws_lambda_function" "projects" {
   environment {
     variables = {
       TABLE_NAME = aws_dynamodb_table.projects.name
-      ALLOWED_ORIGIN = "https://dzdzuh78hslou.cloudfront.net"
+      ALLOWED_ORIGIN = var.allowed_origins[0]
     }
   }
 }
