@@ -77,7 +77,7 @@ jobs:
         
         # Get outputs
         terraform init
-        terraform workspace select ${{ steps.env.outputs.environment }}
+        terraform workspace select ${{ steps.env.outputs.environment }} || terraform workspace new ${{ steps.env.outputs.environment }}
         echo "s3_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
         echo "cloudfront_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT
     
