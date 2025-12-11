@@ -18,7 +18,7 @@ import { ChipModule } from 'primeng/chip';
 
 import { UrlItem, UrlPair } from '../data/data.model'
 
-import { LinkListComponent } from '../components/link-list.component';
+import { LinkListComponent } from '../../add-pages/components/link-list.component';
 import { FetchService } from '../../../services/fetch.service';
 import { ThemeService } from '../../../services/theme.service';
 

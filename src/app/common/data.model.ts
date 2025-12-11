@@ -1,25 +1,26 @@
-/*TO-DO
-Project interface (name, phase, last modified, collaborators etc.)
-TreeNode interface (all data)
-PageMeta interface (used in data section of TreeNode)
-PagePromlem interface (used in data section of TreeNode)
-Enum for ProjectPhase & status (draft, discover, assess, completed, in progress, pending)
+/*
+HOW TO UPDATE THIS FILE: 
+Any data specific to the project will be stored in the Project interface
+Any data specific to a page will be stored in the TreeNode 'data' property as a PageMeta or PageProblem or PageXXX array
+Don't store values that can be derived from other values unless you need to display it on the saved project screen (e.g., page count)
 */
 
 import { TreeNode } from "primeng/api";
 
 //Project phase
 export enum ProjectPhase {
+    Draft = 'phase.draft',
     Discover = 'phase.discover',
     Assess = 'phase.assess',
     Design = 'phase.design',
     Approve = 'phase.approve',
+    Complete = 'phase.complete'
 }
 
 export type PhaseStatus = 'status.complete' | 'status.current' | 'status.pending';
 
-export interface PhaseDisplay {
-    phase: ProjectPhase;
+export interface CurrentPhase {
+    name: ProjectPhase;
     status: PhaseStatus;
 }
 
@@ -34,23 +35,40 @@ export interface GitHubUser {
 }
 
 export interface GitHubRepo {
-    githubOwner: string;
-    githubRepo: number;
-    githubBranch: string;
-    baselineRepo: boolean;
+    owner: string;
+    repo: string;
+    branch: string;
+    hasBaselineRepo: boolean;
 }
 
 //Page metadata
-export interface PageMetadata {
-    title?: string;
-    description?: string;
-    keywords?: string[];
-    owner?: string;
-    email?: string;
-    lastModified?: Date;
+export interface PageMeta {
+    url: string;                    // User-added URL
+    oppUrl: string;                 // Oppostie language URL    
+    baselineParent: string | null;  // Last url in breadcrumb (the parent page)
+    h1: string;                     // All H1's on the page
+    title?: string;                 // Metadata title
+    description?: string;           // Metadata description
+    keywords?: string;              // Metadata keywords
+    oppTitle?: string;              // jrc:content.json otherTitle
+    owner?: string;                 // jrc:content.json gcContributor
+    email?: string;                 // jrc:content.json gcBranch
+    lastPublished?: Date;           // jrc:content.json gcLastPublished
+    lastModified?: Date;            // jrc:content.json cq:lastModified
 }
 
-//Page problems
+//Page status
+export interface PageStatus {
+    inScope: boolean;                // True for user-added pages, False for discovered parent pages (user can also toggle this status)
+    isOrphan: boolean;               // True if parent doesn't link to the page
+    isCrawled: boolean;              // True after crawling for children
+    isNew: boolean;                  // True if url is 404
+    isMoved: boolean;                // True if current parent doesn't match baseline parent
+    isROT: boolean;                  // True if user flags page as ROT (redundant, outdated, trivial)
+    isContainer: boolean;            // True if page is a container page (used to group together pages for AI combine/split actions)
+}
+
+//Page problems (placeholder!)
 export interface PageProblem {
     type: 'broken-link' | 'invalid-link-text' | 'missing-alt' | 'accessibility' | 'other';
     severity: 'error' | 'warning' | 'info';
@@ -66,14 +84,17 @@ export interface PageProblem {
 export interface Project {
     //Project metadata
     id: string;
+    version: number;
     projectName: string;
     phase: ProjectPhase;
     created: Date;
     lastModified: Date;
-    storageLocation: 'local' | 'cloud';
+    storageLocation: 'browser' | 'cloud';
     collaborators?: GitHubUser[];
+    baselinePages: number;
+    inScopePages: number;
     //GitHub repo data
-    githubRepo: GitHubRepo;
+    github: GitHubRepo;
     //Project data
     projectData: TreeNode[];
 }

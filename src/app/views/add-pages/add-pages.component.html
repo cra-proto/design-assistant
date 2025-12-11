@@ -1,0 +1,128 @@
+<h2 class="text-2xl my-1">Add pages</h2>
+<p class="text-color-secondary">Add Canada.ca URLs to your project. Pages will be validated and organized by their breadcrumb structure. Each link should be on a new line.</p>
+<p-iftalabel>
+    <textarea id="urls" autoResize="true" rows="5" pTextarea [(ngModel)]="rawUrls" (change)="parseUrls()" fluid></textarea>
+    <label for="urls">Canada.ca URLs</label>
+</p-iftalabel>
+
+
+
+
+
+<!--p-button
+          label="Add URLs"
+          icon="pi pi-check-square"
+          [loading]="isValidating"
+          (onClick)="validateUrls()"
+          [disabled]="urls.length === 0 || isValidated" /-->
+
+
+<!--ng-container *ngIf="isValidating || isValidated">
+        <h2 *ngIf="urlsChecking.length > 0">Validating links</h2>
+        <h2 *ngIf="urlsChecking.length === 0">Validated links</h2>
+
+        <p-progressbar [value]="urlPercent">
+            <ng-template #content let-value>
+                <span>{{ urlChecked }}/{{ urlTotal }}</span>
+            </ng-template>
+        </p-progressbar>
+
+    
+        <div class="flex flex-column gap-2 mt-3" *ngIf="urlsChecking.length > 0">
+            <ng-container *ngFor="let url of urlsChecking">
+                <p-chip styleClass="bg-yellow-100 text-black-alpha-90" class="max-w-max">
+                    <i class="pi pi-spin pi-spinner"></i>
+                    <span>{{ url.href }}</span>
+                </p-chip>
+            </ng-container>
+        </div>
+    </ng-container>
+
+    <p-confirmpopup />
+
+ 
+    <h2 *ngIf="urlsBad.length > 0" class="mb-0">Broken links</h2>
+    <div class="flex flex-column gap-2">
+        <aida-link-list
+                        labelKey="Broken"
+                        [links]="urlsBad"
+                        type="prod"
+                        (approve)="revalidate($event.url, $event.event)"
+                        (remove)="removeUrl($event)"
+                        *ngIf="urlsBad.length > 0">
+        </aida-link-list>
+    </div>
+
+
+    <h2 *ngIf="urlsRedirected.length > 0" class="mb-0">Redirected links</h2>
+    <div class="flex flex-column gap-2">
+        <aida-link-list
+                        labelKey="Redirected"
+                        [links]="urlsRedirected"
+                        type="prod"
+                        (approve)="revalidate($event.url, $event.event)"
+                        (remove)="removeUrl($event)"
+                        *ngIf="urlsRedirected.length > 0">
+        </aida-link-list>
+    </div>
+
+   
+    <h2 *ngIf="urlsBlocked.length > 0" class="mb-0">Blocked links</h2>
+    <div class="flex flex-column gap-2">
+        <aida-link-list
+                        labelKey="Blocked"
+                        [links]="urlsBlocked"
+                        type="prod"
+                        (approve)="revalidate($event.url, $event.event)"
+                        (remove)="removeUrl($event)"
+                        *ngIf="urlsBlocked.length > 0">
+        </aida-link-list>
+    </div>
+
+ 
+    <ng-container *ngIf="urlsOk.length > 0">
+        <h2 class="mb-0">Valid links</h2>
+        <ul class="my-0 list-none">
+            <li *ngFor="let url of urlsOk">
+                <i class="pi pi-check text-green-500 mr-2"></i>{{ url.href }}
+            </li>
+        </ul>
+    </ng-container>
+
+   
+    <ng-container *ngIf="urlsDuplicate.length > 0">
+        <h2 class="mb-0">Already in project (skipped)</h2>
+        <ul class="my-0 list-none">
+            <li *ngFor="let url of urlsDuplicate">
+                <i class="pi pi-info-circle text-blue-500 mr-2"></i>{{ url }}
+            </li>
+        </ul>
+    </ng-container>
+
+
+    <div class="mt-3" *ngIf="isValidated && urlsOk.length > 0">
+        <p-button
+                  label="Add to Project"
+                  icon="pi pi-plus"
+                  [loading]="isAddingToProject"
+                  (onClick)="addToProject()"
+                  [disabled]="urlsOk.length === 0"
+                  severity="success" />
+    </div>
+
+ 
+    <ng-container *ngIf="isAddingToProject">
+        <h2>Building page structure</h2>
+        <p-progressbar [value]="buildProgress">
+            <ng-template #content let-value>
+                <span>{{ buildStep }}</span>
+            </ng-template>
+        </p-progressbar>
+    </ng-container>
+
+  
+    <p-message
+               *ngIf="addedSuccessfully"
+               severity="success"
+               text="Pages added to project successfully!"
+               styleClass="mt-3" /-->

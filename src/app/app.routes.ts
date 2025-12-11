@@ -3,12 +3,16 @@ import { inject } from '@angular/core';
 // Project files
 import { DashboardComponent } from './views/project-assistant/dashboard.component';
 import { SwitchProjectComponent } from './views/project-assistant/switch-project.component';
+import { EditProjectComponent } from './views/project-assistant/edit-project.component';
 // Authentication
 import { GithubConnectComponent } from './components/sign-in/github-connect.component';
 import { AuthCallbackComponent } from './components/sign-in/auth-callback.component';
 //Export & Share
 import { ExportGithubComponent } from './views/ia-assistant/components/export-github.component';
 import { ShareComponent } from './views/page-assistant/components/share.component';
+//Add & Find Pages
+import { AddPagesComponent } from './views/add-pages/add-pages.component';
+//import { FindPagesComponent } from './views/find-pages/find-pages.component';
 // Tools
 import { PageUploadComponent } from './views/page-assistant/components/upload.component';
 import { UploadStateService } from './views/page-assistant/services/upload-state.service';
@@ -39,6 +43,16 @@ export const routes: Routes = [
         path: 'switch-project',
         component: SwitchProjectComponent,
         title: 'title.saved',
+    },
+    {
+        path: 'new-project',
+        component: AddPagesComponent,
+        title: 'title.new-project',
+    },
+    {
+        path: 'edit-project',
+        component: EditProjectComponent,
+        title: 'title.edit-project',
     },
     {
         path: 'auth/login',
@@ -84,9 +98,14 @@ export const routes: Routes = [
         title: 'title.page',
     },
     {
-        path: 'ia-assistant',
+        path: 'add-pages',
+        component: AddPagesComponent,
+        title: 'menu.add-pages',
+    },
+    {
+        path: 'find-pages',
         component: IaAssistantComponent,
-        title: 'title.ia',
+        title: 'menu.find-pages',
     },
     {
         path: 'image-assistant',

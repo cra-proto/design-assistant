@@ -28,6 +28,12 @@
               <span class="material-icons">add</span>
               <span class="nav_link_text">{{ 'menu.new' | translate }}</span>
             </a>
+            <a [routerLink]="['/edit-project']" routerLinkActive="active"
+               class="nav_link flex hover:bg-primary-600 border-round"
+               *ngIf="projectLoaded">
+              <span class="material-icons">edit</span>
+              <span class="nav_link_text">{{ 'menu.manage' | translate }}</span>
+            </a>
             <a [routerLink]="['/switch-project']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons">folder_open</span>
@@ -42,15 +48,15 @@
           </div>
           <div class="nav_section_body" id="main" role="region" aria-labelledby="menu-content" [class.hidden]="!isExpanded.main">
 
-            <a [routerLink]="['/scope']" routerLinkActive="active"
+            <a [routerLink]="['/add-pages']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons-outlined">inventory</span>
-              <span class="nav_link_text">{{ 'menu.scope' | translate }}</span>
+              <span class="nav_link_text">{{ 'menu.add-pages' | translate }}</span>
             </a>
-            <a [routerLink]="['/ia-assistant']" routerLinkActive="active"
+            <a [routerLink]="['/find-pages']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons-outlined">lan</span>
-              <span class="nav_link_text">{{ 'menu.ia' | translate }}</span>
+              <span class="nav_link_text">{{ 'menu.find-pages' | translate }}</span>
             </a>
             <a [routerLink]="['/inventory-assistant']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
