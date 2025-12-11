@@ -28,7 +28,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Determine environment
         id: env
         run: |
@@ -95,7 +95,7 @@ jobs:
       - name: Terraform Init
         working-directory: backend/terraform
         run: terraform init
-
+      
       - name: Select Terraform Workspace
         working-directory: backend/terraform
         run: |
@@ -112,7 +112,5 @@ jobs:
       - name: Output deployment info
         working-directory: backend/terraform
         run: |
-          echo "Deployed to ${{ steps.env.outputs.environment }} environment"
-          echo "CloudFront: $(terraform output -raw cloudfront_domain_name)"
-          echo "S3 Bucket: $(terraform output -raw s3_bucket_name)"
-      
+          echo "Deployed backend for ${{ steps.env.outputs.environment }} environment"
+          echo "API Endpoint: $(terraform output -raw api_invoke_url)"

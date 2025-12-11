@@ -1,0 +1,84 @@
+name: Import Existing Production Resources (ONE-TIME)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  import-backend:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Backend-design-assistant
+          aws-region: ca-central-1
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+
+      - name: Import Backend Resources
+        working-directory: backend/terraform
+        continue-on-error: true
+        run: |
+          terraform init
+          terraform workspace select production || terraform workspace new production
+          
+          # Import existing backend resources
+          terraform import -var-file="production.tfvars" aws_dynamodb_table.projects design-assistant-projects || true
+          terraform import -var-file="production.tfvars" aws_iam_role.lambda_role design-assistant-lambda-role || true
+          terraform import -var-file="production.tfvars" aws_lambda_function.github_auth_url design-assistant-github-auth-url || true
+          terraform import -var-file="production.tfvars" aws_lambda_function.github_callback design-assistant-github-callback || true
+          terraform import -var-file="production.tfvars" aws_lambda_function.projects design-assistant-projects || true
+          terraform import -var-file="production.tfvars" aws_apigatewayv2_api.api $(aws apigatewayv2 get-apis --query "Items[?Name=='design-assistant-api'].ApiId" --output text) || true
+          terraform import -var-file="production.tfvars" aws_cloudwatch_log_group.api_logs /aws/apigateway/design-assistant-api || true
+      
+      - name: Verify Backend Import
+        working-directory: backend/terraform
+        run: |
+          terraform plan -var-file="production.tfvars"
+
+  import-frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Frontend-design-assistant
+          aws-region: ca-central-1
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+
+      - name: Import Frontend Resources
+        working-directory: frontend/terraform
+        continue-on-error: true
+        run: |
+          terraform init
+          terraform workspace select production || terraform workspace new production
+          
+          # Import existing frontend resources
+          terraform import -var-file="production.tfvars" aws_s3_bucket.frontend ai-design-assistant-test || true
+          terraform import -var-file="production.tfvars" aws_cloudfront_distribution.frontend EOUPF3T8Z3WXK || true
+      
+      - name: Verify Frontend Import
+        working-directory: frontend/terraform
+        run: |
+          terraform plan -var-file="production.tfvars"
