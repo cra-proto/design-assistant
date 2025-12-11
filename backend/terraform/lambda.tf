@@ -51,6 +51,7 @@ resource "aws_lambda_function" "github_auth_url" {
   environment {
     variables = {
       REDIRECT_URI = var.github_oauth_redirect_uri
+      ALLOWED_ORIGIN = var.allowed_origins[0]
     }
   }
 }
