@@ -73,6 +73,11 @@ jobs:
           if [ -n "$API_ID" ]; then
             terraform import -var-file="production.tfvars" aws_apigatewayv2_stage.api "${API_ID}/production" 2>/dev/null || echo "Already imported or failed"
           fi
+          
+          # Import Lambda permissions (NEW)
+          terraform import -var-file="production.tfvars" aws_lambda_permission.auth_url design-assistant-github-auth-url/AllowAPIGatewayInvoke 2>/dev/null || echo "Already imported or failed"
+          terraform import -var-file="production.tfvars" aws_lambda_permission.callback design-assistant-github-callback/AllowAPIGatewayInvoke 2>/dev/null || echo "Already imported or failed"
+          terraform import -var-file="production.tfvars" aws_lambda_permission.projects design-assistant-projects/AllowAPIGatewayInvokeProjects 2>/dev/null || echo "Already imported or failed"
       
       - name: Verify Backend State
         working-directory: backend/terraform
