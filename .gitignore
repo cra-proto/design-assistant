@@ -62,4 +62,6 @@ backend/terraform/.terraform.lock.hcl
 backend/terraform/terraform.tfstate
 backend/terraform/terraform.tfstate.backup
 backend/terraform/*.tfvars
+!backend/terraform/production.tfvars
+!backend/terraform/dev.tfvars
 backend/terraform/tfplan
