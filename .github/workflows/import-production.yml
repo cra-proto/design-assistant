@@ -14,11 +14,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Backend-design-assistant
           aws-region: ca-central-1
+      
+      - name: Build Lambda OAuth function
+        working-directory: backend/functions/github-oauth
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+      
+      - name: Build Lambda Projects function
+        working-directory: backend/functions/projects
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
       
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -35,6 +62,9 @@ jobs:
           # Import existing backend resources
           terraform import -var-file="production.tfvars" aws_dynamodb_table.projects design-assistant-projects || true
           terraform import -var-file="production.tfvars" aws_iam_role.lambda_role design-assistant-lambda-role || true
+          terraform import -var-file="production.tfvars" aws_iam_role_policy.lambda_secrets_policy design-assistant-lambda-role/design-assistant-lambda-secrets-policy || true
+          terraform import -var-file="production.tfvars" aws_iam_role_policy.lambda_dynamodb_policy design-assistant-lambda-role/design-assistant-lambda-dynamodb-policy || true
+          terraform import -var-file="production.tfvars" aws_iam_role_policy_attachment.lambda_basic_execution design-assistant-lambda-role/arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole || true
           terraform import -var-file="production.tfvars" aws_lambda_function.github_auth_url design-assistant-github-auth-url || true
           terraform import -var-file="production.tfvars" aws_lambda_function.github_callback design-assistant-github-callback || true
           terraform import -var-file="production.tfvars" aws_lambda_function.projects design-assistant-projects || true
@@ -76,6 +106,9 @@ jobs:
           
           # Import existing frontend resources
           terraform import -var-file="production.tfvars" aws_s3_bucket.frontend ai-design-assistant-test || true
+          terraform import -var-file="production.tfvars" aws_s3_bucket_public_access_block.frontend ai-design-assistant-test || true
+          terraform import -var-file="production.tfvars" aws_s3_bucket_website_configuration.frontend ai-design-assistant-test || true
+          terraform import -var-file="production.tfvars" aws_s3_bucket_policy.frontend ai-design-assistant-test || true
           terraform import -var-file="production.tfvars" aws_cloudfront_distribution.frontend EOUPF3T8Z3WXK || true
       
       - name: Verify Frontend Import
