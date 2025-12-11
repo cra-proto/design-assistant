@@ -3,25 +3,16 @@
 <!-- Active Project Card -->
 <div class="surface-card border-round-lg shadow-2 p-4 mb-3">
     <div class="flex flex-column lg:flex-row justify-content-between align-items-start">
-        <div>
+        <div class="flex flex-column">
             <h2 class="text-2xl my-1 flex align-items-center">
-                {{ activeProject.name }}
+                {{ projectData.projectName || "New project" }}
                 <p-tag
-                       *ngFor="let phase of getCurrentPhases()"
-                       [value]="phase.name"
+                       [value]="projectData.phase | translate"
                        severity="primary"
                        [rounded]="true"
                        styleClass="ml-2 capitalize">
                 </p-tag>
-                <p-tag
-                       *ngIf="getCurrentPhases().length === 0"
-                       value="Completed"
-                       severity="secondary"
-                       [rounded]="true"
-                       styleClass="ml-2 capitalize">
-                </p-tag>
             </h2>
-            <p-button icon="pi pi-github" label="View Repository" [link]="true" styleClass="p-0" (onClick)="openInNewTab(activeProject.githubUrl)" />
         </div>
         <div class="mt-3 lg:mt-0 flex flex-row lg:flex-column gap-2">
             <p-button
@@ -45,14 +36,14 @@
     </div>
 
     <!-- Project Properties -->
-    <div class="grid mt-0 lg:-mt-5">
+    <div class="grid mt-0 lg:-mt-7">
 
         <div class="col-12 md:col-6 lg:col-3">
             <div class="flex flex-row align-content-center gap-2">
                 <i class="pi pi-copy text-primary text-2xl mt-5"></i>
                 <div class="flex flex-column mt-0">
                     <p class="text-sm text-600 mb-1">Pages</p>
-                    <p class="text-xl font-bold mt-0">{{ activeProject.pageCount }}</p>
+                    <p class="text-xl font-bold mt-0">{{ projectData.inScopePages }}</p>
                 </div>
             </div>
         </div>
@@ -62,7 +53,7 @@
                 <i class="pi pi-clock text-primary text-2xl mt-5"></i>
                 <div class="flex flex-column mt-0">
                     <p class="text-sm text-600 mb-1">Last Modified</p>
-                    <p class="text-md mt-0">{{ activeProject.lastModified | date:'short' }}</p>
+                    <p class="text-md mt-0">{{ projectData.lastModified| date:'short' }}</p>
                 </div>
             </div>
         </div>
@@ -74,15 +65,15 @@
                     <p class="text-sm text-600 mb-1">Collaborators</p>
                     <div class="flex gap-2 align-items-center">
                         <p-avatar
-                                  *ngFor="let collaborator of activeProject.collaborators.slice(0, 3)"
+                                  *ngFor="let collaborator of collaborators.slice(0, 3)"
                                   [label]="collaborator.initials"
                                   [style]="{'background-color': collaborator.color, 'color': '#ffffff'}"
                                   shape="circle"
                                   size="normal"
                                   [pTooltip]="collaborator.name">
                         </p-avatar>
-                        <span *ngIf="activeProject.collaborators.length > 3" class="text-600 text-sm ml-1">
-                            +{{ activeProject.collaborators.length - 3 }} more
+                        <span *ngIf="collaborators.length > 3" class="text-600 text-sm ml-1">
+                            +{{ collaborators.length - 3 }} more
                         </span>
                     </div>
                 </div>
@@ -93,10 +84,10 @@
 
     <!-- Project Phase Progress -->
     <div class="border-top-1 surface-border">
-        <h3 class="mb-2">Project Phase</h3>
-        <div class="flex flex-column lg:flex-row lg:flex-wrap gap-2">
+        <h3 class="mb-2">{{ 'phase' | translate }}</h3>
+        <div class="flex flex-column md:flex-row md:flex-wrap gap-2">
 
-            <div *ngFor="let phase of projectPhases; let i = index" class="flex-1 flex align-items-center">
+            <div *ngFor="let phase of projectPhases; let i = index" class="flex flex-1 align-items-center">
 
                 <!-- Phase Item -->
                 <div class="flex align-items-center flex-1 cursor-pointer"
@@ -105,19 +96,19 @@
                      (keydown.space)="togglePhaseStatus(phase)"
                      tabindex="0"
                      role="button"
-                     [attr.aria-label]="'Toggle ' + phase.name + ' phase status'">
+                     [attr.aria-label]="'Toggle ' + (phase.name | translate) + ' phase status'">
                     <div class="border-circle w-3rem h-3rem flex align-items-center justify-content-center font-bold"
                          [ngClass]="{
-                  'bg-primary text-0': phase.status === 'completed',
-                  'bg-primary-50 text-primary border-2 border-primary': phase.status === 'current',
-                  'surface-200 text-600': phase.status === 'pending'
-                }">
-                        <i *ngIf="phase.status === 'completed'" class="pi pi-check"></i>
-                        <span *ngIf="phase.status !== 'completed'">{{ i + 1 }}</span>
+                      'bg-primary text-0': phase.status === 'status.complete',
+                      'bg-primary-50 text-primary border-2 border-primary': phase.status === 'status.current',
+                      'surface-200 text-600': phase.status === 'status.pending'
+                    }">
+                        <i *ngIf="phase.status === 'status.complete'" class="pi pi-check"></i>
+                        <span *ngIf="phase.status !== 'status.complete'">{{ i + 1 }}</span>
                     </div>
                     <div class="ml-3">
-                        <p class="font-semibold text-900 mb-1 capitalize">{{ phase.name }}</p>
-                        <p class="text-sm text-600 m-0 capitalize">{{ phase.status }}</p>
+                        <p class="font-semibold text-900 mb-1">{{ phase.name | translate }}</p>
+                        <p class="text-sm text-600 m-0">{{ phase.status | translate }}</p>
                     </div>
                 </div>
 
@@ -125,8 +116,8 @@
                 <div *ngIf="i < projectPhases.length - 1"
                      class="hidden xl:block flex-grow-0 w-4rem mx-3">
                     <i class="text-primary pi"
-                       [class.pi-arrow-right-arrow-left]="phase.name === 'assess'"
-                       [class.pi-arrow-right]="phase.name !== 'assess'"></i>
+                       [class.pi-arrow-right-arrow-left]="phase.name === ProjectPhase.Assess"
+                       [class.pi-arrow-right]="phase.name !== ProjectPhase.Assess"></i>
                 </div>
             </div>
 
@@ -137,19 +128,34 @@
 <div class="grid">
     <!-- Baseline Header -->
     <div class="col-12 lg:col-6">
-        <h3 class="mx-0 mb-0 surface-card p-2 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center">Baseline</h3>
+        <div (click)="openRepo(projectData.github,'baseline')" class="mx-0 mb-0 p-2 surface-card text-primary border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center align-items-center gap-2" *ngIf="projectData.github.hasBaselineRepo">
+            <i class="pi pi-github"></i>
+            <h3 class="my-0">View baseline repository</h3>
+        </div>
+        <div class="mx-0 mb-0 p-2 surface-card border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center align-items-center gap-2" *ngIf="!projectData.github.hasBaselineRepo">
+            <h3 class="my-0">Baseline</h3>
+        </div>
     </div>
 
     <!-- Prototype Header (desktop only) -->
     <div class="hidden lg:block lg:col-6">
-        <h3 class="mx-0 mb-0 surface-card p-2 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center">Prototype</h3>
+        <div (click)="openRepo(projectData.github,'prototype')" class="mx-0 mb-0 p-2 surface-card text-primary border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center align-items-center gap-2" *ngIf="projectData.github.repo">
+            <i class="pi pi-github"></i>
+            <h3 class="my-0">View prototype repository</h3>
+        </div>
+        <div class="mx-0 mb-0 p-2 surface-card border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center align-items-center gap-2" *ngIf="!projectData.github.repo">
+            <h3 class="my-0">Prototype</h3>
+        </div>
     </div>
+
+
+
 
     <!-- Discover Card -->
     <div class="col-12 md:col-6 lg:col-3">
         <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
              routerLink="/project/discover"
-             [ngClass]="{'border-2 border-primary': currentPhase === 'discover'}">
+             [ngClass]="{'border-2 border-primary': projectData.phase === 'phase.discover'}">
             <div class="flex-1">
                 <div class="flex align-items-center mb-3">
                     <i class="pi pi-search text-orange-500 text-xl"></i>
@@ -169,7 +175,7 @@
             <div class="flex flex-row justify-content-center align-content-center gap-2">
                 <span class="material-icons text-primary text-7xl mt-5">library_books</span>
                 <div class="flex flex-column mt-0">
-                    <p class="text-3xl text-600 mb-0">{{ activeProject.pageCount }}</p>
+                    <p class="text-3xl text-600 mb-0">{{ projectData.inScopePages }}</p>
                     <p class="text-xl font-bold mt-0">pages</p>
                 </div>
             </div>
@@ -180,7 +186,7 @@
     <div class="col-12 md:col-6 lg:col-3">
         <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
              routerLink="/project/assess"
-             [ngClass]="{'border-2 border-primary': currentPhase === 'assess'}">
+             [ngClass]="{'border-2 border-primary': projectData.phase === 'phase.assess'}">
             <div class="flex-1">
                 <div class="flex align-items-center mb-3">
                     <i class="pi pi-chart-line text-blue-500 text-xl"></i>
@@ -206,14 +212,20 @@
 
     <!-- Prototype Header (mobile/tablet only) -->
     <div class="col-12 lg:hidden">
-        <h3 class="mx-0 mb-0 surface-card p-2 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center">Prototype</h3>
+        <div (click)="openRepo(projectData.github,'prototype')" class="mx-0 mb-0 p-2 surface-card text-primary border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center align-items-center gap-2" *ngIf="projectData.github.repo">
+            <i class="pi pi-github"></i>
+            <h3 class="my-0">View prototype repository</h3>
+        </div>
+        <div class="mx-0 mb-0 p-2 surface-card border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center align-items-center gap-2" *ngIf="!projectData.github.repo">
+            <h3 class="my-0">Prototype</h3>
+        </div>
     </div>
 
     <!-- Design Card -->
     <div class="col-12 md:col-6 lg:col-3">
         <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
              routerLink="/project/design"
-             [ngClass]="{'border-2 border-primary': currentPhase === 'design'}">
+             [ngClass]="{'border-2 border-primary': projectData.phase === 'phase.design'}">
             <div class="flex-1">
                 <div class="flex align-items-center mb-3">
                     <i class="pi pi-pencil text-purple-500 text-xl"></i>
@@ -232,12 +244,12 @@
                 </div>
             </div>
             <div class="flex flex-column gap-2">
-                <p-progressbar *ngIf="activeProject.pageCount > 0"
-                               [value]="pageProgress/activeProject.pageCount * 100"
+                <p-progressbar *ngIf="projectData.inScopePages > 0"
+                               [value]="pageProgress/projectData.inScopePages * 100"
                                [showValue]="false"
                                styleClass="h-2rem centered-label">
                     <ng-template #content let-value>
-                        <span>{{pageProgress}}/{{activeProject.pageCount}}&nbsp;pages&nbsp;edited</span>
+                        <span>{{pageProgress}}/{{projectData.inScopePages}}&nbsp;pages&nbsp;edited</span>
                     </ng-template>
                 </p-progressbar>
                 <p-progressbar *ngIf="assessmentStats.issuesFound > 0"
@@ -257,7 +269,7 @@
     <!-- Approve Card -->
     <div class="col-12 md:col-6 lg:col-3">
         <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
-             [ngClass]="{'border-2 border-primary': currentPhase === 'approve'}">
+             [ngClass]="{'border-2 border-primary': projectData.phase === 'phase.approve'}">
             <div class="flex-1">
                 <div class="flex align-items-center mb-3">
                     <i class="pi pi-check-circle text-xl" [ngClass]="{'text-green-500': selectedItems.length/checklist.length * 100 === 100,

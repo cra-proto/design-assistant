@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { UrlItem } from '../data/data.model'
+import { UrlItem } from '../../ia-assistant/data/data.model'
 
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputTextModule } from 'primeng/inputtext';
@@ -15,7 +15,7 @@ import { TagModule } from 'primeng/tag';
   selector: 'aida-link-list',
   imports: [CommonModule, FormsModule, IftaLabelModule, InputTextModule, InputGroupModule, InputGroupAddonModule, ButtonModule, Tooltip, TagModule],
   template: `
-<ng-container *ngIf="links?.length">
+<ng-container *ngIf="links.length">
   <!--h2 class="mb-0">{{ labelKey }} links</h2-->
   <div class="flex flex-column gap-2">
     <ng-container *ngIf="labelKey === 'Blocked' && type === 'prod'">

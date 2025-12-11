@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from "@ngx-translate/core";
@@ -15,10 +15,8 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
 
-interface ProjectPhase {
-  name: string;
-  status: 'pending' | 'current' | 'completed';
-}
+import { ProjectStateService } from '../../services/project-state.service';
+import { ProjectPhase, PhaseStatus, CurrentPhase, GitHubRepo } from '../../common/data.model';
 
 @Component({
   selector: 'aida-dashboard',
@@ -41,46 +39,32 @@ interface ProjectPhase {
 })
 export class DashboardComponent {
 
-  activeProject = {
-    name: 'CCB COP',
-    status: 'In Progress',
-    githubUrl: 'https://github.com/cra-design/ccb-cop',
-    pageCount: 47,
-    lastModified: new Date(),
-    collaborators: [
-      { name: 'Amber', initials: 'AL', color: '#2196F3' },
-      { name: 'Miguel', initials: 'MB', color: '#4CAF50' },
-      { name: 'Parissa', initials: 'PN', color: '#FF9800' },
-      { name: 'Naomi', initials: 'NH', color: '#9C27B0' }
-    ]
-  };
+  projectState = inject(ProjectStateService);
 
+  get projectData() {
+    return this.projectState.getProject();
+  }
+  ProjectPhase = ProjectPhase;
 
-
-  projectPhases: ProjectPhase[] = [
-    {
-      name: 'discover',
-      status: 'completed' // completed, in progress, pending
-    },
-    {
-      name: 'assess',
-      status: 'pending'
-    },
-    {
-      name: 'design',
-      status: 'current'
-    },
-    {
-      name: 'approve',
-      status: 'pending'
-    }
-  ];
-
-  currentPhase = 'design'; // tracks which phase card to highlight
+  //Mock data for now
+  collaborators = [
+    { name: 'Amber', initials: 'AL', color: '#2196F3' },
+    { name: 'Miguel', initials: 'MB', color: '#4CAF50' },
+    { name: 'Parissa', initials: 'PN', color: '#FF9800' },
+    { name: 'Naomi', initials: 'NH', color: '#9C27B0' }
+  ]
   assessmentStats = { issuesFound: 23 };
   approvalProgress = 2;
   problemProgress = 15;
   pageProgress = 10;
+  //End mock data
+
+
+
+
+
+
+
 
 
 
@@ -122,34 +106,71 @@ export class DashboardComponent {
     },
   ];
 
-  openInNewTab(url: string) {
+  //Open GitHub repo in new tab
+  openRepo(github: GitHubRepo, type: 'prototype' | 'baseline' = 'prototype') {
+    const url = "https://github.com/" + github.owner + "/" + (type === 'prototype' ? github.repo : github.repo + "-baseline");
     window.open(url, '_blank');
   }
 
-  togglePhaseStatus(phase: ProjectPhase) {
-    const clickedIndex = this.projectPhases.indexOf(phase);
-    // Advance to next phase if current
-    if (phase.status === 'current') {
-      this.projectPhases[clickedIndex].status = 'completed';
-      if (this.projectPhases[clickedIndex + 1]) { this.projectPhases[clickedIndex + 1].status = 'current'; this.currentPhase = this.projectPhases[clickedIndex + 1].name; }
+  //Project phase
+  displayedPhases = [
+    ProjectPhase.Discover,
+    ProjectPhase.Assess,
+    ProjectPhase.Design,
+    ProjectPhase.Approve
+  ];
+
+  get projectPhases(): CurrentPhase[] {
+    const currentPhase = this.projectData.phase;
+
+    // Draft = all pending
+    if (currentPhase === ProjectPhase.Draft) {
+      return this.displayedPhases.map(phase => ({
+        name: phase,
+        status: 'status.pending' as PhaseStatus
+      }));
+    }
+
+    // Complete = all complete
+    if (currentPhase === ProjectPhase.Complete) {
+      return this.displayedPhases.map(phase => ({
+        name: phase,
+        status: 'status.complete' as PhaseStatus
+      }));
+    }
+
+    // Active phases - compute status based on position
+    const currentIndex = this.displayedPhases.indexOf(currentPhase);
+
+    return this.displayedPhases.map((phase, index) => ({
+      name: phase,
+      status:
+        index < currentIndex ? 'status.complete' as PhaseStatus :
+          index === currentIndex ? 'status.current' as PhaseStatus :
+            'status.pending' as PhaseStatus
+    }));
+  }
+
+  togglePhaseStatus(phase: CurrentPhase) {
+    const clickedIndex = this.displayedPhases.indexOf(phase.name);
+    const currentPhase = this.projectData.phase;
+    //Set clicked phase to current if NOT current
+    if (phase.status !== 'status.current') {
+      this.projectState.setProjectPhase(phase.name);
       return;
     }
-    // Set all phases before the clicked one to completed
-    for (let i = 0; i < clickedIndex; i++) {
-      this.projectPhases[i].status = 'completed';
-    }
-    // Set the clicked phase to current
-    this.projectPhases[clickedIndex].status = 'current';
-    this.currentPhase = this.projectPhases[clickedIndex].name;
-    // Set all phases after the clicked one to pending
-    for (let i = clickedIndex + 1; i < this.projectPhases.length; i++) {
-      this.projectPhases[i].status = 'pending';
+    //Advance to next phase if clicked phase was current
+    if (phase.status === 'status.current') {
+      if (clickedIndex === this.displayedPhases.length - 1) {
+        this.projectState.setProjectPhase(ProjectPhase.Complete); // Last phase (not in displayedPhases)
+      } else {
+        this.projectState.setProjectPhase(this.displayedPhases[clickedIndex + 1]); // Next phase
+      }
+      return;
     }
   }
 
-  getCurrentPhases() {
-    return this.projectPhases.filter(phase => phase.status === 'current');
-  }
+
 
   selectedItems: any[] = [];
 
