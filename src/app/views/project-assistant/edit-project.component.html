@@ -1,0 +1,120 @@
+<h1 id="wb-cont">Manage project</h1>
+
+<div class="flex lg:flex-row flex-column gap-3">
+    <!--Project Card-->
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
+        <h2 class="text-2xl my-1">Project</h2>
+        <div class="flex flex-column gap-2">
+            <!--Name-->
+            <p-iftalabel>
+                <input type="text" id="name" pInputText [(ngModel)]="projectName" pSize="small" fluid (blur)="updateName(); syncName()" [pKeyFilter]="nameFilter" />
+                <label for="branch">Name</label>
+            </p-iftalabel>
+            <!--Phase-->
+            <p-iftalabel>
+                <p-select [options]="phaseOptions" optionValue="value" [(ngModel)]="projectPhase" inputId="phase" styleClass="w-full" fluid>
+                    <ng-template #item let-item>
+                        {{ item.name | translate }}
+                    </ng-template>
+                    <ng-template #selectedItem let-item>
+                        {{ item.name | translate }}
+                    </ng-template>
+                </p-select>
+                <label for="phase">Phase</label>
+            </p-iftalabel>
+            <!--Storage-->
+            <p-selectbutton [options]="storageOptions" optionValue="value" [(ngModel)]="projectStorage" styleClass="w-full">
+                <ng-template #item let-item>
+                    <i [class]="item.icon"></i>
+                    <span class="ml-1">{{ item.name | translate }}</span>
+                </ng-template>
+            </p-selectbutton>
+            <div class="flex flex-row align-items-center gap-1">
+                <i class="pi pi-info-circle text-blue-500"></i>
+                <span class="text-xs text-color-secondary">{{ projectStorage === 'browser' ?
+                    ('storage.browserWarning' | translate) :
+                    ('storage.cloudInfo' | translate) }}</span>
+            </div>
+        </div>
+    </div>
+    <!--GitHub Card-->
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
+        <h2 class="text-2xl my-1">GitHub repository</h2>
+        <div class="flex flex-column gap-2">
+            <div class="flex flex-column gap-1">
+                <p-iftalabel>
+                    <input type="text" id="owner" pInputText [(ngModel)]="gitHubOwner" pSize="small" fluid (blur)="updateOwner();updateRepoList()" maxlength="39" [pKeyFilter]="ownerFilter" [ngClass]="{ 'ng-invalid ng-dirty': ownerError }" />
+                    <label for="repo">Owner</label>
+                </p-iftalabel>
+                <p-message severity="error" variant="simple" size="small" *ngIf="ownerError">{{ownerError}}</p-message>
+            </div>
+            <p-iftalabel>
+                <p-autocomplete id="repo" [(ngModel)]="gitHubRepo" [suggestions]="filteredRepos" (input)="updateRepo()" (onBlur)="updateRepo();syncName()" (completeMethod)="filterRepos($event);" [dropdown]=true pSize="small" maxlength="100" [pKeyFilter]="repoFilter" fluid />
+                <label for="repo">Repository</label>
+            </p-iftalabel>
+            <p-iftalabel>
+                <input type="text" id="branch" pInputText [(ngModel)]="gitHubBranch" pSize="small" fluid (blur)="updateBranch()" [pKeyFilter]="branchFilter" />
+                <label for="branch">Branch</label>
+            </p-iftalabel>
+            <div class="flex align-items-center gap-2 mt-1">
+                <p-checkbox [(ngModel)]="gitHubBaseline" inputId="baseline" [binary]="true" size="large" />
+                <label for="baseline" class="text-lg">Include baseline repo</label>
+            </div>
+        </div>
+    </div>
+    <!--Collaborators Card-->
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
+        <h2 class="text-2xl my-1">Collaborators</h2>
+        <div class="flex flex-column gap-2">
+            <p>Add list & invite button</p>
+        </div>
+    </div>
+</div>
+
+<div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0">
+    <div class="flex flex-column lg:flex-row justify-content-between align-items-start gap-3">
+        <div class="w-full">
+            <aida-add-pages></aida-add-pages>
+        </div>
+        <div class="mt-3 lg:mt-0 flex flex-row lg:flex-column gap-2">
+            <p-button
+                      label="View project URLs"
+                      icon="pi pi-list"
+                      outlined
+                      size="small"
+                      styleClass="secondary-outline w-full min-w-max"
+                      (click)="showUrls = true">
+            </p-button>
+            <p-drawer header="URLs" [(visible)]="showUrls" position="right" styleClass="w-6"></p-drawer>
+
+            <p-button
+                      label="View IA diagram"
+                      icon="pi pi-sitemap"
+                      outlined
+                      size="small"
+                      styleClass="secondary-outline w-full min-w-max"
+                      (click)="showIA = true">
+            </p-button>
+            <p-drawer header="IA diagram" [(visible)]="showIA" position="full"></p-drawer>
+
+            <p-button
+                      label="View breadcrumbs"
+                      icon="pi pi-equals"
+                      outlined
+                      size="small"
+                      styleClass="secondary-outline w-full min-w-max"
+                      (click)="showBreadcrumb = true">
+            </p-button>
+            <p-drawer header="Breadcrumb" [(visible)]="showBreadcrumb" position="bottom"></p-drawer>
+
+            <div class="flex flex-row justify-content-center align-items-center">
+                <i class="pi pi-copy text-primary text-6xl"></i>
+                <div class="flex flex-column">
+                    <p class="my-0 font-bold text-2xl">{{projectData.inScopePages}}</p>
+                    <p class="my-0">pages</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
