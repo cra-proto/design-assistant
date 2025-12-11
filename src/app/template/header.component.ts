@@ -21,6 +21,8 @@ import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
 
+import { environment } from '../../environments/environment';
+
 @Component({
   selector: 'aida-header',
   imports: [CommonModule, FormsModule, TranslateModule, ToolbarModule, ButtonModule, ToggleButtonModule, ApiResetComponent, GithubConnectComponent,
@@ -52,6 +54,8 @@ import { BadgeModule } from 'primeng/badge';
       <p-button (onClick)="theme.toggle()" rounded outlined size="small" severity="secondary" [icon]="theme.icon()" styleClass="darkmode-toggle surface-border"  ariaLabel="Toggle between dark and light mode"></p-button>
 
       <p-button (onClick)="selectLanguage()" rounded text styleClass="underline text-blue-600 hover:text-blue-700 nohover w-5rem" severity="secondary" [label]="'opp.lang' | translate" [ariaLabel]="'opp.lang' | translate"></p-button>
+      
+      <span *ngIf="!production" class="ml-2">DEV</span>
 
     </div>
   </p-toolbar>
@@ -86,6 +90,7 @@ export class HeaderComponent {
   private iaState = inject(IaStateService);
   private router = inject(Router);
   private title = inject(Title);
+  public production = environment.production;
 
   get project(): string {
     const repo = this.iaState.getGitHubData().repo;
