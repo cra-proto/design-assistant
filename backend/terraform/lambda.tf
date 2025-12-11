@@ -52,6 +52,7 @@ resource "aws_lambda_function" "github_auth_url" {
     variables = {
       REDIRECT_URI = var.github_oauth_redirect_uri
       ALLOWED_ORIGIN = var.allowed_origins[0]
+      ENVIRONMENT = var.environment
     }
   }
 }
@@ -65,6 +66,13 @@ resource "aws_lambda_function" "github_callback" {
   source_code_hash = filebase64sha256("${path.module}/../functions/github-oauth/lambda.zip")
   runtime         = "nodejs22.x"
   timeout         = 30
+
+  environment {
+    variables = {
+      ALLOWED_ORIGIN = var.allowed_origins[0]
+      ENVIRONMENT    = var.environment
+    }
+  }
 }
 
 # API Gateway
