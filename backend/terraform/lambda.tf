@@ -77,7 +77,7 @@ resource "aws_lambda_function" "github_callback" {
 
 # API Gateway
 resource "aws_apigatewayv2_api" "api" {
-  name          = "${var.app_name}-api"
+  name          = "${var.app_name}-${var.environment}-api"
   protocol_type = "HTTP"
   
   cors_configuration {
@@ -92,7 +92,7 @@ resource "aws_apigatewayv2_api" "api" {
 
 # CloudWatch Log Group for API Gateway
 resource "aws_cloudwatch_log_group" "api_logs" {
-  name              = "/aws/apigateway/${var.app_name}-api"
+  name              = "/aws/apigateway/${var.app_name}-${var.environment}-api"
   retention_in_days = 7
   tags = {
     Environment = var.environment
