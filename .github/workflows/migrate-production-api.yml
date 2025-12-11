@@ -1,0 +1,69 @@
+name: Migrate Production to Shared API Gateway (ONE-TIME)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Backend-design-assistant
+          aws-region: ca-central-1
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+          terraform_wrapper: false
+
+      - name: Terraform Init and Select Production
+        working-directory: backend/terraform
+        run: |
+          terraform init
+          terraform workspace select production
+      
+      - name: Remove old API Gateway from state
+        working-directory: backend/terraform
+        run: |
+          echo "Removing old API Gateway resources from production state..."
+          terraform state rm aws_apigatewayv2_api.api
+          terraform state rm aws_apigatewayv2_stage.api
+          terraform state rm aws_apigatewayv2_integration.auth_url
+          terraform state rm aws_apigatewayv2_integration.callback
+          terraform state rm aws_apigatewayv2_integration.projects
+          terraform state rm aws_apigatewayv2_route.auth_url
+          terraform state rm aws_apigatewayv2_route.callback
+          terraform state rm aws_apigatewayv2_route.projects_get
+          terraform state rm aws_apigatewayv2_route.projects_post
+          terraform state rm aws_apigatewayv2_route.projects_get_id
+          terraform state rm aws_apigatewayv2_route.projects_put_id
+          terraform state rm aws_apigatewayv2_route.projects_delete_id
+          terraform state rm aws_apigatewayv2_route.projects_options
+          terraform state rm aws_apigatewayv2_route.projects_options_id
+      
+      - name: Import shared API Gateway
+        working-directory: backend/terraform
+        continue-on-error: true
+        run: |
+          echo "Importing shared API Gateway b3hiyzd4b0..."
+          terraform import -var-file="production.tfvars" aws_apigatewayv2_api.api b3hiyzd4b0
+          terraform import -var-file="production.tfvars" aws_apigatewayv2_stage.api b3hiyzd4b0/production
+      
+      - name: Verify State After Migration
+        working-directory: backend/terraform
+        run: |
+          echo "==== State After Migration ===="
+          terraform state list | grep apigateway
+          echo ""
+          echo "==== Terraform Plan ===="
+          terraform plan -var-file="production.tfvars"
