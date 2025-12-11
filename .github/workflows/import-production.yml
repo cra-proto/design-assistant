@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  import-backend:
+  verify-backend:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -51,32 +51,39 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.13.5
+          terraform_wrapper: false
 
-      - name: Import Backend Resources
+      - name: Terraform Init and Select Workspace
         working-directory: backend/terraform
-        continue-on-error: true
         run: |
           terraform init
           terraform workspace select production || terraform workspace new production
-          
-          # Import existing backend resources
-          terraform import -var-file="production.tfvars" aws_dynamodb_table.projects design-assistant-projects || true
-          terraform import -var-file="production.tfvars" aws_iam_role.lambda_role design-assistant-lambda-role || true
-          terraform import -var-file="production.tfvars" aws_iam_role_policy.lambda_secrets_policy design-assistant-lambda-role/design-assistant-lambda-secrets-policy || true
-          terraform import -var-file="production.tfvars" aws_iam_role_policy.lambda_dynamodb_policy design-assistant-lambda-role/design-assistant-lambda-dynamodb-policy || true
-          terraform import -var-file="production.tfvars" aws_iam_role_policy_attachment.lambda_basic_execution design-assistant-lambda-role/arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole || true
-          terraform import -var-file="production.tfvars" aws_lambda_function.github_auth_url design-assistant-github-auth-url || true
-          terraform import -var-file="production.tfvars" aws_lambda_function.github_callback design-assistant-github-callback || true
-          terraform import -var-file="production.tfvars" aws_lambda_function.projects design-assistant-projects || true
-          terraform import -var-file="production.tfvars" aws_apigatewayv2_api.api $(aws apigatewayv2 get-apis --query "Items[?Name=='design-assistant-api'].ApiId" --output text) || true
-          terraform import -var-file="production.tfvars" aws_cloudwatch_log_group.api_logs /aws/apigateway/design-assistant-api || true
       
-      - name: Verify Backend Import
+      - name: Import Missing Backend Resources
+        working-directory: backend/terraform
+        continue-on-error: true
+        run: |
+          # Only import resources that aren't already imported
+          # Use correct syntax for IAM role policies (colon separator)
+          terraform import -var-file="production.tfvars" aws_iam_role_policy.lambda_secrets_policy design-assistant-lambda-role:design-assistant-lambda-secrets-policy 2>/dev/null || echo "Already imported or failed"
+          terraform import -var-file="production.tfvars" aws_iam_role_policy.lambda_dynamodb_policy design-assistant-lambda-role:design-assistant-lambda-dynamodb-policy 2>/dev/null || echo "Already imported or failed"
+          
+          # Import API Gateway stage
+          API_ID=$(terraform output -raw api_id 2>/dev/null || echo "")
+          if [ -n "$API_ID" ]; then
+            terraform import -var-file="production.tfvars" aws_apigatewayv2_stage.api "${API_ID}/production" 2>/dev/null || echo "Already imported or failed"
+          fi
+      
+      - name: Verify Backend State
         working-directory: backend/terraform
         run: |
+          echo "==== Current Terraform State ===="
+          terraform state list
+          echo ""
+          echo "==== Terraform Plan ===="
           terraform plan -var-file="production.tfvars"
 
-  import-frontend:
+  verify-frontend:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -96,22 +103,19 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.13.5
+          terraform_wrapper: false
 
-      - name: Import Frontend Resources
+      - name: Terraform Init and Select Workspace
         working-directory: frontend/terraform
-        continue-on-error: true
         run: |
           terraform init
           terraform workspace select production || terraform workspace new production
-          
-          # Import existing frontend resources
-          terraform import -var-file="production.tfvars" aws_s3_bucket.frontend ai-design-assistant-test || true
-          terraform import -var-file="production.tfvars" aws_s3_bucket_public_access_block.frontend ai-design-assistant-test || true
-          terraform import -var-file="production.tfvars" aws_s3_bucket_website_configuration.frontend ai-design-assistant-test || true
-          terraform import -var-file="production.tfvars" aws_s3_bucket_policy.frontend ai-design-assistant-test || true
-          terraform import -var-file="production.tfvars" aws_cloudfront_distribution.frontend EOUPF3T8Z3WXK || true
       
-      - name: Verify Frontend Import
+      - name: Verify Frontend State
         working-directory: frontend/terraform
         run: |
+          echo "==== Current Terraform State ===="
+          terraform state list
+          echo ""
+          echo "==== Terraform Plan ===="
           terraform plan -var-file="production.tfvars"
