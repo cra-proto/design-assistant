@@ -1,0 +1,88 @@
+name: Import Shared Backend Resources to Dev (ONE-TIME)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  import-dev-backend:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Backend-design-assistant
+          aws-region: ca-central-1
+      
+      - name: Build Lambda OAuth function
+        working-directory: backend/functions/github-oauth
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+      
+      - name: Build Lambda Projects function
+        working-directory: backend/functions/projects
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+          terraform_wrapper: false
+
+      - name: Terraform Init and Select Dev Workspace
+        working-directory: backend/terraform
+        run: |
+          terraform init
+          terraform workspace select dev || terraform workspace new dev
+      
+      - name: Import Shared Backend Resources to Dev
+        working-directory: backend/terraform
+        continue-on-error: true
+        run: |
+          # Import shared backend resources that exist in production
+          terraform import -var-file="dev.tfvars" aws_dynamodb_table.projects design-assistant-projects || true
+          terraform import -var-file="dev.tfvars" aws_iam_role.lambda_role design-assistant-lambda-role || true
+          terraform import -var-file="dev.tfvars" aws_iam_role_policy.lambda_secrets_policy design-assistant-lambda-role:design-assistant-lambda-secrets-policy || true
+          terraform import -var-file="dev.tfvars" aws_iam_role_policy.lambda_dynamodb_policy design-assistant-lambda-role:design-assistant-lambda-dynamodb-policy || true
+          terraform import -var-file="dev.tfvars" aws_iam_role_policy_attachment.lambda_basic_execution design-assistant-lambda-role/arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole || true
+          terraform import -var-file="dev.tfvars" aws_lambda_function.github_auth_url design-assistant-github-auth-url || true
+          terraform import -var-file="dev.tfvars" aws_lambda_function.github_callback design-assistant-github-callback || true
+          terraform import -var-file="dev.tfvars" aws_lambda_function.projects design-assistant-projects || true
+          terraform import -var-file="dev.tfvars" aws_apigatewayv2_api.api b3hiyzd4b0 || true
+          terraform import -var-file="dev.tfvars" aws_apigatewayv2_stage.api b3hiyzd4b0/dev || true
+          terraform import -var-file="dev.tfvars" aws_cloudwatch_log_group.api_logs /aws/apigateway/design-assistant-api || true
+      
+      - name: Verify Dev Backend State
+        working-directory: backend/terraform
+        run: |
+          echo "==== Current Terraform State ===="
+          terraform state list
+          echo ""
+          echo "==== Terraform Plan ===="
+          terraform plan -var-file="dev.tfvars"
