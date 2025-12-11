@@ -1,3 +1,3 @@
 environment = "dev"
-allowed_origins = ["http://localhost:4200"]
-github_oauth_redirect_uri = "http://localhost:4200/auth/callback"
+allowed_origins = ["https://d12jpzad41do8v.cloudfront.net, "http://localhost:4200"]
+github_oauth_redirect_uri = "https://d12jpzad41do8v.cloudfront.net/auth/callback"
