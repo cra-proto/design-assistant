@@ -25,11 +25,9 @@ variable "github_oauth_secret_name" {
 variable "github_oauth_redirect_uri" {
   description = "GitHub OAuth redirect URI"
   type        = string
-  default     = "https://dzdzuh78hslou.cloudfront.net/auth/callback"
 }
 
 variable "allowed_origins" {
   description = "Allowed CORS origins"
   type        = list(string)
-  default     = ["http://localhost:4200"]
 }
