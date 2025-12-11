@@ -14,11 +14,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Backend-design-assistant
           aws-region: ca-central-1
+      
+      - name: Build Lambda OAuth function
+        working-directory: backend/functions/github-oauth
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+      
+      - name: Build Lambda Projects function
+        working-directory: backend/functions/projects
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
       
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -51,13 +78,17 @@ jobs:
           terraform state rm aws_apigatewayv2_route.projects_options
           terraform state rm aws_apigatewayv2_route.projects_options_id
       
-      - name: Import shared API Gateway
+      - name: Import shared API Gateway (not stage yet)
         working-directory: backend/terraform
-        continue-on-error: true
         run: |
           echo "Importing shared API Gateway b3hiyzd4b0..."
           terraform import -var-file="production.tfvars" aws_apigatewayv2_api.api b3hiyzd4b0
-          terraform import -var-file="production.tfvars" aws_apigatewayv2_stage.api b3hiyzd4b0/production
+      
+      - name: Create production stage and routes
+        working-directory: backend/terraform
+        run: |
+          echo "Applying Terraform to create production stage..."
+          terraform apply -var-file="production.tfvars" -auto-approve
       
       - name: Verify State After Migration
         working-directory: backend/terraform
@@ -65,5 +96,8 @@ jobs:
           echo "==== State After Migration ===="
           terraform state list | grep apigateway
           echo ""
-          echo "==== Terraform Plan ===="
+          echo "==== API Gateway Stages ===="
+          aws apigateway get-stages --rest-api-id b3hiyzd4b0 || echo "HTTP API - checking stages differently"
+          echo ""
+          echo "==== Terraform Plan (should show no changes) ===="
           terraform plan -var-file="production.tfvars"
