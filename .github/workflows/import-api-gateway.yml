@@ -1,0 +1,152 @@
+name: Import API Gateway to Both Workspaces (ONE-TIME)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  import-production:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Backend-design-assistant
+          aws-region: ca-central-1
+      
+      - name: Build Lambda OAuth function
+        working-directory: backend/functions/github-oauth
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+      
+      - name: Build Lambda Projects function
+        working-directory: backend/functions/projects
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+          terraform_wrapper: false
+
+      - name: Terraform Init and Select Production Workspace
+        working-directory: backend/terraform
+        run: |
+          terraform init
+          terraform workspace select production || terraform workspace new production
+      
+      - name: Import API Gateway to Production Workspace
+        working-directory: backend/terraform
+        continue-on-error: true
+        run: |
+          echo "Importing API Gateway and stage to production workspace..."
+          terraform import -var-file="production.tfvars" aws_apigatewayv2_api.api b3hiyzd4b0 || echo "Already imported or failed"
+          terraform import -var-file="production.tfvars" aws_apigatewayv2_stage.api b3hiyzd4b0/production || echo "Already imported or failed"
+          terraform import -var-file="production.tfvars" aws_cloudwatch_log_group.api_logs /aws/apigateway/design-assistant-api || echo "Already imported or failed"
+      
+      - name: Verify Production State
+        working-directory: backend/terraform
+        run: |
+          echo "==== Production Workspace State ===="
+          terraform state list
+          echo ""
+          echo "==== Production Terraform Plan ===="
+          terraform plan -var-file="production.tfvars"
+
+  import-dev:
+    runs-on: ubuntu-latest
+    needs: import-production
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Backend-design-assistant
+          aws-region: ca-central-1
+      
+      - name: Build Lambda OAuth function
+        working-directory: backend/functions/github-oauth
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+      
+      - name: Build Lambda Projects function
+        working-directory: backend/functions/projects
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+          terraform_wrapper: false
+
+      - name: Terraform Init and Select Dev Workspace
+        working-directory: backend/terraform
+        run: |
+          terraform init
+          terraform workspace select dev || terraform workspace new dev
+      
+      - name: Import API Gateway to Dev Workspace
+        working-directory: backend/terraform
+        continue-on-error: true
+        run: |
+          echo "Importing API Gateway and stage to dev workspace..."
+          terraform import -var-file="dev.tfvars" aws_apigatewayv2_api.api b3hiyzd4b0 || echo "Already imported or failed"
+          terraform import -var-file="dev.tfvars" aws_apigatewayv2_stage.api b3hiyzd4b0/dev || echo "Already imported or failed"
+          terraform import -var-file="dev.tfvars" aws_cloudwatch_log_group.api_logs /aws/apigateway/design-assistant-api || echo "Already imported or failed"
+      
+      - name: Verify Dev State
+        working-directory: backend/terraform
+        run: |
+          echo "==== Dev Workspace State ===="
+          terraform state list
+          echo ""
+          echo "==== Dev Terraform Plan ===="
+          terraform plan -var-file="dev.tfvars"
