@@ -208,7 +208,7 @@ resource "aws_lambda_function" "projects" {
   environment {
     variables = {
       TABLE_NAME = aws_dynamodb_table.projects.name
-      ALLOWED_ORIGIN = var.allowed_origins[0]
+      ALLOWED_ORIGIN = join(",", var.allowed_origins)
     }
   }
 }

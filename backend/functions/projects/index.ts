@@ -7,10 +7,9 @@ const client = new DynamoDBClient({ region: process.env.AWS_REGION || "ca-centra
 const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME || "design-assistant-projects";
 
-const ALLOWED_ORIGINS = [
-    'https://dzdzuh78hslou.cloudfront.net',
-    'http://localhost:4200'
-];
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ['http://localhost:4200'];
 
 interface Project {
     id: string;
