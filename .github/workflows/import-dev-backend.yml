@@ -77,6 +77,11 @@ jobs:
           terraform import -var-file="dev.tfvars" aws_apigatewayv2_api.api b3hiyzd4b0 || true
           terraform import -var-file="dev.tfvars" aws_apigatewayv2_stage.api b3hiyzd4b0/dev || true
           terraform import -var-file="dev.tfvars" aws_cloudwatch_log_group.api_logs /aws/apigateway/design-assistant-api || true
+          
+          # Import Lambda permissions (NEW)
+          terraform import -var-file="dev.tfvars" aws_lambda_permission.auth_url design-assistant-github-auth-url/AllowAPIGatewayInvoke || true
+          terraform import -var-file="dev.tfvars" aws_lambda_permission.callback design-assistant-github-callback/AllowAPIGatewayInvoke || true
+          terraform import -var-file="dev.tfvars" aws_lambda_permission.projects design-assistant-projects/AllowAPIGatewayInvokeProjects || true
       
       - name: Verify Dev Backend State
         working-directory: backend/terraform
