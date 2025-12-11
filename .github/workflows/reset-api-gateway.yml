@@ -1,0 +1,90 @@
+name: Reset API Gateway State (ONE-TIME)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  reset-production:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Backend-design-assistant
+          aws-region: ca-central-1
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+
+      - name: Production - Remove API Gateway from state
+        working-directory: backend/terraform
+        run: |
+          terraform init
+          terraform workspace select production
+          terraform state rm aws_apigatewayv2_api.api || echo "Not in state"
+          terraform state rm aws_apigatewayv2_stage.api || echo "Not in state"
+          terraform state rm aws_apigatewayv2_integration.auth_url || echo "Not in state"
+          terraform state rm aws_apigatewayv2_integration.callback || echo "Not in state"
+          terraform state rm aws_apigatewayv2_integration.projects || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.auth_url || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.callback || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_get || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_post || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_get_id || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_put_id || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_delete_id || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_options || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_options_id || echo "Not in state"
+          terraform state rm aws_cloudwatch_log_group.api_logs || echo "Not in state"
+
+  reset-dev:
+    runs-on: ubuntu-latest
+    needs: reset-production
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Backend-design-assistant
+          aws-region: ca-central-1
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+
+      - name: Dev - Remove API Gateway from state
+        working-directory: backend/terraform
+        run: |
+          terraform init
+          terraform workspace select dev
+          terraform state rm aws_apigatewayv2_api.api || echo "Not in state"
+          terraform state rm aws_apigatewayv2_stage.api || echo "Not in state"
+          terraform state rm aws_apigatewayv2_integration.auth_url || echo "Not in state"
+          terraform state rm aws_apigatewayv2_integration.callback || echo "Not in state"
+          terraform state rm aws_apigatewayv2_integration.projects || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.auth_url || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.callback || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_get || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_post || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_get_id || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_put_id || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_delete_id || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_options || echo "Not in state"
+          terraform state rm aws_apigatewayv2_route.projects_options_id || echo "Not in state"
+          terraform state rm aws_cloudwatch_log_group.api_logs || echo "Not in state"
