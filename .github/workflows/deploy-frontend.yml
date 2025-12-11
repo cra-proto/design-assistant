@@ -2,44 +2,132 @@ name: Deploy Angular Frontend to AWS
 
 on:
   push:
-    branches: [ main ] # Change to your deployment branch if different
+    branches:
+      - main
+      - dev
     paths-ignore:
       - 'backend/**'
       - '**.md'
       - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - dev
+          - production
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  deploy:
+  deploy-infrastructure:
+    runs-on: ubuntu-latest
+    outputs:
+      s3_bucket: ${{ steps.tf-outputs.outputs.s3_bucket }}
+      cloudfront_id: ${{ steps.tf-outputs.outputs.cloudfront_id }}
+      cloudfront_url: ${{ steps.tf-outputs.outputs.cloudfront_url }}
+      environment: ${{ steps.env.outputs.environment }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Determine environment
+      id: env
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+        elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          echo "environment=production" >> $GITHUB_OUTPUT
+        elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
+          echo "environment=dev" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Frontend-design-assistant
+        aws-region: ca-central-1
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.13.5
+        terraform_wrapper: false
+    
+    - name: Terraform Init
+      working-directory: frontend/terraform
+      run: terraform init
+    
+    - name: Select Terraform Workspace
+      working-directory: frontend/terraform
+      run: |
+        terraform workspace select ${{ steps.env.outputs.environment }} || terraform workspace new ${{ steps.env.outputs.environment }}
+    
+    - name: Terraform Plan
+      working-directory: frontend/terraform
+      run: terraform plan -var-file="${{ steps.env.outputs.environment }}.tfvars"
+    
+    - name: Terraform Apply
+      working-directory: frontend/terraform
+      run: terraform apply -var-file="${{ steps.env.outputs.environment }}.tfvars" -auto-approve
+    
+    - name: Get Terraform Outputs
+      id: tf-outputs
+      working-directory: frontend/terraform
+      run: |
+        echo "s3_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
+        echo "cloudfront_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT
+        echo "cloudfront_url=$(terraform output -raw cloudfront_url)" >> $GITHUB_OUTPUT
+
+  deploy-application:
+    needs: deploy-infrastructure
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+    
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '22'  # Change to match your Node.js version
+        node-version: '22'
         cache: 'npm'
-        
+    
     - name: Install dependencies
       run: npm ci
-      
+    
     - name: Build Angular app
-      run: npm run build:prod  # Adjust the build command if necessary
-      
+      run: |
+        if [ "${{ needs.deploy-infrastructure.outputs.environment }}" == "production" ]; then
+          npm run build:prod
+        else
+          npm run build:dev
+        fi
+    
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Frontend-design-assistant # Use AWS account ID and role name
-        aws-region: ca-central-1  # Use your AWS region
-        
+        role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Frontend-design-assistant
+        aws-region: ca-central-1
+    
     - name: Deploy to S3
-      run: aws s3 sync dist/content-assistant/browser s3://ai-design-assistant-test --delete # Use your dist folder and S3 bucket name
-        
+      run: |
+        aws s3 sync dist/content-assistant/browser s3://${{ needs.deploy-infrastructure.outputs.s3_bucket }} --delete
+    
     - name: Invalidate CloudFront cache
-      run: aws cloudfront create-invalidation --distribution-id EOUPF3T8Z3WXK --paths "/*" # Use your CloudFront distribution ID
+      run: |
+        aws cloudfront create-invalidation \
+          --distribution-id ${{ needs.deploy-infrastructure.outputs.cloudfront_id }} \
+          --paths "/*"
+    
+    - name: Output deployment info
+      run: |
+        echo "Deployed to ${{ needs.deploy-infrastructure.outputs.environment }} environment"
+        echo "S3 Bucket: ${{ needs.deploy-infrastructure.outputs.s3_bucket }}"
+        echo "CloudFront ID: ${{ needs.deploy-infrastructure.outputs.cloudfront_id }}"
+        echo "CloudFront URL: ${{ needs.deploy-infrastructure.outputs.cloudfront_url }}"

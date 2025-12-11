@@ -4,9 +4,18 @@ on:
   push:
     branches:
       - main
+      - dev
     paths:
       - 'backend/**'
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - dev
+          - production
 
 jobs:
   deploy:
@@ -19,6 +28,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -76,10 +96,21 @@ jobs:
         working-directory: backend/terraform
         run: terraform init
       
+      - name: Select Terraform Workspace
+        working-directory: backend/terraform
+        run: |
+          terraform workspace select ${{ steps.env.outputs.environment }} || terraform workspace new ${{ steps.env.outputs.environment }}
+      
       - name: Terraform Plan
         working-directory: backend/terraform
-        run: terraform plan
+        run: terraform plan -var-file="${{ steps.env.outputs.environment }}.tfvars"
       
       - name: Terraform Apply
         working-directory: backend/terraform
-        run: terraform apply -auto-approve
+        run: terraform apply -var-file="${{ steps.env.outputs.environment }}.tfvars" -auto-approve
+      
+      - name: Output deployment info
+        working-directory: backend/terraform
+        run: |
+          echo "Deployed backend for ${{ steps.env.outputs.environment }} environment"
+          echo "API Endpoint: $(terraform output -raw api_invoke_url)"
