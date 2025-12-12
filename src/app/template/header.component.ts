@@ -54,12 +54,11 @@ import { environment } from '../../environments/environment';
       <p-button (onClick)="theme.toggle()" rounded outlined size="small" severity="secondary" [icon]="theme.icon()" styleClass="darkmode-toggle surface-border"  ariaLabel="Toggle between dark and light mode"></p-button>
 
       <p-button (onClick)="selectLanguage()" rounded text styleClass="underline text-blue-600 hover:text-blue-700 nohover w-5rem" severity="secondary" [label]="'opp.lang' | translate" [ariaLabel]="'opp.lang' | translate"></p-button>
-      
-      <span *ngIf="!production" class="ml-2">DEV</span>
 
     </div>
   </p-toolbar>
 </header>
+<div *ngIf="!production" class="sticky top-0 bg-primary border-round-bottom-lg text-center w-full">DEV environment</div>
 `,
   styles: `
   ::ng-deep .p-toolbar {
