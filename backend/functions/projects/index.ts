@@ -7,10 +7,9 @@ const client = new DynamoDBClient({ region: process.env.AWS_REGION || "ca-centra
 const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME || "design-assistant-projects";
 
-const ALLOWED_ORIGINS = [
-    'https://dzdzuh78hslou.cloudfront.net',
-    'http://localhost:4200'
-];
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ['http://localhost:4200'];
 
 interface Project {
     id: string;
@@ -422,8 +421,12 @@ export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
             pathParameters: pathParameters
         } as APIGatewayProxyEvent;
 
+        // NORMALIZE PATH - Remove stage prefix (/production or /dev)
+        const normalizedPath = path.replace(/^\/(production|dev)/, '');
+        console.log('Normalized path:', normalizedPath);
+
         // Route based on path and method
-        if (path === '/projects' || path === '/production/projects') {
+        if (normalizedPath === '/projects') {
             if (httpMethod === 'GET') {
                 return listProjects(normalizedEvent);
             } else if (httpMethod === 'POST') {
