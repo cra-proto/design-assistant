@@ -5,8 +5,8 @@
         <!-- App Title -->
         <div class="nav_logo">
           <a [routerLink]="['/']">
-            <span class="material-icons text-primary-200">design_services</span>
-            <span class="logo_text">{{ 'title.landing' | translate }}</span>
+            <span class="material-icons text-primary-200">{{ production ? 'design_services' : 'construction' }}</span>
+            <span class="logo_text px-0">{{ (production ? 'title.landing' : 'title.landing.dev') | translate }}</span>
           </a>
         </div>
         <!-- Project Tools -->

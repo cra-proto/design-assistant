@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { IaStateService } from '../views/ia-assistant/services/ia-state.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'aida-sidebar',
@@ -12,6 +13,7 @@ import { IaStateService } from '../views/ia-assistant/services/ia-state.service'
   styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent {
+  public production = environment.production;
 
   public iaState = inject(IaStateService);
   get projectLoaded(): boolean {
