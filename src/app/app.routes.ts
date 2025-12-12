@@ -46,7 +46,7 @@ export const routes: Routes = [
     },
     {
         path: 'new-project',
-        component: AddPagesComponent,
+        component: EditProjectComponent,
         title: 'title.new-project',
     },
     {

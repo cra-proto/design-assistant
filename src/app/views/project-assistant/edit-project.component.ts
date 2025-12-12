@@ -40,6 +40,12 @@ export class EditProjectComponent implements OnInit {
   exportGitHubService = inject(ExportGitHubService);
   authService = inject(GitHubAuthService);
 
+  //Check if project is loaded
+  get projectLoaded(): boolean {
+    const name = this.projectState.getProject().projectName;
+    return !!name;
+  }
+
   async ngOnInit(): Promise<void> {
     await this.updateRepoList();
   }

@@ -2,7 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { IaStateService } from '../views/ia-assistant/services/ia-state.service';
+import { ProjectStateService } from '../services/project-state.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'aida-sidebar',
@@ -12,11 +13,12 @@ import { IaStateService } from '../views/ia-assistant/services/ia-state.service'
   styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent {
+  public production = environment.production;
 
-  public iaState = inject(IaStateService);
+  public projectState = inject(ProjectStateService);
   get projectLoaded(): boolean {
-    const repo = this.iaState.getGitHubData().repo;
-    return !!repo;
+    const name = this.projectState.getProject().projectName;
+    return !!name;
   }
 
   // Section toggle state

@@ -58,7 +58,7 @@ import { environment } from '../../environments/environment';
     </div>
   </p-toolbar>
 </header>
-<div *ngIf="!production" class="sticky top-0 bg-primary border-round-bottom-lg text-center w-full">DEV environment</div>
+<div *ngIf="!production" class="sticky top-0 bg-primary border-round-bottom-lg text-center w-full">{{'app.dev' | translate}}</div>
 `,
   styles: `
   ::ng-deep .p-toolbar {
