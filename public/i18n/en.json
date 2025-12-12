@@ -25,7 +25,7 @@
 	"menu.project": "Project",
 	"menu.dashboard": "Dashboard",
 	"menu.new": "New Project",
-	"menu.manage": "Edit Project",
+	"menu.edit": "Edit Project",
 	"menu.saved": "All Projects",
 	"menu.tools": "Tools",
 	"menu.add-pages": "Add pages",
