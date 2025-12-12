@@ -421,8 +421,12 @@ export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
             pathParameters: pathParameters
         } as APIGatewayProxyEvent;
 
+        // NORMALIZE PATH - Remove stage prefix (/production or /dev)
+        const normalizedPath = path.replace(/^\/(production|dev)/, '');
+        console.log('Normalized path:', normalizedPath);
+
         // Route based on path and method
-        if (path === '/projects' || path === '/production/projects') {
+        if (normalizedPath === '/projects') {
             if (httpMethod === 'GET') {
                 return listProjects(normalizedEvent);
             } else if (httpMethod === 'POST') {
