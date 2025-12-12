@@ -41,7 +41,7 @@
             </a>
           </div>
         </div>
-        <div class="section">
+        <div class="section" *ngIf="!production">
           <div class="nav_header text-primary-200 hover:text-primary-400" (click)="toggleSection('main')" (keydown)="toggleOnEnter($event, 'main')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.main" aria-controls="main">
             <span id="menu-content" class="nav_section_text">{{ 'menu.tools' | translate }}</span>
             <span class="material-icons toggle-icon">{{ isExpanded.main ? 'expand_less' : 'expand_more' }}</span>
@@ -91,7 +91,7 @@
           </div>
         </div>
         <!-- Standalone Tools -->
-        <div class="section">
+        <div class="section" *ngIf="!production">
           <div class="nav_header text-primary-200 hover:text-primary-400" (click)="toggleSection('utilities')" (keydown)="toggleOnEnter($event, 'utilities')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.utilities" aria-controls="utilities">
             <span id="menu-content" class="nav_section_text">{{ 'menu.standalone' | translate }}</span>
             <span class="material-icons toggle-icon">{{ isExpanded.utilities ? 'expand_less' : 'expand_more' }}</span>
