@@ -4,6 +4,16 @@ export interface UrlItem {
     originalHref?: string;
 }
 
+export interface ValidationState {
+    rawUrls: string;
+    urls: UrlItem[];
+    urlTotal: number;
+    urlChecked: number;
+    urlPercent: number;
+    isValidating: boolean;
+    isValidated: boolean;
+}
+
 export interface BreadcrumbNode {
     label: string;            // link text
     url: string;              // link
@@ -17,4 +27,18 @@ export interface BreadcrumbNode {
     linkTooltip?: string;     // explanation for color/boldness of label
     prototype?: string;       // carry forward the prototype link
     minDepth?: number;         // carry forward how far to crawl from root to deepest user added child
+}
+
+
+
+export interface BreadcrumbValidationState {
+    isValidating: boolean;
+    progress: number;
+    currentStep: string;
+    isComplete: boolean;
+}
+
+export interface AddPagesState {
+    validation: ValidationState;
+    breadcrumbs: BreadcrumbValidationState;
 }
