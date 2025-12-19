@@ -15,19 +15,24 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { TooltipModule } from 'primeng/tooltip';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MenuItem } from 'primeng/api';
 import { MessageModule } from 'primeng/message';
 
 // Services
 import { AddPagesStateService } from './services/add-pages-state.service';
 import { UrlValidationService } from './services/url-validation.service';
+import { BreadcrumbValidationService } from './services/breadcrumb-validation.service';
 import { IaRelationshipService } from '../ia-assistant/services/ia-relationship.service';
 import { IaTreeService } from '../ia-assistant/services/ia-tree.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { FetchService } from '../../services/fetch.service';
+import { TreeNodeStyleService } from '../../services/treenode-style.service';
+
+//Components
+import { IaDiagramComponent } from '../../components/ia-diagram/ia-diagram.component';
 
 // Models
-import { UrlItem } from './add-pages.model';
+import { UrlItem, BreadcrumbNode } from './add-pages.model';
 import { TreeNode } from 'primeng/api';
 
 @Component({
@@ -36,7 +41,7 @@ import { TreeNode } from 'primeng/api';
         CommonModule, FormsModule, TranslateModule,
         TextareaModule, IftaLabelModule, ButtonModule,
         InputTextModule, InputGroupModule, InputGroupAddonModule, ConfirmPopupModule,
-        ProgressBarModule, DialogModule, ChipModule, TooltipModule, MessageModule
+        ProgressBarModule, DialogModule, ChipModule, TooltipModule, MessageModule,
     ],
     templateUrl: './add-pages.component.html',
     styles: `
@@ -50,6 +55,9 @@ export class AddPagesComponent {
     projectState = inject(ProjectStateService);
     addPagesState = inject(AddPagesStateService);
     urlValidation = inject(UrlValidationService);
+    breadcrumbValidation = inject(BreadcrumbValidationService);
+
+    nodeStyles = inject(TreeNodeStyleService)
 
     translate = inject(TranslateService);
 
@@ -74,7 +82,6 @@ export class AddPagesComponent {
     get urlsBad() { return this.addPagesState.urlsBad; }
     get urlsBlocked() { return this.addPagesState.urlsBlocked; }
     get urlsRedirected() { return this.addPagesState.urlsRedirected; }
-
 
     // Parse URLs from textarea
     parseUrls(): void {
@@ -110,6 +117,7 @@ export class AddPagesComponent {
     validateUrls(): void {
         this.addPagesState.setValidationState({
             isValidating: true,
+            isValidated: false,
         });
         console.log('Starting URL validation...');
         this.urlValidation.validateUrls(this.validationState.urls, (checked, total) => {
@@ -123,6 +131,7 @@ export class AddPagesComponent {
             this.addPagesState.setValidationState({
                 isValidating: false,
                 isValidated: true,
+                isOk: this.validationState.urls.every(u => u.status === 'ok')
             });
             console.log('URL validation complete.');
         }
@@ -169,157 +178,173 @@ export class AddPagesComponent {
         return this.translate.instant(key, { count });
     }
 
+    // Remove invalid URL
+    removeUrl(link: UrlItem): void {
+        this.validationState.urls = this.validationState.urls.filter(u => u !== link);
+        this.validationState.urlTotal -= 1;
+        this.validationState.urlChecked -= 1;
+        this.validationState.urlPercent = this.validationState.urlTotal > 0
+            ? (this.validationState.urlChecked / this.validationState.urlTotal) * 100
+            : 0;
+        this.validationState.isOk = this.validationState.urls.every(url => url.status === 'ok');
+    }
 
-    revalidateUrl(url: UrlItem): void { }
-    removeUrl(url: UrlItem): void { }
+    // Revalidate URL
+    async revalidateUrl(event: Event, link: UrlItem): Promise<void> {
+        link.href = link.href.trim().toLowerCase();
+
+        // Check for duplicates in existing project or current validation
+        const existingUrls = this.projectState.getAllUrls();
+        const currentUrls = this.validationState.urls
+            .filter(u => u !== link) // Exclude this specific link object
+            .map(u => u.href);
+        const allUrls = new Set([...existingUrls, ...currentUrls]);
+        if (allUrls.has(link.href)) {
+            this.confirmDuplicate(event, link);
+            return;
+        }
+
+        // Reset status and revalidate
+        link.status = 'checking';
+        try {
+            //update progress
+            this.addPagesState.setValidationState({
+                urlChecked: --this.validationState.urlChecked,
+                urlPercent: Math.round((this.validationState.urlChecked / this.validationState.urlTotal) * 100),
+                isValidating: true,
+                isValidated: false
+            });
+            //recheck link
+            await this.urlValidation.validateUrl(link);
+            //update progress
+            this.addPagesState.setValidationState({
+                urlChecked: ++this.validationState.urlChecked,
+                urlPercent: Math.round((this.validationState.urlChecked / this.validationState.urlTotal) * 100),
+                isValidating: false,
+                isValidated: true,
+                isOk: this.validationState.urls.every(u => u.status === 'ok')
+            });
+        } catch (error) {
+            console.error('Revalidation failed:', error);
+        }
+    }
+
+    // Popup message for revalidation of duplicate links
+    confirmDuplicate(event: Event, link: UrlItem) {
+        this.confirmationService.confirm({
+            target: event.target as EventTarget,
+            message: this.translate.instant('addPages.duplicate.message'),
+            icon: 'pi pi-exclamation-triangle text-orange-500',
+            defaultFocus: 'accept',
+            closeOnEscape: true,
+            rejectButtonProps: {
+                label: this.translate.instant('addPages.duplicate.message.reject'),
+                severity: 'secondary',
+                outlined: true
+            },
+            acceptButtonProps: {
+                label: this.translate.instant('addPages.duplicate.message.accept'),
+                severity: 'danger'
+            },
+            accept: () => {
+                this.duplicatesSkipped.push(link.href);
+                this.removeUrl(link);
+            },
+            reject: () => {
+                console.log("Cancel adding duplicate link");
+            }
+        });
+    }
 
 
-    /**
-   * Validate breadcrumbs and build tree context
-   */
+    //Validate breadcrumb
+    breadcrumbData = this.addPagesState.getBreadcrumbData();
     async validateBreadcrumbs(): Promise<void> {
+        this.addPagesState.resetBreadcrumbs();
         this.showBreadcrumbDialog = true;
 
-        this.addPagesState.setBreadcrumbState({
-            isValidating: true,
-            progress: 0,
-            currentStep: 'Getting breadcrumbs',
-        });
-
         try {
-            // Step 1: Get all breadcrumbs (20%)
-            const okUrls = this.urlsOk.map(u => ({
-                production: { href: u.href, status: 'ok' as const }
-            }));
-
-            const allPages = await this.iaRelationship.getAllBreadcrumbs(okUrls);
-
+            // Step 1: Get all breadcrumbs
             this.addPagesState.setBreadcrumbState({
+                isValidating: true,
                 progress: 20,
-                currentStep: 'Finding root pages',
+                currentStep: this.translate.instant('addPages.breadcrumb.step1'),
             });
-            await this.fetchService.simulateDelay(500);
+            console.time("getAllBreadcrumbs");
+            const urls = this.validationState.urls
+            const allPages = await this.breadcrumbValidation.getAllBreadcrumbs(urls);
+            console.timeEnd("getAllBreadcrumbs");
 
-            // Step 2: Find roots (40%)
-            const rootPages = this.iaRelationship.getRoots(allPages);
-
+            // Step 2: Filter breadcrumbs
             this.addPagesState.setBreadcrumbState({
-                progress: 40,
-                currentStep: 'Filtering breadcrumbs',
+                progress: 50,
+                currentStep: this.translate.instant('addPages.breadcrumb.step2'),
             });
             await this.fetchService.simulateDelay(500);
+            console.time("filterBreadcrumbs");
+            this.breadcrumbData = this.breadcrumbValidation.filterBreadcrumbs(allPages);
+            console.timeEnd("filterBreadcrumbs");
 
-            // Step 3: Filter breadcrumbs (60%)
-            let breadcrumbs = this.iaRelationship.filterBreadcrumbs(allPages);
-
+            //Step 3: Validate breadcrumbs
             this.addPagesState.setBreadcrumbState({
                 progress: 60,
-                currentStep: 'Validating breadcrumbs',
+                currentStep: this.translate.instant('addPages.breadcrumb.step3'),
             });
+            console.time("validateBreadcrumbs");
+            this.breadcrumbData = await this.breadcrumbValidation.validateBreadcrumbs(this.breadcrumbData);
+            console.timeEnd("validateBreadcrumbs");
 
-            // Step 4: Validate breadcrumbs (80%)
-            breadcrumbs = await this.iaRelationship.validateBreadcrumbs(breadcrumbs);
-
+            //Step 4: Build tree context and merge into project
             this.addPagesState.setBreadcrumbState({
-                progress: 80,
-                currentStep: 'Highlighting breadcrumbs',
+                progress: 90,
+                currentStep: this.translate.instant('addPages.breadcrumb.step4'),
             });
-            await this.fetchService.simulateDelay(500);
+            console.time("buildTreeContextAndMerge");
+            const treeNodes = this.projectState.getProjectTree();
+            const updatedTree = await this.breadcrumbValidation.setTreeContext(treeNodes, this.breadcrumbData);
 
-            // Step 5: Highlight breadcrumbs (90%)
-            const { breadcrumbs: highlighted } = this.iaRelationship.highlightBreadcrumbs(
-                breadcrumbs,
-                rootPages
-            );
+            //test
+            console.log('Tree depth check:');
+            console.log('Root nodes:', updatedTree.length);
+            console.log('First root children:', updatedTree[0]?.children?.length);
+            console.log('Second level children:', updatedTree[0]?.children?.[0]?.children?.length);
+            // Check if children arrays are being set to undefined/null
+            const checkTree = (nodes: TreeNode[], depth = 0) => {
+                nodes.forEach(node => {
+                    console.log(`${'  '.repeat(depth)}${node.label} - children: ${node.children?.length ?? 'undefined'}`);
+                    if (node.children) checkTree(node.children, depth + 1);
+                });
+            };
+            checkTree(updatedTree);
 
-            this.addPagesState.setBreadcrumbData(highlighted);
 
-            this.addPagesState.setBreadcrumbState({
-                progress: 95,
-                currentStep: 'Building tree context',
-            });
+            this.projectState.setProjectTree(updatedTree);
+            console.log('Updated tree:', this.projectState.getProjectTree());
+            this.projectState.setScope(this.duplicatesSkipped); //mark any urls we skipped as in-scope
+            this.nodeStyles.updateNodeStyles(updatedTree);
+            this.projectState.setProjectTree(updatedTree);
+            //console.log(this.projectState.getProjectTree())
+            console.timeEnd("buildTreeContextAndMerge");
 
-            // Step 6: Build tree context and merge into project (100%)
-            await this.buildTreeContextAndMerge(highlighted);
-
+            //Step 5: Emit completion
             this.addPagesState.setBreadcrumbState({
                 progress: 100,
-                currentStep: 'Complete',
-                isComplete: true,
+                currentStep: this.translate.instant('addPages.breadcrumb.step5'),
                 isValidating: false,
+                isValidated: true,
             });
-
-            // Emit completion
             this.completed.emit(true);
 
         } catch (error) {
             console.error('Error validating breadcrumbs:', error);
             this.addPagesState.setBreadcrumbState({
                 isValidating: false,
-                currentStep: 'Error occurred',
+                currentStep: this.translate.instant('addPages.breadcrumb.error'),
             });
         }
     }
 
-    /**
-     * Build tree context from breadcrumbs and merge into project
-     */
-    private async buildTreeContextAndMerge(breadcrumbs: any[]): Promise<void> {
-        // Save current project data for undo
-        const currentProjectData = this.projectState.getProjectTree();
-        this.addPagesState.setPreviousProjectData(
-            JSON.parse(JSON.stringify(currentProjectData)) // deep copy
-        );
 
-        // Build tree context from breadcrumbs
-        const newNodes: TreeNode[] = [];
-        await this.iaTree.setTreeContext(newNodes, breadcrumbs);
-
-        // Merge new nodes into existing project data
-        const mergedData = this.mergeTreeNodes(currentProjectData, newNodes);
-
-        // Update project state
-        //this.projectState.setProjectData(mergedData);
-        //this.projectState.saveProject();
-    }
-
-    /**
-     * Merge new tree nodes into existing project data
-     */
-    private mergeTreeNodes(existing: TreeNode[], newNodes: TreeNode[]): TreeNode[] {
-        const map = new Map<string, TreeNode>();
-
-        // Add existing nodes to map
-        for (const node of existing) {
-            if (node.data?.url) {
-                map.set(node.data.url, node);
-            }
-        }
-
-        // Add or merge new nodes
-        for (const node of newNodes) {
-            const url = node.data?.url;
-            if (!url) continue;
-
-            if (!map.has(url)) {
-                map.set(url, node);
-            } else {
-                const existingNode = map.get(url)!;
-                // Merge children if both have them
-                if (node.children?.length && existingNode.children?.length) {
-                    existingNode.children = this.mergeTreeNodes(existingNode.children, node.children);
-                } else if (node.children?.length) {
-                    existingNode.children = node.children;
-                }
-                // Update user-added flag
-                if (node.data?.isUserAdded) {
-                    existingNode.data.isUserAdded = true;
-                }
-            }
-        }
-
-        return Array.from(map.values());
-    }
 
     /**
      * Undo last addition

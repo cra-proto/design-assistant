@@ -22,20 +22,7 @@ import { ProjectPhase, PhaseStatus, CurrentPhase, GitHubRepo } from '../../commo
   selector: 'aida-dashboard',
   imports: [CommonModule, FormsModule, TranslateModule, RouterLink, CardModule, ButtonModule, TagModule, AvatarModule, ProgressBarModule, TooltipModule, MenuModule, CheckboxModule],
   templateUrl: './dashboard.component.html',
-  styles: `
-::ng-deep .centered-label .p-progressbar-value {
-  position: static !important;
-}
-
-::ng-deep .centered-label .p-progressbar-label {
-  position: absolute !important;
-  left: 50% !important;
-  top: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  width: auto !important;
-  z-index: 1 !important;
-  text-shadow: 0 0 3px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.7) !important;
-}`
+  styles: ``
 })
 export class DashboardComponent {
 

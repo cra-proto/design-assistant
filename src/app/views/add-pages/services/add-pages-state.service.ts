@@ -17,6 +17,7 @@ export class AddPagesStateService {
         urlPercent: 0,
         isValidating: false,
         isValidated: false,
+        isOk: false,
     });
 
     getValidationState = computed(() => this.validationState());
@@ -27,10 +28,10 @@ export class AddPagesStateService {
 
     // Breadcrumb validation state
     private breadcrumbState = signal<BreadcrumbValidationState>({
-        isValidating: false,
         progress: 0,
         currentStep: '',
-        isComplete: false,
+        isValidating: false,
+        isValidated: false,
     });
 
     getBreadcrumbState = computed(() => this.breadcrumbState());
@@ -47,7 +48,7 @@ export class AddPagesStateService {
     }
 
     // Breadcrumb data storage
-    private breadcrumbData = signal<BreadcrumbNode[][]>([]);
+    public breadcrumbData = signal<BreadcrumbNode[][]>([]);
     getBreadcrumbData = computed(() => this.breadcrumbData());
     setBreadcrumbData(data: BreadcrumbNode[][]) {
         this.breadcrumbData.set(data);
@@ -84,16 +85,17 @@ export class AddPagesStateService {
             urlPercent: 0,
             isValidating: false,
             isValidated: false,
+            isOk: false,
         });
     }
 
     // Reset breadcrumb state
     resetBreadcrumbs() {
         this.breadcrumbState.set({
-            isValidating: false,
             progress: 0,
             currentStep: '',
-            isComplete: false,
+            isValidating: false,
+            isValidated: false,
         });
         this.breadcrumbData.set([]);
     }

@@ -1,13 +1,10 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { Project, ProjectPhase, CurrentPhase, PageMeta, PageStatus, GitHubRepo, GitHubUser } from '../common/data.model';
+import { Project, ProjectPhase, CurrentPhase, PageMeta, PageStatus, GitHubRepo, GitHubUser, ProjectTreeNodeData } from '../common/data.model';
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../environments/environment';
 import { FileUploadHandlerEvent } from 'primeng/fileupload';
 
 import { CloudStorageService } from '../services/cloud-storage.service';
-
-
-export interface ProjectTreeNodeData extends PageMeta, PageStatus { }
 
 export interface SavedProject {
     key: string;
@@ -28,9 +25,6 @@ Methods to mark pages for editing
 Computed signals for stats (page counts, problem counts, etc.)
 NO persistence logic (that goes elsewhere)*/
 
-
-
-
 @Injectable({
     providedIn: 'root'
 })
@@ -45,6 +39,7 @@ export class ProjectStateService {
         phase: ProjectPhase.Draft,
         created: new Date(),
         lastModified: new Date(),
+        lastSaved: new Date(),
         storageLocation: 'browser',
         collaborators: [],
         baselinePages: 0,
@@ -124,18 +119,33 @@ export class ProjectStateService {
         this.cloudProjectId.set(id);
     }
 
-    // Count in-scope pages
-    countInScopePages(): number {
+    // Count pages
+    private countPages(mode: 'inScope' | 'baseline' = 'inScope'): number {
         let count = 0;
         const traverse = (nodes: TreeNode<ProjectTreeNodeData>[]) => {
             for (const node of nodes) {
-                if (node.data?.inScope) count++;
+                if (mode === 'inScope' && node.data?.status.inScope) count++;
+                else { count++ }
                 if (node.children?.length) traverse(node.children);
             }
         };
         traverse(this.project().projectData);
         return count;
     }
+
+
+    setScope(urls: string[]): void {
+        const traverse = (nodes: TreeNode<ProjectTreeNodeData>[]) => {
+            for (const node of nodes) {
+                if (node.data?.url && urls.includes(node.data.url)) {
+                    node.data.status.inScope = true;
+                }
+                if (node.children?.length) traverse(node.children);
+            }
+        };
+        traverse(this.project().projectData);
+    }
+
 
     // Check if URL already exists in tree
     urlExists(url: string): boolean {
@@ -150,11 +160,12 @@ export class ProjectStateService {
     }
 
     // Get all URLs in tree (for duplicate checking)
-    getAllUrls(): Set<string> {
+    getAllUrls(mode: 'all' | 'inScope' = 'all'): Set<string> {
         const urls = new Set<string>();
         const traverse = (nodes: TreeNode<ProjectTreeNodeData>[]) => {
             for (const node of nodes) {
-                if (node.data?.url) urls.add(node.data.url);
+                if (mode === 'inScope' && node.data?.url && node.data?.status.inScope) urls.add(node.data.url)
+                else if (mode === 'all' && node.data?.url) urls.add(node.data.url);
                 if (node.children?.length) traverse(node.children);
             }
         };
@@ -200,7 +211,7 @@ export class ProjectStateService {
                 const existing = map.get(url)!;
 
                 // If incoming is in-scope but existing wasn't, update it
-                if (node.data?.inScope && !existing.data?.inScope) {
+                if (node.data?.status.inScope && !existing.data?.status.inScope) {
                     existing.data = { ...existing.data, ...node.data };
                 }
 
@@ -243,7 +254,7 @@ export class ProjectStateService {
         const existingIndex = savedProjects.findIndex(p => p.key === key);
         const proj = this.project();
         const timestamp = proj.lastModified.getTime();
-        const pages = this.countInScopePages();
+        const pages = this.countPages('inScope');
         const local = proj.storageLocation === 'browser';
         const phase = proj.phase;
 
@@ -282,7 +293,7 @@ export class ProjectStateService {
         console.log('Project name:', project.projectName);
         console.log('Phase:', project.phase);
         console.log('Tree nodes:', project.projectData.length);
-        console.log('In-scope pages:', this.countInScopePages());
+        console.log('In-scope pages:', this.countPages('inScope'));
         console.groupEnd();
     }
 
@@ -434,6 +445,7 @@ export class ProjectStateService {
             phase: ProjectPhase.Draft,
             created: new Date(),
             lastModified: new Date(),
+            lastSaved: new Date(),
             storageLocation: 'browser',
             collaborators: [],
             baselinePages: 0,
@@ -478,15 +490,15 @@ export class ProjectStateService {
                 rows.push([
                     `"${data.h1 || ''}"`,
                     data.url || '',
-                    data.oppUrl || '',
-                    data.inScope ? 'Yes' : 'No',
-                    data.isOrphan ? 'Yes' : 'No',
-                    data.isCrawled ? 'Yes' : 'No',
-                    data.isNew ? 'Yes' : 'No',
-                    data.isMoved ? 'Yes' : 'No',
-                    data.isROT ? 'Yes' : 'No',
-                    data.isContainer ? 'Yes' : 'No',
-                    data.baselineParent || ''
+                    data.metadata?.oppUrl || '',
+                    data.status.inScope ? 'Yes' : 'No',
+                    data.status.isOrphan ? 'Yes' : 'No',
+                    data.status.isCrawled ? 'Yes' : 'No',
+                    data.status.isNew ? 'Yes' : 'No',
+                    data.status.isMoved ? 'Yes' : 'No',
+                    data.status.isROT ? 'Yes' : 'No',
+                    data.status.isContainer ? 'Yes' : 'No',
+                    data.metadata?.baselineParent || ''
                 ].join(','));
 
                 if (node.children?.length) {
@@ -531,4 +543,6 @@ export class ProjectStateService {
             return '';
         }
     }
+
+
 }

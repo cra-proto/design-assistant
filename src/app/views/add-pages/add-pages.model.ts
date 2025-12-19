@@ -12,30 +12,32 @@ export interface ValidationState {
     urlPercent: number;
     isValidating: boolean;
     isValidated: boolean;
+    isOk: boolean;
+}
+
+export interface UrlData {
+    href: string;                 // the page URL
+    h1: string;                   // the page H1
+    breadcrumb: BreadcrumbNode[]; // array of breadcrumbs
+    descendants: string[];        // flat list of child pages urls
+}
+
+export interface BreadcrumbValidationState {
+    progress: number;
+    currentStep: string;
+    isValidating: boolean;
+    isValidated: boolean;
 }
 
 export interface BreadcrumbNode {
     label: string;            // link text
     url: string;              // link
-    isRoot?: boolean;         // marks if it's one of the detected root pages (from user input)
-    isBeforeRoot?: boolean;   // marks if it's before the first root page (from user input)
-    isDescendant?: boolean;   // mark if it's a child page (from user input)
-    valid?: boolean;          // true = link found on parent, false = IA orphan
-    styleClass?: string;      // for the label (used to set color and/or bold)
+    inScope?: boolean;        // true = user-added page, false = page added from breadcrumb for context
+    iaOrphan?: boolean;       // true = IA orphan, false = link found on parent
     icon?: string;            // represents status of link from parent to child
     iconTooltip?: string;     // explanation for icon
     linkTooltip?: string;     // explanation for color/boldness of label
-    prototype?: string;       // carry forward the prototype link
-    minDepth?: number;         // carry forward how far to crawl from root to deepest user added child
-}
-
-
-
-export interface BreadcrumbValidationState {
-    isValidating: boolean;
-    progress: number;
-    currentStep: string;
-    isComplete: boolean;
+    styleClass?: string;      // for the label (used to set color and/or bold)
 }
 
 export interface AddPagesState {

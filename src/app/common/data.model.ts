@@ -80,6 +80,15 @@ export interface PageProblem {
     linkText?: string;
 }
 
+export interface ProjectTreeNodeData {
+    h1: string;
+    url: string;
+    originalParent: string;
+    status: PageStatus;
+    metadata?: PageMeta;
+    problem?: PageProblem
+}
+
 //Project interface
 export interface Project {
     //Project metadata
@@ -89,6 +98,7 @@ export interface Project {
     phase: ProjectPhase;
     created: Date;
     lastModified: Date;
+    lastSaved: Date;
     storageLocation: 'browser' | 'cloud';
     collaborators?: GitHubUser[];
     baselinePages: number;
