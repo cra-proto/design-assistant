@@ -1,128 +1,224 @@
-<h2 class="text-2xl my-1">Add pages</h2>
-<p class="text-color-secondary">Add Canada.ca URLs to your project. Pages will be validated and organized by their breadcrumb structure. Each link should be on a new line.</p>
+<h2 class="text-2xl my-1">{{"addPages.title" | translate}}</h2>
+<p class="text-color-secondary">{{"addPages.description" | translate}}</p>
 <p-iftalabel>
-    <textarea id="urls" autoResize="true" rows="5" pTextarea [(ngModel)]="rawUrls" (change)="parseUrls()" fluid></textarea>
-    <label for="urls">Canada.ca URLs</label>
+    <textarea id="urls" autoResize="true" rows="5" pTextarea [(ngModel)]="validationState.rawUrls" (change)="parseUrls()" (paste)="onPasteUrls()" fluid></textarea>
+    <label for="urls">{{"addPages.inputLabel" | translate}}</label>
 </p-iftalabel>
 
+<p-message severity="error" size="small" variant="simple" styleClass="mb-2" *ngIf="duplicatesSkipped.length > 0" [text]="getDuplicateMessage()"></p-message>
 
+<!--Validate URLs-->
+<p-button [label]="'addPages.validateButton' | translate" icon="pi pi-check-square" [loading]="validationState.isValidating" (onClick)="validateUrls()" [disabled]="!validationState.rawUrls.trim() || validationState.isValidated" />
 
+<!--URL Validation-->
+<ng-container *ngIf="validationState.isValidating || validationState.isValidated">
+    <h3 class="mt-3 mb-2">{{getValidationHeader()}}</h3>
 
+    <!-- Progress -->
+    <p-progressbar [value]="validationState.urlPercent">
+        <ng-template #content>
+            <span>{{ validationState.urlChecked }}/{{ validationState.urlTotal }}</span>
+        </ng-template>
+    </p-progressbar>
 
-<!--p-button
-          label="Add URLs"
-          icon="pi pi-check-square"
-          [loading]="isValidating"
-          (onClick)="validateUrls()"
-          [disabled]="urls.length === 0 || isValidated" /-->
+    <!-- Currently Checking -->
+    <div class="flex flex-column gap-2 mt-3" *ngIf="urlsChecking.length > 0">
+        <p-chip
+                *ngFor="let url of urlsChecking"
+                styleClass="bg-yellow-100 text-black-alpha-90"
+                class="max-w-max">
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>{{ url.href }}</span>
+        </p-chip>
+    </div>
 
-
-<!--ng-container *ngIf="isValidating || isValidated">
-        <h2 *ngIf="urlsChecking.length > 0">Validating links</h2>
-        <h2 *ngIf="urlsChecking.length === 0">Validated links</h2>
-
-        <p-progressbar [value]="urlPercent">
-            <ng-template #content let-value>
-                <span>{{ urlChecked }}/{{ urlTotal }}</span>
-            </ng-template>
-        </p-progressbar>
-
-    
-        <div class="flex flex-column gap-2 mt-3" *ngIf="urlsChecking.length > 0">
-            <ng-container *ngFor="let url of urlsChecking">
-                <p-chip styleClass="bg-yellow-100 text-black-alpha-90" class="max-w-max">
-                    <i class="pi pi-spin pi-spinner"></i>
-                    <span>{{ url.href }}</span>
-                </p-chip>
-            </ng-container>
+    <!-- Broken Links -->
+    <ng-container *ngIf="urlsBad.length > 0">
+        <h4 class="mb-2">{{getStatusText('broken','heading')}}</h4>
+        <p class="text-sm text-color-secondary my-1">{{getStatusText('broken','description')}}</p>
+        <div class="flex flex-column gap-2">
+            <div *ngFor="let url of urlsBad">
+                <p-inputgroup>
+                    <p-iftalabel>
+                        <input type="text" id="broken-url" pInputText variant="outlined" [(ngModel)]="url.href" pSize="small" fluid />
+                        <label for="broken-url">{{'addPages.broken.inputLabel' | translate}}</label>
+                    </p-iftalabel>
+                    <p-inputgroup-addon>
+                        <p-button icon="pi pi-plus-circle" [pTooltip]="'addPages.tooltip.new' | translate" disabled tooltipPosition="top" severity="primary" text class="min-h-full" (click)="revalidateUrl($event, url)" />
+                    </p-inputgroup-addon>
+                    <p-inputgroup-addon>
+                        <p-button icon="pi pi-check-circle" [pTooltip]="'addPages.tooltip.revalidate' | translate" tooltipPosition="top" severity="success" text class="min-h-full" (click)="revalidateUrl($event, url)" />
+                    </p-inputgroup-addon>
+                    <p-inputgroup-addon>
+                        <p-button icon="pi pi-times-circle" [pTooltip]="'addPages.tooltip.remove' | translate" tooltipPosition="top" severity="danger" text class="min-h-full" (click)="removeUrl(url)" />
+                    </p-inputgroup-addon>
+                </p-inputgroup>
+            </div>
         </div>
     </ng-container>
 
-    <p-confirmpopup />
+    <!-- Redirected Links -->
+    <ng-container *ngIf="urlsRedirected.length > 0">
+        <h4 class="mb-2 mt-3">{{getStatusText('redirect','heading')}}</h4>
+        <p class="text-sm text-color-secondary my-1">{{getStatusText('redirect','description')}}</p>
+        <div class="flex flex-column gap-2">
+            <div *ngFor="let url of urlsRedirected" class="border-1 border-round-lg surface-border">
+                <div class="flex align-items-center gap-2 p-2">
+                    <i class="pi pi-directions text-2xl text-orange-500"></i>
+                    <span class="text-sm text-600 font-semibold">{{'addPages.redirect.subheading' | translate}}</span>
+                </div>
+                <div class="px-2 text-xs text-color-secondary">
+                    <span class="font-semibold ml-1">{{'addPages.redirect.from' | translate}}</span>
+                    <span>{{url.originalHref}}</span>
+                </div>
+                <p-inputgroup>
+                    <p-iftalabel>
+                        <input type="text" id="redirected-url" pInputText variant="outlined" [(ngModel)]="url.href" pSize="small" fluid />
+                        <label for="redirected-url" class="font-semibold">{{'addPages.redirect.to' | translate}}</label>
+                    </p-iftalabel>
+                    <p-inputgroup-addon>
+                        <p-button icon="pi pi-check-circle" [pTooltip]="'addPages.tooltip.revalidate' | translate" tooltipPosition="top" severity="success" text class="min-h-full" (click)="revalidateUrl($event, url)" />
+                    </p-inputgroup-addon>
+                    <p-inputgroup-addon>
+                        <p-button icon="pi pi-times-circle" [pTooltip]="'addPages.tooltip.remove' | translate" tooltipPosition="top" severity="danger" text class="min-h-full" (click)="removeUrl(url)" />
+                    </p-inputgroup-addon>
+                </p-inputgroup>
+            </div>
+        </div>
+    </ng-container>
 
- 
-    <h2 *ngIf="urlsBad.length > 0" class="mb-0">Broken links</h2>
-    <div class="flex flex-column gap-2">
-        <aida-link-list
-                        labelKey="Broken"
-                        [links]="urlsBad"
-                        type="prod"
-                        (approve)="revalidate($event.url, $event.event)"
-                        (remove)="removeUrl($event)"
-                        *ngIf="urlsBad.length > 0">
-        </aida-link-list>
-    </div>
+    <!-- Blocked Links -->
+    <ng-container *ngIf="urlsBlocked.length > 0">
+        <h4 class="mb-2 mt-3">{{getStatusText('blocked','heading')}}</h4>
+        <p class="text-sm text-color-secondary my-1">{{getStatusText('blocked','description')}}</p>
 
+        <div class="flex flex-column gap-2 mt-2">
+            <div *ngFor="let url of urlsBlocked">
+                <p-inputgroup>
+                    <p-iftalabel>
+                        <input type="text" id="blocked-url" pInputText variant="outlined" [(ngModel)]="url.href" pSize="small" fluid />
+                        <label for="blocked-url">{{'addPages.blocked.inputLabel' | translate}}</label>
+                    </p-iftalabel>
+                    <p-inputgroup-addon>
+                        <p-button icon="pi pi-check-circle" [pTooltip]="'addPages.tooltip.revalidate' | translate" tooltipPosition="top" severity="success" text class="min-h-full" (click)="revalidateUrl($event, url)" />
+                    </p-inputgroup-addon>
+                    <p-inputgroup-addon>
+                        <p-button icon="pi pi-times-circle" [pTooltip]="'addPages.tooltip.remove' | translate" tooltipPosition="top" severity="danger" text class="min-h-full" (click)="removeUrl(url)" />
+                    </p-inputgroup-addon>
+                </p-inputgroup>
+            </div>
+        </div>
+    </ng-container>
 
-    <h2 *ngIf="urlsRedirected.length > 0" class="mb-0">Redirected links</h2>
-    <div class="flex flex-column gap-2">
-        <aida-link-list
-                        labelKey="Redirected"
-                        [links]="urlsRedirected"
-                        type="prod"
-                        (approve)="revalidate($event.url, $event.event)"
-                        (remove)="removeUrl($event)"
-                        *ngIf="urlsRedirected.length > 0">
-        </aida-link-list>
-    </div>
-
-   
-    <h2 *ngIf="urlsBlocked.length > 0" class="mb-0">Blocked links</h2>
-    <div class="flex flex-column gap-2">
-        <aida-link-list
-                        labelKey="Blocked"
-                        [links]="urlsBlocked"
-                        type="prod"
-                        (approve)="revalidate($event.url, $event.event)"
-                        (remove)="removeUrl($event)"
-                        *ngIf="urlsBlocked.length > 0">
-        </aida-link-list>
-    </div>
-
- 
+    <!-- Valid Links -->
     <ng-container *ngIf="urlsOk.length > 0">
-        <h2 class="mb-0">Valid links</h2>
+        <h4 class="mb-2 mt-3">{{getStatusText('valid','heading')}}</h4>
+        <p class="text-sm text-color-secondary my-1">{{getStatusText('valid','description')}}</p>
         <ul class="my-0 list-none">
-            <li *ngFor="let url of urlsOk">
+            <li *ngFor="let url of urlsOk" class="flex align-items-center">
                 <i class="pi pi-check text-green-500 mr-2"></i>{{ url.href }}
             </li>
         </ul>
     </ng-container>
 
-   
-    <ng-container *ngIf="urlsDuplicate.length > 0">
-        <h2 class="mb-0">Already in project (skipped)</h2>
+    <!-- Duplicates Skipped -->
+    <ng-container *ngIf="duplicatesSkipped.length > 0">
+        <h4 class="mb-2 mt-3">{{getStatusText('duplicate','heading')}}</h4>
+        <p class="text-sm text-color-secondary my-1">{{getStatusText('duplicate','description')}}</p>
         <ul class="my-0 list-none">
-            <li *ngFor="let url of urlsDuplicate">
+            <li *ngFor="let url of duplicatesSkipped" class="flex align-items-center">
                 <i class="pi pi-info-circle text-blue-500 mr-2"></i>{{ url }}
             </li>
         </ul>
     </ng-container>
 
+    <!-- Confirm Duplicate Popup -->
+    <p-confirmpopup />
 
-    <div class="mt-3" *ngIf="isValidated && urlsOk.length > 0">
-        <p-button
-                  label="Add to Project"
-                  icon="pi pi-plus"
-                  [loading]="isAddingToProject"
-                  (onClick)="addToProject()"
-                  [disabled]="urlsOk.length === 0"
-                  severity="success" />
+    <!-- Proceed to Breadcrumb Validation -->
+    <div class="mt-3 flex flex-column justify-content-start lg:flex-row lg:align-items-center lg:gap-2" *ngIf="validationState.isValidated">
+        <p-button [label]="getAddPagesButtonLabel()" icon="pi pi-plus" (onClick)="validateBreadcrumbs()" severity="success" [disabled]="!validationState.isOk" />
+        <p class class="text-xs text-color-secondary">{{'addPages.addPagesButton.description' | translate}}</p>
     </div>
 
- 
-    <ng-container *ngIf="isAddingToProject">
-        <h2>Building page structure</h2>
-        <p-progressbar [value]="buildProgress">
-            <ng-template #content let-value>
-                <span>{{ buildStep }}</span>
+
+    <!-- Undo Button -->
+    <div class="mt-3" *ngIf="addPagesState.getPreviousProjectData()">
+        <p-button
+                  label="Undo Last Addition"
+                  icon="pi pi-undo"
+                  (onClick)="undoLastAddition()"
+                  severity="secondary"
+                  outlined />
+    </div>
+</ng-container>
+
+<!--TEST TREE-->
+<!--div class="debug-tree">
+    <ng-container *ngTemplateOutlet="treeTemplate; context: {$implicit: projectState.getProjectTree(), level: 0}"></ng-container>
+</div>
+
+<ng-template #treeTemplate let-nodes let-level="level">
+    <ul>
+        <li *ngFor="let node of nodes" [style.margin-left.px]="level * 20">
+            {{node.label}} ({{node.data?.url}}) - Children: {{node.children?.length}}
+            <ng-container *ngIf="node.children?.length">
+                <ng-container *ngTemplateOutlet="treeTemplate; context: {$implicit: node.children, level: level + 1}"></ng-container>
+            </ng-container>
+        </li>
+    </ul>
+</ng-template-->
+
+<!-- Breadcrumb Validation Dialog -->
+<p-dialog
+          [(visible)]="showBreadcrumbDialog"
+          [modal]="true"
+          [closable]="!breadcrumbState.isValidating"
+          [closeOnEscape]="!breadcrumbState.isValidating"
+          header="Building page structure"
+          [style]="{ width: '50vw' }">
+
+    <div class="flex flex-column gap-3">
+        <p-progressbar [value]="breadcrumbState.progress"
+                       styleClass="h-2rem centered-label">
+            <ng-template #content>
+                <span>{{ breadcrumbState.currentStep }}</span>
             </ng-template>
         </p-progressbar>
-    </ng-container>
 
-  
-    <p-message
-               *ngIf="addedSuccessfully"
-               severity="success"
-               text="Pages added to project successfully!"
-               styleClass="mt-3" /-->
+        <!--Display detected breadcrumb trails-->
+        <h2 *ngIf="breadcrumbData.length > 0" class="mb-0">Breadcrumb branches</h2>
+        <ol class="mt-0">
+            <ng-container *ngFor="let breadcrumb of breadcrumbData">
+                <li class="mb-3 pl-2">
+                    <div class="flex flex-row flex-wrap gap-1">
+                        <ng-container *ngFor="let crumb of breadcrumb">
+                            <span class="flex flex-row align-items-center justify-content-around gap-1 max-w-12rem">
+                                <span class="flex flex-row" *ngIf="crumb.icon">
+                                    <i *ngIf="crumb.icon" class="pi pi-minus text-gray-300" aria-hidden="true" style="font-size: 1.25rem"></i>
+                                    <i *ngIf="crumb.icon" [class]="crumb.icon" [pTooltip]="`${crumb.iconTooltip}` | translate" tooltipPosition="top" [attr.aria-label]="`${crumb.iconTooltip}` | translate" style="font-size: 1.25rem"></i>
+                                    <i *ngIf="crumb.icon" class="pi pi-minus text-gray-300" aria-hidden="true" style="font-size: 1.25rem"></i>
+                                </span>
+                                <a [href]="crumb.url" target="_blank" class="no-underline flex-wrap hover:bg-surface p-1 -mx-1 border-2 shadow-2 border-round-lg text-center" [ngClass]="crumb.styleClass" [pTooltip]="`${crumb.linkTooltip}` | translate" tooltipPosition="top">{{crumb.label}}</a>
+                            </span>
+                        </ng-container>
+                    </div>
+                </li>
+            </ng-container>
+        </ol>
+
+        <p *ngIf="breadcrumbState.isValidated" class="text-green-600">
+            <i class="pi pi-check-circle mr-2"></i>
+            Pages successfully added to project!
+        </p>
+    </div>
+
+    <ng-template #footer>
+        <p-button
+                  *ngIf="breadcrumbState.isValidated"
+                  label="Close"
+                  icon="pi pi-times"
+                  (onClick)="closeBreadcrumbDialog()"
+                  severity="secondary" />
+    </ng-template>
+</p-dialog>

@@ -18,15 +18,17 @@ import { GithubConnectComponent } from "../components/sign-in/github-connect.com
 import { DividerModule } from 'primeng/divider';
 import { TagModule } from 'primeng/tag';
 import { MenuModule } from 'primeng/menu';
-import { MenuItem } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
+import { ToastModule } from 'primeng/toast';
 
 import { environment } from '../../environments/environment';
+import { ProjectStateService } from '../services/project-state.service';
+import { MessageService } from 'primeng/api'
 
 @Component({
   selector: 'aida-header',
   imports: [CommonModule, FormsModule, TranslateModule, ToolbarModule, ButtonModule, ToggleButtonModule, ApiResetComponent, GithubConnectComponent,
-    DividerModule, TagModule, MenuModule, BadgeModule
+    DividerModule, TagModule, MenuModule, BadgeModule, ToastModule
   ],
   template: `
   <header id="header" class="pb-2">
@@ -41,6 +43,9 @@ import { environment } from '../../environments/environment';
       />
     </div>
     <div class="flex align-items-center gap-3">
+      <p-button (onClick)="save()" icon="pi pi-exclamation-triangle" label="Unsaved changes" rounded severity="primary" size="small" styleClass="white-space-nowrap" class="sticky top-0 z-3" *ngIf="hasUnsavedChanges"></p-button>
+      <p-toast></p-toast>
+
       <p-button (onClick)="goToProject()" rounded outlined severity="primary" styleClass="border-dashed surface-border" [label]="project | translate"></p-button>
 
       <p-divider layout="vertical" styleClass="mx-2"></p-divider>
@@ -58,7 +63,9 @@ import { environment } from '../../environments/environment';
     </div>
   </p-toolbar>
 </header>
-<div *ngIf="!production" class="sticky top-0 bg-primary border-round-bottom-lg text-center w-full">{{'app.dev' | translate}}</div>
+<div *ngIf="!production" class="sticky top-0 z-2 border-round-bottom-lg bg-primary text-center w-full">
+  {{'app.dev' | translate}}
+</div>
 `,
   styles: `
   ::ng-deep .p-toolbar {
@@ -90,6 +97,8 @@ export class HeaderComponent {
   private router = inject(Router);
   private title = inject(Title);
   public production = environment.production;
+  public projectState = inject(ProjectStateService);
+  public messageService = inject(MessageService);
 
   get project(): string {
     const repo = this.iaState.getGitHubData().repo;
@@ -131,6 +140,20 @@ export class HeaderComponent {
   goToProject() {
     this.iaState.saveToLocalStorage();
     this.router.navigate(['']);
+  }
+
+  get hasUnsavedChanges(): boolean {
+    const project = this.projectState.getProject();
+    return project.lastModified > project.lastSaved;
+  }
+
+  save() {
+    const project = this.projectState.getProject();
+    const now = new Date().getTime();
+    const lastSaved = new Date(project.lastSaved).getTime();
+    const diffMs = now - lastSaved;
+    const diffMins = Math.floor(diffMs / 60000);
+    this.messageService.add({ severity: 'info', summary: 'Save details', detail: `Last modified: ${project.lastModified}\n\nLast saved:  ${project.lastSaved}\n\nCreated:  ${project.created}\n\nMinutes since last save:  ${diffMins}`, life: 10000 });
   }
 
 }

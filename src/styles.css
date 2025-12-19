@@ -281,3 +281,21 @@ html.dark-mode .secondary-outline {
 .min-h-3rem {
   min-height: 3rem;
 }
+
+.border-round-bottom-left-lg {
+  border-bottom-left-radius: 0.5rem;
+}
+
+.centered-label .p-progressbar-value {
+  position: static !important;
+}
+
+.centered-label .p-progressbar-label {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: auto !important;
+  z-index: 1 !important;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.7) !important;
+}

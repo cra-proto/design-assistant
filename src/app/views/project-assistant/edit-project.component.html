@@ -85,19 +85,21 @@
                       styleClass="secondary-outline w-full min-w-max"
                       (click)="showUrls = true">
             </p-button>
-            <p-drawer header="URLs" [(visible)]="showUrls" position="right" styleClass="w-6"></p-drawer>
-
+            <p-drawer header="URLs" [(visible)]="showUrls" position="right" styleClass="w-6">
+                <ul>
+                    <li *ngFor="let url of projectState.getAllUrls('inScope')">{{url}}</li>
+                </ul>
+            </p-drawer>
             <p-button
                       label="View IA diagram"
                       icon="pi pi-sitemap"
                       outlined
                       size="small"
                       styleClass="secondary-outline w-full min-w-max"
-                      (click)="showIA = true">
+                      routerLink="/ia-diagram">
             </p-button>
-            <p-drawer header="IA diagram" [(visible)]="showIA" position="full"></p-drawer>
 
-            <p-button
+            <!--p-button
                       label="View breadcrumbs"
                       icon="pi pi-equals"
                       outlined
@@ -105,12 +107,12 @@
                       styleClass="secondary-outline w-full min-w-max"
                       (click)="showBreadcrumb = true">
             </p-button>
-            <p-drawer header="Breadcrumb" [(visible)]="showBreadcrumb" position="bottom"></p-drawer>
+            <p-drawer header="Breadcrumb" [(visible)]="showBreadcrumb" position="bottom"></p-drawer-->
 
             <div class="flex flex-row justify-content-center align-items-center">
                 <i class="pi pi-copy text-primary text-6xl"></i>
                 <div class="flex flex-column">
-                    <p class="my-0 font-bold text-2xl">{{projectData.inScopePages}}</p>
+                    <p class="my-0 font-bold text-2xl">{{inScopePageCount}}</p>
                     <p class="my-0">pages</p>
                 </div>
             </div>

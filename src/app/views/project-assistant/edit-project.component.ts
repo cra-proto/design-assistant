@@ -1,7 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { RouterLink } from '@angular/router';
 
 //PrimeNG modules
 import { InputTextModule } from 'primeng/inputtext';
@@ -16,21 +17,25 @@ import { KeyFilterModule } from 'primeng/keyfilter';
 import { MessageModule } from 'primeng/message';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
+import { OrganizationChartModule } from 'primeng/organizationchart';
+import { TreeNode } from 'primeng/api';
+import { TooltipModule } from 'primeng/tooltip';
 
 //Custom components and services
-import { ProjectStateService, ProjectTreeNodeData } from '../../services/project-state.service';
-import { ProjectPhase } from '../../common/data.model';
+import { ProjectStateService } from '../../services/project-state.service';
+import { ProjectPhase, ProjectTreeNodeData } from '../../common/data.model';
 import { ExportGitHubService } from '../ia-assistant/services/export-github.service';
 import { GitHubAuthService } from '../../services/github-auth.service';
 import { AddPagesComponent } from '../add-pages/add-pages.component';
+import { IaDiagramComponent } from '../../components/ia-diagram/ia-diagram.component';
 
 @Component({
   selector: 'aida-edit-project',
   imports: [
-    CommonModule, FormsModule, TranslateModule,
-    AddPagesComponent,
+    CommonModule, FormsModule, TranslateModule, RouterLink,
+    AddPagesComponent, IaDiagramComponent,
     InputTextModule, TextareaModule, SelectModule, IftaLabelModule, SelectButton, CheckboxModule, AutoCompleteModule, KeyFilterModule, MessageModule,
-    DrawerModule, ButtonModule
+    DrawerModule, ButtonModule, OrganizationChartModule, TooltipModule
   ],
   templateUrl: './edit-project.component.html',
   styles: ``
@@ -164,6 +169,12 @@ export class EditProjectComponent implements OnInit {
   collaborators = this.projectData.collaborators;
 
   //Toggles for showing different displays of current in-scope pages
+  get inScopePageCount(): Number {
+    return this.projectState.getProject().inScopePages;
+  }
+
+  projectTree = this.projectState.getProjectTree();
+
   showUrls = false;
   showIA = false;
   showBreadcrumb = false;

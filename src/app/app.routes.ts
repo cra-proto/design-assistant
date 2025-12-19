@@ -22,6 +22,7 @@ import { InventoryAssistantComponent } from './views/inventory-assistant/invento
 import { MetadataAssistantComponent } from './views/metadata-assistant/metadata-assistant.component';
 import { LlmEvaluationComponent } from './views/standalone/llm-evaluation/llm-evaluation.component';
 import { IaAssistantComponent } from './views/ia-assistant/ia-assistant.component';
+import { IaDiagramComponent } from './components/ia-diagram/ia-diagram.component';
 // Static pages
 import { NotFoundComponent } from './views/standalone/not-found.component';
 import { AboutComponent } from './views/standalone/about.component';
@@ -136,6 +137,11 @@ export const routes: Routes = [
         path: 'about-us',
         component: AboutComponent,
         title: 'title.about',
+    },
+    {
+        path: 'ia-diagram',
+        component: IaDiagramComponent,
+        title: 'title.ia',
     },
     {
         path: 'test',
