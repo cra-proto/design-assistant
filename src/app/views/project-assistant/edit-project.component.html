@@ -3,64 +3,11 @@
 <div class="flex lg:flex-row flex-column gap-3">
     <!--Project Card-->
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
-        <h2 class="text-2xl my-1">Project</h2>
-        <div class="flex flex-column gap-2">
-            <!--Name-->
-            <p-iftalabel>
-                <input type="text" id="name" pInputText [(ngModel)]="projectName" pSize="small" fluid (blur)="updateName(); syncName()" [pKeyFilter]="nameFilter" />
-                <label for="branch">Name</label>
-            </p-iftalabel>
-            <!--Phase-->
-            <p-iftalabel>
-                <p-select [options]="phaseOptions" optionValue="value" [(ngModel)]="projectPhase" inputId="phase" styleClass="w-full" fluid>
-                    <ng-template #item let-item>
-                        {{ item.name | translate }}
-                    </ng-template>
-                    <ng-template #selectedItem let-item>
-                        {{ item.name | translate }}
-                    </ng-template>
-                </p-select>
-                <label for="phase">Phase</label>
-            </p-iftalabel>
-            <!--Storage-->
-            <p-selectbutton [options]="storageOptions" optionValue="value" [(ngModel)]="projectStorage" styleClass="w-full">
-                <ng-template #item let-item>
-                    <i [class]="item.icon"></i>
-                    <span class="ml-1">{{ item.name | translate }}</span>
-                </ng-template>
-            </p-selectbutton>
-            <div class="flex flex-row align-items-center gap-1">
-                <i class="pi pi-info-circle text-blue-500"></i>
-                <span class="text-xs text-color-secondary">{{ projectStorage === 'browser' ?
-                    ('storage.browserWarning' | translate) :
-                    ('storage.cloudInfo' | translate) }}</span>
-            </div>
-        </div>
+        <aida-setup-project></aida-setup-project>
     </div>
     <!--GitHub Card-->
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
-        <h2 class="text-2xl my-1">GitHub repository</h2>
-        <div class="flex flex-column gap-2">
-            <div class="flex flex-column gap-1">
-                <p-iftalabel>
-                    <input type="text" id="owner" pInputText [(ngModel)]="gitHubOwner" pSize="small" fluid (blur)="updateOwner();updateRepoList()" maxlength="39" [pKeyFilter]="ownerFilter" [ngClass]="{ 'ng-invalid ng-dirty': ownerError }" />
-                    <label for="repo">Owner</label>
-                </p-iftalabel>
-                <p-message severity="error" variant="simple" size="small" *ngIf="ownerError">{{ownerError}}</p-message>
-            </div>
-            <p-iftalabel>
-                <p-autocomplete id="repo" [(ngModel)]="gitHubRepo" [suggestions]="filteredRepos" (input)="updateRepo()" (onBlur)="updateRepo();syncName()" (completeMethod)="filterRepos($event);" [dropdown]=true pSize="small" maxlength="100" [pKeyFilter]="repoFilter" fluid />
-                <label for="repo">Repository</label>
-            </p-iftalabel>
-            <p-iftalabel>
-                <input type="text" id="branch" pInputText [(ngModel)]="gitHubBranch" pSize="small" fluid (blur)="updateBranch()" [pKeyFilter]="branchFilter" />
-                <label for="branch">Branch</label>
-            </p-iftalabel>
-            <div class="flex align-items-center gap-2 mt-1">
-                <p-checkbox [(ngModel)]="gitHubBaseline" inputId="baseline" [binary]="true" size="large" />
-                <label for="baseline" class="text-lg">Include baseline repo</label>
-            </div>
-        </div>
+        <aida-setup-repo></aida-setup-repo>
     </div>
     <!--Collaborators Card-->
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
@@ -96,7 +43,7 @@
                       outlined
                       size="small"
                       styleClass="secondary-outline w-full min-w-max"
-                      routerLink="/ia-diagram">
+                      (click)="iaDiagram.openDiagram()">
             </p-button>
 
             <!--p-button
@@ -112,7 +59,7 @@
             <div class="flex flex-row justify-content-center align-items-center">
                 <i class="pi pi-copy text-primary text-6xl"></i>
                 <div class="flex flex-column">
-                    <p class="my-0 font-bold text-2xl">{{inScopePageCount}}</p>
+                    <p class="my-0 font-bold text-2xl">{{inScopePageCount()}}</p>
                     <p class="my-0">pages</p>
                 </div>
             </div>

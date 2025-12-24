@@ -16,24 +16,24 @@
             <span class="material-icons toggle-icon">{{ isExpanded.project ? 'expand_less' : 'expand_more' }}</span>
           </div>
           <div class="nav_section_body" id="project" role="region" aria-labelledby="menu-project" [class.hidden]="!isExpanded.project">
+            @if (projectLoaded) {
             <a [routerLink]="['/dashboard']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round"
-               *ngIf="projectLoaded">
+               class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons">view_quilt</span>
               <span class="nav_link_text">{{ 'menu.dashboard' | translate }}</span>
             </a>
-            <a [routerLink]="['/new-project']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round"
-               *ngIf="!projectLoaded">
-              <span class="material-icons">add</span>
-              <span class="nav_link_text">{{ 'menu.new' | translate }}</span>
-            </a>
             <a [routerLink]="['/edit-project']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round"
-               *ngIf="projectLoaded">
+               class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons">edit</span>
               <span class="nav_link_text">{{ 'menu.edit' | translate }}</span>
             </a>
+            } @else {
+            <a [routerLink]="['/new-project']" routerLinkActive="active"
+               class="nav_link flex hover:bg-primary-600 border-round">
+              <span class="material-icons">add</span>
+              <span class="nav_link_text">{{ 'menu.new' | translate }}</span>
+            </a>
+            }
             <a [routerLink]="['/switch-project']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons">folder_open</span>
@@ -41,7 +41,8 @@
             </a>
           </div>
         </div>
-        <div class="section" *ngIf="!production">
+        @if (!production) {
+        <div class="section">
           <div class="nav_header text-primary-200 hover:text-primary-400" (click)="toggleSection('main')" (keydown)="toggleOnEnter($event, 'main')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.main" aria-controls="main">
             <span id="menu-content" class="nav_section_text">{{ 'menu.tools' | translate }}</span>
             <span class="material-icons toggle-icon">{{ isExpanded.main ? 'expand_less' : 'expand_more' }}</span>
@@ -91,7 +92,7 @@
           </div>
         </div>
         <!-- Standalone Tools -->
-        <div class="section" *ngIf="!production">
+        <div class="section">
           <div class="nav_header text-primary-200 hover:text-primary-400" (click)="toggleSection('utilities')" (keydown)="toggleOnEnter($event, 'utilities')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.utilities" aria-controls="utilities">
             <span id="menu-content" class="nav_section_text">{{ 'menu.standalone' | translate }}</span>
             <span class="material-icons toggle-icon">{{ isExpanded.utilities ? 'expand_less' : 'expand_more' }}</span>
@@ -115,6 +116,7 @@
 
           </div>
         </div>
+        }
 
       </div>
 

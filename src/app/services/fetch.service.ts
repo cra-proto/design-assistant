@@ -9,7 +9,8 @@ export class FetchService {
   //Block unknown hosts
   private prodHost = "www.canada.ca";
   private protoHosts = new Set([
-    "cra-design.github.io",
+    "proto-cra.github.io",
+    //"cra-design.github.io", //Currently blocked by browser because it looks like a phishing site
     //"cra-proto.github.io", //Currently blocked by browser because it looks like a phishing site
     //"gc-proto.github.io", //CORS error but redirects to test.canada.ca which works
     "test.canada.ca",

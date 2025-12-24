@@ -32,10 +32,11 @@ import { InputIconModule } from 'primeng/inputicon';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 
-import { IaStateService, SavedProject } from '../ia-assistant/services/ia-state.service';
-import { ExportGithubComponent } from '../ia-assistant/components/export-github.component';
-import { GitHubAuthService } from '../../services/github-auth.service';
-import { CloudStorageService, CloudProject } from '../../services/cloud-storage.service';
+import { ExportGithubComponent } from '../github-assistant/export-github.component';
+import { GitHubAuthService } from '../../services/github/github-auth.service';
+import { CloudStorageService, CloudProject } from '../../services/storage/cloud-storage.service';
+import { ProjectStateService } from '../../services/project-state.service';
+import { LocalProject } from '../../common/data.model';
 
 export interface Project {
   key: string;
@@ -62,9 +63,11 @@ export interface Project {
   styles: ``
 })
 export class SwitchProjectComponent implements OnInit {
+  public projectState = inject(ProjectStateService);
   public authService = inject(GitHubAuthService);
   private cloudStorage = inject(CloudStorageService);
-  public iaState = inject(IaStateService);
+
+  //public iaState = inject(IaStateService);
   public router = inject(Router);
   public message = inject(MessageService);
   public filterService = inject(FilterService);
@@ -75,7 +78,7 @@ export class SwitchProjectComponent implements OnInit {
   }
 
   //Load all projects
-  allProjects = signal<SavedProject[]>([]);
+  allProjects = signal<LocalProject[]>([]);
   loadProjects() {
     const projects = JSON.parse(localStorage.getItem('savedProjects') || '[]');
     this.allProjects.set(projects);
@@ -126,9 +129,9 @@ export class SwitchProjectComponent implements OnInit {
     await new Promise(resolve => setTimeout(resolve, 600));
     //Saves current active project and loads clicked project
     try {
-      this.iaState.saveToLocalStorage();
-      this.iaState.loadFromLocalStorage(key);
-      this.iaState.updateProjectList(key);
+      this.projectState.saveToLocalStorage();
+      this.projectState.loadFromLocalStorage(key);
+      //this.projectState.updateProjectList(key);
       this.loadProjects();
     }
     finally {
@@ -137,19 +140,18 @@ export class SwitchProjectComponent implements OnInit {
   }
 
   newProject() {
-    this.iaState.saveToLocalStorage();
-    this.iaState.setActiveStep(1);
-    this.iaState.resetIaFlow();
-    this.iaState.saveToLocalStorage();
+    this.projectState.saveToLocalStorage();
+    //this.projectState.setActiveStep(1);
+    //this.projectState.resetIaFlow();
+    this.projectState.saveToLocalStorage();
     this.loadProjects(); // refresh reactive state
   }
 
   showSave = false;
   saveProject() {
-    console.log(this.iaState.getGitHubData().repo)
     let savedAutoSave = false;
-    if (this.activeProject()?.key === "autosave" && this.iaState.getGitHubData().repo != "autosave") { savedAutoSave = true }
-    this.iaState.saveToLocalStorage();
+    if (this.activeProject()?.key === "autosave") { savedAutoSave = true }
+    this.projectState.saveToLocalStorage();
     this.loadProjects(); // refresh reactive state
     if (savedAutoSave) { this.deleteProject("autosave") } //remove autosave after saving it as a project
 
@@ -260,7 +262,7 @@ export class SwitchProjectComponent implements OnInit {
     await this.cloudStorage.loadProjects();
   }
 
-  async uploadToCloud(project: SavedProject) {
+  async uploadToCloud(project: LocalProject) {
     if (!this.authService.isAuthenticated()) {
       this.showSave = true;
       return;
@@ -286,15 +288,15 @@ export class SwitchProjectComponent implements OnInit {
     const project = await this.cloudStorage.getProject(cloudId);
     if (!project || !project.content) return;
 
-    // Parse the content and load it into the state
+    /* Parse the content and load it into the state
     const state = JSON.parse(project.content);
-    this.iaState.setActiveStep(state.activeStep);
-    this.iaState.setUrlData(state.urlData);
-    this.iaState.setBreadcrumbData(state.breadcrumbData);
-    this.iaState.setSearchData(state.searchData);
-    this.iaState.setIaData(state.iaData);
-    this.iaState.setGitHubData(state.gitHubData);
-
+    this.projectState.setActiveStep(state.activeStep);
+    this.projectState.setUrlData(state.urlData);
+    this.projectState.setBreadcrumbData(state.breadcrumbData);
+    this.projectState.setSearchData(state.searchData);
+    this.projectState.setIaData(state.iaData);
+    this.projectState.setGitHubData(state.gitHubData);
+*/
     // Navigate to the project
     this.router.navigate(['/']);
   }

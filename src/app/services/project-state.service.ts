@@ -4,15 +4,10 @@ import { TreeNode } from 'primeng/api';
 import { environment } from '../../environments/environment';
 import { FileUploadHandlerEvent } from 'primeng/fileupload';
 
-import { CloudStorageService } from '../services/cloud-storage.service';
+import { CloudStorageService } from '../services/storage/cloud-storage.service';
+import { LocalProject } from '../common/data.model';
 
-export interface SavedProject {
-    key: string;
-    timestamp: number;
-    pages: number;
-    phase: ProjectPhase;
-    local: boolean;
-}
+
 
 /*
 Should contain:
@@ -45,7 +40,7 @@ export class ProjectStateService {
         baselinePages: 0,
         inScopePages: 0,
         github: {
-            owner: 'cra-design',
+            owner: 'proto-cra',
             repo: '',
             branch: 'main',
             hasBaselineRepo: false
@@ -57,7 +52,7 @@ export class ProjectStateService {
 
     // Helper to generate unique project ID
     private generateId(): string {
-        return `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        return `project_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     }
 
     // Update project metadata
@@ -105,8 +100,12 @@ export class ProjectStateService {
     getProjectTree = computed(() => this.project().projectData);
 
     setProjectTree(tree: TreeNode<ProjectTreeNodeData>[]) {
+        const baselineCount = this.countPages('baseline')
+        const inScopeCount = this.countPages('inScope')
         this.project.update(curr => ({
             ...curr,
+            baselinePages: baselineCount,
+            inScopePages: inScopeCount,
             projectData: tree,
             lastModified: new Date()
         }));
@@ -125,7 +124,7 @@ export class ProjectStateService {
         const traverse = (nodes: TreeNode<ProjectTreeNodeData>[]) => {
             for (const node of nodes) {
                 if (mode === 'inScope' && node.data?.status.inScope) count++;
-                else { count++ }
+                else if (mode === 'baseline') { count++ }
                 if (node.children?.length) traverse(node.children);
             }
         };
@@ -135,6 +134,7 @@ export class ProjectStateService {
 
 
     setScope(urls: string[]): void {
+        const currentTree = this.project().projectData;
         const traverse = (nodes: TreeNode<ProjectTreeNodeData>[]) => {
             for (const node of nodes) {
                 if (node.data?.url && urls.includes(node.data.url)) {
@@ -144,6 +144,7 @@ export class ProjectStateService {
             }
         };
         traverse(this.project().projectData);
+        this.setProjectTree(currentTree);
     }
 
 
@@ -229,7 +230,7 @@ export class ProjectStateService {
     }
 
     // Get project state for saving (with circular references removed)
-    getProjectState(): Project {
+    getProjectToSave(): Project {
         const currentProject = this.project();
         return {
             ...currentProject,
@@ -250,7 +251,7 @@ export class ProjectStateService {
 
     // Update project list in localStorage
     private updateProjectList(key: string) {
-        const savedProjects: SavedProject[] = JSON.parse(localStorage.getItem('savedProjects') || '[]');
+        const savedProjects: LocalProject[] = JSON.parse(localStorage.getItem('savedProjects') || '[]');
         const existingIndex = savedProjects.findIndex(p => p.key === key);
         const proj = this.project();
         const timestamp = proj.lastModified.getTime();
@@ -280,9 +281,17 @@ export class ProjectStateService {
         console.groupEnd();
     }
 
+    //Save project
+    saveProject() {
+        const project = this.getProjectToSave();
+        const storage = project.storageLocation;
+        if (storage === 'browser') { this.saveToLocalStorage(); }
+        else { this.saveToCloud(); }
+    }
+
     // Save to localStorage
     saveToLocalStorage() {
-        const project = this.getProjectState();
+        const project = this.getProjectToSave();
         const key = project.github.repo || project.projectName || project.id;
 
         localStorage.setItem(key, JSON.stringify(project));
@@ -292,7 +301,7 @@ export class ProjectStateService {
         console.log('Key:', key);
         console.log('Project name:', project.projectName);
         console.log('Phase:', project.phase);
-        console.log('Tree nodes:', project.projectData.length);
+        console.log('Baseline pages:', this.countPages('baseline'));
         console.log('In-scope pages:', this.countPages('inScope'));
         console.groupEnd();
     }
@@ -303,7 +312,7 @@ export class ProjectStateService {
 
         // If no key provided, load most recent project
         if (!key) {
-            const projects: SavedProject[] = JSON.parse(localStorage.getItem('savedProjects') || '[]');
+            const projects: LocalProject[] = JSON.parse(localStorage.getItem('savedProjects') || '[]');
             if (projects.length === 0) {
                 console.warn('No projects found in localStorage');
                 return false;
@@ -342,7 +351,7 @@ export class ProjectStateService {
 
     // Export as JSON
     exportProjectAsJson() {
-        const project = this.getProjectState();
+        const project = this.getProjectToSave();
         const data = JSON.stringify(project, null, 2);
         const blob = new Blob([data], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -381,26 +390,26 @@ export class ProjectStateService {
         }
     }
 
-    /* Save to cloud
+    // Save to cloud
     async saveToCloud(): Promise<boolean> {
         try {
-            const project = this.getProjectState();
+            const project = this.getProjectToSave();
             const projectId = this.cloudProjectId() || undefined;
-
-            const savedId = await this.cloudStorage.saveProject(project, projectId);
-
-            if (savedId) {
-                this.cloudProjectId.set(savedId);
-                this.setStorageLocation('cloud');
-                console.log('Project saved to cloud with ID:', savedId);
-                return true;
-            }
+            /*
+                        const savedId = await this.cloudStorage.saveProject(project, projectId);
+            
+                        if (savedId) {
+                            this.cloudProjectId.set(savedId);
+                            this.setStorageLocation('cloud');
+                            console.log('Project saved to cloud with ID:', savedId);
+                            return true;
+                        }*/
             return false;
         } catch (error) {
             console.error('Failed to save to cloud:', error);
             return false;
         }
-    }*/
+    }
 
     // Load from cloud
     async loadFromCloud(projectId: string): Promise<boolean> {

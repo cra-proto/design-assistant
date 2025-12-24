@@ -1,0 +1,101 @@
+@if (!exportGitHubService.token && !authService.isAuthenticated()){
+<p-message severity="info"
+           text="Sign in with GitHub or enter your GitHub token to export your content"
+           styleClass="mt-2" />
+}
+
+
+
+
+<h2>Export to GitHub</h2>
+<p>Export the current in-scope pages for your project to a GitHub repository. You can specify the owner, repository, branch, and provide a <p-button icon="pi pi-question-circle" (onClick)="showHelp = !showHelp" [rounded]="true" [text]="true" styleClass="-m-3 nohover" iconPos="right" severity="help" label="GitHub token"></p-button> for authentication.</p>
+<p>The pages will be exported in Jekyll format. Redirects for the included pages are automatically set up, so you don't need to update links in your repo manually. If you create new pages directly in GitHub, remember to list them in your <code>/source/data/exclude-redirect-links.json</code> file.</p>
+
+
+<div *ngIf="showHelp" class="text-sm mt-2">
+    <p>To push changes to a repository, you need a valid GitHub token. Your token works like a username and password, so keep it private and do not share it with anyone.</p>
+
+    <p>Follow these steps to create a new GitHub token:</p>
+
+    <ol>
+        <li>Go to your GitHub <strong>Settings</strong>.</li>
+        <li>Select <strong>Developer settings</strong>.</li>
+        <li>Click <strong>Personal Access Tokens</strong> &gt; <strong>Fine-grained tokens</strong>.</li>
+        <li>Click <strong>Generate new token</strong>.</li>
+        <li>Give your token a <strong>unique name</strong> and a <strong>description</strong>.</li>
+        <li>Under <strong>Resource owner</strong>, select either proto-cra or your personal account.</li>
+        <li>Under <strong>Repository access</strong>, select <strong>All repositories</strong>.</li>
+        <li>Add the necessary <strong>permissions</strong> for pushing changes to repositories:
+            <ul>
+                <li><strong>Administration</strong> (Access: Read and write)</li>
+                <li><strong>Contents</strong> (Access: Read and write)</li>
+                <li><strong>Metadata</strong> (Access: Read-only)</li>
+                <li><strong>Pages</strong> (Access: Read and write)</li>
+            </ul>
+        </li>
+        <li>Copy the generated token and enter it into the GitHub token field whenever you push changes to GitHub.</li>
+    </ol>
+
+    <p><strong>Important:</strong> Keep this token secret. Treat it like a password.</p>
+
+</div>
+
+
+<!--TODO: Generate link to repo and a bookmarklet for toggling between repo and Canada.ca-->
+
+<p-fieldset legend="GitHub settings">
+    <aida-setup-repo></aida-setup-repo>
+    @if (!authService.isAuthenticated()) {
+    <p-iftalabel>
+        <p-password feedback="false" id="token" [(ngModel)]="exportGitHubService.token" pSize="small" styleClass="mt-2" fluid />
+        <label for="token">GitHub Token</label>
+    </p-iftalabel>
+    }
+</p-fieldset>
+
+<p-fieldset legend="Files to export">
+    <p-table [value]="filesTable()" size="small">
+        <ng-template pTemplate="header" stripedRows>
+            <tr>
+                <th>File</th>
+                <th><span class="flex flex-row align-items-center gap-2">
+                        Status
+                        <p-button icon="pi pi-angle-double-right" pTooltip="Skip all" tooltipPosition="top" size="small" severity="secondary" (onClick)="setAll('skip')" />
+                        <p-button icon="pi pi-sync" pTooltip="Update all" tooltipPosition="top" size="small" severity="primary" (onClick)="setAll('update')" />
+                    </span>
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-file>
+            <tr>
+                <td>{{ file.path }}</td>
+                <td>
+                    <p-chip [label]="file.location"
+                            [icon]="getIcon(file.location)"
+                            class="capitalize font-bold center-chip w-9rem p-1"
+                            [class.bg-primary-500]="file.location === 'update'"
+                            [class.bg-yellow-400]="file.location === 'new page'"
+                            [class.bg-blue-400]="file.location === 'github only'"
+                            [class.text-white]="file.location === 'update' || file.location === 'github only'"
+                            [class.text-black]="file.location === 'new page'"
+                            [class.cursor-pointer]="file.location === 'skip' || file.location === 'update'"
+                            (click)="(file.location === 'skip' || file.location === 'update') && toggleUpdate(file)"></p-chip>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+    <p-button styleClass="mt-3" icon="pi pi-github" label="Export to GitHub" severity="primary"
+              (onClick)="exportProjectToGitHub(gitHubData.owner,gitHubData.repo,gitHubData.branch,exportGitHubService.token,true)"
+              [disabled]="projectData().inScopePages === 0 || (!exportGitHubService.token && !authService.isAuthenticated())" />
+    @if (filesTable().length) {
+    <span class="text-color-secondary">
+        {{ newCount() }} new and {{ updatedCount() }} updated pages
+    </span>
+    }
+    @if (exportMessage()) {
+    <p-message
+               [severity]="exportMessage()!.severity"
+               [text]="exportMessage()!.text"
+               styleClass="mt-2" />
+    }
+</p-fieldset>

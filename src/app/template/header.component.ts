@@ -10,9 +10,8 @@ import { ButtonModule } from 'primeng/button';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 
 import { ApiResetComponent } from '../components/ai-api/api-reset.component';
-import { LocalStorageService } from '../services/local-storage.service';
+import { LocalStorageService } from '../services/storage/local-storage.service';
 import { ThemeService } from '../services/theme.service';
-import { IaStateService } from '../views/ia-assistant/services/ia-state.service';
 import { GithubConnectComponent } from "../components/sign-in/github-connect.component";
 
 import { DividerModule } from 'primeng/divider';
@@ -46,7 +45,7 @@ import { MessageService } from 'primeng/api'
       <p-button (onClick)="save()" icon="pi pi-exclamation-triangle" label="Unsaved changes" rounded severity="primary" size="small" styleClass="white-space-nowrap" class="sticky top-0 z-3" *ngIf="hasUnsavedChanges"></p-button>
       <p-toast></p-toast>
 
-      <p-button (onClick)="goToProject()" rounded outlined severity="primary" styleClass="border-dashed surface-border" [label]="project | translate"></p-button>
+      <!--p-button (onClick)="goToProject()" rounded outlined severity="primary" styleClass="border-dashed surface-border" [label]="project | translate"></p-button-->
 
       <p-divider layout="vertical" styleClass="mx-2"></p-divider>
 
@@ -93,7 +92,6 @@ export class HeaderComponent {
   private translate = inject(TranslateService);
   public localStore = inject(LocalStorageService);
   public theme = inject(ThemeService);
-  private iaState = inject(IaStateService);
   private router = inject(Router);
   private title = inject(Title);
   public production = environment.production;
@@ -101,7 +99,7 @@ export class HeaderComponent {
   public messageService = inject(MessageService);
 
   get project(): string {
-    const repo = this.iaState.getGitHubData().repo;
+    const repo = this.projectState.getProject().github.repo;
     const display = repo
       ? repo.replace(/-/g, " ").replace(/^\w/, char => char.toUpperCase())
       : this.translate.instant("project.save");
@@ -138,7 +136,7 @@ export class HeaderComponent {
   }
 
   goToProject() {
-    this.iaState.saveToLocalStorage();
+    //this.iaState.saveToLocalStorage();
     this.router.navigate(['']);
   }
 

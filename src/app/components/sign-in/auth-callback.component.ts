@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageModule } from 'primeng/message';
 
-import { GitHubAuthService } from '../../services/github-auth.service';
+import { GitHubAuthService } from '../../services/github/github-auth.service';
 
 @Component({
   selector: 'aida-auth-callback',
