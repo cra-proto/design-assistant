@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, Input, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -18,11 +18,24 @@ import { MessageModule } from 'primeng/message';
 import { FieldsetModule } from 'primeng/fieldset';
 import { ChipModule } from 'primeng/chip';
 import { TooltipModule } from 'primeng/tooltip';
+import { PopoverModule } from 'primeng/popover';
+import { CardModule } from 'primeng/card';
+import { DialogModule } from 'primeng/dialog';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { TabsModule } from 'primeng/tabs';
+import { TagModule } from 'primeng/tag';
+import { DividerModule } from 'primeng/divider';
 
+//Services
 import { ExportGitHubService } from '../../services/github/export-github.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { FetchService } from '../../services/fetch.service';
 import { GitHubAuthService } from '../../services/github/github-auth.service';
+import { ThemeService } from '../../services/theme.service';
+
+//Components
 import { SetupRepoComponent } from '../../components/setup-repo/setup-repo.component';
 
 export interface PageData {
@@ -36,24 +49,110 @@ interface FileCompareRow {
   newer?: 'export' | 'github' | 'same';
 }
 
+interface ExportTarget {
+  label: string;
+  value: 'prototype' | 'baseline';
+}
+
+interface FileStatus {
+  path: string;
+  location: 'update' | 'skip' | 'new page' | 'github only';
+}
+
+interface ExportMessage {
+  severity: 'success' | 'info' | 'warn' | 'error';
+  text: string;
+}
+
+
 @Component({
   selector: 'aida-export-github',
   imports: [CommonModule, FormsModule, TranslateModule,
     SetupRepoComponent,
-    TableModule, IftaLabelModule, InputTextModule, KeyFilterModule, AutoCompleteModule, PasswordModule, ButtonModule, MessageModule, FieldsetModule, ChipModule, TooltipModule],
+    TableModule, IftaLabelModule, InputTextModule, KeyFilterModule, AutoCompleteModule, PasswordModule, ButtonModule, MessageModule, FieldsetModule, ChipModule, TooltipModule,
+    PopoverModule, CardModule, DialogModule, SelectButtonModule,
+    InputGroupModule, InputGroupAddonModule, TabsModule, TagModule, DividerModule],
   templateUrl: './export-github.component.html',
   styles: ``
 })
 export class ExportGithubComponent implements OnInit {
   private projectState = inject(ProjectStateService);
+  public authService = inject(GitHubAuthService);
   public exportGitHubService = inject(ExportGitHubService);
   private fetchService = inject(FetchService);
   public translate = inject(TranslateService);
+  private themeService = inject(ThemeService);
 
-  @Input() mode: 'export' | 'select' = 'export';
+  url = "test"
 
+  //Signals
   projectData = this.projectState.getProject;
+  connectionStatus = signal<'checking' | 'connected' | 'warning' | 'error'>('checking');
+  filesTable = signal<FileStatus[]>([]);
+  exportMessage = signal<ExportMessage | null>(null);
   gitHubData = this.projectData().github;
+
+
+
+  // Computed signals
+  inScopePageCount = computed(() => this.projectState.getProject().inScopePages);
+  baselinePageCount = computed(() => this.projectState.getProject().baselinePages);
+  jekyllFileCount = computed(() => this.filesTable().filter(f => !f.path.startsWith('en/') && !f.path.startsWith('fr/')).length);
+  newCount = computed(() => this.filesTable().filter(f => f.location === 'new page').length);
+  updatedCount = computed(() => this.filesTable().filter(f => f.location === 'update').length);
+  skippedCount = computed(() => this.filesTable().filter(f => f.location === 'skip').length);
+  githubOnlyCount = computed(() => this.filesTable().filter(f => f.location === 'github only').length);
+
+  //Check if project is loaded
+  get projectLoaded(): boolean {
+    const name = this.projectState.getProject().projectName;
+    return !!name;
+  }
+
+  openRepo() {
+    let modifier = '';
+    if (this.selectedExportTarget === 'baseline') { modifier = '-baseline'; };
+    const url = `https://github.com/${this.projectData().github.owner}/${this.projectData().github.repo}${modifier}`;
+    window.open(url, '_blank');
+  }
+
+  statusClasses = computed(() => {
+    const status = this.connectionStatus();
+    const isDark = this.themeService.darkMode();
+
+    const baseClasses = 'flex align-items-center gap-2 p-3 border-round-md mb-3';
+
+    const bgMap = {
+      'connected': isDark ? 'bg-green-900' : 'bg-green-50',
+      'warning': isDark ? 'bg-yellow-900' : 'bg-yellow-50',
+      'error': isDark ? 'bg-red-900' : 'bg-red-50',
+      'checking': isDark ? 'bg-blue-900' : 'bg-blue-50'
+    };
+
+    return `${baseClasses} ${bgMap[status]}`;
+  });
+
+  titleClasses = computed(() => {
+    const status = this.connectionStatus();
+    const isDark = this.themeService.darkMode();
+
+    const colorMap = {
+      'connected': isDark ? 'text-green-300' : 'text-green-700',
+      'warning': isDark ? 'text-yellow-300' : 'text-yellow-700',
+      'error': isDark ? 'text-red-300' : 'text-red-700',
+      'checking': ''
+    };
+
+    return `font-semibold my-0 ${colorMap[status]}`;
+  });
+
+  exportTargetOptions: ExportTarget[] = [
+    { label: 'Prototype', value: 'prototype' },
+    { label: 'Baseline', value: 'baseline' }
+  ];
+  selectedExportTarget: 'prototype' | 'baseline' = 'prototype';
+  showTokenHelp = false;
+
   repos: string[] = [];
   filteredRepos: string[] = [];
   ownerError = '';
@@ -62,6 +161,8 @@ export class ExportGithubComponent implements OnInit {
   async ngOnInit() {
     //this.projectState.loadFromLocalStorage();
     await this.compareFiles(this.gitHubData.owner, this.gitHubData.repo, this.gitHubData.branch, this.exportGitHubService.token);
+    //temp
+    this.projectData().lastExported = new Date();
   }
 
   //Get in-scope URLs and page content
@@ -168,14 +269,7 @@ export class ExportGithubComponent implements OnInit {
   }
 
   //Create file list
-  filesTable = signal<FileCompareRow[]>([]);
-  updatedCount = computed(() =>
-    this.filesTable().filter(f => f.location === 'update').length
-  );
 
-  newCount = computed(() =>
-    this.filesTable().filter(f => f.location === 'new page').length
-  );
 
   async compareFiles(owner: string, repo: string, branch: string, token?: string) {
     console.log("Compare!")
@@ -256,14 +350,35 @@ export class ExportGithubComponent implements OnInit {
     this.filesTable.set(table);
   }
 
-  getIcon(location: string): string {
+  /*getIcon(location: string): string {
     switch (location) {
       case 'skip': return 'pi pi-angle-double-right';
-      case 'update': return 'pi pi-sync';
+      case 'update': return 'pi pi-refresh';
       case 'new page': return 'pi pi-file-plus';
       case 'github only': return 'pi pi-github';
       default: return '';
     }
+  }
+*/
+  colorConfig: Record<string, { icon: string, darkBg: string, lightBg: string, darkText: string, lightText: string, inverseText: string, lightHover: string, darkHover: string }> = {
+    'skip': { icon: 'pi pi-angle-double-right', darkBg: 'bg-gray-200 hover:bg-gray-300', darkText: 'text-gray-900', lightBg: 'bg-gray-50 hover:bg-gray-100', lightText: 'text-gray-500', inverseText: 'text-black', lightHover: 'hover:bg-gray-50 border-round-lg', darkHover: 'hover:bg-gray-200 border-round-lg hover:text-black-alpha-90' },
+    'update': { icon: 'pi pi-refresh', darkBg: 'bg-primary-500 hover:bg-primary-600', darkText: 'text-primary-50', lightBg: 'bg-primary-50 hover:bg-primary-100', lightText: 'text-primary-500', inverseText: 'text-white', lightHover: 'hover:bg-primary-50 border-round-lg', darkHover: 'hover:bg-primary-500 border-round-lg' },
+    'new page': { icon: 'pi pi-file-plus', darkBg: 'bg-yellow-400 hover:bg-yellow-600', darkText: 'text-yellow-900', lightBg: 'bg-yellow-50 hover:bg-yellow-100', lightText: 'text-yellow-800', inverseText: 'text-black', lightHover: 'hover:bg-yellow-50 border-round-lg', darkHover: 'hover:bg-yellow-400 border-round-lg hover:text-black-alpha-90' },
+    'github only': { icon: 'pi pi-github', darkBg: 'bg-blue-400 hover:bg-blue-500', darkText: 'text-blue-50', lightBg: 'bg-blue-50 hover:bg-blue-100', lightText: 'text-blue-400', inverseText: 'text-white', lightHover: 'hover:bg-blue-50 border-round-lg', darkHover: 'hover:bg-blue-400 border-round-lg' },
+  };
+
+  getIcon(location: string): string {
+    return this.colorConfig[location]?.icon || '';
+  }
+
+  getBgAndText(location: string, mode: 'alwaysDark' | 'followTheme' | 'bgOnly' | 'textOnly' | 'hoverOnly' | 'inverseText'): string {
+    const config = this.colorConfig[location];
+    if (mode === 'alwaysDark') { return `${config.darkBg} ${config.inverseText}` } //chips are always dark mode
+    else if (mode === 'bgOnly') { return this.themeService.darkMode() ? config.darkBg : config.lightBg }
+    else if (mode === 'textOnly') { return this.themeService.darkMode() ? config.darkText : config.lightText }
+    else if (mode === 'hoverOnly') { return this.themeService.darkMode() ? config.darkHover : config.lightHover }
+    else if (mode === 'inverseText') { return this.themeService.darkMode() ? config.inverseText : 'text-black' }
+    else return this.themeService.darkMode() ? `${config?.darkBg} ${config?.darkText}` : `${config?.lightBg} ${config?.lightText}`
   }
 
   toggleUpdate(file: FileCompareRow) {
@@ -286,48 +401,10 @@ export class ExportGithubComponent implements OnInit {
   }
 
   //TESTING
-  public authService = inject(GitHubAuthService);
-  private http = inject(HttpClient);
+
+
 
   isExporting = signal(false);
-  exportMessage = signal<{ severity: string; text: string } | null>(null);
+  //exportMessage = signal<{ severity: string; text: string } | null>(null);
 
-  async exportToGitHub() {
-    const token = this.authService.getToken();
-    if (!token) return;
-
-    this.isExporting.set(true);
-    this.exportMessage.set(null);
-
-    try {
-      // Example: Create a file in a repo
-      const response = await fetch('https://api.github.com/repos/OWNER/REPO/contents/path/to/file.txt', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: 'Add file via app',
-          content: btoa('Your file content here'), // Base64 encode
-        })
-      });
-
-      if (response.ok) {
-        this.exportMessage.set({
-          severity: 'success',
-          text: 'Successfully exported to GitHub!'
-        });
-      } else {
-        throw new Error('Export failed');
-      }
-    } catch (error) {
-      this.exportMessage.set({
-        severity: 'error',
-        text: 'Failed to export to GitHub'
-      });
-    } finally {
-      this.isExporting.set(false);
-    }
-  }
 }

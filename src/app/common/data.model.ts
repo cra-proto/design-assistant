@@ -109,6 +109,7 @@ export interface Project {
     created: Date;
     lastModified: Date;
     lastSaved: Date;
+    lastExported: Date;
     storageLocation: 'browser' | 'cloud';
     collaborators?: GitHubUser[];
     baselinePages: number;
