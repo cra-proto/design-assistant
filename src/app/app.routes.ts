@@ -1,5 +1,6 @@
 import { Routes, Router } from '@angular/router';
 import { inject } from '@angular/core';
+import { environment } from '../environments/environment';
 // Project files
 import { DashboardComponent } from './views/project-assistant/dashboard.component';
 import { SwitchProjectComponent } from './views/project-assistant/switch-project.component';
@@ -32,7 +33,7 @@ export const routes: Routes = [
     {
         path: '',
         component: DashboardComponent,
-        title: 'title.landing',
+        title: (environment.production ? 'title.landing' : 'title.landing.dev'),
     },
     {
         path: 'dashboard',
