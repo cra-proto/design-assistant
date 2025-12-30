@@ -10,15 +10,16 @@ import { ButtonModule } from 'primeng/button';
 
 // Services
 import { ProjectStateService } from '../../services/project-state.service';
+import { IaDiagramService } from './ia-diagram.service';
 
 @Component({
-    selector: 'aida-ia-diagram',
-    imports: [
-        CommonModule, FormsModule, TranslateModule,
-        OrganizationChartModule, ButtonModule
-    ],
-    templateUrl: './ia-diagram.component.html',
-    styles: `
+  selector: 'aida-ia-diagram',
+  imports: [
+    CommonModule, FormsModule, TranslateModule,
+    OrganizationChartModule, ButtonModule
+  ],
+  templateUrl: './ia-diagram.component.html',
+  styles: `
     .fullscreen-overlay {
   position: fixed;
   top: 0;
@@ -39,11 +40,8 @@ import { ProjectStateService } from '../../services/project-state.service';
 }`
 })
 export class IaDiagramComponent {
-    router = inject(Router)
-    projectState = inject(ProjectStateService)
-    projectTree = computed(() => this.projectState.getProject().projectData);
-
-    close() {
-        this.router.navigate(['/edit-project']);
-    }
+  router = inject(Router)
+  projectState = inject(ProjectStateService)
+  iaDiagram = inject(IaDiagramService);
+  projectTree = computed(() => this.projectState.getProject().projectData);
 }

@@ -7,6 +7,16 @@ Don't store values that can be derived from other values unless you need to disp
 
 import { TreeNode } from "primeng/api";
 
+//Saved local projects
+export interface LocalProject {
+    key: string;
+    timestamp: number;
+    pages: number;
+    phase: ProjectPhase;
+    local: boolean;
+    repo?: string;
+}
+
 //Project phase
 export enum ProjectPhase {
     Draft = 'phase.draft',
@@ -99,6 +109,7 @@ export interface Project {
     created: Date;
     lastModified: Date;
     lastSaved: Date;
+    lastExported: Date;
     storageLocation: 'browser' | 'cloud';
     collaborators?: GitHubUser[];
     baselinePages: number;

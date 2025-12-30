@@ -8,8 +8,8 @@ import { PopoverModule } from 'primeng/popover';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 
-import { GitHubAuthService } from '../../services/github-auth.service';
-import { IaStateService } from '../../views/ia-assistant/services/ia-state.service';
+import { GitHubAuthService } from '../../services/github/github-auth.service';
+//import { IaStateService } from '../../views/ia-assistant/services/ia-state.service';
 
 @Component({
   selector: 'aida-github-connect',
@@ -20,7 +20,7 @@ import { IaStateService } from '../../views/ia-assistant/services/ia-state.servi
 export class GithubConnectComponent {
 
   authService = inject(GitHubAuthService);
-  iaState = inject(IaStateService)
+  //iaState = inject(IaStateService)
   translate = inject(TranslateService);
 
   connectGitHub() {
@@ -35,10 +35,10 @@ export class GithubConnectComponent {
           label: 'New',
           icon: 'pi pi-plus',
           command: () => {
-            this.iaState.saveToLocalStorage();
-            this.iaState.setActiveStep(1);
-            this.iaState.resetIaFlow();
-            this.iaState.saveToLocalStorage();
+            //this.iaState.saveToLocalStorage();
+            //this.iaState.setActiveStep(1);
+            //this.iaState.resetIaFlow();
+            //this.iaState.saveToLocalStorage();
           }
         },
         {

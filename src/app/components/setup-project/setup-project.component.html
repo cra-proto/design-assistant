@@ -1,0 +1,33 @@
+<h2 class="text-2xl my-1">Project</h2>
+<div class="flex flex-column gap-2">
+    <!--Name-->
+    <p-iftalabel>
+        <input type="text" id="name" pInputText [(ngModel)]="projectName" pSize="small" fluid (blur)="updateName(); syncName()" [pKeyFilter]="nameFilter" />
+        <label for="branch">Name</label>
+    </p-iftalabel>
+    <!--Phase-->
+    <p-iftalabel>
+        <p-select [options]="phaseOptions" optionValue="value" [(ngModel)]="projectPhase" inputId="phase" styleClass="w-full" fluid>
+            <ng-template #item let-item>
+                {{ item.name | translate }}
+            </ng-template>
+            <ng-template #selectedItem let-item>
+                {{ item.name | translate }}
+            </ng-template>
+        </p-select>
+        <label for="phase">Phase</label>
+    </p-iftalabel>
+    <!--Storage-->
+    <p-selectbutton [options]="storageOptions" optionValue="value" [(ngModel)]="projectStorage" styleClass="w-full">
+        <ng-template #item let-item>
+            <i [class]="item.icon"></i>
+            <span class="ml-1">{{ item.name | translate }}</span>
+        </ng-template>
+    </p-selectbutton>
+    <div class="flex flex-row align-items-center gap-1">
+        <i class="pi pi-info-circle text-blue-500"></i>
+        <span class="text-xs text-color-secondary">{{ projectStorage === 'browser' ?
+            ('storage.browserWarning' | translate) :
+            ('storage.cloudInfo' | translate) }}</span>
+    </div>
+</div>

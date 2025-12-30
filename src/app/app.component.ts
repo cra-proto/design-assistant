@@ -7,9 +7,10 @@ import { HeaderComponent } from './template/header.component';
 import { SidebarComponent } from './template/sidebar.component';
 import { FooterComponent } from './template/footer.component';
 import { ApiKeyComponent } from './components/ai-api/api-key.component';
-import { LocalStorageService } from './services/local-storage.service';
+import { LocalStorageService } from './services/storage/local-storage.service';
 import { CustomTitleStrategy } from './common/custom-title-strategy';
 import { PrimeNG } from 'primeng/config';
+import { ProjectStateService } from './services/project-state.service';
 
 @Component({
   selector: 'aida-root',
@@ -24,6 +25,7 @@ export class AppComponent implements OnInit {
   private primeng = inject(PrimeNG);
   router = inject(Router);
   route = inject(ActivatedRoute);
+  projectState = inject(ProjectStateService)
 
   ngOnInit(): void {
     this.primeng.ripple.set(true);
@@ -40,6 +42,7 @@ export class AppComponent implements OnInit {
         });
       }
     });
+    this.projectState.loadFromLocalStorage();
     console.log('The initial API key is: ', this.localStore.getData('apiKey'));
   }
 }

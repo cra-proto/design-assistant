@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { TranslateModule } from "@ngx-translate/core";
-import { LocalStorageService } from '../../services/local-storage.service';
+import { LocalStorageService } from '../../services/storage/local-storage.service';
 import { ButtonModule } from 'primeng/button';
 
 @Component({

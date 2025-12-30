@@ -23,15 +23,7 @@
                       styleClass="secondary-outline w-full"
                       routerLink="/switch-project">
             </p-button>
-            <p-button
-                      label="Export Project"
-                      icon="pi pi-file-export"
-                      outlined
-                      size="small"
-                      styleClass="secondary-outline w-full"
-                      (onClick)="menu.toggle($event)">
-            </p-button>
-            <p-menu #menu [model]="exportItems" [popup]="true" />
+            <aida-export-project></aida-export-project>
         </div>
     </div>
 
