@@ -2,12 +2,14 @@
 <p>{{'saves.description' | translate }}</p>
 
 <!-- Authentication Banner -->
-<p-message severity="info" styleClass="mb-2" *ngIf="!authService.isAuthenticated()">
+@if (!authService.isAuthenticated()){
+<p-message severity="info" styleClass="mb-2 sticky top-0 z-2">
   <div class="flex align-items-center gap-2">
     <i class="pi pi-info-circle font-bold"></i>
     <span>Sign in with GitHub to edit cloud projects and save your local projects to the cloud.</span>
   </div>
 </p-message>
+}
 
 <!-- All Projects -->
 <div class="surface-card border-round-lg shadow-2 p-4 mb-3">
