@@ -83,11 +83,12 @@ export class ExportGithubComponent implements OnInit {
   public translate = inject(TranslateService);
   private themeService = inject(ThemeService);
 
-  url = "test"
+  url = "test";
+  username = "";
 
   //Signals
   projectData = this.projectState.getProject;
-  connectionStatus = signal<'checking' | 'connected' | 'warning' | 'error' | 'missing'>('checking');
+  connectionStatus = signal<'checking' | 'connected' | 'unverified' | 'warning' | 'error' | 'missing'>('checking');
   filesTable = signal<FileStatus[]>([]);
   exportMessage = signal<ExportMessage | null>(null);
 
@@ -122,7 +123,7 @@ export class ExportGithubComponent implements OnInit {
     const repo = this.projectData().github.repo;
     console.log("Running precheck with token:", token);
     const result = await this.exportGitHubService.validateToken(token, owner, repo);
-
+    this.username = result.username || '';
     if (!result.valid) {
       this.connectionStatus.set('error');
       console.error('Token validation failed:', result.error);
@@ -132,6 +133,9 @@ export class ExportGithubComponent implements OnInit {
     } else if (!result.repoExists && !result.canCreateRepo) {
       this.connectionStatus.set('warning');
       console.warn('Cannot create repo in this namespace');
+    } else if (!result.canVerify) {
+      this.connectionStatus.set('unverified');
+      console.warn('Cannot verify scope of personal access token but it is valid and the user has access to the repo (even if token does not). If export fails, manually verify your token settings.');
     } else {
       this.connectionStatus.set('connected');
       console.warn('Repo valid: ', result.valid, 'Repo exists: ', result.repoExists, 'Has access: ', result.hasRepoAccess, 'Can create repo: ', result.canCreateRepo, 'Error: ', result.error);
@@ -185,6 +189,7 @@ export class ExportGithubComponent implements OnInit {
 
     const bgMap = {
       'connected': isDark ? 'bg-green-900' : 'bg-green-50',
+      'unverified': isDark ? 'bg-blue-900' : 'bg-blue-50',
       'warning': isDark ? 'bg-yellow-900' : 'bg-yellow-50',
       'error': isDark ? 'bg-red-900' : 'bg-red-50',
       'missing': isDark ? 'bg-red-900' : 'bg-red-50',
@@ -200,6 +205,7 @@ export class ExportGithubComponent implements OnInit {
 
     const colorMap = {
       'connected': isDark ? 'text-green-300' : 'text-green-700',
+      'unverified': '',
       'warning': isDark ? 'text-yellow-300' : 'text-yellow-700',
       'error': isDark ? 'text-red-300' : 'text-red-700',
       'missing': isDark ? 'text-red-300' : 'text-red-700',

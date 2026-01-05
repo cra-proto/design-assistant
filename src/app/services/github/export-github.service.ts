@@ -50,11 +50,16 @@ export class ExportGitHubService {
   }
 
   //Validate GitHub token
-  public async validateToken(token: string, owner: string, repo: string): Promise<{ valid: boolean; repoExists?: boolean, hasRepoAccess?: boolean, canCreateRepo?: boolean, error?: string }> {
+  public async validateToken(token: string, owner: string, repo: string): Promise<{ valid: boolean, canVerify?: boolean, repoExists?: boolean, hasRepoAccess?: boolean, canCreateRepo?: boolean, error?: string, username?: string }> {
     //Step 0: Check token presence
     if (!token) {
       return { valid: false, error: 'No token provided' };
     }
+
+    // Determine if using PAT or OAuth (we can't verify exact scope of PAT's)
+    let canVerify: boolean;
+    if (this.authService.isAuthenticated()) { canVerify = true; }
+    else { canVerify = false; }
 
     try {
       // Step 1: Validate token by calling /user endpoint
@@ -73,6 +78,7 @@ export class ExportGitHubService {
       }
 
       const user = await userResponse.json();
+      const username = user.name || user.login
       const tokenScopes = userResponse.headers.get('x-oauth-scopes')?.split(',').map(s => s.trim()) || [];
 
       // Step 2: Check if repo exists
@@ -91,21 +97,22 @@ export class ExportGitHubService {
         console.log(`User:`, user);
         console.log(`Token scopes:`, tokenScopes);
         const hasWriteAccess = repoData.permissions?.push === true || repoData.permissions?.admin === true;
-
-
-
-
         return {
           valid: true,
+          canVerify: canVerify,
           repoExists: true,
-          hasRepoAccess: hasWriteAccess
+          hasRepoAccess: hasWriteAccess,
+          username: username
         };
       }
       // Step 3b: Check repo creation permission if repo doesn't exist
       else if (repoResponse.status === 404) {
         let canCreate = false;
         if (owner === user.login) {
-          canCreate = tokenScopes.includes('repo') || tokenScopes.includes('public_repo');
+          if (canVerify) {
+            canCreate = tokenScopes.includes('repo') || tokenScopes.includes('public_repo');
+          }
+          else { canCreate = true; } // can't verify PAT scopes, assume can create
         }
         else {
           const orgMemberResponse = await fetch(`https://api.github.com/orgs/${owner}/memberships/${user.login}`, {
@@ -120,11 +127,12 @@ export class ExportGitHubService {
             canCreate = memberData.role === 'admin' || memberData.state === 'active';
           }
         }
-
         return {
           valid: true,
+          canVerify: canVerify,
           repoExists: false,
-          canCreateRepo: canCreate
+          canCreateRepo: canCreate,
+          username: username
         };
       }
       // Step 3c: Other errors
