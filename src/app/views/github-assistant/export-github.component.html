@@ -10,6 +10,11 @@
 </p-message>
 }
 
+{{exportGitHubService.token}}
+@if (!authService.isAuthenticated()) {
+<p-button label="Clear Token" icon="pi pi-times" severity="secondary" size="small" (onClick)="clearPAT()" styleClass="mt-2" />
+}
+
 <div class="flex lg:flex-row flex-column gap-3">
     <!--Connect Card-->
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-8 w-full">
@@ -29,7 +34,7 @@
         </div>
         <div class="flex flex-column gap-3">
             <!--Sign in options -->
-            @if (!authService.isAuthenticated()) {
+            @if (!exportGitHubService.token && !authService.isAuthenticated()) {
             {{ 'github.connect.description' | translate }}
             <!-- Option 1: OAuth Sign In -->
             <div class="border-left-3 surface-border p-3">
@@ -48,7 +53,7 @@
                 <p class="text-sm text-color-secondary my-2">{{ 'github.connect.option2.description' | translate }}</p>
                 <div class="flex flex-row">
                     <p-iftalabel class="w-full">
-                        <p-password feedback="false" toggleMask id="token" [(ngModel)]="exportGitHubService.token" pSize="small" fluid styleClass="w-full" />
+                        <p-password feedback="false" toggleMask id="token" [(ngModel)]="pat" pSize="small" fluid styleClass="w-full" (onBlur)="savePAT()" (paste)="onPastePAT()" />
                         <label for="token">{{ 'github.connect.option2.token' | translate }}</label>
                     </p-iftalabel>
                     <p-button icon="pi pi-question-circle" [pTooltip]="'github.connect.option2.token.tooltip' | translate" tooltipPosition="top" severity="info" outlined size="large" styleClass="min-h-full surface-ground secondary-outline" (click)="showHelp = true" />
@@ -99,10 +104,16 @@
                     @if (connectionStatus() === 'warning') {
                     <p [class]="titleClasses()">{{ 'github.connect.warning' | translate }}</p>
                     <p class="text-sm text-color-secondary my-0">{{ 'github.connect.warning.details' | translate }}</p>
+                    @if (!authService.isAuthenticated()) {
+                    <p-button label="Clear Token" icon="pi pi-times" severity="secondary" size="small" (onClick)="clearPAT()" styleClass="mt-2" />
+                    }
                     }
                     @if (connectionStatus() === 'error') {
                     <p [class]="titleClasses()">{{ 'github.connect.error' | translate }}</p>
                     <p class="text-sm text-color-secondary my-0">{{ 'github.connect.error.details' | translate }}</p>
+                    @if (!authService.isAuthenticated()) {
+                    <p-button label="Clear Token" icon="pi pi-times" severity="secondary" size="small" (onClick)="clearPAT()" styleClass="mt-2" />
+                    }
                     }
                 </div>
             </div>

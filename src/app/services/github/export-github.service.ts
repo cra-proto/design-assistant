@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { FetchService } from '../fetch.service';
 import { GitHubAuthService } from './github-auth.service';
 
@@ -16,7 +16,16 @@ export class ExportGitHubService {
   private fetchService = inject(FetchService);
   private authService = inject(GitHubAuthService);
 
-  public pat = "" //personal access token
+  //Manage GitHub token
+  private readonly PAT_STORAGE_KEY = 'github_pat';
+  private patSignal = signal<string>(this.loadPAT());
+  public get pat(): string {
+    return this.patSignal();
+  }
+  public set pat(value: string) {
+    this.patSignal.set(value);
+    this.savePAT(value);
+  }
 
   get token(): string {
     return this.authService.isAuthenticated()
@@ -25,6 +34,46 @@ export class ExportGitHubService {
   }
   set token(value: string) {
     this.pat = value;
+    this.savePAT(value);
+  }
+
+  private loadPAT(): string {
+    return sessionStorage.getItem(this.PAT_STORAGE_KEY) ?? "";
+  }
+
+  private savePAT(value: string): void {
+    if (value) {
+      sessionStorage.setItem(this.PAT_STORAGE_KEY, value);
+    } else {
+      sessionStorage.removeItem(this.PAT_STORAGE_KEY);
+    }
+  }
+
+  //Validate GitHub token
+  public async validateToken(token: string): Promise<{ valid: boolean; error?: string }> {
+    if (!token) {
+      return { valid: false, error: 'No token provided' };
+    }
+
+    try {
+      const response = await fetch('https://api.github.com/user', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json'
+        }
+      });
+
+      if (response.ok) {
+        return { valid: true };
+      } else {
+        const error = response.status === 401
+          ? 'Invalid or expired token'
+          : `GitHub API error: ${response.status}`;
+        return { valid: false, error };
+      }
+    } catch (error) {
+      return { valid: false, error: 'Network error validating token' };
+    }
   }
 
   private async formatHtmlWithPrettier(html: string): Promise<string> {

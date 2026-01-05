@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -91,7 +91,58 @@ export class ExportGithubComponent implements OnInit {
   filesTable = signal<FileStatus[]>([]);
   exportMessage = signal<ExportMessage | null>(null);
   gitHubData = this.projectData().github;
+  pat = signal<string>(this.exportGitHubService.pat);
+  precheckInProgress = signal<boolean>(false);
 
+  constructor() {
+    // Watch for changes to token or repo settings and run validateConnection
+    effect(async () => {
+      const token = this.exportGitHubService.token;
+      const owner = this.projectData().github.owner;
+      const repo = this.projectData().github.repo;
+      const isAuthenticated = this.authService.isAuthenticated();
+      console.log("Effect triggered: token or repo changed.", { token, owner, repo });
+      // Only run precheck if we have a token and repo configured
+      if (token && owner && repo) {
+        await this.validateConnection();
+      } else if (!token && !this.authService.isAuthenticated()) {
+        // No authentication method available
+        this.connectionStatus.set('warning');
+      }
+    });
+  }
+
+  //Validate token and repo access
+  private async validateConnection(): Promise<void> {
+    this.precheckInProgress.set(true);
+    this.connectionStatus.set('checking');
+
+    const token = this.exportGitHubService.token;
+    console.log("Running precheck with token:", token);
+    const result = await this.exportGitHubService.validateToken(token);
+
+    if (result.valid) {
+      this.connectionStatus.set('connected');
+    } else {
+      this.connectionStatus.set('error');
+      console.error('Token validation failed:', result.error);
+    }
+
+    this.precheckInProgress.set(false);
+  }
+
+  //Manage PAT
+  savePAT(): void {
+    this.exportGitHubService.token = this.pat();
+  }
+  onPastePAT() {
+    setTimeout(() => this.savePAT(), 0);
+  }
+  clearPAT(): void {
+    this.pat.set('');
+    this.exportGitHubService.token = '';
+    sessionStorage.removeItem('github_pat');
+  }
 
 
   // Computed signals
@@ -163,6 +214,7 @@ export class ExportGithubComponent implements OnInit {
     await this.compareFiles(this.gitHubData.owner, this.gitHubData.repo, this.gitHubData.branch, this.exportGitHubService.token);
     //temp
     this.projectData().lastExported = new Date();
+    await this.validateConnection();
   }
 
   //Get in-scope URLs and page content
