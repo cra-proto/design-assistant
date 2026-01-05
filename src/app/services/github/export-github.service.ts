@@ -50,26 +50,86 @@ export class ExportGitHubService {
   }
 
   //Validate GitHub token
-  public async validateToken(token: string): Promise<{ valid: boolean; error?: string }> {
+  public async validateToken(token: string, owner: string, repo: string): Promise<{ valid: boolean; repoExists?: boolean, hasRepoAccess?: boolean, canCreateRepo?: boolean, error?: string }> {
+    //Step 0: Check token presence
     if (!token) {
       return { valid: false, error: 'No token provided' };
     }
 
     try {
-      const response = await fetch('https://api.github.com/user', {
+      // Step 1: Validate token by calling /user endpoint
+      const userResponse = await fetch('https://api.github.com/user', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/vnd.github+json'
         }
       });
 
-      if (response.ok) {
-        return { valid: true };
-      } else {
-        const error = response.status === 401
+      if (!userResponse.ok) {
+        const error = userResponse.status === 401
           ? 'Invalid or expired token'
-          : `GitHub API error: ${response.status}`;
+          : `GitHub API error: ${userResponse.status}`;
         return { valid: false, error };
+      }
+
+      const user = await userResponse.json();
+      const tokenScopes = userResponse.headers.get('x-oauth-scopes')?.split(',').map(s => s.trim()) || [];
+
+      // Step 2: Check if repo exists
+      const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json'
+        }
+      });
+
+      // Step 3a: Check repo access if it exists
+      if (repoResponse.ok) {
+        const repoData = await repoResponse.json();
+        console.log(`Repo permissions:`, repoData.permissions);
+        console.log(`Repo data:`, repoData);
+        console.log(`User:`, user);
+        console.log(`Token scopes:`, tokenScopes);
+        const hasWriteAccess = repoData.permissions?.push === true || repoData.permissions?.admin === true;
+
+
+
+
+        return {
+          valid: true,
+          repoExists: true,
+          hasRepoAccess: hasWriteAccess
+        };
+      }
+      // Step 3b: Check repo creation permission if repo doesn't exist
+      else if (repoResponse.status === 404) {
+        let canCreate = false;
+        if (owner === user.login) {
+          canCreate = tokenScopes.includes('repo') || tokenScopes.includes('public_repo');
+        }
+        else {
+          const orgMemberResponse = await fetch(`https://api.github.com/orgs/${owner}/memberships/${user.login}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github+json'
+            }
+          });
+
+          if (orgMemberResponse.ok) {
+            const memberData = await orgMemberResponse.json();
+            canCreate = memberData.role === 'admin' || memberData.state === 'active';
+          }
+        }
+
+        return {
+          valid: true,
+          repoExists: false,
+          canCreateRepo: canCreate
+        };
+      }
+      // Step 3c: Other errors
+      else {
+        return { valid: false, error: `Error checking repo: ${repoResponse.status}` };
       }
     } catch (error) {
       return { valid: false, error: 'Network error validating token' };

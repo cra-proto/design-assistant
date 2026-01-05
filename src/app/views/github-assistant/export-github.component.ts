@@ -87,10 +87,10 @@ export class ExportGithubComponent implements OnInit {
 
   //Signals
   projectData = this.projectState.getProject;
-  connectionStatus = signal<'checking' | 'connected' | 'warning' | 'error'>('checking');
+  connectionStatus = signal<'checking' | 'connected' | 'warning' | 'error' | 'missing'>('checking');
   filesTable = signal<FileStatus[]>([]);
   exportMessage = signal<ExportMessage | null>(null);
-  gitHubData = this.projectData().github;
+
   pat = signal<string>(this.exportGitHubService.pat);
   precheckInProgress = signal<boolean>(false);
 
@@ -101,13 +101,13 @@ export class ExportGithubComponent implements OnInit {
       const owner = this.projectData().github.owner;
       const repo = this.projectData().github.repo;
       const isAuthenticated = this.authService.isAuthenticated();
-      console.log("Effect triggered: token or repo changed.", { token, owner, repo });
+      console.log("Effect triggered: token or repo changed.", { token, owner, repo, isAuthenticated });
       // Only run precheck if we have a token and repo configured
       if (token && owner && repo) {
         await this.validateConnection();
       } else if (!token && !this.authService.isAuthenticated()) {
         // No authentication method available
-        this.connectionStatus.set('warning');
+        this.connectionStatus.set('missing');
       }
     });
   }
@@ -118,14 +118,23 @@ export class ExportGithubComponent implements OnInit {
     this.connectionStatus.set('checking');
 
     const token = this.exportGitHubService.token;
+    const owner = this.projectData().github.owner;
+    const repo = this.projectData().github.repo;
     console.log("Running precheck with token:", token);
-    const result = await this.exportGitHubService.validateToken(token);
+    const result = await this.exportGitHubService.validateToken(token, owner, repo);
 
-    if (result.valid) {
-      this.connectionStatus.set('connected');
-    } else {
+    if (!result.valid) {
       this.connectionStatus.set('error');
       console.error('Token validation failed:', result.error);
+    } else if (result.repoExists && !result.hasRepoAccess) {
+      this.connectionStatus.set('warning');
+      console.warn('No write access to existing repo');
+    } else if (!result.repoExists && !result.canCreateRepo) {
+      this.connectionStatus.set('warning');
+      console.warn('Cannot create repo in this namespace');
+    } else {
+      this.connectionStatus.set('connected');
+      console.warn('Repo valid: ', result.valid, 'Repo exists: ', result.repoExists, 'Has access: ', result.hasRepoAccess, 'Can create repo: ', result.canCreateRepo, 'Error: ', result.error);
     }
 
     this.precheckInProgress.set(false);
@@ -146,8 +155,9 @@ export class ExportGithubComponent implements OnInit {
 
 
   // Computed signals
-  inScopePageCount = computed(() => this.projectState.getProject().inScopePages);
-  baselinePageCount = computed(() => this.projectState.getProject().baselinePages);
+  gitHubData = computed(() => this.projectData().github);
+  inScopePageCount = computed(() => this.projectData().inScopePages);
+  baselinePageCount = computed(() => this.projectData().baselinePages);
   jekyllFileCount = computed(() => this.filesTable().filter(f => !f.path.startsWith('en/') && !f.path.startsWith('fr/')).length);
   newCount = computed(() => this.filesTable().filter(f => f.location === 'new page').length);
   updatedCount = computed(() => this.filesTable().filter(f => f.location === 'update').length);
@@ -156,7 +166,7 @@ export class ExportGithubComponent implements OnInit {
 
   //Check if project is loaded
   get projectLoaded(): boolean {
-    const name = this.projectState.getProject().projectName;
+    const name = this.projectData().projectName;
     return !!name;
   }
 
@@ -177,6 +187,7 @@ export class ExportGithubComponent implements OnInit {
       'connected': isDark ? 'bg-green-900' : 'bg-green-50',
       'warning': isDark ? 'bg-yellow-900' : 'bg-yellow-50',
       'error': isDark ? 'bg-red-900' : 'bg-red-50',
+      'missing': isDark ? 'bg-red-900' : 'bg-red-50',
       'checking': isDark ? 'bg-blue-900' : 'bg-blue-50'
     };
 
@@ -191,6 +202,7 @@ export class ExportGithubComponent implements OnInit {
       'connected': isDark ? 'text-green-300' : 'text-green-700',
       'warning': isDark ? 'text-yellow-300' : 'text-yellow-700',
       'error': isDark ? 'text-red-300' : 'text-red-700',
+      'missing': isDark ? 'text-red-300' : 'text-red-700',
       'checking': ''
     };
 
@@ -211,7 +223,7 @@ export class ExportGithubComponent implements OnInit {
 
   async ngOnInit() {
     //this.projectState.loadFromLocalStorage();
-    await this.compareFiles(this.gitHubData.owner, this.gitHubData.repo, this.gitHubData.branch, this.exportGitHubService.token);
+    await this.compareFiles(this.gitHubData().owner, this.gitHubData().repo, this.gitHubData().branch, this.exportGitHubService.token);
     //temp
     this.projectData().lastExported = new Date();
     await this.validateConnection();
@@ -223,7 +235,7 @@ export class ExportGithubComponent implements OnInit {
     if (node.data.status.inScope && node.data.url) {
       try {
         const doc = await this.fetchService.fetchContent(node.data.url, "prod");
-        const jekyllFormatted = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData.owner, this.gitHubData.repo);
+        const jekyllFormatted = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, this.gitHubData().repo);
         pages.push({ url: node.data.url, content: jekyllFormatted });
       } catch (error) {
         console.error(`Error fetching content for ${node.data.url}:`, error);
