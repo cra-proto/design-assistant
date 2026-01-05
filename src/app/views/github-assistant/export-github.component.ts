@@ -132,7 +132,7 @@ export class ExportGithubComponent implements OnInit {
       console.warn('No write access to existing repo');
     } else if (!result.repoExists && !result.canCreateRepo) {
       this.connectionStatus.set('warning');
-      console.warn('Cannot create repo in this namespace');
+      console.warn('Cannot create repo in this org');
     } else if (!result.canVerify) {
       this.connectionStatus.set('unverified');
       console.warn('Cannot verify scope of personal access token but it is valid and the user has access to the repo (even if token does not). If export fails, manually verify your token settings.');

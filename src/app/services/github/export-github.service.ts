@@ -124,8 +124,10 @@ export class ExportGitHubService {
 
           if (orgMemberResponse.ok) {
             const memberData = await orgMemberResponse.json();
+            console.log(`Org membership data:`, memberData);
             canCreate = memberData.role === 'admin' || memberData.state === 'active';
           }
+          else { console.warn(`Failed to verify org membership: ${orgMemberResponse.status}`); }
         }
         return {
           valid: true,
