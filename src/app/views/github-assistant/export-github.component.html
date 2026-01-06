@@ -487,6 +487,441 @@
     </div>
 </div>
 
+
+
+<div class="flex lg:flex-row flex-column gap-3">
+    <!--Connect Card 3-->
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-8 w-full">
+        <!--Header & Settings-->
+
+        <h2 class="text-2xl my-1">Export settings</h2>
+        <p class="my-0">{{ 'github.connect.export.description.' + selectedExportTarget | translate }}</p>
+        <div class="flex flex-row">
+            <div>
+                <label class="text-xs font-semibold">{{ 'github.repo' | translate }}</label>
+                <p class="text-color-secondary text-sm my-0 white-space-nowrap">{{ projectData().github.owner }}/{{ projectData().github.repo }}{{(selectedExportTarget === 'baseline')?'-baseline':''}} ({{ projectData().github.branch }})</p>
+
+            </div>
+            <p-button pTooltip="{{ 'github.connect.settings' | translate }}"
+                      icon="pi pi-cog"
+                      text rounded size="large"
+                      (click)="settingsOverlay3.toggle($event)" />
+            <p-popover #settingsOverlay3 styleClass="w-full lg:w-30rem">
+                <aida-setup-repo></aida-setup-repo>
+                @if (projectData().github.hasBaselineRepo) {
+                <div class="flex flex-column align-items-stretch mt-3">
+                    <label class="text-sm font-semibold">{{ 'github.connect.export.label' | translate }}</label>
+                    <div class="flex flex-row gap-3">
+                        <p-selectButton [options]="exportTargetOptions"
+                                        [(ngModel)]="selectedExportTarget"
+                                        allowEmpty="false"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        styleClass="secondary-outline max-h-3rem">
+                        </p-selectButton>
+
+                    </div>
+                </div>
+                }
+            </p-popover>
+
+            <p-button pTooltip="{{ 'github.connect.openRepo' | translate }}"
+                      icon="pi pi-external-link"
+                      text rounded size="large"
+                      (onClick)="openRepo()" />
+        </div>
+
+        <h2 class="text-2xl my-1">{{connectionStatus() === 'connected' ? ('github.connected' | translate) : ('github.connect' | translate) }}</h2>
+        <div class="flex flex-column gap-3">
+            <!--Sign in options -->
+            @if (!exportGitHubService.token() && !authService.isAuthenticated()) {
+            <p class="my-0">{{ 'github.connect.description' | translate }}</p>
+            <!-- Option 1: OAuth Sign In -->
+            <div class="flex flex-row gap-2">
+                <div class="flex-1 border-left-3 surface-border p-3 text-center">
+
+                    <i class="pi pi-github text-6xl text-900 mb-3"></i>
+                    <p class="font-semibold my-0">{{ 'github.connect.option1.title' | translate }}</p>
+                    <p class="text-sm text-color-secondary my-2">{{ 'github.connect.option1.description' | translate }}</p>
+                    <p-button
+                              icon="pi pi-github"
+                              label="{{ 'github.connect.option1.button' | translate }}"
+                              (onClick)="authService.login()"
+                              styleClass="w-full" />
+
+                </div>
+                <p-divider layout="vertical">OR</p-divider>
+                <!-- Option 2: Personal Access Token -->
+                <div class="flex-1 p-3 text-center">
+                    <i class="pi pi-key text-6xl text-900 mb-3"></i>
+                    <p class="font-semibold my-0">{{ 'github.connect.option2.title' | translate }}</p>
+                    <p class="text-sm text-color-secondary my-2">{{ 'github.connect.option2.description' | translate }}</p>
+                    <div class="flex flex-row">
+                        <p-iftalabel class="w-full">
+                            <p-password feedback="false" toggleMask id="token" [(ngModel)]="pat" pSize="small" fluid styleClass="w-full" (onBlur)="savePAT()" (paste)="onPastePAT()" />
+                            <label for="token">{{ 'github.connect.option2.token' | translate }}</label>
+                        </p-iftalabel>
+                        <p-button icon="pi pi-question-circle" [pTooltip]="'github.connect.option2.token.tooltip' | translate" tooltipPosition="top" severity="info" outlined size="large" styleClass="min-h-full surface-ground secondary-outline" (click)="showHelp = true" />
+                    </div>
+                </div>
+                <!--Token Help Dialog-->
+                <p-dialog header="{{ 'github.connect.option2.token.helpHeader' | translate }}"
+                          [(visible)]="showHelp"
+                          [modal]="true"
+                          [style]="{width: '50vw'}"
+                          [breakpoints]="{'1199px': '75vw', '575': '90vw'}">
+                    <div class="text-sm" [innerHTML]="('github.connect.option2.token.help'| translate)"></div>
+                </p-dialog>
+            </div>
+            } @else {
+            <!--Connection Status-->
+            <div [class]="statusClasses()">
+                @if (connectionStatus() === 'checking') {
+                <i class="pi pi-spin pi-spinner text-primary text-2xl"></i>
+                }
+                @if (connectionStatus() === 'connected') {
+                <i class="pi pi-check-circle text-green-500 text-2xl"></i>
+                }
+                @if (connectionStatus() === 'warning') {
+                <i class="pi pi-exclamation-triangle text-yellow-500 text-2xl"></i>
+                }
+                @if (connectionStatus() === 'error' || connectionStatus() === 'missing') {
+                <i class="pi pi-times-circle text-red-500 text-2xl"></i>
+                }
+
+                <div class="flex-1">
+                    @if (connectionStatus() === 'checking') {
+                    <p [class]="titleClasses()" [innerHtml]="'github.connect.checking' | translate"></p>
+                    <p class="text-sm text-color-secondary my-0">{{ 'github.connect.checking.details' | translate }}</p>
+                    }
+                    @if (connectionStatus() === 'connected') {
+                    <div class="flex flex-row gap-2 justify-content-between">
+                        <div>
+                            <p [class]="titleClasses()">{{ 'github.connect.connected' | translate }}</p>
+                            @if (authService.isAuthenticated()) {
+                            <p class="text-sm text-color-secondary my-0">
+                                {{ 'github.connect.connected.oauth' | translate:{ User: username()} }}
+                            </p>
+                            } @else {
+                            <p class="text-sm text-color-secondary my-0">
+                                {{ 'github.connect.connected.pat' | translate:{ User: username()} }}
+                            </p>
+                            }
+                            @if(showDisclaimer()) {
+                            <p class="text-xs text-color-secondary my-0">{{ 'github.connect.unverified' | translate:{ User: username()} }}a</p>
+                            }
+                        </div>
+                        @if(showDisclaimer()) {
+                        <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="clearPAT()" styleClass="secondary-outline white-space-nowrap" />
+                        }
+                    </div>
+                    }
+                    @if (connectionStatus() === 'warning') {
+                    <div class="flex flex-row gap-2 justify-content-between">
+                        <div>
+                            <p [class]="titleClasses()">{{ 'github.connect.warning' | translate }}</p>
+                            <p class="text-sm text-color-secondary my-0">{{ 'github.connect.warning.details' | translate }}</p>
+                        </div>
+                        @if (!authService.isAuthenticated()) {
+                        <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="clearPAT()" styleClass="secondary-outline white-space-nowrap" />
+                        }
+                    </div>
+                    }
+                    @if (connectionStatus() === 'error' || connectionStatus() === 'missing') {
+                    <div class="flex flex-row gap-2 justify-content-between">
+                        <div>
+                            <p [class]="titleClasses()">{{ 'github.connect.error' | translate }}</p>
+                            <p class="text-sm text-color-secondary my-0">{{ 'github.connect.error.details' | translate }}</p>
+                        </div>
+                        @if (!authService.isAuthenticated()) {
+                        <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="clearPAT()" styleClass="secondary-outline white-space-nowrap" />
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+
+    </div>
+    <!--Stats Card 2-->
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
+        <h2 class="text-2xl my-1">{{ 'github.data' | translate }}</h2>
+        <!-- Last Export Date -->
+        <div class="bg-primary border-round-lg p-3 mb-3 text-center">
+            <div class="text-primary-contrast text-sm opacity-90">{{ 'github.data.lastExported' | translate }}</div>
+            <div class="text-primary-contrast text-xl font-semibold">{{ projectData().lastExported | date:'mediumDate' }}, {{ projectData().lastExported | date:'shortTime' }}</div>
+        </div>
+
+        <!-- Total pages -->
+        <div class="text-center mb-3 pb-3 border-bottom-1 surface-border">
+            <div class="flex flex-row justify-content-around">
+                <div>
+                    <div class="text-5xl font-bold text-primary mb-1">
+                        {{ selectedExportTarget === 'prototype' ? inScopePageCount() : baselinePageCount() }}
+                    </div>
+                    <div class="text-600 text-sm">
+                        {{ selectedExportTarget === 'prototype' ? ('github.data.inScope' | translate) : ('github.data.baseline' | translate) }}
+                    </div>
+                </div>
+                <div>
+                    <div class="text-5xl font-bold text-primary mb-1">
+                        {{ jekyllFileCount() }}
+                    </div>
+                    <div class="text-600 text-sm">
+                        {{ 'github.data.jekyll' | translate }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Breakdown of export actions -->
+        <div class="flex flex-column gap-2">
+            <div class="flex flex-row gap-2 justify-content-center">
+                <div class="w-6">
+                    <div [class]="'border-round p-2 text-center min-h-full ' + getBgAndText('new page', 'followTheme')">
+                        <div class="text-2xl font-semibold mt-1">{{ newCount() }}</div>
+                        <div class="text-xs">{{ 'github.data.new' | translate }}</div>
+                    </div>
+                </div>
+                <div class="w-6">
+                    <div [class]="'border-round p-2 text-center min-h-full ' + getBgAndText('update', 'followTheme')">
+                        <div class="text-2xl font-semibold mt-1">{{ updatedCount() }}</div>
+                        <div class="text-xs">{{ 'github.data.updated' | translate }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-row gap-2 justify-content-center">
+                <div class="w-6">
+                    <div [class]="'border-round p-2 text-center min-h-full ' + getBgAndText('skip', 'followTheme')">
+                        <div class="text-2xl font-semibold mt-1">{{ skippedCount() }}</div>
+                        <div class="text-xs">{{ 'github.data.skipped' | translate }}</div>
+                    </div>
+                </div>
+                <div class="w-6">
+                    <div [class]="'border-round p-2 text-center min-h-full ' + getBgAndText('github only', 'followTheme')">
+                        <div class="text-2xl font-semibold mt-1">{{ githubOnlyCount() }}</div>
+                        <div class="text-xs">{{ 'github.data.githubOnly' | translate }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="flex lg:flex-row flex-column gap-3">
+    <!--Connect Card 4-->
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-8 w-full">
+        <!--Header & Settings-->
+        <div class="flex flex-column lg:flex-row justify-content-between align-items-start">
+            <div class="flex flex-column">
+                <h2 class="text-2xl my-1">Export settings</h2>
+                <p class="my-1">{{ 'github.connect.export.description.' + selectedExportTarget | translate }}</p>
+                <label class="text-xs font-semibold mt-1">{{ 'github.repo' | translate }}</label>
+                <p class="text-color-secondary text-sm my-0 white-space-nowrap">{{ projectData().github.owner }}/{{ projectData().github.repo }}{{(selectedExportTarget === 'baseline')?'-baseline':''}} ({{ projectData().github.branch }})</p>
+
+            </div>
+            <div class="mt-3 lg:mt-0 flex flex-row lg:flex-column gap-2">
+                <p-button
+                          [label]="'github.connect.settings' | translate"
+                          icon="pi pi-cog"
+                          outlined
+                          size="small"
+                          styleClass="secondary-outline w-full"
+                          (click)="settingsOverlay3.toggle($event)" />
+                <p-button
+                          [label]="'github.connect.openRepo' | translate"
+                          icon="pi pi-external-link"
+                          outlined
+                          size="small"
+                          styleClass="secondary-outline w-full"
+                          (onClick)="openRepo()" />
+            </div>
+        </div>
+
+        <h2 class="text-2xl my-1">{{connectionStatus() === 'connected' ? ('github.connected' | translate) : ('github.connect' | translate) }}</h2>
+        <div class="flex flex-column gap-3">
+            <!--Sign in options -->
+            @if (!exportGitHubService.token() && !authService.isAuthenticated()) {
+            <p class="my-0">{{ 'github.connect.description' | translate }}</p>
+            <!-- Option 1: OAuth Sign In -->
+            <div class="flex flex-row gap-2">
+                <div class="flex-1 border-left-3 surface-border p-3 text-center">
+
+                    <i class="pi pi-github text-6xl text-900 mb-3"></i>
+                    <p class="font-semibold my-0">{{ 'github.connect.option1.title' | translate }}</p>
+                    <p class="text-sm text-color-secondary my-2">{{ 'github.connect.option1.description' | translate }}</p>
+                    <p-button
+                              icon="pi pi-github"
+                              label="{{ 'github.connect.option1.button' | translate }}"
+                              (onClick)="authService.login()"
+                              styleClass="w-full" />
+
+                </div>
+                <p-divider layout="vertical">OR</p-divider>
+                <!-- Option 2: Personal Access Token -->
+                <div class="flex-1 p-3 text-center">
+                    <i class="pi pi-key text-6xl text-900 mb-3"></i>
+                    <p class="font-semibold my-0">{{ 'github.connect.option2.title' | translate }}</p>
+                    <p class="text-sm text-color-secondary my-2">{{ 'github.connect.option2.description' | translate }}</p>
+                    <div class="flex flex-row">
+                        <p-iftalabel class="w-full">
+                            <p-password feedback="false" toggleMask id="token" [(ngModel)]="pat" pSize="small" fluid styleClass="w-full" (onBlur)="savePAT()" (paste)="onPastePAT()" />
+                            <label for="token">{{ 'github.connect.option2.token' | translate }}</label>
+                        </p-iftalabel>
+                        <p-button icon="pi pi-question-circle" [pTooltip]="'github.connect.option2.token.tooltip' | translate" tooltipPosition="top" severity="info" outlined size="large" styleClass="min-h-full surface-ground secondary-outline" (click)="showHelp = true" />
+                    </div>
+                </div>
+                <!--Token Help Dialog-->
+                <p-dialog header="{{ 'github.connect.option2.token.helpHeader' | translate }}"
+                          [(visible)]="showHelp"
+                          [modal]="true"
+                          [style]="{width: '50vw'}"
+                          [breakpoints]="{'1199px': '75vw', '575': '90vw'}">
+                    <div class="text-sm" [innerHTML]="('github.connect.option2.token.help'| translate)"></div>
+                </p-dialog>
+            </div>
+            } @else {
+            <!--Connection Status-->
+            <div [class]="statusClasses()">
+                @if (connectionStatus() === 'checking') {
+                <i class="pi pi-spin pi-spinner text-primary text-2xl"></i>
+                }
+                @if (connectionStatus() === 'connected') {
+                <i class="pi pi-check-circle text-green-500 text-2xl"></i>
+                }
+                @if (connectionStatus() === 'warning') {
+                <i class="pi pi-exclamation-triangle text-yellow-500 text-2xl"></i>
+                }
+                @if (connectionStatus() === 'error' || connectionStatus() === 'missing') {
+                <i class="pi pi-times-circle text-red-500 text-2xl"></i>
+                }
+
+                <div class="flex-1">
+                    @if (connectionStatus() === 'checking') {
+                    <p [class]="titleClasses()" [innerHtml]="'github.connect.checking' | translate"></p>
+                    <p class="text-sm text-color-secondary my-0">{{ 'github.connect.checking.details' | translate }}</p>
+                    }
+                    @if (connectionStatus() === 'connected') {
+                    <div class="flex flex-row gap-2 justify-content-between">
+                        <div>
+                            <p [class]="titleClasses()">{{ 'github.connect.connected' | translate }}</p>
+                            @if (authService.isAuthenticated()) {
+                            <p class="text-sm text-color-secondary my-0">
+                                {{ 'github.connect.connected.oauth' | translate:{ User: username()} }}
+                            </p>
+                            } @else {
+                            <p class="text-sm text-color-secondary my-0">
+                                {{ 'github.connect.connected.pat' | translate:{ User: username()} }}
+                            </p>
+                            }
+                            @if(showDisclaimer()) {
+                            <p class="text-xs text-color-secondary my-0">{{ 'github.connect.unverified' | translate:{ User: username()} }}a</p>
+                            }
+                        </div>
+                        @if(showDisclaimer()) {
+                        <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="clearPAT()" styleClass="secondary-outline white-space-nowrap" />
+                        }
+                    </div>
+                    }
+                    @if (connectionStatus() === 'warning') {
+                    <div class="flex flex-row gap-2 justify-content-between">
+                        <div>
+                            <p [class]="titleClasses()">{{ 'github.connect.warning' | translate }}</p>
+                            <p class="text-sm text-color-secondary my-0">{{ 'github.connect.warning.details' | translate }}</p>
+                        </div>
+                        @if (!authService.isAuthenticated()) {
+                        <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="clearPAT()" styleClass="secondary-outline white-space-nowrap" />
+                        }
+                    </div>
+                    }
+                    @if (connectionStatus() === 'error' || connectionStatus() === 'missing') {
+                    <div class="flex flex-row gap-2 justify-content-between">
+                        <div>
+                            <p [class]="titleClasses()">{{ 'github.connect.error' | translate }}</p>
+                            <p class="text-sm text-color-secondary my-0">{{ 'github.connect.error.details' | translate }}</p>
+                        </div>
+                        @if (!authService.isAuthenticated()) {
+                        <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="clearPAT()" styleClass="secondary-outline white-space-nowrap" />
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+
+    </div>
+    <!--Stats Card 2-->
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
+        <h2 class="text-2xl my-1">{{ 'github.data' | translate }}</h2>
+        <!-- Last Export Date -->
+        <div class="bg-primary border-round-lg p-3 mb-3 text-center">
+            <div class="text-primary-contrast text-sm opacity-90">{{ 'github.data.lastExported' | translate }}</div>
+            <div class="text-primary-contrast text-xl font-semibold">{{ projectData().lastExported | date:'mediumDate' }}, {{ projectData().lastExported | date:'shortTime' }}</div>
+        </div>
+
+        <!-- Total pages -->
+        <div class="text-center mb-3 pb-3 border-bottom-1 surface-border">
+            <div class="flex flex-row justify-content-around">
+                <div>
+                    <div class="text-5xl font-bold text-primary mb-1">
+                        {{ selectedExportTarget === 'prototype' ? inScopePageCount() : baselinePageCount() }}
+                    </div>
+                    <div class="text-600 text-sm">
+                        {{ selectedExportTarget === 'prototype' ? ('github.data.inScope' | translate) : ('github.data.baseline' | translate) }}
+                    </div>
+                </div>
+                <div>
+                    <div class="text-5xl font-bold text-primary mb-1">
+                        {{ jekyllFileCount() }}
+                    </div>
+                    <div class="text-600 text-sm">
+                        {{ 'github.data.jekyll' | translate }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Breakdown of export actions -->
+        <div class="flex flex-column gap-2">
+            <div class="flex flex-row gap-2 justify-content-center">
+                <div class="w-6">
+                    <div [class]="'border-round p-2 text-center min-h-full ' + getBgAndText('new page', 'followTheme')">
+                        <div class="text-2xl font-semibold mt-1">{{ newCount() }}</div>
+                        <div class="text-xs">{{ 'github.data.new' | translate }}</div>
+                    </div>
+                </div>
+                <div class="w-6">
+                    <div [class]="'border-round p-2 text-center min-h-full ' + getBgAndText('update', 'followTheme')">
+                        <div class="text-2xl font-semibold mt-1">{{ updatedCount() }}</div>
+                        <div class="text-xs">{{ 'github.data.updated' | translate }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-row gap-2 justify-content-center">
+                <div class="w-6">
+                    <div [class]="'border-round p-2 text-center min-h-full ' + getBgAndText('skip', 'followTheme')">
+                        <div class="text-2xl font-semibold mt-1">{{ skippedCount() }}</div>
+                        <div class="text-xs">{{ 'github.data.skipped' | translate }}</div>
+                    </div>
+                </div>
+                <div class="w-6">
+                    <div [class]="'border-round p-2 text-center min-h-full ' + getBgAndText('github only', 'followTheme')">
+                        <div class="text-2xl font-semibold mt-1">{{ githubOnlyCount() }}</div>
+                        <div class="text-xs">{{ 'github.data.githubOnly' | translate }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 <div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0">
     <h2 class="text-2xl my-1">Files to export</h2>
     <p-table [value]="filesTable()" size="small">
