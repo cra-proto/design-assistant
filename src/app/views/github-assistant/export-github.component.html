@@ -1,7 +1,7 @@
 <h1 id="wb-cont">{{ 'github.title' | translate }}</h1>
 
 <!-- Authentication Banner -->
-@if (!exportGitHubService.token && !authService.isAuthenticated()){
+@if (!exportGitHubService.token() && !authService.isAuthenticated()){
 <p-message severity="info" styleClass="mb-2 sticky top-0 z-2">
     <div class="flex align-items-center gap-2">
         <i class="pi pi-info-circle font-bold"></i>
@@ -15,7 +15,7 @@
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-8 w-full">
         <!--Header & Settings-->
         <div class="flex flex-row gap-3 justify-content-between">
-            <h2 class="text-2xl my-1">{{connectionStatus() === 'connected' ? 'github.connected' : 'github.connect' | translate }}</h2>
+            <h2 class="text-2xl my-1">{{connectionStatus() === 'connected' ? ('github.connected' | translate) : ('github.connect' | translate) }}</h2>
             <div class="-mt-4 -mr-4">
                 <p-button pTooltip="{{ 'github.connect.settings' | translate }}"
                           icon="pi pi-cog"
@@ -29,7 +29,7 @@
         </div>
         <div class="flex flex-column gap-3">
             <!--Sign in options -->
-            @if (!exportGitHubService.token && !authService.isAuthenticated()) {
+            @if (!exportGitHubService.token() && !authService.isAuthenticated()) {
             {{ 'github.connect.description' | translate }}
             <!-- Option 1: OAuth Sign In -->
             <div class="border-left-3 surface-border p-3">
@@ -72,9 +72,6 @@
                 @if (connectionStatus() === 'connected') {
                 <i class="pi pi-check-circle text-green-500 text-2xl"></i>
                 }
-                @if (connectionStatus() === 'unverified') {
-                <i class="pi pi-question-circle text-blue-500 text-2xl"></i>
-                }
                 @if (connectionStatus() === 'warning') {
                 <i class="pi pi-exclamation-triangle text-yellow-500 text-2xl"></i>
                 }
@@ -87,24 +84,24 @@
                     <p [class]="titleClasses()" [innerHtml]="'github.connect.checking' | translate"></p>
                     <p class="text-sm text-color-secondary my-0">{{ 'github.connect.checking.details' | translate }}</p>
                     }
-                    @if (connectionStatus() === 'connected' || connectionStatus() === 'unverified') {
+                    @if (connectionStatus() === 'connected') {
                     <div class="flex flex-row gap-2 justify-content-between">
                         <div>
                             <p [class]="titleClasses()">{{ 'github.connect.connected' | translate }}</p>
                             @if (authService.isAuthenticated()) {
                             <p class="text-sm text-color-secondary my-0">
-                                {{ 'github.connect.connected.oauth' | translate }} {{ authService.user()?.name || authService.user()?.login }}.
+                                {{ 'github.connect.connected.oauth' | translate:{ User: username()} }}
                             </p>
                             } @else {
                             <p class="text-sm text-color-secondary my-0">
-                                {{ 'github.connect.connected.pat' | translate }}
+                                {{ 'github.connect.connected.pat' | translate:{ User: username()} }}
                             </p>
-                            @if(connectionStatus() === 'unverified') {
-                            <p class="text-xs text-color-secondary my-0">{{ 'github.connect.unverified' | translate:{ User: username || 'User'} }}</p>
                             }
+                            @if(showDisclaimer()) {
+                            <p class="text-xs text-color-secondary my-0">{{ 'github.connect.unverified' | translate:{ User: username()} }}a</p>
                             }
                         </div>
-                        @if(connectionStatus() === 'unverified') {
+                        @if(showDisclaimer()) {
                         <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="clearPAT()" styleClass="secondary-outline white-space-nowrap" />
                         }
                     </div>
@@ -256,7 +253,7 @@
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-8 w-full">
         <!--Header & Settings-->
         <div class="flex flex-row gap-3 justify-content-between">
-            <h2 class="text-2xl my-1">{{connectionStatus() === 'connected' ? 'github.connected' : 'github.connect' | translate }}</h2>
+            <h2 class="text-2xl my-1">{{connectionStatus() === 'connected' ? ('github.connected' | translate) : ('github.connect' | translate) }}</h2>
             <div class="-mt-4 -mr-4">
                 <p-button pTooltip="{{ 'github.connect.settings' | translate }}"
                           icon="pi pi-cog"
@@ -270,7 +267,7 @@
         </div>
         <div class="flex flex-column gap-3">
             <!--Sign in options -->
-            @if (!exportGitHubService.token && !authService.isAuthenticated()) {
+            @if (!exportGitHubService.token() && !authService.isAuthenticated()) {
             {{ 'github.connect.description' | translate }}
             <!-- Option 1: OAuth Sign In -->
             <div class="flex flex-row gap-2">
@@ -318,9 +315,6 @@
                 @if (connectionStatus() === 'connected') {
                 <i class="pi pi-check-circle text-green-500 text-2xl"></i>
                 }
-                @if (connectionStatus() === 'unverified') {
-                <i class="pi pi-question-circle text-blue-500 text-2xl"></i>
-                }
                 @if (connectionStatus() === 'warning') {
                 <i class="pi pi-exclamation-triangle text-yellow-500 text-2xl"></i>
                 }
@@ -333,24 +327,24 @@
                     <p [class]="titleClasses()" [innerHtml]="'github.connect.checking' | translate"></p>
                     <p class="text-sm text-color-secondary my-0">{{ 'github.connect.checking.details' | translate }}</p>
                     }
-                    @if (connectionStatus() === 'connected' || connectionStatus() === 'unverified') {
+                    @if (connectionStatus() === 'connected') {
                     <div class="flex flex-row gap-2 justify-content-between">
                         <div>
                             <p [class]="titleClasses()">{{ 'github.connect.connected' | translate }}</p>
                             @if (authService.isAuthenticated()) {
                             <p class="text-sm text-color-secondary my-0">
-                                {{ 'github.connect.connected.oauth' | translate }} {{ authService.user()?.name || authService.user()?.login }}.
+                                {{ 'github.connect.connected.oauth' | translate:{ User: username()} }}
                             </p>
                             } @else {
                             <p class="text-sm text-color-secondary my-0">
-                                {{ 'github.connect.connected.pat' | translate }}
+                                {{ 'github.connect.connected.pat' | translate:{ User: username()} }}
                             </p>
-                            @if(connectionStatus() === 'unverified') {
-                            <p class="text-xs text-color-secondary my-0">{{ 'github.connect.unverified' | translate:{ User: username || 'User'} }}</p>
                             }
+                            @if(showDisclaimer()) {
+                            <p class="text-xs text-color-secondary my-0">{{ 'github.connect.unverified' | translate:{ User: username()} }}a</p>
                             }
                         </div>
-                        @if(connectionStatus() === 'unverified') {
+                        @if(showDisclaimer()) {
                         <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="clearPAT()" styleClass="secondary-outline white-space-nowrap" />
                         }
                     </div>
@@ -521,8 +515,8 @@
         </ng-template>
     </p-table>
     <p-button styleClass="mt-3" icon="pi pi-github" label="Export to GitHub" severity="primary"
-              (onClick)="exportProjectToGitHub(gitHubData().owner,gitHubData().repo,gitHubData().branch,exportGitHubService.token,true)"
-              [disabled]="projectData().inScopePages === 0 || (!exportGitHubService.token && !authService.isAuthenticated())" />
+              (onClick)="exportProjectToGitHub(gitHubData().owner,gitHubData().repo,gitHubData().branch,exportGitHubService.token(),true)"
+              [disabled]="projectData().inScopePages === 0 || (!exportGitHubService.token() && !authService.isAuthenticated())" />
     @if (filesTable().length) {
     <span class="text-color-secondary">
         {{ newCount() }} new and {{ updatedCount() }} updated pages

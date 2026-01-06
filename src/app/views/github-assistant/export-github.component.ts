@@ -84,11 +84,13 @@ export class ExportGithubComponent implements OnInit {
   private themeService = inject(ThemeService);
 
   url = "test";
-  username = "";
+  username = computed(() => this.exportGitHubService.user()?.name || this.exportGitHubService.user()?.login || 'User');
 
   //Signals
   projectData = this.projectState.getProject;
   connectionStatus = signal<'checking' | 'connected' | 'unverified' | 'warning' | 'error' | 'missing'>('checking');
+  showDisclaimer = signal<boolean>(false);
+
   filesTable = signal<FileStatus[]>([]);
   exportMessage = signal<ExportMessage | null>(null);
 
@@ -98,7 +100,7 @@ export class ExportGithubComponent implements OnInit {
   constructor() {
     // Watch for changes to token or repo settings and run validateConnection
     effect(async () => {
-      const token = this.exportGitHubService.token;
+      const token = this.exportGitHubService.token();
       const owner = this.projectData().github.owner;
       const repo = this.projectData().github.repo;
       const isAuthenticated = this.authService.isAuthenticated();
@@ -117,43 +119,46 @@ export class ExportGithubComponent implements OnInit {
   private async validateConnection(): Promise<void> {
     this.precheckInProgress.set(true);
     this.connectionStatus.set('checking');
+    this.showDisclaimer.set(false);
 
-    const token = this.exportGitHubService.token;
+    const token = this.exportGitHubService.token();
     const owner = this.projectData().github.owner;
     const repo = this.projectData().github.repo;
-    console.log("Running precheck with token:", token);
+
     const result = await this.exportGitHubService.validateToken(token, owner, repo);
-    this.username = result.username || '';
+
+    console.log('Validation result:', result);
+    console.log('showDisclaimer value:', result.showDisclaimer);
+
     if (!result.valid) {
       this.connectionStatus.set('error');
       console.error('Token validation failed:', result.error);
     } else if (result.repoExists && !result.hasRepoAccess) {
       this.connectionStatus.set('warning');
-      console.warn('No write access to existing repo');
+      console.warn(`No write access to ${owner}/${repo}`);
     } else if (!result.repoExists && !result.canCreateRepo) {
       this.connectionStatus.set('warning');
-      console.warn('Cannot create repo in this org');
-    } else if (!result.canVerify) {
-      this.connectionStatus.set('unverified');
-      console.warn('Cannot verify scope of personal access token but it is valid and the user has access to the repo (even if token does not). If export fails, manually verify your token settings.');
+      console.warn(`Cannot create repo in ${owner}`);
     } else {
       this.connectionStatus.set('connected');
-      console.warn('Repo valid: ', result.valid, 'Repo exists: ', result.repoExists, 'Has access: ', result.hasRepoAccess, 'Can create repo: ', result.canCreateRepo, 'Error: ', result.error);
+      this.showDisclaimer.set(result.showDisclaimer || false);
+      if (result.showDisclaimer) {
+        console.warn('Connected to GitHub but PAT scope cannot be verified. Please ensure PAT has appropriate scopes.');
+      }
     }
-
     this.precheckInProgress.set(false);
   }
 
   //Manage PAT
   savePAT(): void {
-    this.exportGitHubService.token = this.pat();
+    this.exportGitHubService.pat = this.pat();
   }
   onPastePAT() {
     setTimeout(() => this.savePAT(), 0);
   }
   clearPAT(): void {
     this.pat.set('');
-    this.exportGitHubService.token = '';
+    this.exportGitHubService.pat = '';
     sessionStorage.removeItem('github_pat');
   }
 
@@ -229,7 +234,7 @@ export class ExportGithubComponent implements OnInit {
 
   async ngOnInit() {
     //this.projectState.loadFromLocalStorage();
-    await this.compareFiles(this.gitHubData().owner, this.gitHubData().repo, this.gitHubData().branch, this.exportGitHubService.token);
+    await this.compareFiles(this.gitHubData().owner, this.gitHubData().repo, this.gitHubData().branch, this.exportGitHubService.token());
     //temp
     this.projectData().lastExported = new Date();
     await this.validateConnection();
