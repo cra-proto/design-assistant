@@ -1,0 +1,112 @@
+<h1 id="wb-cont">{{ 'inventory.title' | translate }}</h1>
+<p>{{ 'inventory.pages.description' | translate }}</p>
+
+<div class="surface-card border-round-lg shadow-2 p-4 mb-3">
+
+    <!--Header & Settings-->
+    <div class="flex flex-column lg:flex-row justify-content-between align-items-start">
+        <div class="flex flex-column">
+            <h2 class="text-2xl my-1">{{ 'inventory.pages' | translate }}</h2>
+            <!--Put a description/instructions here if needed-->
+        </div>
+        <div class="mt-3 lg:mt-0 flex flex-row lg:flex-column gap-2">
+            <p-button
+                      label="View IA diagram"
+                      icon="pi pi-sitemap"
+                      outlined
+                      size="small"
+                      styleClass="secondary-outline w-full min-w-max"
+                      (click)="iaDiagram.openDiagram()">
+            </p-button>
+            <aida-export-project></aida-export-project>
+        </div>
+    </div>
+
+    <p-table
+             [value]="tableData()"
+             [scrollable]="true"
+             scrollHeight="flex"
+             styleClass="p-datatable-sm">
+
+        <ng-template pTemplate="header">
+            <tr>
+                <!-- Frozen columns -->
+                <th *ngFor="let col of frozenColumns" pFrozenColumn>
+                    {{ col.translationKey | translate }}
+                </th>
+                <!-- Scrollable columns -->
+                <th *ngFor="let col of scrollableColumns">
+                    {{ col.translationKey | translate }}
+                </th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-node>
+            <tr>
+                <!-- Frozen columns -->
+                <td *ngFor="let col of frozenColumns" pFrozenColumn>
+                    <!-- Text fields -->
+                    <ng-container *ngIf="col.type === 'text'">
+                        {{ getCellValue(node, col) }}
+                    </ng-container>
+
+                    <!-- URL fields -->
+                    <ng-container *ngIf="col.type === 'url'">
+                        <a *ngIf="getCellValue(node, col)"
+                           [href]="getCellValue(node, col)"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            {{ getCellValue(node, col) }}
+                        </a>
+                    </ng-container>
+
+                    <!-- Boolean fields -->
+                    <ng-container *ngIf="col.type === 'boolean'">
+                        <i [class]="getBooleanIcon(getCellValue(node, col), col.field)"></i>
+                    </ng-container>
+                </td>
+
+                <!-- Scrollable columns -->
+                <td *ngFor="let col of scrollableColumns">
+                    <!-- Text fields -->
+                    <ng-container *ngIf="col.type === 'text'">
+                        {{ getCellValue(node, col) }}
+                    </ng-container>
+
+                    <!-- URL fields -->
+                    <ng-container *ngIf="col.type === 'url'">
+                        <a *ngIf="getCellValue(node, col)"
+                           [href]="getCellValue(node, col)"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            {{ getCellValue(node, col) }}
+                        </a>
+                    </ng-container>
+
+                    <!-- Boolean fields -->
+                    <ng-container *ngIf="col.type === 'boolean'">
+                        <i [class]="getBooleanIcon(getCellValue(node, col), col.field)"></i>
+                    </ng-container>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td [attr.colspan]="frozenColumns.length + scrollableColumns.length" class="text-center p-4">
+                    {{ 'inventory.emptyMessage' | translate }}
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+</div>
+
+<div class="flex md:flex-row flex-column gap-3">
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-6 w-full">
+        <aida-add-pages></aida-add-pages>
+    </div>
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-6 w-full">
+        <aida-find-pages></aida-find-pages>
+    </div>
+</div>

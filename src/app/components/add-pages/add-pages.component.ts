@@ -117,6 +117,7 @@ export class AddPagesComponent {
 
     // Validate parsed URLs
     validateUrls(): void {
+        this.parseUrls();
         this.addPagesState.resetBreadcrumbs();
         this.addPagesState.setValidationState({
             isValidating: true,

@@ -1,10 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 
 //PrimeNG modules
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
+
+//Services
+import { ProjectStateService } from '../../services/project-state.service';
 
 @Component({
     selector: 'aida-export-project',
@@ -16,6 +19,8 @@ import { MenuItem } from 'primeng/api';
     styles: ``
 })
 export class ExportProjectComponent {
+
+    projectState = inject(ProjectStateService);
 
     exportItems: MenuItem[] = [
         {
@@ -30,9 +35,9 @@ export class ExportProjectComponent {
             label: 'CSV (content inventory)',
             icon: 'pi pi-list-check',
             command: () => {
-
+                this.projectState.exportTreeAsCsv();
             },
-            disabled: true,
+            disabled: false,
         },
         {
             label: 'CSV (tree testing)',
@@ -49,9 +54,9 @@ export class ExportProjectComponent {
             label: 'JSON file',
             icon: 'pi pi-code',
             command: () => {
-
+                this.projectState.exportProjectAsJson();
             },
-            disabled: true,
+            disabled: false,
         },
     ];
 }

@@ -99,6 +99,24 @@ export interface ProjectTreeNodeData {
     problem?: PageProblem
 }
 
+export interface FlattenedTreeNode {
+    h1: string;
+    url: string;
+    oppUrl: string;
+    inScope: boolean;
+    isOrphan: boolean;
+    isNew: boolean;
+    isMoved: boolean;
+    isROT: boolean;
+}
+
+export interface TableColumn {
+    field: keyof FlattenedTreeNode;
+    translationKey: string;
+    type: 'text' | 'url' | 'boolean';
+    frozen?: boolean;
+}
+
 //Project interface
 export interface Project {
     //Project metadata

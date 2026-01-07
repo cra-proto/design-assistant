@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { Project, ProjectPhase, CurrentPhase, PageMeta, PageStatus, GitHubRepo, GitHubUser, ProjectTreeNodeData } from '../common/data.model';
+import { Project, ProjectPhase, CurrentPhase, PageMeta, PageStatus, GitHubRepo, GitHubUser, ProjectTreeNodeData, FlattenedTreeNode, TableColumn } from '../common/data.model';
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../environments/environment';
 import { FileUploadHandlerEvent } from 'primeng/fileupload';
@@ -475,50 +475,28 @@ export class ProjectStateService {
 
     // Export tree as CSV
     exportTreeAsCsv() {
-        const tree = this.project().projectData;
+        const flatData = this.flattenTree();
+        const columns = this.getTreeTableColumns();
         const rows: string[] = [];
 
-        // Headers
-        rows.push([
-            'Page Title (h1)',
-            'URL',
-            'Opposite Language URL',
-            'In Scope',
-            'Is Orphan',
-            'Is Crawled',
-            'Is New',
-            'Is Moved',
-            'Is ROT',
-            'Is Container',
-            'Baseline Parent URL'
-        ].join(','));
+        // Headers from column definitions
+        rows.push(columns.map(col => col.field).join(','));
 
-        const walk = (nodes: TreeNode<ProjectTreeNodeData>[], parentUrl: string | null = null) => {
-            for (const node of nodes) {
-                const data = node.data;
-                if (!data) continue;
+        // Data rows
+        for (const node of flatData) {
+            rows.push(columns.map(col => {
+                const value = node[col.field];
 
-                rows.push([
-                    `"${data.h1 || ''}"`,
-                    data.url || '',
-                    data.metadata?.oppUrl || '',
-                    data.status.inScope ? 'Yes' : 'No',
-                    data.status.isOrphan ? 'Yes' : 'No',
-                    data.status.isCrawled ? 'Yes' : 'No',
-                    data.status.isNew ? 'Yes' : 'No',
-                    data.status.isMoved ? 'Yes' : 'No',
-                    data.status.isROT ? 'Yes' : 'No',
-                    data.status.isContainer ? 'Yes' : 'No',
-                    data.metadata?.baselineParent || ''
-                ].join(','));
-
-                if (node.children?.length) {
-                    walk(node.children, data.url);
+                // Handle different data types
+                if (typeof value === 'boolean') {
+                    return value ? 'Yes' : 'No';
+                } else if (typeof value === 'string') {
+                    // Quote strings that might contain commas
+                    return `"${value}"`;
                 }
-            }
-        };
-
-        walk(tree);
+                return String(value);
+            }).join(','));
+        }
 
         const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
@@ -531,6 +509,49 @@ export class ProjectStateService {
         a.click();
 
         URL.revokeObjectURL(url);
+    }
+
+    flattenTree(): FlattenedTreeNode[] {
+        const tree = this.project().projectData;
+        const flatNodes: FlattenedTreeNode[] = [];
+
+        const walk = (nodes: TreeNode<ProjectTreeNodeData>[]) => {
+            for (const node of nodes) {
+                const data = node.data;
+                if (!data) continue;
+
+                flatNodes.push({
+                    h1: data.h1 || '',
+                    url: data.url || '',
+                    oppUrl: data.metadata?.oppUrl || '',
+                    inScope: data.status.inScope,
+                    isOrphan: data.status.isOrphan,
+                    isNew: data.status.isNew,
+                    isMoved: data.status.isMoved,
+                    isROT: data.status.isROT,
+                });
+
+                if (node.children?.length) {
+                    walk(node.children);
+                }
+            }
+        };
+
+        walk(tree);
+        return flatNodes;
+    }
+
+    getTreeTableColumns(): TableColumn[] {
+        return [
+            { field: 'h1', translationKey: 'inventory.header.h1', type: 'text', frozen: true },
+            { field: 'url', translationKey: 'inventory.header.url', type: 'url' },
+            { field: 'oppUrl', translationKey: 'inventory.header.oppUrl', type: 'url' },
+            { field: 'inScope', translationKey: 'inventory.header.inScope', type: 'boolean' },
+            { field: 'isOrphan', translationKey: 'inventory.header.isOrphan', type: 'boolean' },
+            { field: 'isNew', translationKey: 'inventory.header.isNew', type: 'boolean' },
+            { field: 'isMoved', translationKey: 'inventory.header.isMoved', type: 'boolean' },
+            { field: 'isROT', translationKey: 'inventory.header.isROT', type: 'boolean' }
+        ];
     }
 
     // Generate prototype URL from production URL

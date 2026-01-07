@@ -44,6 +44,7 @@ testem.log
 /src/app/views/my-test
 /public/i18n/en-new.json
 /public/i18n/fr-new.json
+/public/Task-Inventory-Dec2025.csv
 
 # Python reference files
 /metadata-python

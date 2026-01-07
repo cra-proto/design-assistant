@@ -19,7 +19,7 @@ import { AddPagesComponent } from './components/add-pages/add-pages.component';
 //import { UploadStateService } from './views/page-assistant/services/upload-state.service';
 //import { ImageAssistantComponent } from './views/standalone/image-assistant/image-assistant.component';
 //import { TranslationAssistantComponent } from './views/standalone/translation-assistant/translation-assistant.component';
-//import { InventoryAssistantComponent } from './views/inventory-assistant/inventory-assistant.component';
+import { InventoryComponent } from './views/inventory-assistant/inventory.component';
 //import { MetadataAssistantComponent } from './views/metadata-assistant/metadata-assistant.component';
 //import { LlmEvaluationComponent } from './views/standalone/llm-evaluation/llm-evaluation.component';
 //import { IaAssistantComponent } from './views/ia-assistant/ia-assistant.component';
@@ -122,12 +122,12 @@ export const routes: Routes = [
          path: 'translation-assistant',
          component: TranslationAssistantComponent,
          title: 'title.translation',
-     },
-     {
-         path: 'inventory-assistant',
-         component: InventoryAssistantComponent,
-         title: 'title.inventory',
-     },
+     },*/
+    {
+        path: 'inventory',
+        component: InventoryComponent,
+        title: 'title.inventory',
+    },/*
      {
          path: 'metadata-assistant',
          component: MetadataAssistantComponent,
