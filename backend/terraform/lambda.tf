@@ -273,6 +273,7 @@ resource "aws_lambda_function" "airtable" {
   source_code_hash = filebase64sha256("${path.module}/../functions/airtable/lambda.zip")
   runtime         = "nodejs22.x"
   timeout         = 30
+  memory_size     = 512  # Increased from default 128MB to handle large dataset
 
   environment {
     variables = {
