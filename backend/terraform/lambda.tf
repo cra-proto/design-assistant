@@ -331,6 +331,16 @@ resource "aws_lambda_function_url" "airtable" {
   }
 }
 
+# Resource-based policy to allow public invocation via Function URL
+# Required for Function URLs created after October 2025
+resource "aws_lambda_permission" "airtable_function_url" {
+  statement_id           = "AllowPublicFunctionURLInvoke"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.airtable.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+}
+
 # Output the Function URL
 output "airtable_function_url" {
   description = "Direct Lambda Function URL for Airtable (bypasses API Gateway)"
