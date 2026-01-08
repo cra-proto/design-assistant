@@ -6,10 +6,10 @@ import { MessageModule } from 'primeng/message';
 import { AirtableService } from '../../services/airtable.service';
 
 @Component({
-    selector: 'aida-airtable',
-    standalone: true,
-    imports: [CommonModule, ButtonModule, ProgressSpinnerModule, MessageModule],
-    template: `
+  selector: 'aida-airtable',
+  standalone: true,
+  imports: [CommonModule, ButtonModule, ProgressSpinnerModule, MessageModule],
+  template: `
     <div class="p-4">
       <h1>Airtable Connection Test</h1>
       
@@ -48,7 +48,7 @@ import { AirtableService } from '../../services/airtable.service';
       }
     </div>
   `,
-    styles: [`
+  styles: [`
     pre {
       font-size: 0.875rem;
       line-height: 1.5;
@@ -56,14 +56,17 @@ import { AirtableService } from '../../services/airtable.service';
   `]
 })
 export class AirtableComponent implements OnInit {
-    airtableService = inject(AirtableService);
+  airtableService = inject(AirtableService);
 
-    ngOnInit(): void {
-        // Optionally auto-load on init
-        // this.loadRecords();
-    }
+  async ngOnInit(): Promise<void> {
+    await this.airtableService.fetchTasks();
+    const tasks = this.airtableService.data();
 
-    loadRecords(): void {
-        this.airtableService.fetchRecords();
-    }
+    // Search tasks
+    // const results = this.airtableService.searchTasks('tax', 'en');
+  }
+
+  async loadRecords(): Promise<void> {
+    await this.airtableService.refreshData();
+  }
 }

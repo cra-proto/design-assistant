@@ -264,15 +264,6 @@ resource "aws_apigatewayv2_route" "projects_options_id" {
   target    = "integrations/${aws_apigatewayv2_integration.projects.id}"
 }
 
-# Lambda permission for API Gateway
-resource "aws_lambda_permission" "projects" {
-  statement_id  = "AllowAPIGatewayInvokeProjects"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.projects.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.api.execution_arn}/*/*"
-}
-
 # Airtable Lambda Function
 resource "aws_lambda_function" "airtable" {
   filename         = "${path.module}/../functions/airtable/lambda.zip"
@@ -292,48 +283,21 @@ resource "aws_lambda_function" "airtable" {
   }
 }
 
-# Integration for Airtable endpoint
-resource "aws_apigatewayv2_integration" "airtable" {
-  api_id             = aws_apigatewayv2_api.api.id
-  integration_type   = "AWS_PROXY"
-  integration_uri    = aws_lambda_function.airtable.invoke_arn
-  payload_format_version = "2.0"
-}
-
-# Route for GET /airtable/records
-resource "aws_apigatewayv2_route" "airtable_records" {
-  api_id    = aws_apigatewayv2_api.api.id
-  route_key = "GET /airtable/records"
-  target    = "integrations/${aws_apigatewayv2_integration.airtable.id}"
-}
-
-# Lambda permission for API Gateway
-resource "aws_lambda_permission" "airtable" {
-  statement_id  = "AllowAPIGatewayInvokeAirtable"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.airtable.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.api.execution_arn}/*/*"
-}
-
-# TESTING
 # Lambda Function URL for Airtable (bypasses API Gateway)
 resource "aws_lambda_function_url" "airtable" {
   function_name      = aws_lambda_function.airtable.function_name
   authorization_type = "NONE"  # Public access
   
   cors {
-    allow_origins     = ["*"]  # Fully permissive for testing
-    allow_methods     = ["*"]
-    allow_headers     = ["*"]
-    expose_headers    = ["*"]
+    allow_origins     = var.allowed_origins  # Restricted to your CloudFront domains
+    allow_methods     = ["GET"]
+    allow_headers     = ["content-type"]
+    expose_headers    = ["content-length", "date"]
     max_age          = 86400
   }
 }
 
 # Resource-based policy to allow public invocation via Function URL
-# Required for Function URLs created after October 2025
-# Must include BOTH lambda:InvokeFunction AND lambda:InvokeFunctionUrl
 resource "aws_lambda_permission" "airtable_function_url" {
   statement_id           = "AllowPublicFunctionURLInvoke"
   action                 = "lambda:InvokeFunctionUrl"
@@ -342,7 +306,6 @@ resource "aws_lambda_permission" "airtable_function_url" {
   function_url_auth_type = "NONE"
 }
 
-# Additional permission for InvokeFunction (required alongside InvokeFunctionUrl)
 resource "aws_lambda_permission" "airtable_function_url_invoke" {
   statement_id  = "AllowPublicInvokeFunction"
   action        = "lambda:InvokeFunction"
@@ -352,6 +315,6 @@ resource "aws_lambda_permission" "airtable_function_url_invoke" {
 
 # Output the Function URL
 output "airtable_function_url" {
-  description = "Direct Lambda Function URL for Airtable (bypasses API Gateway)"
+  description = "Direct Lambda Function URL for Airtable"
   value       = aws_lambda_function_url.airtable.function_url
 }
