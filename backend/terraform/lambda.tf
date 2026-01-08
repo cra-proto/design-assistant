@@ -272,3 +272,47 @@ resource "aws_lambda_permission" "projects" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.api.execution_arn}/*/*"
 }
+
+# Airtable Lambda Function
+resource "aws_lambda_function" "airtable" {
+  filename         = "${path.module}/../functions/airtable/lambda.zip"
+  function_name    = "${var.app_name}-${var.environment}-airtable"
+  role            = aws_iam_role.lambda_role.arn
+  handler         = "index.getRecords"
+  source_code_hash = filebase64sha256("${path.module}/../functions/airtable/lambda.zip")
+  runtime         = "nodejs22.x"
+  timeout         = 30
+
+  environment {
+    variables = {
+      AWS_REGION     = var.aws_region
+      SECRET_NAME    = "prod/design-assistant/api-keys"
+      ALLOWED_ORIGIN = var.allowed_origins[0]
+      ENVIRONMENT    = var.environment
+    }
+  }
+}
+
+# Integration for Airtable endpoint
+resource "aws_apigatewayv2_integration" "airtable" {
+  api_id             = aws_apigatewayv2_api.api.id
+  integration_type   = "AWS_PROXY"
+  integration_uri    = aws_lambda_function.airtable.invoke_arn
+  payload_format_version = "2.0"
+}
+
+# Route for GET /airtable/records
+resource "aws_apigatewayv2_route" "airtable_records" {
+  api_id    = aws_apigatewayv2_api.api.id
+  route_key = "GET /airtable/records"
+  target    = "integrations/${aws_apigatewayv2_integration.airtable.id}"
+}
+
+# Lambda permission for API Gateway
+resource "aws_lambda_permission" "airtable" {
+  statement_id  = "AllowAPIGatewayInvokeAirtable"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.airtable.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.api.execution_arn}/*/*"
+}
