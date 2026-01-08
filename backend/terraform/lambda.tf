@@ -315,3 +315,25 @@ resource "aws_lambda_permission" "airtable" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.api.execution_arn}/*/*"
 }
+
+# TESTING
+# Lambda Function URL for Airtable (bypasses API Gateway)
+resource "aws_lambda_function_url" "airtable" {
+  function_name      = aws_lambda_function.airtable.function_name
+  authorization_type = "NONE"  # Public access
+  
+  cors {
+    allow_origins     = var.allowed_origins
+    allow_methods     = ["GET", "OPTIONS"]
+    allow_headers     = ["content-type", "x-amz-date", "authorization", "x-api-key", "x-amz-security-token"]
+    expose_headers    = ["x-amzn-requestid"]
+    max_age          = 300
+    allow_credentials = true
+  }
+}
+
+# Output the Function URL
+output "airtable_function_url" {
+  description = "Direct Lambda Function URL for Airtable (bypasses API Gateway)"
+  value       = aws_lambda_function_url.airtable.function_url
+}
