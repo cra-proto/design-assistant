@@ -1,6 +1,7 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import axios from 'axios';
+import { gzipSync } from 'zlib';
 
 interface AirtableSecret {
     token: string;
@@ -208,15 +209,27 @@ export const getRecords = async (event: APIGatewayProxyEvent): Promise<APIGatewa
 
         console.log('=== getRecords COMPLETED SUCCESSFULLY ===');
 
+        // Convert to JSON string
+        const jsonBody = JSON.stringify(transformedTasks);
+        const uncompressedSize = Buffer.byteLength(jsonBody, 'utf8');
+
+        // Compress with gzip
+        const compressedBody = gzipSync(jsonBody);
+        const compressedSize = compressedBody.length;
+
+        console.log(`Response size: ${uncompressedSize} bytes uncompressed, ${compressedSize} bytes compressed (${Math.round(compressedSize / uncompressedSize * 100)}% of original)`);
+
         return {
             statusCode: 200,
             headers: {
                 'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
-                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Headers': 'Content-Type, Accept-Encoding',
                 'Access-Control-Allow-Methods': 'GET, OPTIONS',
                 'Content-Type': 'application/json',
+                'Content-Encoding': 'gzip',
             },
-            body: JSON.stringify(transformedTasks),
+            body: compressedBody.toString('base64'),
+            isBase64Encoded: true,
         };
     } catch (error) {
         console.error('=== ERROR in getRecords ===');
