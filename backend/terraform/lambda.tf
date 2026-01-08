@@ -285,7 +285,6 @@ resource "aws_lambda_function" "airtable" {
 
   environment {
     variables = {
-      AWS_REGION     = var.aws_region
       SECRET_NAME    = "prod/design-assistant/api-keys"
       ALLOWED_ORIGIN = var.allowed_origins[0]
       ENVIRONMENT    = var.environment
