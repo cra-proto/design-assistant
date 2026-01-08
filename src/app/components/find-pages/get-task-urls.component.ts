@@ -70,7 +70,7 @@ export class GetTaskUrlsComponent implements OnInit {
       if (lang) {
         this.currentLanguage.set(lang.startsWith('fr') ? 'fr' : 'en');
       }
-    }, { allowSignalWrites: true });
+    });
 
     // Subscribe to translate service language changes
     this.translate.onLangChange.subscribe(event => {
