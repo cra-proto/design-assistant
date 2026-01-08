@@ -62,7 +62,7 @@ export const getRecords = async (event: APIGatewayProxyEvent): Promise<APIGatewa
         return {
             statusCode: 200,
             headers: {
-                'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
+                'Access-Control-Allow-Origin': '*', //process.env.ALLOWED_ORIGIN || '*'
                 'Access-Control-Allow-Headers': 'Content-Type',
                 'Access-Control-Allow-Methods': 'GET, OPTIONS',
                 'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export const getRecords = async (event: APIGatewayProxyEvent): Promise<APIGatewa
         return {
             statusCode: 500,
             headers: {
-                'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
+                'Access-Control-Allow-Origin': '*', //process.env.ALLOWED_ORIGIN || '*'
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
