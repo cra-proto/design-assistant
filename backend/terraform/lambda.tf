@@ -323,12 +323,11 @@ resource "aws_lambda_function_url" "airtable" {
   authorization_type = "NONE"  # Public access
   
   cors {
-    allow_origins     = var.allowed_origins
+    allow_origins     = ["*"]  # Fully permissive for testing
     allow_methods     = ["*"]
     allow_headers     = ["*"]
     expose_headers    = ["*"]
     max_age          = 86400
-    allow_credentials = true
   }
 }
 
