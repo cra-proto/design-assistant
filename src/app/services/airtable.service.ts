@@ -38,7 +38,7 @@ export class AirtableService {
     async fetchTasks(forceRefresh = false): Promise<TransformedTask[]> {
         // Return cached data if available and not forcing refresh
         if (!forceRefresh && this.tasks().length > 0) {
-            console.log('Returning cached Airtable data from service memory');
+            console.log('Using cached Airtable data');
             return this.tasks();
         }
 
@@ -46,7 +46,7 @@ export class AirtableService {
         this.error.set(null);
 
         try {
-            console.log('Fetching fresh data from Airtable Lambda...');
+            console.log('Fetching Airtable data...');
             const response = await firstValueFrom(
                 this.http.get<TransformedTask[]>(this.FUNCTION_URL).pipe(
                     catchError(error => {
@@ -60,7 +60,7 @@ export class AirtableService {
             if (response) {
                 this.tasks.set(response);
                 this.lastFetched.set(Date.now());
-                console.log(`Fetched ${response.length} tasks from Airtable (cached in service memory)`);
+                console.log(`Fetched ${response.length} tasks from Airtable`);
                 return response;
             }
 
@@ -89,7 +89,7 @@ export class AirtableService {
         this.tasks.set([]);
         this.error.set(null);
         this.lastFetched.set(null);
-        console.log('Cleared Airtable cache from service memory');
+        console.log('Cleared Airtable cache');
     }
 
     /**

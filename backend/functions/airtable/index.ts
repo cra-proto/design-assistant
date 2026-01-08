@@ -62,15 +62,13 @@ async function getAirtableCredentials(): Promise<AirtableSecret> {
     return secrets.airtable;
 }
 
-/**
- * Fetch all records from Airtable, handling pagination
- */
+// Fetch airtable records
 async function fetchAllRecords(token: string, baseId: string, tableId: string): Promise<AirtableRecord[]> {
     const url = `https://api.airtable.com/v0/${baseId}/${tableId}`;
     const allRecords: AirtableRecord[] = [];
     let offset: string | undefined;
 
-    console.log('Starting to fetch all records from Airtable...');
+    console.log('Fetching tasks from airtable');
 
     do {
         const response = await axios.get<AirtableResponse>(url, {
@@ -84,14 +82,14 @@ async function fetchAllRecords(token: string, baseId: string, tableId: string): 
         allRecords.push(...response.data.records);
         offset = response.data.offset;
 
-        console.log(`Fetched ${response.data.records.length} records (total so far: ${allRecords.length})`);
+        console.log(`Fetched ${response.data.records.length} tasks (total so far: ${allRecords.length})`);
 
         if (offset) {
-            console.log('More records available, fetching next page...');
+            console.log('More tasks available, fetching next page...');
         }
     } while (offset);
 
-    console.log(`Finished fetching all records. Total: ${allRecords.length}`);
+    console.log(`Finished fetching all tasks. Total: ${allRecords.length}`);
     return allRecords;
 }
 

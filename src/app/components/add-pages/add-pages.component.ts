@@ -142,7 +142,7 @@ export class AddPagesComponent {
                 isOk: this.validationState.urls.every(u => u.status === 'ok')
             });
             console.log('URL validation complete.');
-            if (this.validationState.isOk) { console.log("Continue"); this.validateBreadcrumbs(); }
+            if (this.validationState.isOk) { console.log("Start breadcrumb validation"); this.validateBreadcrumbs(); }
         }
         );
     }
