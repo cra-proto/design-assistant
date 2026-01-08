@@ -324,10 +324,10 @@ resource "aws_lambda_function_url" "airtable" {
   
   cors {
     allow_origins     = var.allowed_origins
-    allow_methods     = ["GET", "OPTIONS"]
-    allow_headers     = ["content-type", "x-amz-date", "authorization", "x-api-key", "x-amz-security-token"]
-    expose_headers    = ["x-amzn-requestid"]
-    max_age          = 300
+    allow_methods     = ["*"]
+    allow_headers     = ["*"]
+    expose_headers    = ["*"]
+    max_age          = 86400
     allow_credentials = true
   }
 }
