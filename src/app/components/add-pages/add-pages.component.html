@@ -49,7 +49,7 @@
             <label for="broken-url">{{'addPages.broken.inputLabel' | translate}}</label>
         </p-iftalabel>
         <p-inputgroup-addon *ngIf="!production">
-            <p-button icon="pi pi-plus-circle" [pTooltip]="'addPages.tooltip.new' | translate" disabled tooltipPosition="top" severity="primary" text class="min-h-full" (click)="revalidateUrl($event, url)" />
+            <p-button disabled icon="pi pi-plus-circle" [pTooltip]="'addPages.tooltip.new' | translate" tooltipPosition="top" severity="primary" text class="min-h-full" (click)="openNewPagePopover($event, url); np.toggle($event)" />
         </p-inputgroup-addon>
         <p-inputgroup-addon>
             <p-button icon="pi pi-check-circle" [pTooltip]="'addPages.tooltip.revalidate' | translate" tooltipPosition="top" severity="success" text class="min-h-full" (click)="revalidateUrl($event, url)" />
@@ -140,6 +140,57 @@
 
 <!-- Confirm Duplicate Popup -->
 <p-confirmpopup />
+<!-- Add new page popup -->
+<p-popover #np styleClass="w-6">
+    <h2 class="text-2xl my-1">Add new page</h2>
+    <p>Confirm the parent URL or select a parent page from your project.</p>
+    <div class="flex flex-row">
+        <p-iftalabel class="w-full">
+            <p-autoComplete
+                            id="parent-autocomplete"
+                            [(ngModel)]="selectedParentUrl"
+                            [suggestions]="filteredParentOptions"
+                            (completeMethod)="filterParents($event)"
+                            (onSelect)="onParentSelect($event)"
+                            [virtualScroll]=true
+                            [virtualScrollItemSize]="40"
+                            [dropdown]="true"
+                            optionLabel="label"
+                            [placeholder]="'addPages.new.searchPlaceholder' | translate"
+                            styleClass="w-full"
+                            [showEmptyMessage]="true"
+                            [emptyMessage]="'addPages.new.noParentsFound' | translate"
+                            fluid>
+                <ng-template let-option pTemplate="item">
+                    <div class="flex align-items-center gap-2">
+                        <p-tag
+                               [value]="option.inProject ? ('addPages.new.tag.inProject' | translate) : ('addPages.new.tag.validating' | translate)"
+                               [severity]="option.inProject ? 'success' : 'info'"
+                               [rounded]="true">
+                        </p-tag>
+                        <span>{{ option.label }}</span>
+                    </div>
+                </ng-template>
+            </p-autoComplete>
+            <label for="parent-autocomplete">{{ 'addPages.new.parent' | translate }}</label>
+        </p-iftalabel>
+        <p-button styleClass="h-full" label="Confirm" (click)="confirmParent = true"></p-button>
+    </div>
+    <div class="flex gap-2 mt-3">
+        <p-button
+                  [label]="'addPages.new.confirm' | translate"
+                  icon="pi pi-check"
+                  (onClick)="addChildNode(); np.hide()"
+                  [disabled]="!confirmParent"
+                  severity="success" />
+        <p-button
+                  [label]="'addPages.new.cancel' | translate"
+                  icon="pi pi-times"
+                  (onClick)="np.hide()"
+                  severity="secondary"
+                  [outlined]="true" />
+    </div>
+</p-popover>
 
 <!-- Proceed to Breadcrumb Validation -->
 @if (validationState.isValidated) {

@@ -230,6 +230,20 @@ export class ProjectStateService {
         return Array.from(map.values());
     }
 
+    //TreeNode lookup
+    findNodeByUrl(nodes: TreeNode[], url: string): TreeNode | null {
+        for (const node of nodes) {
+            if (node.data?.url === url) {
+                return node;
+            }
+            if (node.children) {
+                const found = this.findNodeByUrl(node.children, url);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
     // Get project state for saving (with circular references removed)
     getProjectToSave(): Project {
         const currentProject = this.project();
