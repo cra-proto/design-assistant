@@ -11,6 +11,9 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 
+//Components
+import { GetTaskUrlsComponent } from './get-task-urls.component';
+
 // Services
 import { ProjectStateService } from '../../services/project-state.service';
 import { TaskService, TaskOption } from '../../services/task.service';
@@ -22,6 +25,7 @@ import { UrlValidationService } from '../add-pages/services/url-validation.servi
     selector: 'aida-find-pages',
     imports: [
         CommonModule, FormsModule, TranslateModule,
+        GetTaskUrlsComponent,
         AutoCompleteModule, IftaLabelModule, TagModule, ProgressSpinnerModule, ButtonModule, CheckboxModule
     ],
     templateUrl: './find-pages.component.html',

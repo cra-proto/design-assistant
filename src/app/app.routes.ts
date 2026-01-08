@@ -28,7 +28,7 @@ import { IaDiagramComponent } from './components/ia-diagram/ia-diagram.component
 import { NotFoundComponent } from './views/404/not-found.component';
 import { AboutComponent } from './views/about-us/about.component';
 //import { ExampleComponent } from './views/examples/example.component';
-import { AirtableComponent } from './components/find-pages/airtable.component';
+import { GetTaskUrlsComponent } from './components/find-pages/get-task-urls.component';
 
 export const routes: Routes = [
     {
@@ -131,7 +131,7 @@ export const routes: Routes = [
     },
     {
         path: 'airtable',
-        component: AirtableComponent,
+        component: GetTaskUrlsComponent,
         title: 'title.inventory',
     },/*
      {

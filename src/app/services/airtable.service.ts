@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed, effect } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, catchError, of } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -18,7 +18,6 @@ export class AirtableService {
     private http = inject(HttpClient);
 
     private readonly FUNCTION_URL = environment.airtableFunctionUrl;
-    private readonly CACHE_KEY = 'airtable_task_data';
 
     // Signals for managing data state
     private tasks = signal<TransformedTask[]>([]);
@@ -33,26 +32,13 @@ export class AirtableService {
     public data = computed(() => this.tasks());
     public isCached = computed(() => this.lastFetched() !== null);
 
-    constructor() {
-        // Load cached data from session storage on initialization
-        this.loadFromCache();
-
-        // Effect to persist data to session storage whenever it changes
-        effect(() => {
-            const data = this.tasks();
-            if (data.length > 0) {
-                this.saveToCache(data);
-            }
-        });
-    }
-
     /**
      * Fetch task data from Airtable (or use cached data if available)
      */
     async fetchTasks(forceRefresh = false): Promise<TransformedTask[]> {
         // Return cached data if available and not forcing refresh
         if (!forceRefresh && this.tasks().length > 0) {
-            console.log('Returning cached Airtable data');
+            console.log('Returning cached Airtable data from service memory');
             return this.tasks();
         }
 
@@ -74,7 +60,7 @@ export class AirtableService {
             if (response) {
                 this.tasks.set(response);
                 this.lastFetched.set(Date.now());
-                console.log(`Fetched ${response.length} tasks from Airtable`);
+                console.log(`Fetched ${response.length} tasks from Airtable (cached in service memory)`);
                 return response;
             }
 
@@ -85,36 +71,6 @@ export class AirtableService {
             return [];
         } finally {
             this.loading.set(false);
-        }
-    }
-
-    /**
-     * Load data from session storage cache
-     */
-    private loadFromCache(): void {
-        try {
-            const cached = sessionStorage.getItem(this.CACHE_KEY);
-            if (cached) {
-                const data = JSON.parse(cached) as TransformedTask[];
-                this.tasks.set(data);
-                this.lastFetched.set(Date.now());
-                console.log(`Loaded ${data.length} tasks from session storage cache`);
-            }
-        } catch (error) {
-            console.error('Error loading from cache:', error);
-            sessionStorage.removeItem(this.CACHE_KEY);
-        }
-    }
-
-    /**
-     * Save data to session storage cache
-     */
-    private saveToCache(data: TransformedTask[]): void {
-        try {
-            sessionStorage.setItem(this.CACHE_KEY, JSON.stringify(data));
-            console.log(`Saved ${data.length} tasks to session storage cache`);
-        } catch (error) {
-            console.error('Error saving to cache:', error);
         }
     }
 
@@ -133,8 +89,7 @@ export class AirtableService {
         this.tasks.set([]);
         this.error.set(null);
         this.lastFetched.set(null);
-        sessionStorage.removeItem(this.CACHE_KEY);
-        console.log('Cleared Airtable cache');
+        console.log('Cleared Airtable cache from service memory');
     }
 
     /**
@@ -160,5 +115,20 @@ export class AirtableService {
             const taskName = language === 'en' ? task.taskNameEN : task.taskNameFR;
             return taskName.toLowerCase().includes(lowerQuery);
         });
+    }
+
+    /**
+     * Check if data is available (cached or needs fetching)
+     */
+    hasData(): boolean {
+        return this.tasks().length > 0;
+    }
+
+    /**
+     * Get the timestamp of when data was last fetched
+     */
+    getLastFetchedTime(): Date | null {
+        const timestamp = this.lastFetched();
+        return timestamp ? new Date(timestamp) : null;
     }
 }
