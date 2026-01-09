@@ -78,12 +78,7 @@
           },
           "configurations": {
             "production": {
-              "fileReplacements": [
-                {
-                  "replace": "src/app/views/project-assistant/dashboard.component.ts",
-                  "with": "src/app/views/project-assistant/edit-project.component.ts"
-                }
-              ],
+              "fileReplacements": [],
               "budgets": [
                 {
                   "type": "initial",
