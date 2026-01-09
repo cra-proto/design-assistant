@@ -1,0 +1,168 @@
+import { Component, inject, computed, signal, effect, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+
+// PrimeNG modules
+import { AutoCompleteModule, AutoCompleteCompleteEvent, AutoCompleteSelectEvent } from 'primeng/autocomplete';
+import { IftaLabelModule } from 'primeng/iftalabel';
+import { TagModule } from 'primeng/tag';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
+
+// Services
+import { ProjectStateService } from '../../services/project-state.service';
+import { AirtableService } from '../../services/airtable.service';
+import { AddPagesStateService } from '../add-pages/services/add-pages-state.service';
+import { UrlValidationService } from '../add-pages/services/url-validation.service';
+
+export interface TaskOption {
+  id: number;
+  label: string;
+  urlCount: number;
+}
+
+@Component({
+  selector: 'aida-get-task-urls',
+  standalone: true,
+  imports: [
+    CommonModule, FormsModule, TranslateModule,
+    AutoCompleteModule, IftaLabelModule, TagModule,
+    ProgressSpinnerModule, ButtonModule, CheckboxModule
+  ],
+  templateUrl: './get-task-urls.component.html',
+  styles: ``
+})
+export class GetTaskUrlsComponent implements OnInit {
+  // Services    
+  projectState = inject(ProjectStateService);
+  airtableService = inject(AirtableService);
+  translate = inject(TranslateService);
+  addPagesState = inject(AddPagesStateService);
+  urlValidation = inject(UrlValidationService);
+
+  // Signals
+  private currentLanguage = signal<'en' | 'fr'>(
+    this.translate.currentLang?.startsWith('fr') ? 'fr' : 'en'
+  );
+  filteredTasks = signal<TaskOption[]>([]);
+  selectedTaskId = signal<number | null>(null);
+  selectedTask = signal<TaskOption | null>(null);
+  taskUrls = signal<Array<{ url: string; selected: boolean }>>([]);
+
+  // Computed: Transform Airtable data to TaskOptions based on current language
+  taskOptions = computed(() => {
+    const tasks = this.airtableService.data();
+    const lang = this.currentLanguage();
+
+    return tasks.map(task => ({
+      id: task.id,
+      label: lang === 'en' ? task.taskNameEN : task.taskNameFR,
+      urlCount: lang === 'en' ? task.urlsEN.length : task.urlsFR.length
+    }));
+  });
+
+  constructor() {
+    // React to language changes
+    effect(() => {
+      const lang = this.translate.currentLang;
+      if (lang) {
+        this.currentLanguage.set(lang.startsWith('fr') ? 'fr' : 'en');
+      }
+    });
+
+    // Subscribe to translate service language changes
+    this.translate.onLangChange.subscribe(event => {
+      this.currentLanguage.set(event.lang.startsWith('fr') ? 'fr' : 'en');
+    });
+
+    // React to task selection and language changes
+    effect(() => {
+      const taskId = this.selectedTaskId();
+      const options = this.taskOptions();
+      if (taskId !== null) {
+        const taskOption = options.find(opt => opt.id === taskId);
+        this.selectedTask.set(taskOption || null);
+        this.loadTaskUrls(taskId); // Reload URLs in the new language
+      }
+    });
+  }
+
+  ngOnInit() {
+    // EAGER LOADING (like your find-pages component)
+    // Data loads immediately when component initializes
+    //this.airtableService.fetchTasks();
+  }
+
+  async onAutocompleteInteraction() {
+    if (!this.airtableService.hasData() && !this.airtableService.isLoading()) {
+      await this.airtableService.fetchTasks();
+    }
+  }
+
+  filterTasks(event: AutoCompleteCompleteEvent) {
+    const query = event.query;
+
+    if (!query || query.trim().length === 0) {
+      this.filteredTasks.set([...this.taskOptions()]);
+    } else {
+      const lowerQuery = query.toLowerCase();
+      this.filteredTasks.set(
+        this.taskOptions().filter(option =>
+          option.label.toLowerCase().includes(lowerQuery)
+        )
+      );
+    }
+  }
+
+  onTaskSelect(event: AutoCompleteSelectEvent) {
+    const taskOption = event.value as TaskOption;
+    if (taskOption.id) {
+      this.selectedTaskId.set(taskOption.id);
+      this.loadTaskUrls(taskOption.id);
+    }
+  }
+
+  private loadTaskUrls(taskId: number) {
+    const tasks = this.airtableService.data();
+    const task = tasks.find(t => t.id === taskId);
+
+    if (!task) {
+      this.taskUrls.set([]);
+      return;
+    }
+
+    const lang = this.currentLanguage();
+    const urls = lang === 'en' ? task.urlsEN : task.urlsFR;
+
+    this.taskUrls.set(
+      urls.map(url => ({ url, selected: true }))
+    );
+  }
+
+  addUrlsToProject() {
+    const selectedUrls = this.taskUrls()
+      .filter(item => item.selected)
+      .map(item => item.url)
+      .join('\n');
+
+    // Get existing rawUrls
+    const currentRawUrls = this.addPagesState.getValidationState().rawUrls;
+
+    // Append new URLs
+    const updatedRawUrls = currentRawUrls
+      ? `${currentRawUrls}\n${selectedUrls}`
+      : selectedUrls;
+
+    // Update the add pages validation state
+    this.addPagesState.setValidationState({
+      rawUrls: updatedRawUrls,
+    });
+
+    // Clear selection after adding
+    this.selectedTaskId.set(null);
+    this.selectedTask.set(null);
+    this.taskUrls.set([]);
+  }
+}

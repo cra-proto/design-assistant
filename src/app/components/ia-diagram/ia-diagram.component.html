@@ -3,18 +3,19 @@
         <h2>IA Diagram</h2>
         <p-button
                   icon="pi pi-times"
-                  [text]="true"
+                  text rounded
                   (click)="iaDiagram.closeDiagram()">
         </p-button>
     </div>
-
-    <p-organization-chart [value]="projectTree()">
-        <ng-template let-node pTemplate="default">
-            <!--ORPHAN STATUS-->
-            <div class="flex justify-content-center -mt-6 mb-6" *ngIf="node.data.status.isOrphan">
-                <i class="pi pi-times text-red-500" pTooltip="No link from parent" tooltipPosition="top"></i>
-            </div>
-            <!--PAGE-->
-            <p><a [href]="node.data.url" target="_blank" [innerHTML]="node.label" class="ia-label"></a></p>
-        </ng-template>
-    </p-organization-chart>
+    <div class="overflow-auto">
+        <p-organization-chart [value]="projectTree()">
+            <ng-template let-node pTemplate="default">
+                <!--ORPHAN STATUS-->
+                <div class="flex justify-content-center -mt-6 mb-6" *ngIf="node.data.status.isOrphan">
+                    <i class="pi pi-times text-red-500" pTooltip="No link from parent" tooltipPosition="top"></i>
+                </div>
+                <!--PAGE-->
+                <p><a [href]="node.data.url" target="_blank" [innerHTML]="node.label" class="ia-label"></a></p>
+            </ng-template>
+        </p-organization-chart>
+    </div>

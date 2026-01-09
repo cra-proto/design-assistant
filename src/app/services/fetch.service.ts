@@ -11,7 +11,7 @@ export class FetchService {
   private protoHosts = new Set([
     "proto-cra.github.io",
     //"cra-design.github.io", //Currently blocked by browser because it looks like a phishing site
-    //"cra-proto.github.io", //Currently blocked by browser because it looks like a phishing site
+    "cra-proto.github.io",
     //"gc-proto.github.io", //CORS error but redirects to test.canada.ca which works
     "test.canada.ca",
   ]);
@@ -27,13 +27,13 @@ export class FetchService {
     url: string,
     hostMode: "prod" | "proto" | "both" | "none"
   ): string {
-    url = url.trim().toLowerCase();
+    url = url.trim();
 
     let hostname: string;
     try {
       const parsedUrl = new URL(url);
       if (parsedUrl.protocol !== "https:" || /\s/.test(url)) throw new Error();
-      hostname = parsedUrl.hostname;
+      hostname = parsedUrl.hostname.toLowerCase();
     } catch {
       throw new Error(`Invalid URL: ${url}`)
     }

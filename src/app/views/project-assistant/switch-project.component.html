@@ -36,20 +36,20 @@
     <div class="flex flex-row xl:flex-column gap-2">
       <!--New-->
       <p-button
-                label="New&nbsp;Project"
+                label="New Project"
                 icon="pi pi-plus"
                 outlined
                 size="small"
-                styleClass="secondary-outline w-full"
+                styleClass="white-space-nowrap secondary-outline w-full"
                 (onClick)="newProject()">
       </p-button>
       <!--Import-->
       <p-button
-                label="Import&nbsp;Project"
+                label="Import Project"
                 icon="pi pi-upload"
                 outlined
                 size="small"
-                styleClass="secondary-outline w-full">
+                styleClass="white-space-nowrap secondary-outline w-full">
       </p-button>
     </div>
 
@@ -59,29 +59,30 @@
   <ng-container *ngIf=" projects.length> 0; else none">
     <div class="grid">
       <div class="col-12 md:col-6 lg:col-4" *ngFor="let project of projects">
-        <p-card styleClass="h-full border-1 surface-border cursor-pointer" (click)="loadProject(project.key)">
+        <p-card styleClass="h-full border-1 surface-border cursor-pointer" (click)="loadProject(project.key, project.storageType)">
 
           <ng-template pTemplate="header">
             <div class="flex justify-content-between align-items-start p-3 pb-0">
               <!--Tags-->
               <div class="flex gap-2">
-                <p-tag value="Local" icon="pi pi-home" severity="secondary" [style]="{'font-size': '0.75rem'}" *ngIf="project.local === true"></p-tag>
-                <p-tag value="Cloud" icon="pi pi-cloud" severity="info" [style]="{'font-size': '0.75rem'}" *ngIf="project.local !== true"></p-tag>
-                <p-tag value="Read-only" icon="pi pi-eye" severity="warning" [style]="{'font-size': '0.75rem'}" *ngIf="project.local !== true && !authService.isAuthenticated()"></p-tag>
+                <p-tag value="Active" icon="pi pi-check" severity="success" [style]="{'font-size': '0.75rem'}" *ngIf="projectStorage.currentActive()?.key === project.key"></p-tag>
+                <p-tag value="Local" icon="pi pi-home" severity="secondary" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'local'"></p-tag>
+                <p-tag value="Cloud" icon="pi pi-cloud" severity="info" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'cloud'"></p-tag>
+                <p-tag value="Read-only" icon="pi pi-eye" severity="warning" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'cloud' && !authService.isAuthenticated()"></p-tag>
                 <p-tag value="Unsaved" icon="pi pi-exclamation-triangle" severity="danger" [style]="{'font-size': '0.75rem'}" *ngIf="project.key === 'autosave'"></p-tag>
               </div>
               <!--Actions-->
               <div class="flex gap-1">
-                <p-button icon="pi pi-save" text rounded size="small" severity="success" pTooltip="Save locally" (onClick)="showSave = true" *ngIf="project.key === 'autosave' && !authService.isAuthenticated()" />
-                <p-button icon="pi pi-cloud-upload" text rounded size="small" severity="primary" pTooltip="Upload to cloud" *ngIf="authService.isAuthenticated()"></p-button>
-                <p-button icon="pi pi-trash" text rounded size="small" severity="danger" pTooltip="Delete" (onClick)="deleteProject(project.key, $event)"></p-button>
+                <p-button icon="pi pi-save" text rounded size="small" severity="success" pTooltip="Save locally" (onClick)="showSave = true; $event.stopPropagation()" *ngIf="project.key === 'autosave' && !authService.isAuthenticated()" />
+                <p-button icon="pi pi-cloud-upload" text rounded size="small" severity="primary" pTooltip="Upload to cloud" (onClick)="uploadToCloud(project, $event)" *ngIf="authService.isAuthenticated() && project.storageType === 'local'"></p-button>
+                <p-button icon="pi pi-trash" text rounded size="small" severity="danger" pTooltip="Delete" (onClick)="deleteProject(project.key, project.storageType, $event)"></p-button>
               </div>
             </div>
           </ng-template>
 
           <ng-template pTemplate="title">
             <div class="text-xl font-bold -mt-3">
-              {{ getDisplayName(project.key) | translate }}
+              {{ project.projectName || "Autosave" }}
             </div>
           </ng-template>
 
@@ -93,29 +94,36 @@
           </div>
 
           <!--Project details-->
+          <!--Project details-->
           <ng-template #projectSaved>
             <div class="flex flex-column gap-2 text-sm text-color-secondary">
               <div>
-                <i class="pi pi-github mr-2"></i><ng-container *ngIf="project.key !== 'autosave'">{{ project.key }}</ng-container>
+                <i class="pi pi-github mr-2"></i>
+                <ng-container *ngIf="project.github?.repo">{{ project.github.owner }}/{{ project.github.repo }}</ng-container>
+                <ng-container *ngIf="!project.github?.repo">No repository</ng-container>
               </div>
               <div>
-                <i class="pi pi-copy mr-2"></i>Pages: {{ project.pages }}
+                <i class="pi pi-copy mr-2"></i>Pages: {{ project.inScopePages }}
               </div>
-              <div *ngIf="project.phase !== 'Draft'">
-                <i [class]="'pi pi-' + getPhaseIcon(project.phase) + ' mr-2'"></i>Phase: {{ project.phase }}
+              <div *ngIf="project.phase && project.phase !== 'phase.draft'">
+                <i [class]="'pi pi-' + getPhaseIcon(project.phase) + ' mr-2'"></i>Phase: {{ project.phase | translate }}
               </div>
               <div>
-                <i class="pi pi-clock mr-2"></i>Modified: {{ formatDate(project.timestamp) }}
+                <i class="pi pi-clock mr-2"></i>Modified: {{ project.lastModified | date:'short' }}
               </div>
             </div>
             <!-- Collaborators -->
-            <div class="flex justify-content-between border-top-1 surface-border mt-3 pt-2 -mb-3" *ngIf="project.local !== true">
+            <div class="flex justify-content-between border-top-1 surface-border mt-3 pt-2 -mb-3" *ngIf="project.collaborators && project.collaborators.length > 0">
               <div class="flex align-items-center gap-2">
                 <i class="pi pi-users mr-2"></i>
-                <p-avatar label="AL" size="normal" shape="circle" [style]="{'background-color': '#2196F3', 'color': '#ffffff'}"></p-avatar>
-                <p-avatar label="MB" size="normal" shape="circle" [style]="{'background-color': '#4CAF50', 'color': '#ffffff'}"></p-avatar>
-                <p-avatar label="NH" size="normal" shape="circle" [style]="{'background-color': '#FF9800', 'color': '#ffffff'}"></p-avatar>
-                <span class="text-sm text-600">+2 more</span>
+                <p-avatar *ngFor="let collab of project.collaborators.slice(0, 3)"
+                          [label]="collab.name?.substring(0, 2)?.toUpperCase()"
+                          size="normal"
+                          shape="circle"
+                          [image]="collab.avatar_url"
+                          [style]="{'background-color': '#2196F3', 'color': '#ffffff'}">
+                </p-avatar>
+                <span class="text-sm text-600" *ngIf="project.collaborators.length > 3">+{{ project.collaborators.length - 3 }} more</span>
               </div>
               <p-button icon="pi pi-share-alt" text rounded size="small" pTooltip="Share" *ngIf="authService.isAuthenticated()"></p-button>
             </div>
@@ -135,8 +143,8 @@
 
 <!-- Save Project Dialog -->
 <p-dialog header="Save project" [modal]="true" [(visible)]="showSave" styleClass="max-w-25rem">
-  <span class="text-color-secondary">Associate your project to a new or existing GitHub repo to save it for later. This step will not export any files to the repo and you can change it later. </span>
-  <aida-export-github mode="select"></aida-export-github>
+  <p class="text-color-secondary -mt-1">Name your project to save it for later.</p>
+  <aida-setup-project></aida-setup-project>
   <div class="flex justify-end gap-2 mt-2">
     <p-button label="Cancel" severity="secondary" (onClick)="showSave = false" />
     <p-button label="Save" (onClick)="showSave = false;saveProject()" />

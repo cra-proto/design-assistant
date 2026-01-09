@@ -3,26 +3,9 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom, of, catchError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { GitHubAuthService } from '../github/github-auth.service';
-import { LocalProject } from '../../common/data.model';
-
-export interface CloudProject {
-    id: string;
-    key: string;
-    name: string;
-    owner: string;
-    repo: string;
-    pages: number;
-    phase: string;
-    timestamp: number;
-    collaborators: Array<{
-        githubId: string;
-        login: string;
-        name: string;
-        avatarUrl: string;
-    }>;
-    content?: string; // Full project data (only when fetching specific project)
-    isPublic: boolean;
-}
+import { ProjectStorageService } from './project-storage.service';
+import { Project, ProjectMetadata } from '../../common/data.model';
+import { TreeNode } from 'primeng/api';
 
 @Injectable({
     providedIn: 'root'
@@ -30,11 +13,12 @@ export interface CloudProject {
 export class CloudStorageService {
     private http = inject(HttpClient);
     private authService = inject(GitHubAuthService);
+    //private projectStorage = inject(ProjectStorageService);
 
     private readonly API_URL = `${environment.apiUrl}/projects`;
 
-    // Signal for cloud projects
-    private cloudProjects = signal<CloudProject[]>([]);
+    // Signal for cloud project metadata (for list view)
+    private cloudProjects = signal<ProjectMetadata[]>([]);
     public projects = computed(() => this.cloudProjects());
 
     // Loading states
@@ -62,7 +46,8 @@ export class CloudStorageService {
     }
 
     /**
-     * Load all public projects (no auth required)
+     * Load all public project metadata (without full projectData)
+     * Used for displaying project lists
      */
     async loadProjects(): Promise<void> {
         this.loading.set(true);
@@ -70,7 +55,7 @@ export class CloudStorageService {
 
         try {
             const projects = await firstValueFrom(
-                this.http.get<CloudProject[]>(this.API_URL, {
+                this.http.get<ProjectMetadata[]>(this.API_URL, {
                     headers: this.getHeaders()
                 }).pipe(
                     catchError(error => {
@@ -88,15 +73,15 @@ export class CloudStorageService {
     }
 
     /**
-     * Get a specific project with full content
+     * Get a specific project with full content (including projectData)
      */
-    async getProject(projectId: string): Promise<CloudProject | null> {
+    async getProject(projectId: string): Promise<Project | null> {
         this.loading.set(true);
         this.error.set(null);
 
         try {
             const project = await firstValueFrom(
-                this.http.get<CloudProject>(`${this.API_URL}/${projectId}`, {
+                this.http.get<Project>(`${this.API_URL}/${projectId}`, {
                     headers: this.getHeaders()
                 }).pipe(
                     catchError(error => {
@@ -113,18 +98,29 @@ export class CloudStorageService {
         }
     }
 
+    // Generates a project key for saving to local or cloud storage
+    public generateKeyFromName(projectName: string): string {
+        if (!projectName || projectName.trim() === '') {
+            return 'autosave';
+        }
+        return projectName.replace(/[:']/g, '').replace(/\s+/g, '-').toLowerCase();
+    }
+
     /**
      * Save project to cloud (requires auth)
+     * @param project The full project to save
+     * @param projectId Optional - provide for updates, omit for new projects
+     * @returns The project ID if successful, null if failed
      */
-    async saveProject(projectState: LocalProject, projectId?: string): Promise<string | null> {
+    async saveProject(project: Project, projectId?: string): Promise<string | null> {
         if (!this.authService.isAuthenticated()) {
             this.error.set('Authentication required to save projects');
             return null;
         }
 
-        // Validate that we have a repository name
-        if (!projectState.key) {
-            this.error.set('Repository name is required. Please set up your GitHub repository first.');
+        // Validate that we have required fields
+        if (!project.projectName && !project.github.repo) {
+            this.error.set('Project name or repository name is required');
             return null;
         }
 
@@ -132,30 +128,32 @@ export class CloudStorageService {
         this.error.set(null);
 
         try {
-            // Count in-scope pages
-            let pages = 0;
-            const countPages = (nodes: any[]): void => {
-                for (const node of nodes) {
-                    if (node.data?.isUserAdded) pages++;
-                    if (node.children?.length) countPages(node.children);
-                }
-            };
-            if (projectState.pages) {
-                //countPages(projectState.pages);
-            }
-
+            // Prepare the payload
+            // Convert Date objects to timestamps for JSON serialization
             const payload = {
-                id: projectId,
-                key: projectState.key,
-                name: projectState.key.replace(/-/g, ' ').replace(/^\w/, (c: string) => c.toUpperCase()),
-                gitHubData: projectState.timestamp,
-                pages,
-                phase: 'Draft',
-                isPublic: true,
-                //...projectState  
+                id: project.id,
+                key: this.generateKeyFromName(project.projectName),
+                projectName: project.projectName,
+                version: project.version,
+                phase: project.phase,
+                created: project.created instanceof Date ? project.created.getTime() : project.created,
+                lastModified: project.lastModified instanceof Date ? project.lastModified.getTime() : project.lastModified,
+                lastSaved: project.lastSaved instanceof Date ? project.lastSaved.getTime() : project.lastSaved,
+                lastExported: project.lastExported instanceof Date ? project.lastExported.getTime() : project.lastExported,
+                storageLocation: 'cloud' as const,
+                collaborators: project.collaborators?.map(c => ({
+                    githubId: c.id.toString(),
+                    login: c.login,
+                    name: c.name || c.login,
+                    avatarUrl: c.avatar_url
+                })),
+                baselinePages: project.baselinePages,
+                inScopePages: project.inScopePages,
+                github: project.github,
+                projectData: project.projectData // Full tree structure
             };
 
-            console.log('Saving project payload:', payload);
+            console.log('Saving project to cloud:', payload.key);
 
             const url = projectId ? `${this.API_URL}/${projectId}` : this.API_URL;
             const method = projectId ? 'PUT' : 'POST';
@@ -183,10 +181,12 @@ export class CloudStorageService {
                 )
             );
 
-            // Refresh project list
+            // Refresh project list (without full projectData)
             await this.loadProjects();
 
             return response.id;
+        } catch (error) {
+            return null;
         } finally {
             this.loading.set(false);
         }
@@ -229,12 +229,13 @@ export class CloudStorageService {
     /**
      * Check if user can edit a project
      */
-    canEdit(project: CloudProject): boolean {
+    canEdit(project: ProjectMetadata): boolean {
         if (!this.authService.isAuthenticated()) return false;
 
         const user = this.authService.user();
         if (!user) return false;
 
-        return project.collaborators.some(c => c.githubId === user.id.toString());
+        return project.collaborators.some(c => c.id === user.id);
     }
+
 }

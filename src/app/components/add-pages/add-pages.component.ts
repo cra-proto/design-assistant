@@ -17,6 +17,9 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MenuItem } from 'primeng/api';
 import { MessageModule } from 'primeng/message';
+import { PopoverModule } from 'primeng/popover';
+import { AutoCompleteModule, AutoCompleteCompleteEvent, AutoCompleteSelectEvent } from 'primeng/autocomplete';
+import { TagModule } from 'primeng/tag';
 
 // Services
 import { AddPagesStateService } from './services/add-pages-state.service';
@@ -43,6 +46,7 @@ import { environment } from '../../../environments/environment';
         TextareaModule, IftaLabelModule, ButtonModule,
         InputTextModule, InputGroupModule, InputGroupAddonModule, ConfirmPopupModule,
         ProgressBarModule, DialogModule, ChipModule, TooltipModule, MessageModule,
+        PopoverModule, AutoCompleteModule, TagModule
     ],
     templateUrl: './add-pages.component.html',
     styles: `
@@ -117,6 +121,7 @@ export class AddPagesComponent {
 
     // Validate parsed URLs
     validateUrls(): void {
+        this.parseUrls();
         this.addPagesState.resetBreadcrumbs();
         this.addPagesState.setValidationState({
             isValidating: true,
@@ -137,7 +142,7 @@ export class AddPagesComponent {
                 isOk: this.validationState.urls.every(u => u.status === 'ok')
             });
             console.log('URL validation complete.');
-            if (this.validationState.isOk) { console.log("Continue"); this.validateBreadcrumbs(); }
+            if (this.validationState.isOk) { console.log("Start breadcrumb validation"); this.validateBreadcrumbs(); }
         }
         );
     }
@@ -350,5 +355,130 @@ export class AddPagesComponent {
             this.projectState.saveProject();
             this.addPagesState.setPreviousProjectData(null);
         }
+    }
+
+    //Add new pages (testing)
+    addNewUrl(link: UrlItem) {
+        //todo: select parent and set isNew to true
+    }
+    selectedBrokenUrl: UrlItem | null = null;
+    selectedParentUrl: { label: string; url: string; inProject: boolean } | null = null;
+    allParentOptions: { label: string; url: string; inProject: boolean }[] = [];
+    filteredParentOptions: { label: string; url: string; inProject: boolean }[] = [];
+
+    private extractParentUrl(fullUrl: string): string {
+        const lastSlashIndex = fullUrl.lastIndexOf('/');
+        if (lastSlashIndex === -1) return fullUrl;
+
+        const basePath = fullUrl.substring(0, lastSlashIndex);
+        return basePath + '.html';
+    }
+
+    openNewPagePopover(event: Event, link: UrlItem): void {
+        this.selectedBrokenUrl = link;
+
+        // Build all possible parent options
+        const existingUrls = Array.from(this.projectState.getAllUrls()).map(url => ({
+            label: url,
+            url: url,
+            inProject: true
+        }));
+
+        const validatingUrls = this.validationState.urls
+            .filter(u => u.status === 'ok') // Only show valid URLs as potential parents
+            .map(u => ({
+                label: u.href,
+                url: u.href,
+                inProject: false
+            }));
+
+        this.allParentOptions = [...existingUrls, ...validatingUrls];
+        this.filteredParentOptions = [...this.allParentOptions];
+
+        // Pre-fill with suggested parent
+        const suggestedParent = this.extractParentUrl(link.href);
+        const matchingParent = this.allParentOptions.find(p => p.url === suggestedParent);
+
+        this.selectedParentUrl = matchingParent || {
+            label: suggestedParent,
+            url: suggestedParent,
+            inProject: false
+        };
+    }
+
+    // Filter parent options based on user input
+    filterParents(event: AutoCompleteCompleteEvent): void {
+        const query = event.query.toLowerCase();
+        this.filteredParentOptions = this.allParentOptions.filter(option =>
+            option.label.toLowerCase().includes(query)
+        );
+    }
+
+    // Handle parent selection
+    onParentSelect(event: AutoCompleteSelectEvent): void {
+        console.log('Selected parent:', this.selectedParentUrl);
+        // We'll implement the merge logic later
+    }
+
+    confirmParent = false;
+
+    addChildNode(): void {
+        if (!this.selectedBrokenUrl || !this.selectedParentUrl) {
+            console.error('Missing broken URL or parent URL');
+            return;
+        }
+
+        // Create the new TreeNode for the broken page
+        const newNode: TreeNode = {
+            label: 'New page',
+            data: {
+                h1: 'New page',
+                url: this.selectedBrokenUrl.href,
+                originalParent: this.selectedParentUrl.url,
+                status: {
+                    inScope: true,
+                    isOrphan: true,
+                    isCrawled: false,
+                    isNew: true,
+                    isMoved: false,
+                    isROT: false,
+                    isContainer: false
+                }
+            },
+            children: []
+        };
+
+        // Find the parent node in the tree and add as child
+        const parentNode = this.projectState.findNodeByUrl(
+            this.projectState.getProjectTree(),
+            this.selectedParentUrl.url
+        );
+
+        if (parentNode) {
+            // Happy path: parent exists in tree
+            if (!parentNode.children) {
+                parentNode.children = [];
+            }
+            parentNode.children.push(newNode);
+            parentNode.expanded = true;
+
+            // Update the project
+            this.projectState.saveProject();
+            this.nodeStyles.updateNodeStyles(this.projectState.getProjectTree());
+
+            // Remove from broken links list
+            this.removeUrl(this.selectedBrokenUrl);
+
+            console.log('Added new page as child of existing parent:', this.selectedParentUrl.url);
+        } else {
+            // Parent not in tree yet - we'll handle this later
+            console.log('Parent not in tree, need to validate parent first');
+            // TODO: Implement parent validation path
+        }
+
+        // Clean up and close popover
+        this.selectedBrokenUrl = null;
+        this.selectedParentUrl = null;
+        this.confirmParent = false;
     }
 }

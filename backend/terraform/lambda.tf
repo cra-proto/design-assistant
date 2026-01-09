@@ -264,11 +264,58 @@ resource "aws_apigatewayv2_route" "projects_options_id" {
   target    = "integrations/${aws_apigatewayv2_integration.projects.id}"
 }
 
-# Lambda permission for API Gateway
-resource "aws_lambda_permission" "projects" {
-  statement_id  = "AllowAPIGatewayInvokeProjects"
+# Airtable Lambda Function
+resource "aws_lambda_function" "airtable" {
+  filename         = "${path.module}/../functions/airtable/lambda.zip"
+  function_name    = "${var.app_name}-${var.environment}-airtable"
+  role            = aws_iam_role.lambda_role.arn
+  handler         = "index.getRecords"
+  source_code_hash = filebase64sha256("${path.module}/../functions/airtable/lambda.zip")
+  runtime         = "nodejs22.x"
+  timeout         = 30
+  memory_size     = 512  # Increased from default 128MB to handle large dataset
+
+  environment {
+    variables = {
+      SECRET_NAME    = "prod/design-assistant/api-keys"
+      ALLOWED_ORIGIN = var.allowed_origins[0]
+      ENVIRONMENT    = var.environment
+    }
+  }
+}
+
+# Lambda Function URL for Airtable (bypasses API Gateway)
+resource "aws_lambda_function_url" "airtable" {
+  function_name      = aws_lambda_function.airtable.function_name
+  authorization_type = "NONE"  # Public access
+  
+  cors {
+    allow_origins     = var.allowed_origins  # Restricted to your CloudFront domains
+    allow_methods     = ["GET"]
+    allow_headers     = ["content-type"]
+    expose_headers    = ["content-length", "date"]
+    max_age          = 86400
+  }
+}
+
+# Resource-based policy to allow public invocation via Function URL
+resource "aws_lambda_permission" "airtable_function_url" {
+  statement_id           = "AllowPublicFunctionURLInvoke"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.airtable.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+}
+
+resource "aws_lambda_permission" "airtable_function_url_invoke" {
+  statement_id  = "AllowPublicInvokeFunction"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.projects.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.api.execution_arn}/*/*"
+  function_name = aws_lambda_function.airtable.function_name
+  principal     = "*"
+}
+
+# Output the Function URL
+output "airtable_function_url" {
+  description = "Direct Lambda Function URL for Airtable"
+  value       = aws_lambda_function_url.airtable.function_url
 }

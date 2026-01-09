@@ -1,6 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { FetchService } from '../fetch.service';
-import { GitHubAuthService } from './github-auth.service';
+import { GitHubAuthService, GitHubUser } from './github-auth.service';
 
 export interface GitHubFileRequest {
   message: string;
@@ -16,15 +16,170 @@ export class ExportGitHubService {
   private fetchService = inject(FetchService);
   private authService = inject(GitHubAuthService);
 
-  public pat = "" //personal access token
-
-  get token(): string {
-    return this.authService.isAuthenticated()
+  //Manage GitHub token
+  token = computed(() =>
+    this.authService.isAuthenticated()
       ? this.authService.getToken() ?? ""
-      : this.pat
+      : this.patSignal()
+  );
+
+  private readonly PAT_STORAGE_KEY = 'github_pat';
+  private patSignal = signal<string>(this.loadPAT());
+
+  public get pat(): string {
+    return this.patSignal();
   }
-  set token(value: string) {
-    this.pat = value;
+  public set pat(value: string) {
+    this.patSignal.set(value);
+    this.savePAT(value);
+  }
+
+  private loadPAT(): string {
+    return sessionStorage.getItem(this.PAT_STORAGE_KEY) ?? "";
+  }
+
+  private savePAT(value: string): void {
+    if (value) {
+      sessionStorage.setItem(this.PAT_STORAGE_KEY, value);
+    } else {
+      sessionStorage.removeItem(this.PAT_STORAGE_KEY);
+    }
+  }
+
+  //Manage GitHub user data
+  private cachedPATUser = signal<GitHubUser | null>(null);
+
+  user = computed(() =>
+    this.authService.isAuthenticated()
+      ? this.authService.user()
+      : this.cachedPATUser()
+  );
+
+  //Validate GitHub token
+  public async validateToken(token: string, owner: string, repo: string): Promise<{ valid: boolean, repoExists?: boolean, hasRepoAccess?: boolean, canCreateRepo?: boolean, showDisclaimer?: boolean, error?: string }> {
+
+    try {
+      // Step 1: Validate token by calling /user endpoint
+      const userResponse = await fetch('https://api.github.com/user', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json'
+        }
+      });
+
+      if (!userResponse.ok) {
+        const error = userResponse.status === 401
+          ? 'Invalid or expired token'
+          : `GitHub API error: ${userResponse.status}`;
+        return { valid: false, error };
+      }
+
+      const user = await userResponse.json();
+      if (!this.authService.isAuthenticated()) {
+        this.cachedPATUser.set(user);
+      }
+      const tokenScopes = userResponse.headers.get('x-oauth-scopes')?.split(',').map(s => s.trim()) || []; //Will be empty if using PAT
+
+      // Step 2: Check if repo exists (and get permissions if it does)
+      const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json'
+        }
+      });
+
+      // Step 3a: Existing repo, check permissions
+      if (repoResponse.ok) {
+        const repoData = await repoResponse.json();
+        let hasWriteAccess = false;
+
+        if (this.authService.isAuthenticated()) {
+          hasWriteAccess = repoData.permissions?.push === true || repoData.permissions?.admin === true;
+        }
+        else {
+          hasWriteAccess = await this.checkWritePermission(token, owner, repo, user.login);
+        }
+        return {
+          valid: true,
+          repoExists: true,
+          hasRepoAccess: hasWriteAccess,
+          showDisclaimer: false
+        };
+      }
+      // Step 3b: New repo, check if user can create
+      else if (repoResponse.status === 404) {
+        let canCreate = false;
+        let showDisclaimer = false;
+
+        if (this.authService.isAuthenticated()) {
+          if (owner === user.login) {
+            canCreate = tokenScopes.includes('repo') || tokenScopes.includes('public_repo');
+          }
+          else {
+            const orgMemberResponse = await fetch(`https://api.github.com/orgs/${owner}/memberships/${user.login}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github+json'
+              }
+            });
+            if (orgMemberResponse.ok) {
+              const memberData = await orgMemberResponse.json();
+              canCreate = memberData.role === 'admin' || memberData.state === 'active';
+            }
+          }
+        } else {
+          // For PATs
+          // Check an existing repo to see if we have 'repo' scope
+          const repoList = await this.getRepoList(owner);
+          if (repoList.length > 0) {
+            const testRepo = repoList[0].name;
+            canCreate = await this.checkWritePermission(token, owner, testRepo, user.login);
+          } else {
+            //Assume access if an org member or personal repo but show disclaimer
+            if (owner === user.login) {
+              canCreate = true;
+              showDisclaimer = true;
+            } else {
+              const orgMemberResponse = await fetch(`https://api.github.com/orgs/${owner}/memberships/${user.login}`, {
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Accept': 'application/vnd.github+json'
+                }
+              });
+              canCreate = orgMemberResponse.ok;
+              showDisclaimer = orgMemberResponse.ok;
+            }
+          }
+        }
+        return {
+          valid: true,
+          repoExists: false,
+          canCreateRepo: canCreate,
+          showDisclaimer: showDisclaimer
+        };
+      }
+      // Step 3c: Other errors
+      else {
+        return { valid: false, error: `Error checking repo: ${repoResponse.status}` };
+      }
+    } catch (error) {
+      return { valid: false, error: 'Network error validating token' };
+    }
+  }
+
+  private async checkWritePermission(token: string, owner: string, repo: string, userLogin: string): Promise<boolean> {
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/collaborators/${userLogin}/permission`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json'
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.permission === 'admin' || data.permission === 'write';
+    }
+    return false;
   }
 
   private async formatHtmlWithPrettier(html: string): Promise<string> {

@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { firstValueFrom, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-interface GitHubUser {
+export interface GitHubUser {
   login: string;
   id: number;
   avatar_url: string;

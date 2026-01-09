@@ -86,6 +86,24 @@ jobs:
           name: projects-lambda
           path: backend/functions/projects/lambda.zip
           retention-days: 1
+
+      - name: Build Lambda Airtable function
+        working-directory: backend/functions/airtable
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+       
+      - name: Upload Airtable Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: airtable-lambda
+          path: backend/functions/airtable/lambda.zip
+          retention-days: 1
               
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3

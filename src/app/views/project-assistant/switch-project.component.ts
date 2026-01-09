@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from "@ngx-translate/core";
@@ -9,7 +9,6 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { FieldsetModule } from 'primeng/fieldset';
 import { SplitButtonModule } from 'primeng/splitbutton';
-import { MenuItem } from 'primeng/api';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
 import { TableModule } from 'primeng/table';
@@ -32,24 +31,16 @@ import { InputIconModule } from 'primeng/inputicon';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 
-import { ExportGithubComponent } from '../github-assistant/export-github.component';
+import { SetupProjectComponent } from '../../components/setup-project/setup-project.component';
 import { GitHubAuthService } from '../../services/github/github-auth.service';
-import { CloudStorageService, CloudProject } from '../../services/storage/cloud-storage.service';
-import { ProjectStateService } from '../../services/project-state.service';
-import { LocalProject } from '../../common/data.model';
 
-export interface Project {
-  key: string;
-  name: string;
-  description?: string;
-  pages: number;
-  timestamp: Date;
-  storageType: 'local' | 'cloud';
-  githubRepo?: string;
-  githubUrl?: string;
-  collaborators?: Array<{ name: string; initials: string; color: string }>;
-  isEditable?: boolean;
-}
+//Storage
+import { ProjectStateService } from '../../services/project-state.service';
+import { ProjectStorageService } from '../../services/storage/project-storage.service';
+import { CloudStorageService } from '../../services/storage/cloud-storage.service';
+import { LocalStorageService } from '../../services/storage/local-storage.service';
+import { Project, ProjectMetadata } from '../../common/data.model';
+
 
 @Component({
   selector: 'aida-switch-project',
@@ -58,33 +49,55 @@ export interface Project {
     CardModule, ButtonModule, DialogModule, FieldsetModule, TimelineModule, ProgressBarModule, SplitButtonModule, ChipModule,
     InputTextModule, IconFieldModule, InputIconModule, SelectModule, MultiSelectModule,
     CheckboxModule, DividerModule, SelectButtonModule, TagModule, TableModule, TabsModule, BadgeModule, AvatarModule, MessageModule,
-    ExportGithubComponent],
+    SetupProjectComponent],
   templateUrl: './switch-project.component.html',
   styles: ``
 })
 export class SwitchProjectComponent implements OnInit {
   public projectState = inject(ProjectStateService);
+  public projectStorage = inject(ProjectStorageService);
   public authService = inject(GitHubAuthService);
   private cloudStorage = inject(CloudStorageService);
 
-  //public iaState = inject(IaStateService);
   public router = inject(Router);
   public message = inject(MessageService);
   public filterService = inject(FilterService);
 
+  // Project list signal
+  allProjects = signal<ProjectMetadata[]>([]);
+  loadingKey: string | null = null;
+  showSave = false;
 
   constructor() {
-    this.loadProjects();
+    // Watch for project list changes and reload
+    effect(() => {
+      this.projectStorage.projectListChanged(); // Subscribe to changes
+      console.log('Project list changed, reloading...');
+      this.loadProjectsSync(); // Load projects synchronously
+    });
   }
 
-  //Load all projects
-  allProjects = signal<LocalProject[]>([]);
-  loadProjects() {
-    const projects = JSON.parse(localStorage.getItem('savedProjects') || '[]');
+  private loadProjectsSync() {
+    const projects = this.projectStorage.getProjectList();
     this.allProjects.set(projects);
   }
 
-  //Track active project
+  async ngOnInit() {
+    await this.loadProjects();
+  }
+
+  //Load all projects
+  async loadProjects() {
+    const projects = this.projectStorage.getProjectList();
+    this.allProjects.set(projects);
+  }
+
+  // Get projects for display
+  get projects() {
+    return this.allProjects();
+  }
+
+  /*Track active project
   activeProject = computed(() => {
     const projects = this.allProjects();
     return projects.length ? projects[0] : null;
@@ -95,12 +108,6 @@ export class SwitchProjectComponent implements OnInit {
     const active = this.activeProject();
     return this.allProjects().filter(p => p.key !== active?.key);
   });
-
-  //Display formats
-  get projects() {
-    //return this.savedProjects() || [];
-    return this.combinedProjects() || [];
-  }
 
   getDisplayName(projectName: string): string {
     return projectName
@@ -119,62 +126,113 @@ export class SwitchProjectComponent implements OnInit {
       hour12: true
     }).replace(',', ' at');
   }
-
+*/
   //Actions - load saved project, start new project, save autosave as project, delete a project
 
-  loadingKey: string | null = null;
-  async loadProject(key: string) {
-    // Show loading state on card
-    this.loadingKey = key;
-    await new Promise(resolve => setTimeout(resolve, 600));
-    //Saves current active project and loads clicked project
-    try {
-      this.projectState.saveToLocalStorage();
-      this.projectState.loadFromLocalStorage(key);
-      //this.projectState.updateProjectList(key);
-      this.loadProjects();
-    }
-    finally {
-      this.loadingKey = null; //end of loading state
-    }
-  }
+
 
   newProject() {
-    this.projectState.saveToLocalStorage();
-    //this.projectState.setActiveStep(1);
-    //this.projectState.resetIaFlow();
-    this.projectState.saveToLocalStorage();
-    this.loadProjects(); // refresh reactive state
+    this.projectStorage.clearActiveProject();
+    this.projectState.resetProject();
+    this.router.navigate(['/new-project']);
   }
 
-  showSave = false;
-  saveProject() {
-    let savedAutoSave = false;
-    if (this.activeProject()?.key === "autosave") { savedAutoSave = true }
-    this.projectState.saveToLocalStorage();
-    this.loadProjects(); // refresh reactive state
-    if (savedAutoSave) { this.deleteProject("autosave") } //remove autosave after saving it as a project
 
-  }
+  async saveProject() {
+    const success = await this.projectState.saveProject();
+    if (success) {
+      // Refresh project list
+      await this.loadProjects();
 
-  deleteProject(key: string, event?: Event) {
-    event?.stopPropagation();
-    const all = this.allProjects();
-    const isActive = key === this.activeProject()?.key;
-    // Remove key from localStorage
-    localStorage.removeItem(key);
-    // Remove from savedProjects key
-    const updatedProjects = all.filter(p => p.key !== key);
-    localStorage.setItem('savedProjects', JSON.stringify(updatedProjects));
-    this.allProjects.set(updatedProjects);
-    // Start new project if active project is deleted
-    if (isActive) {
-      console.warn("Deleted the active project");
-      this.newProject();
+      this.message.add({
+        severity: 'success',
+        summary: 'Project saved',
+        detail: 'Your project has been saved successfully'
+      });
+    } else {
+      this.message.add({
+        severity: 'error',
+        summary: 'Save failed',
+        detail: 'Could not save the project'
+      });
     }
   }
 
+  async deleteProject(key: string, storageType: 'local' | 'cloud', event?: Event) {
+    event?.stopPropagation();
 
+    const success = await this.projectStorage.deleteProject(key, storageType);
+
+    if (success) {
+      // Refresh project list
+      await this.loadProjects();
+
+      // Check if we deleted the active project
+      const active = this.projectStorage.getActiveProject();
+      if (active?.key === key) {
+        this.newProject();
+      }
+
+      this.message.add({
+        severity: 'success',
+        summary: 'Project deleted',
+        detail: 'The project has been removed'
+      });
+    } else {
+      this.message.add({
+        severity: 'error',
+        summary: 'Delete failed',
+        detail: 'Could not delete the project'
+      });
+    }
+  }
+
+  // Upload local project to cloud
+  async uploadToCloud(project: ProjectMetadata, event?: Event) {
+    event?.stopPropagation();
+
+    if (!this.authService.isAuthenticated()) {
+      this.showSave = true;
+      return;
+    }
+
+    // Load the full project from local storage
+    const fullProject = await this.projectStorage.loadProject(project.key, 'local');
+    if (!fullProject) {
+      this.message.add({
+        severity: 'error',
+        summary: 'Upload failed',
+        detail: 'Could not load project data'
+      });
+      return;
+    }
+
+    // Update storage type to cloud
+    fullProject.storageType = 'cloud';
+
+    // Save to cloud
+    const success = await this.projectStorage.saveProject(fullProject);
+
+    if (success) {
+      // Optionally delete from local storage
+      // await this.projectStorage.deleteProject(project.key, 'local');
+
+      // Refresh project list
+      await this.loadProjects();
+
+      this.message.add({
+        severity: 'success',
+        summary: 'Uploaded to cloud',
+        detail: 'Your project is now available in the cloud'
+      });
+    } else {
+      this.message.add({
+        severity: 'error',
+        summary: 'Upload failed',
+        detail: 'Could not upload project to cloud'
+      });
+    }
+  }
 
   //testing
 
@@ -233,60 +291,14 @@ export class SwitchProjectComponent implements OnInit {
     return iconMap[phase || 'Draft'] || 'pencil';
   }
 
-  //more testing
-  // Combined projects (local + cloud)
-  combinedProjects = computed(() => {
-    const local = this.savedProjects().map(p => ({
-      ...p,
-      storageType: 'local' as const,
-      canEdit: true
-    }));
 
-    const cloud = this.cloudStorage.projects().map(p => ({
-      key: p.key,
-      timestamp: p.timestamp,
-      pages: p.pages,
-      phase: p.phase,
-      local: false,
-      storageType: 'cloud' as const,
-      cloudId: p.id,
-      collaborators: p.collaborators,
-      canEdit: this.cloudStorage.canEdit(p)
-    }));
 
-    return [...local, ...cloud].sort((a, b) => b.timestamp - a.timestamp);
-  });
 
-  async ngOnInit() {
-    this.loadProjects();
-    await this.cloudStorage.loadProjects();
-  }
 
-  async uploadToCloud(project: LocalProject) {
-    if (!this.authService.isAuthenticated()) {
-      this.showSave = true;
-      return;
-    }
-
-    // Load the project state from localStorage
-    const projectState = localStorage.getItem(project.key);
-    if (!projectState) return;
-
-    const state = JSON.parse(projectState);
-    const cloudId = await this.cloudStorage.saveProject(state);
-
-    if (cloudId) {
-      // Optional: Remove from local storage after successful upload
-      // this.deleteProject(project.key);
-
-      // Show success message
-      console.log('Project uploaded to cloud with ID:', cloudId);
-    }
-  }
 
   async loadCloudProject(cloudId: string) {
     const project = await this.cloudStorage.getProject(cloudId);
-    if (!project || !project.content) return;
+    if (!project || !project.projectData) return;
 
     /* Parse the content and load it into the state
     const state = JSON.parse(project.content);
@@ -305,6 +317,35 @@ export class SwitchProjectComponent implements OnInit {
     const success = await this.cloudStorage.deleteProject(cloudId);
     if (success) {
       console.log('Cloud project deleted');
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+  async loadProject(key: string, storageType: 'local' | 'cloud' = 'local') {
+
+    // Show loading state on card
+    this.loadingKey = key;
+    await new Promise(resolve => setTimeout(resolve, 600));
+
+    try {
+      const project = await this.projectStorage.loadProject(key, storageType);
+
+      if (project) {
+        this.projectState.setProject(project); // Update the project state
+      } else {
+        console.error('Failed to load project'); // Show error message
+      }
+    } finally {
+      this.loadingKey = null;
     }
   }
 

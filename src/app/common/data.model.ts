@@ -7,16 +7,6 @@ Don't store values that can be derived from other values unless you need to disp
 
 import { TreeNode } from "primeng/api";
 
-//Saved local projects
-export interface LocalProject {
-    key: string;
-    timestamp: number;
-    pages: number;
-    phase: ProjectPhase;
-    local: boolean;
-    repo?: string;
-}
-
 //Project phase
 export enum ProjectPhase {
     Draft = 'phase.draft',
@@ -99,23 +89,44 @@ export interface ProjectTreeNodeData {
     problem?: PageProblem
 }
 
+export interface FlattenedTreeNode {
+    h1: string;
+    url: string;
+    oppUrl: string;
+    inScope: boolean;
+    isOrphan: boolean;
+    isNew: boolean;
+    isMoved: boolean;
+    isROT: boolean;
+}
+
+export interface TableColumn {
+    field: keyof FlattenedTreeNode;
+    translationKey: string;
+    type: 'text' | 'url' | 'boolean';
+    frozen?: boolean;
+}
+
 //Project interface
-export interface Project {
-    //Project metadata
-    id: string;
+export interface Project extends ProjectMetadata {
     version: number;
-    projectName: string;
-    phase: ProjectPhase;
     created: Date;
-    lastModified: Date;
     lastSaved: Date;
     lastExported: Date;
-    storageLocation: 'browser' | 'cloud';
-    collaborators?: GitHubUser[];
-    baselinePages: number;
+    projectData: TreeNode[];  // Full tree structure
+}
+
+// Project metadata for displaying in project lists (both local and cloud)
+export interface ProjectMetadata {
+    id: string;
+    key: string;
+    projectName: string;
+    lastModified: Date;
+    phase: ProjectPhase;
     inScopePages: number;
-    //GitHub repo data
+    baselinePages: number;
+    collaborators: GitHubUser[];
     github: GitHubRepo;
-    //Project data
-    projectData: TreeNode[];
+    storageType: 'local' | 'cloud';
+    canEdit?: boolean;  // computed based on auth status for cloud projects
 }

@@ -19,6 +19,7 @@ output "lambda_function_names" {
     auth_url = aws_lambda_function.github_auth_url.function_name
     callback = aws_lambda_function.github_callback.function_name
     projects = aws_lambda_function.projects.function_name
+    airtable = aws_lambda_function.airtable.function_name
   }
 }
 

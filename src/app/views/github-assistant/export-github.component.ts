@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -83,20 +83,90 @@ export class ExportGithubComponent implements OnInit {
   public translate = inject(TranslateService);
   private themeService = inject(ThemeService);
 
-  url = "test"
+  url = "test";
+  username = computed(() => this.exportGitHubService.user()?.name || this.exportGitHubService.user()?.login || 'User');
 
   //Signals
   projectData = this.projectState.getProject;
-  connectionStatus = signal<'checking' | 'connected' | 'warning' | 'error'>('checking');
+  connectionStatus = signal<'checking' | 'connected' | 'unverified' | 'warning' | 'error' | 'missing'>('checking');
+  showDisclaimer = signal<boolean>(false);
+
   filesTable = signal<FileStatus[]>([]);
   exportMessage = signal<ExportMessage | null>(null);
-  gitHubData = this.projectData().github;
 
+  pat = signal<string>(this.exportGitHubService.pat);
+  precheckInProgress = signal<boolean>(false);
+
+  constructor() {
+    // Watch for changes to token or repo settings and run validateConnection
+    effect(async () => {
+      const token = this.exportGitHubService.token();
+      const owner = this.projectData().github.owner;
+      const repo = this.projectData().github.repo;
+      const isAuthenticated = this.authService.isAuthenticated();
+      console.log("Effect triggered: token or repo changed.", { token, owner, repo, isAuthenticated });
+      // Only run precheck if we have a token and repo configured
+      if (token && owner && repo) {
+        await this.validateConnection();
+      } else if (!token && !this.authService.isAuthenticated()) {
+        // No authentication method available
+        this.connectionStatus.set('missing');
+      }
+    });
+  }
+
+  //Validate token and repo access
+  private async validateConnection(): Promise<void> {
+    this.precheckInProgress.set(true);
+    this.connectionStatus.set('checking');
+    this.showDisclaimer.set(false);
+
+    const token = this.exportGitHubService.token();
+    const owner = this.projectData().github.owner;
+    const repo = this.projectData().github.repo;
+
+    const result = await this.exportGitHubService.validateToken(token, owner, repo);
+
+    console.log('Validation result:', result);
+    console.log('showDisclaimer value:', result.showDisclaimer);
+
+    if (!result.valid) {
+      this.connectionStatus.set('error');
+      console.error('Token validation failed:', result.error);
+    } else if (result.repoExists && !result.hasRepoAccess) {
+      this.connectionStatus.set('warning');
+      console.warn(`No write access to ${owner}/${repo}`);
+    } else if (!result.repoExists && !result.canCreateRepo) {
+      this.connectionStatus.set('warning');
+      console.warn(`Cannot create repo in ${owner}`);
+    } else {
+      this.connectionStatus.set('connected');
+      this.showDisclaimer.set(result.showDisclaimer || false);
+      if (result.showDisclaimer) {
+        console.warn('Connected to GitHub but PAT scope cannot be verified. Please ensure PAT has appropriate scopes.');
+      }
+    }
+    this.precheckInProgress.set(false);
+  }
+
+  //Manage PAT
+  savePAT(): void {
+    this.exportGitHubService.pat = this.pat();
+  }
+  onPastePAT() {
+    setTimeout(() => this.savePAT(), 0);
+  }
+  clearPAT(): void {
+    this.pat.set('');
+    this.exportGitHubService.pat = '';
+    sessionStorage.removeItem('github_pat');
+  }
 
 
   // Computed signals
-  inScopePageCount = computed(() => this.projectState.getProject().inScopePages);
-  baselinePageCount = computed(() => this.projectState.getProject().baselinePages);
+  gitHubData = computed(() => this.projectData().github);
+  inScopePageCount = computed(() => this.projectData().inScopePages);
+  baselinePageCount = computed(() => this.projectData().baselinePages);
   jekyllFileCount = computed(() => this.filesTable().filter(f => !f.path.startsWith('en/') && !f.path.startsWith('fr/')).length);
   newCount = computed(() => this.filesTable().filter(f => f.location === 'new page').length);
   updatedCount = computed(() => this.filesTable().filter(f => f.location === 'update').length);
@@ -105,7 +175,7 @@ export class ExportGithubComponent implements OnInit {
 
   //Check if project is loaded
   get projectLoaded(): boolean {
-    const name = this.projectState.getProject().projectName;
+    const name = this.projectData().projectName;
     return !!name;
   }
 
@@ -124,8 +194,10 @@ export class ExportGithubComponent implements OnInit {
 
     const bgMap = {
       'connected': isDark ? 'bg-green-900' : 'bg-green-50',
+      'unverified': isDark ? 'bg-blue-900' : 'bg-blue-50',
       'warning': isDark ? 'bg-yellow-900' : 'bg-yellow-50',
       'error': isDark ? 'bg-red-900' : 'bg-red-50',
+      'missing': isDark ? 'bg-red-900' : 'bg-red-50',
       'checking': isDark ? 'bg-blue-900' : 'bg-blue-50'
     };
 
@@ -138,8 +210,10 @@ export class ExportGithubComponent implements OnInit {
 
     const colorMap = {
       'connected': isDark ? 'text-green-300' : 'text-green-700',
+      'unverified': '',
       'warning': isDark ? 'text-yellow-300' : 'text-yellow-700',
       'error': isDark ? 'text-red-300' : 'text-red-700',
+      'missing': isDark ? 'text-red-300' : 'text-red-700',
       'checking': ''
     };
 
@@ -160,9 +234,10 @@ export class ExportGithubComponent implements OnInit {
 
   async ngOnInit() {
     //this.projectState.loadFromLocalStorage();
-    await this.compareFiles(this.gitHubData.owner, this.gitHubData.repo, this.gitHubData.branch, this.exportGitHubService.token);
+    await this.compareFiles(this.gitHubData().owner, this.gitHubData().repo, this.gitHubData().branch, this.exportGitHubService.token());
     //temp
     this.projectData().lastExported = new Date();
+    await this.validateConnection();
   }
 
   //Get in-scope URLs and page content
@@ -171,7 +246,7 @@ export class ExportGithubComponent implements OnInit {
     if (node.data.status.inScope && node.data.url) {
       try {
         const doc = await this.fetchService.fetchContent(node.data.url, "prod");
-        const jekyllFormatted = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData.owner, this.gitHubData.repo);
+        const jekyllFormatted = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, this.gitHubData().repo);
         pages.push({ url: node.data.url, content: jekyllFormatted });
       } catch (error) {
         console.error(`Error fetching content for ${node.data.url}:`, error);
@@ -191,7 +266,7 @@ export class ExportGithubComponent implements OnInit {
 
     //Step 0: Save current GitHub data to state
     this.projectState.setGitHubRepo({ owner, repo, branch });
-    this.projectState.saveToLocalStorage();
+    this.projectState.saveProject();
 
     // Step 1: Gather all in-scope URLs and their content
     const nodes = this.projectState.getProjectTree();

@@ -10,6 +10,7 @@ import { ApiKeyComponent } from './components/ai-api/api-key.component';
 import { LocalStorageService } from './services/storage/local-storage.service';
 import { CustomTitleStrategy } from './common/custom-title-strategy';
 import { PrimeNG } from 'primeng/config';
+import { ProjectStorageService } from './services/storage/project-storage.service';
 import { ProjectStateService } from './services/project-state.service';
 
 @Component({
@@ -25,9 +26,10 @@ export class AppComponent implements OnInit {
   private primeng = inject(PrimeNG);
   router = inject(Router);
   route = inject(ActivatedRoute);
-  projectState = inject(ProjectStateService)
+  projectStorage = inject(ProjectStorageService);
+  projectState = inject(ProjectStateService);
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.primeng.ripple.set(true);
     //Set api key from url parameter if present then remove the param
     this.route.queryParams.subscribe(params => {
@@ -42,7 +44,27 @@ export class AppComponent implements OnInit {
         });
       }
     });
-    this.projectState.loadFromLocalStorage();
+    await this.loadProject();
     console.log('The initial API key is: ', this.localStore.getData('apiKey'));
+  }
+
+  async loadProject() {
+    const active = this.projectStorage.getActiveProject();
+    if (!active) return;
+    console.log(`Attempting to load active project: ${active.key} from ${active.storageType}`);
+    try {
+      const project = await this.projectStorage.loadProject(active.key, active.storageType);
+      if (project) {
+        this.projectState.setProject(project); // Update the project state
+        console.log(`Project loaded successfully: ${active.key}`)
+      } else {
+        console.error(`Failed to load project: ${active.key}`); // Show error message
+        this.projectStorage.clearActiveProject();
+      }
+    }
+    catch (error) {
+      console.error(`Error loading active project: ${active.key}`, error)
+      this.projectStorage.clearActiveProject();
+    }
   }
 }
