@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule } from "@ngx-translate/core";
 import { ToolbarModule } from 'primeng/toolbar';
 import { ThemeService } from '../services/theme.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'aida-footer',
@@ -11,7 +12,7 @@ import { ThemeService } from '../services/theme.service';
 <footer class="container">
   <p-toolbar>
     <div class="flex align-items-end">
-      <p class="text-color-secondary text-sm pt-5">{{'app.version'|translate}}</p>
+      <p class="white-space-nowrap text-color-secondary text-sm pt-5">{{'app.version'|translate}} {{version}}</p>
     </div>
     <div class="flex align-items-end">
       <img
@@ -31,6 +32,7 @@ import { ThemeService } from '../services/theme.service';
 })
 export class FooterComponent {
   private theme = inject(ThemeService);
+  version = environment.version
 
   get logoSrc() {
     return this.theme.darkMode() ? 'canada-logo-dark.png' : 'canada-logo.png';
