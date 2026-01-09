@@ -61,10 +61,10 @@ export class SetupProjectComponent {
         this.projectState.setProjectPhase(value);
     }
     //Storage select button
-    get projectStorage(): 'browser' | 'cloud' {
-        return this.projectData.storageLocation;
+    get projectStorage(): 'local' | 'cloud' {
+        return this.projectData.storageType;
     }
-    set projectStorage(value: 'browser' | 'cloud') {
+    set projectStorage(value: 'local' | 'cloud') {
         this.projectState.setStorageLocation(value);
     }
 

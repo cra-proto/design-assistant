@@ -8,6 +8,7 @@ import { MenuItem } from 'primeng/api';
 
 //Services
 import { ProjectStateService } from '../../services/project-state.service';
+import { ProjectStorageService } from '../../services/storage/project-storage.service';
 
 @Component({
     selector: 'aida-export-project',
@@ -21,6 +22,7 @@ import { ProjectStateService } from '../../services/project-state.service';
 export class ExportProjectComponent {
 
     projectState = inject(ProjectStateService);
+    projectStorage = inject(ProjectStorageService);
 
     exportItems: MenuItem[] = [
         {

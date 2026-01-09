@@ -266,7 +266,7 @@ export class ExportGithubComponent implements OnInit {
 
     //Step 0: Save current GitHub data to state
     this.projectState.setGitHubRepo({ owner, repo, branch });
-    this.projectState.saveToLocalStorage();
+    this.projectState.saveProject();
 
     // Step 1: Gather all in-scope URLs and their content
     const nodes = this.projectState.getProjectTree();

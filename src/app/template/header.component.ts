@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
@@ -30,7 +30,7 @@ import { MessageService } from 'primeng/api'
     DividerModule, TagModule, MenuModule, BadgeModule, ToastModule
   ],
   template: `
-  <header id="header" class="pb-2">
+   <header id="header" class="pb-2">
   <p-toolbar>
     <div class="flex align-items-center hidden md:block">
       <img
@@ -42,15 +42,25 @@ import { MessageService } from 'primeng/api'
       />
     </div>
     <div class="flex align-items-center gap-3">
-      <p-button (onClick)="save()" icon="pi pi-exclamation-triangle" label="Unsaved changes" rounded severity="primary" size="small" styleClass="white-space-nowrap" class="sticky top-0 z-3" *ngIf="hasUnsavedChanges"></p-button>
+      <!-- Save status button - shown conditionally based on status and time -->
+      <p-button
+        *ngIf="showSaveButton()"
+        (onClick)="save()"
+        [icon]="saveButtonConfig().icon"
+        [label]="saveButtonConfig().label"
+        [severity]="saveButtonConfig().severity"
+        text rounded
+        size="small"
+        styleClass="white-space-nowrap">
+      </p-button>
       <p-toast></p-toast>
 
       <!--p-button (onClick)="goToProject()" rounded outlined severity="primary" styleClass="border-dashed surface-border" [label]="project | translate"></p-button-->
 
-      <p-divider layout="vertical" styleClass="mx-2"></p-divider>
+      <p-divider *ngIf="showSaveButton()" layout="vertical" styleClass="mx-2"></p-divider>
 
       <aida-github-connect></aida-github-connect>
-      
+
       <aida-api-reset
         *ngIf="this.localStore.getData('apiKey') !== null">
       </aida-api-reset>
@@ -98,6 +108,53 @@ export class HeaderComponent {
   public projectState = inject(ProjectStateService);
   public messageService = inject(MessageService);
 
+
+  // Get save status from project state
+  saveStatus = this.projectState.getSaveStatus;
+  hasUnsavedChanges = computed(() => this.projectState.hasUnsavedChanges());
+
+  // Show save button when there are unsaved changes
+  showSaveButton = computed(() => {
+    const status = this.saveStatus();
+    return status !== 'saved';
+  });
+
+  // Configure button appearance based on status and time
+  saveButtonConfig = computed(() => {
+    const status = this.saveStatus();
+
+    if (status === 'error') {
+      return {
+        label: 'Save failed - Retry',
+        icon: 'pi pi-exclamation-circle',
+        severity: 'danger' as const
+      };
+    }
+
+    if (status === 'saving') {
+      return {
+        label: 'Saving...',
+        icon: 'pi pi-spin pi-spinner',
+        severity: 'info' as const
+      };
+    }
+
+    if (status === 'unsaved') {
+      return {
+        label: 'Unsaved changes',
+        icon: 'pi pi-exclamation-triangle',
+        severity: 'danger' as const
+      };
+    }
+
+    // Default (shouldn't show due to showSaveButton computed)
+    return {
+      label: 'Saved',
+      icon: 'pi pi-check',
+      severity: 'success' as const
+    };
+  });
+
   get project(): string {
     const repo = this.projectState.getProject().github.repo;
     const display = repo
@@ -140,18 +197,30 @@ export class HeaderComponent {
     this.router.navigate(['']);
   }
 
-  get hasUnsavedChanges(): boolean {
-    const project = this.projectState.getProject();
-    return project.lastModified > project.lastSaved;
+  async save() {
+    await this.projectState.saveProject();
   }
 
-  save() {
-    const project = this.projectState.getProject();
-    const now = new Date().getTime();
-    const lastSaved = new Date(project.lastSaved).getTime();
-    const diffMs = now - lastSaved;
-    const diffMins = Math.floor(diffMs / 60000);
-    this.messageService.add({ severity: 'info', summary: 'Save details', detail: `Last modified: ${project.lastModified}\n\nLast saved:  ${project.lastSaved}\n\nCreated:  ${project.created}\n\nMinutes since last save:  ${diffMins}`, life: 10000 });
+  async testSave() {
+    console.log('=== TEST SAVE TRIGGERED ===');
+    const currentProject = this.projectState.getProject();
+    console.log('Current project before save:', currentProject.projectName);
+
+    const success = await this.projectState.saveProject();
+
+    if (success) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Test Save Successful',
+        detail: 'Check console for details'
+      });
+    } else {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Test Save Failed',
+        detail: 'Check console for errors'
+      });
+    }
   }
 
 }
