@@ -79,7 +79,7 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
             ExpressionAttributeValues: {
                 ':public': true
             },
-            ProjectionExpression: 'id, #k, #n, #o, repo, pages, phase, #t, collaborators',
+            ProjectionExpression: 'id, #k, #n, #o, repo, pages, phase, #t, collaborators, github',
             ExpressionAttributeNames: {
                 '#k': 'key',
                 '#n': 'name',
@@ -89,6 +89,24 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
         }));
 
         console.log('Found projects:', result.Items?.length || 0);
+
+        // Transform to match ProjectMetadata interface
+        const projects = result.Items?.map(item => ({
+            id: item.id,
+            key: item.key,
+            projectName: item.name,
+            phase: item.phase,
+            inScopePages: item.pages,
+            lastModified: item.timestamp,
+            storageType: 'cloud',
+            collaborators: item.collaborators || [],
+            github: {
+                owner: item.owner || 'proto-cra',
+                repo: item.repo,
+                branch: item.branch || 'main',
+                hasBaselineRepo: false
+            }
+        })) || [];
 
         return {
             statusCode: 200,
@@ -170,10 +188,13 @@ export const getProject = async (event: APIGatewayProxyEvent): Promise<APIGatewa
             }
         }
 
+        // Parse the stored content back to full project structure
+        const fullProject = JSON.parse(result.Item.content);
+
         return {
             statusCode: 200,
             headers: corsHeaders,
-            body: JSON.stringify(result.Item)
+            body: JSON.stringify(fullProject)
         };
     } catch (error) {
         console.error('Error getting project:', error);
@@ -215,16 +236,16 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
         console.log('Parsed project data:', JSON.stringify(projectData, null, 2));
 
         // Validate required fields for DynamoDB GSI
-        const repo = projectData.gitHubData?.repo || projectData.repo || '';
+        const name = projectData.projectName || projectData.key || '';
         const owner = projectData.gitHubData?.owner || projectData.owner || user.login;
 
-        if (!repo || repo.trim() === '') {
+        if (!name || name.trim() === '') {
             return {
                 statusCode: 400,
                 headers: corsHeaders,
                 body: JSON.stringify({
-                    error: 'Repository name is required',
-                    details: 'Please specify a GitHub repository for this project'
+                    error: 'Project name is required',
+                    details: 'Please specify a name for this project'
                 })
             };
         }
@@ -234,27 +255,30 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
         // Create project object
         const project: Project = {
             id: projectData.id || uuidv4(),
-            key: repo,
-            name: projectData.name || repo.replace(/-/g, ' ').replace(/^\w/, (c: string) => c.toUpperCase()) || 'Untitled Project',
-            owner: owner,
-            repo: repo,
-            branch: projectData.gitHubData?.branch || 'main',
-            pages: projectData.pages || 0,
-            phase: projectData.phase || 'Draft',
-            timestamp: now,
-            collaborators: projectData.collaborators || [{
-                githubId: user.id.toString(),
-                login: user.login,
-                name: user.name || user.login,
-                avatarUrl: user.avatar_url
-            }],
+            key: projectData.key,
+            name: projectData.projectName,
+            owner: projectData.github.owner,
+            repo: projectData.github.repo,
+            branch: projectData.github.branch || 'main',
+            pages: projectData.inScopePages,
+            phase: projectData.phase,
+            timestamp: projectData.lastModified,
+            collaborators: projectData.collaborators || [],
             content: JSON.stringify(projectData), // Store the entire project state
             isPublic: projectData.isPublic !== false, // Default to public
-            createdAt: projectData.createdAt || now,
+            createdAt: projectData.created || now,
             updatedAt: now
         };
 
         console.log('Project to save:', JSON.stringify(project, null, 2));
+        console.log('Project to save:', {
+            id: project.id,
+            key: project.key,
+            name: project.name,
+            owner: project.owner,
+            repo: project.repo,
+            pages: project.pages
+        });
 
         // Check if user is authorized to update (must be a collaborator)
         if (projectData.id) {
@@ -279,10 +303,24 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
 
                 // Preserve original creator and creation date
                 project.createdAt = existing.Item.createdAt;
-                project.collaborators = existing.Item.collaborators;
             }
         }
 
+        else {
+            // New project - ensure current user is in collaborators
+            const hasCurrentUser = project.collaborators.some(
+                (c: any) => c.githubId === user.id.toString()
+            );
+
+            if (!hasCurrentUser) {
+                project.collaborators.push({
+                    githubId: user.id.toString(),
+                    login: user.login,
+                    name: user.name || user.login,
+                    avatarUrl: user.avatar_url
+                });
+            }
+        }
         // Save to DynamoDB
         console.log('Saving to DynamoDB...');
         await docClient.send(new PutCommand({

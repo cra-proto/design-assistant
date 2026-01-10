@@ -13,7 +13,7 @@ export class CloudStorageService {
     private http = inject(HttpClient);
     private authService = inject(GitHubAuthService);;
 
-    private readonly API_URL = `${environment.dynamodbFunctionUrl}/projects`;
+    private readonly API_URL = environment.dynamodbFunctionUrl;
 
     // Signal for cloud project metadata (for list view)
     private cloudProjects = signal<ProjectMetadata[]>([]);
@@ -53,7 +53,7 @@ export class CloudStorageService {
 
         try {
             const projects = await firstValueFrom(
-                this.http.get<ProjectMetadata[]>(this.API_URL, {
+                this.http.get<ProjectMetadata[]>(`${this.API_URL}/projects`, {
                     headers: this.getHeaders()
                 }).pipe(
                     catchError(error => {
