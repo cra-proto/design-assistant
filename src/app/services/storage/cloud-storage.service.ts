@@ -3,7 +3,6 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom, of, catchError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { GitHubAuthService } from '../github/github-auth.service';
-import { ProjectStorageService } from './project-storage.service';
 import { Project, ProjectMetadata } from '../../common/data.model';
 import { TreeNode } from 'primeng/api';
 
@@ -12,8 +11,7 @@ import { TreeNode } from 'primeng/api';
 })
 export class CloudStorageService {
     private http = inject(HttpClient);
-    private authService = inject(GitHubAuthService);
-    //private projectStorage = inject(ProjectStorageService);
+    private authService = inject(GitHubAuthService);;
 
     private readonly API_URL = `${environment.apiUrl}/projects`;
 
@@ -66,7 +64,14 @@ export class CloudStorageService {
                 )
             );
 
-            this.cloudProjects.set(projects);
+            // Convert timestamps back to Dates and ensure storageType is set
+            const convertedProjects: ProjectMetadata[] = projects.map(p => ({
+                ...p,
+                lastModified: new Date(p.lastModified),
+                storageType: 'cloud' as const
+            }));
+
+            this.cloudProjects.set(convertedProjects);
         } finally {
             this.loading.set(false);
         }
@@ -92,7 +97,19 @@ export class CloudStorageService {
                 )
             );
 
-            return project;
+            if (!project) return null;
+
+            // Convert timestamps back to Dates
+            const convertedProject: Project = {
+                ...project,
+                created: new Date(project.created),
+                lastModified: new Date(project.lastModified),
+                lastSaved: new Date(project.lastSaved),
+                lastExported: new Date(project.lastExported),
+                storageType: 'cloud' as const
+            };
+
+            return convertedProject;
         } finally {
             this.loading.set(false);
         }
@@ -140,7 +157,7 @@ export class CloudStorageService {
                 lastModified: project.lastModified instanceof Date ? project.lastModified.getTime() : project.lastModified,
                 lastSaved: project.lastSaved instanceof Date ? project.lastSaved.getTime() : project.lastSaved,
                 lastExported: project.lastExported instanceof Date ? project.lastExported.getTime() : project.lastExported,
-                storageLocation: 'cloud' as const,
+                storageType: 'cloud' as const,
                 collaborators: project.collaborators?.map(c => ({
                     githubId: c.id.toString(),
                     login: c.login,

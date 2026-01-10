@@ -58,7 +58,8 @@ export class ProjectStateService {
 
     // Set autosave delay
     private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
-    private readonly AUTO_SAVE_DELAY = 10000; // 10 seconds
+    private readonly AUTO_SAVE_DELAY = 10000; // 30 seconds
+    private readonly MAX_UNSAVED_DURATION = 5 * 60 * 1000 // 5 minutes
 
     constructor() {
         // Autosave after a delay if there are changes
@@ -67,6 +68,14 @@ export class ProjectStateService {
             const hasChanges = currentProject.lastModified > currentProject.lastSaved;
             if (hasChanges) {
                 this.saveStatus.set('unsaved');
+                // Calculate time since last save and save if exceeding the limit
+                const timeSinceLastSave = currentProject.lastModified.getTime() - currentProject.lastSaved.getTime();
+                const shouldForceSave = timeSinceLastSave >= this.MAX_UNSAVED_DURATION;
+                if (shouldForceSave) {
+                    this.saveProject();
+                    return;
+                }
+                // Save after short delay (resets on each change)
                 if (this.autoSaveTimer) {
                     clearTimeout(this.autoSaveTimer);
                 }
