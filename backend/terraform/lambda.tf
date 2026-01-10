@@ -278,7 +278,7 @@ resource "aws_lambda_function_url" "projects_api" {
   }
 }
 
-output "lambda_function_url" {
+output "dynamodb_function_url" {
   value = aws_lambda_function_url.projects_api.function_url
 }
 

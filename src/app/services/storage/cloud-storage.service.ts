@@ -13,7 +13,7 @@ export class CloudStorageService {
     private http = inject(HttpClient);
     private authService = inject(GitHubAuthService);;
 
-    private readonly API_URL = `${environment.apiUrl}/projects`;
+    private readonly API_URL = `${environment.dynamoDBFunctionUrl}/projects`;
 
     // Signal for cloud project metadata (for list view)
     private cloudProjects = signal<ProjectMetadata[]>([]);
