@@ -53,7 +53,7 @@ export class CloudStorageService {
 
         try {
             const projects = await firstValueFrom(
-                this.http.get<ProjectMetadata[]>(`${this.API_URL}/projects`, {
+                this.http.get<ProjectMetadata[]>(`${this.API_URL}projects`, {
                     headers: this.getHeaders()
                 }).pipe(
                     catchError(error => {
