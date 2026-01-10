@@ -267,13 +267,13 @@ resource "aws_apigatewayv2_route" "projects_options_id" {
 #DynamoDB lambda funtion url
 resource "aws_lambda_function_url" "projects_api" {
   function_name      = aws_lambda_function.projects.function_name
-  authorization_type = "NONE"  # or "AWS_IAM" if you want to require signed requests
+  authorization_type = "NONE"
 
   cors {
     allow_credentials = true
     allow_origins     = var.allowed_origins
-    allow_methods     = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-    allow_headers     = ["content-type", "authorization", "x-amz-date", "x-api-key", "x-amz-security-token"]
+    allow_methods     = ["*"]
+    allow_headers     = ["*"]
     max_age          = 86400
   }
 }
