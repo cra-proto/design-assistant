@@ -35,16 +35,7 @@ interface Project {
 
 // Function to get CORS headers based on request origin
 function getCorsHeaders(origin?: string): Record<string, string> {
-    const requestOrigin = origin || '';
-    const allowedOrigin = ALLOWED_ORIGINS.includes(requestOrigin)
-        ? requestOrigin
-        : ALLOWED_ORIGINS[0];
-
     return {
-        'Access-Control-Allow-Origin': allowedOrigin,
-        'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
-        'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-        'Access-Control-Allow-Credentials': 'true',
         'Content-Type': 'application/json',
     };
 }
