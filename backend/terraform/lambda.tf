@@ -264,6 +264,24 @@ resource "aws_apigatewayv2_route" "projects_options_id" {
   target    = "integrations/${aws_apigatewayv2_integration.projects.id}"
 }
 
+#DynamoDB lambda funtion url
+resource "aws_lambda_function_url" "projects_api" {
+  function_name      = aws_lambda_function.projects.function_name
+  authorization_type = "NONE"  # or "AWS_IAM" if you want to require signed requests
+
+  cors {
+    allow_credentials = true
+    allow_origins     = var.allowed_origins
+    allow_methods     = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    allow_headers     = ["content-type", "authorization", "x-amz-date", "x-api-key", "x-amz-security-token"]
+    max_age          = 86400
+  }
+}
+
+output "lambda_function_url" {
+  value = aws_lambda_function_url.projects_api.function_url
+}
+
 # Airtable Lambda Function
 resource "aws_lambda_function" "airtable" {
   filename         = "${path.module}/../functions/airtable/lambda.zip"
