@@ -278,6 +278,23 @@ resource "aws_lambda_function_url" "projects_api" {
   }
 }
 
+# Lambda Function URL permission (required as of October 2024)
+resource "aws_lambda_permission" "function_url_invoke" {
+  statement_id           = "FunctionURLAllowPublicAccess"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.projects.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+}
+
+# Also keep the InvokeFunction permission for compatibility
+resource "aws_lambda_permission" "function_invoke" {
+  statement_id  = "AllowPublicInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.projects.function_name
+  principal     = "*"
+}
+
 output "dynamodb_function_url" {
   value = aws_lambda_function_url.projects_api.function_url
 }
