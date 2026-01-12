@@ -92,7 +92,7 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
             storageType: 'cloud',
             collaborators: item.collaborators || [],
             github: {
-                owner: item.owner || 'proto-cra',
+                owner: item.owner,
                 repo: item.repo,
                 branch: item.branch || 'main',
                 hasBaselineRepo: false
