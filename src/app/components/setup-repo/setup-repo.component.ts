@@ -23,6 +23,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ProjectStateService } from '../../services/project-state.service';
 import { ExportGitHubService } from '../../services/github/export-github.service';
 import { GitHubAuthService } from '../../services/github/github-auth.service';
+import { environment } from '../../../environments/environment';
 
 
 @Component({
@@ -39,6 +40,7 @@ export class SetupRepoComponent implements OnInit {
   projectState = inject(ProjectStateService);
   exportGitHubService = inject(ExportGitHubService);
   authService = inject(GitHubAuthService);
+  defaultOrg = environment.defaultOrg
 
   //Check if project is loaded
   get projectLoaded(): boolean {
@@ -97,7 +99,7 @@ export class SetupRepoComponent implements OnInit {
 
   updateOwner() {
     this.gitHubOwner = this.gitHubOwner.trim().toLowerCase().replace(/^[-]+|[-]+$/g, '').replace(/[-]{2,}/g, '-');
-    if (!this.gitHubOwner) { this.gitHubOwner = 'proto-cra'; }
+    if (!this.gitHubOwner) { this.gitHubOwner = this.defaultOrg; }
     this.projectState.setGitHubRepo({ owner: this.gitHubOwner });
   }
 

@@ -42,7 +42,7 @@ export class ProjectStateService {
         baselinePages: 0,
         inScopePages: 0,
         github: {
-            owner: 'proto-cra',
+            owner: environment.defaultOrg,
             repo: '',
             branch: 'main',
             hasBaselineRepo: false

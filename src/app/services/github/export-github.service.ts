@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { FetchService } from '../fetch.service';
 import { GitHubAuthService, GitHubUser } from './github-auth.service';
+import { environment } from '../../../environments/environment';
 
 export interface GitHubFileRequest {
   message: string;
@@ -15,6 +16,7 @@ export interface GitHubFileRequest {
 export class ExportGitHubService {
   private fetchService = inject(FetchService);
   private authService = inject(GitHubAuthService);
+  templateOrg = environment.templateOrg;
 
   //Manage GitHub token
   token = computed(() =>
@@ -419,10 +421,10 @@ defaults:
       css:
         - https://use.fontawesome.com/releases/v5.15.4/css/all.css
         - https://wet-boew.github.io/themes-dist/GCWeb/GCWeb/m%C3%A9li-m%C3%A9lo/2025-12-mille-iles.css
-        - https://cra-design.github.io/core-prototype/source/css/testing-banner.css
+        - https://${this.templateOrg}.github.io/core-prototype/source/css/testing-banner.css
       script:
         - https://wet-boew.github.io/themes-dist/GCWeb/GCWeb/m%C3%A9li-m%C3%A9lo/2025-12-mille-iles.js
-        - https://cra-design.github.io/core-prototype/source/scripts/external-link-detour.js
+        - https://${this.templateOrg}.github.io/core-prototype/source/scripts/external-link-detour.js
         `
     try {
       console.log(`Creating _config.yml for ${repo}`);
@@ -524,10 +526,11 @@ Add information on how to manage the repo here.
   }
 
   private filesToCopy = [
-    "https://raw.githubusercontent.com/cra-design/core-prototype/main/_includes/header/header.html",
-    "https://raw.githubusercontent.com/cra-design/core-prototype/main/_includes/resources-inc/footer.html",
-    "https://raw.githubusercontent.com/cra-design/core-prototype/main/source/exit-intent-e.html",
-    "https://raw.githubusercontent.com/cra-design/core-prototype/main/404.html",
+    `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/_includes/header/header.html`,
+    `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/_includes/headers-includes/sitesearch.html`,
+    `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/_includes/resources-inc/footer.html`,
+    `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/source/exit-intent-e.html`,
+    `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/404.html`,
   ];
 
   private async copyCoreFiles(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>) {

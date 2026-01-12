@@ -34,6 +34,7 @@ import { ProjectStateService } from '../../services/project-state.service';
 import { FetchService } from '../../services/fetch.service';
 import { GitHubAuthService } from '../../services/github/github-auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { environment } from '../../../environments/environment';
 
 //Components
 import { SetupRepoComponent } from '../../components/setup-repo/setup-repo.component';
@@ -82,6 +83,8 @@ export class ExportGithubComponent implements OnInit {
   private fetchService = inject(FetchService);
   public translate = inject(TranslateService);
   private themeService = inject(ThemeService);
+
+  defaultOrg = environment.defaultOrg;
 
   url = "test";
   username = computed(() => this.exportGitHubService.user()?.name || this.exportGitHubService.user()?.login || 'User');

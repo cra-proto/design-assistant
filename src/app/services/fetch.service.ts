@@ -9,11 +9,12 @@ export class FetchService {
   //Block unknown hosts
   private prodHost = "www.canada.ca";
   private protoHosts = new Set([
+    `${environment.defaultOrg}.github.io`,
     "proto-cra.github.io",
     //"cra-design.github.io", //Currently blocked by browser because it looks like a phishing site
     "cra-proto.github.io",
-    //"gc-proto.github.io", //CORS error but redirects to test.canada.ca which works
     "test.canada.ca",
+    //"gc-proto.github.io", //CORS error but redirects to test.canada.ca which works
   ]);
   private getAllowedHosts(mode: "prod" | "proto" | "both"): Set<string> {
     const allowed = new Set<string>();
