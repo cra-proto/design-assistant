@@ -31,7 +31,7 @@ import { MessageService } from 'primeng/api'
   ],
   template: `
    <header id="header" class="pb-2">
-  <p-toolbar>
+  <p-toolbar class="transparent">
     <div class="flex align-items-center hidden md:block">
       <img
         id="cra-logo"
@@ -77,11 +77,6 @@ import { MessageService } from 'primeng/api'
 </div>
 `,
   styles: `
-  ::ng-deep .p-toolbar {
-      background-color: transparent !important;
-      border: none !important;
-       
-    }
   header {
       border-bottom-style: solid;
       border-bottom-color: var(--p-gray-400);
