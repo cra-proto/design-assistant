@@ -43,13 +43,12 @@ export interface GitHubRepo {
 
 //Page metadata
 export interface PageMeta {
-    url: string;                    // User-added URL
-    oppUrl: string;                 // Oppostie language URL    
-    baselineParent: string | null;  // Last url in breadcrumb (the parent page)
-    h1: string;                     // All H1's on the page
     title?: string;                 // Metadata title
     description?: string;           // Metadata description
     keywords?: string;              // Metadata keywords
+    template?: string;              // Determined based on page content & url pattern
+    task?: string;                  // Determined by comparing with task airtable data
+    oppUrl?: string;                // Opposite language URL 
     oppTitle?: string;              // jrc:content.json otherTitle
     owner?: string;                 // jrc:content.json gcContributor
     email?: string;                 // jrc:content.json gcBranch
@@ -90,14 +89,28 @@ export interface ProjectTreeNodeData {
 }
 
 export interface FlattenedTreeNode {
+    //Current language
     h1: string;
     url: string;
+    //Opposite language
+    oppTitle: string;
     oppUrl: string;
+    //Status
     inScope: boolean;
     isOrphan: boolean;
     isNew: boolean;
     isMoved: boolean;
     isROT: boolean;
+    //Data
+    template: string;
+    task: string;
+    //Metadata
+    title: string;
+    description: string;
+    keywords: string;
+    //Owner
+    owner: string;
+    email: string;
 }
 
 export interface TableColumn {
@@ -105,6 +118,15 @@ export interface TableColumn {
     translationKey: string;
     type: 'text' | 'url' | 'boolean';
     frozen?: boolean;
+    group: 'page' | 'oppPage' | 'status' | 'owner' | 'data' | 'metadata';
+    visibleByDefault: boolean;
+}
+
+export interface ColumnGroup {
+    key: string;
+    translationKey: string;
+    columns: TableColumn[];
+    visible: boolean;
 }
 
 //Project interface
