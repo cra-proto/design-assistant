@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { FetchService } from '../../../services/fetch.service';
-import { UrlItem, UrlData, BreadcrumbNode } from '../add-pages.model';
+import { UrlItem, UrlData, BreadcrumbNode, PageMetadata } from '../add-pages.model';
 import { TreeNode } from 'primeng/api';
 
 @Injectable({
@@ -8,6 +8,8 @@ import { TreeNode } from 'primeng/api';
 })
 export class BreadcrumbValidationService {
   private fetchService = inject(FetchService);
+
+  metadataCache = new Map<string, PageMetadata>();
 
   //Get one breadcrumb
   private getBreadcrumb(doc: Document, baseUrl: string): BreadcrumbNode[] {
@@ -29,7 +31,7 @@ export class BreadcrumbValidationService {
     return breadcrumbArray;
   }
 
-  //Step 1: Get all breadcrumbs
+  //Step 1: Get all breadcrumbs (and any other data we want from the page, H1, metadata, template etc.)
   public async getAllBreadcrumbs(pages: UrlItem[]): Promise<UrlData[]> {
     const results: UrlData[] = [];
 
@@ -43,13 +45,13 @@ export class BreadcrumbValidationService {
         //Get breadcrumb
         const breadcrumb = this.getBreadcrumb(doc, "https://www.canada.ca");
 
-        //Get H1 (or double H1)
-        const h1Elements = Array.from(doc.querySelectorAll('h1'));
-        const h1: string = h1Elements.map(e => e.textContent?.trim()).filter(Boolean).join('<br>');
+        //Get metadata
+        const metadata = this.fetchService.extractPageMetadata(doc, url);
+        this.metadataCache.set(url, metadata);
 
         results.push({
           href: url,
-          h1: h1,
+          h1: metadata.h1,
           breadcrumb: breadcrumb,
           descendants: []
         });
@@ -153,6 +155,8 @@ export class BreadcrumbValidationService {
         try {
 
           const doc = await this.fetchService.fetchContent(parent.url, "prod", 3, "random");
+          const metadata = this.fetchService.extractPageMetadata(doc, parent.url);
+          this.metadataCache.set(parent.url, metadata);
 
           const links = Array.from(doc.querySelectorAll('a'))
             .map(a => a.getAttribute('href'))
@@ -207,6 +211,28 @@ export class BreadcrumbValidationService {
       let parentUrl: string | null = null;
       for (const crumb of breadcrumb) {
 
+        // Get metadata from cache or fetch if missing
+        let metadata = this.metadataCache.get(crumb.url ?? '');
+        if (!metadata && crumb.url) {
+          try {
+            console.warn("Missing metadata. Starting new fetch.")
+            const doc = await this.fetchService.fetchContent(crumb.url, "prod", 3, "random");
+            metadata = this.fetchService.extractPageMetadata(doc, crumb.url);
+            this.metadataCache.set(crumb.url, metadata);
+          } catch (error) {
+            console.error(`Error fetching metadata for ${crumb.url}:`, error);
+            // Use defaults if fetch fails
+            metadata = {
+              h1: crumb.label,
+              title: '',
+              description: '',
+              keywords: '',
+              template: 'content',
+              oppUrl: ''
+            };
+          }
+        }
+
         // check if node already exists for this crumb at the current level
         let node = findChildByUrl(currentLevel, crumb.url);
 
@@ -226,6 +252,13 @@ export class BreadcrumbValidationService {
                 isMoved: false,
                 isROT: false,
                 isContainer: false,
+              },
+              metadata: {
+                title: metadata?.title,
+                description: metadata?.description,
+                keywords: metadata?.keywords,
+                template: metadata?.template,
+                oppUrl: metadata?.oppUrl
               }
             },
             expanded: true,

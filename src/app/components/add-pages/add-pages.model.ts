@@ -15,6 +15,15 @@ export interface ValidationState {
     isOk: boolean;
 }
 
+export interface PageMetadata {
+    h1: string;                   // the page H1
+    title: string;                // the page title
+    description: string;          // the page description
+    keywords: string;             // the page keywords
+    template: string;             // autodetected template
+    oppUrl?: string                // opposite language url
+}
+
 export interface UrlData {
     href: string;                 // the page URL
     h1: string;                   // the page H1

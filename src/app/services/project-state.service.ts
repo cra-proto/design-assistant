@@ -509,14 +509,28 @@ export class ProjectStateService {
                 if (!data) continue;
 
                 flatNodes.push({
+                    //Current language
                     h1: data.h1 || '',
                     url: data.url || '',
+                    //Opposite language
+                    oppTitle: data.metadata?.oppTitle || '',
                     oppUrl: data.metadata?.oppUrl || '',
+                    //Status
                     inScope: data.status.inScope,
                     isOrphan: data.status.isOrphan,
                     isNew: data.status.isNew,
                     isMoved: data.status.isMoved,
                     isROT: data.status.isROT,
+                    //Data
+                    template: data.metadata?.template || '',
+                    task: data.metadata?.task || '',
+                    //Owner
+                    owner: data.metadata?.owner || '',
+                    email: data.metadata?.email || '',
+                    //Metadata
+                    title: data.metadata?.title || '',
+                    description: data.metadata?.description || '',
+                    keywords: data.metadata?.keywords || '',
                 });
 
                 if (node.children?.length) {
@@ -531,14 +545,28 @@ export class ProjectStateService {
 
     getTreeTableColumns(): TableColumn[] {
         return [
-            { field: 'h1', translationKey: 'inventory.header.h1', type: 'text', frozen: true },
-            { field: 'url', translationKey: 'inventory.header.url', type: 'url' },
-            { field: 'oppUrl', translationKey: 'inventory.header.oppUrl', type: 'url' },
-            { field: 'inScope', translationKey: 'inventory.header.inScope', type: 'boolean' },
-            { field: 'isOrphan', translationKey: 'inventory.header.isOrphan', type: 'boolean' },
-            { field: 'isNew', translationKey: 'inventory.header.isNew', type: 'boolean' },
-            { field: 'isMoved', translationKey: 'inventory.header.isMoved', type: 'boolean' },
-            { field: 'isROT', translationKey: 'inventory.header.isROT', type: 'boolean' }
+            //Current Language
+            { field: 'h1', translationKey: 'inventory.header.h1', type: 'text', frozen: true, group: 'page', visibleByDefault: true },
+            { field: 'url', translationKey: 'inventory.header.url', type: 'url', group: 'page', visibleByDefault: true },
+            //Opposite Language
+            { field: 'oppTitle', translationKey: 'inventory.header.oppTitle', type: 'text', group: 'oppPage', visibleByDefault: false },
+            { field: 'oppUrl', translationKey: 'inventory.header.oppUrl', type: 'url', group: 'oppPage', visibleByDefault: false },
+            //Status
+            { field: 'inScope', translationKey: 'inventory.header.inScope', type: 'boolean', group: 'status', visibleByDefault: true },
+            { field: 'isOrphan', translationKey: 'inventory.header.isOrphan', type: 'boolean', group: 'status', visibleByDefault: true },
+            { field: 'isNew', translationKey: 'inventory.header.isNew', type: 'boolean', group: 'status', visibleByDefault: true },
+            { field: 'isMoved', translationKey: 'inventory.header.isMoved', type: 'boolean', group: 'status', visibleByDefault: true },
+            { field: 'isROT', translationKey: 'inventory.header.isROT', type: 'boolean', group: 'status', visibleByDefault: true },
+            //Owner
+            { field: 'owner', translationKey: 'inventory.header.owner', type: 'text', group: 'owner', visibleByDefault: true },
+            { field: 'email', translationKey: 'inventory.header.email', type: 'text', group: 'owner', visibleByDefault: false },
+            //Data
+            { field: 'template', translationKey: 'inventory.header.template', type: 'text', group: 'data', visibleByDefault: true },
+            { field: 'task', translationKey: 'inventory.header.task', type: 'text', group: 'data', visibleByDefault: true },
+            //Metadata
+            { field: 'title', translationKey: 'inventory.header.title', type: 'text', group: 'metadata', visibleByDefault: false },
+            { field: 'description', translationKey: 'inventory.header.description', type: 'text', group: 'metadata', visibleByDefault: false },
+            { field: 'keywords', translationKey: 'inventory.header.keywords', type: 'text', group: 'metadata', visibleByDefault: false },
         ];
     }
 
@@ -548,17 +576,30 @@ export class ProjectStateService {
 
         // Headers
         rows.push([
+            //Current language
             'Page Title (h1)',
             'URL',
+            //Opposite language
+            'Opposite Language Title',
             'Opposite Language URL',
+            //Status
             'In Scope',
             'Is Orphan',
-            'Is Crawled',
             'Is New',
             'Is Moved',
             'Is ROT',
-            'Is Container',
-            'Baseline Parent URL'
+            //Owner
+            'Owner',
+            'Email',
+            //Data
+            'Template',
+            'Task',
+            //Metadata
+            'Title',
+            'Description',
+            'Keywords',
+            //Move info
+            'Original Parent URL',
         ].join(','));
 
         const walk = (nodes: TreeNode<ProjectTreeNodeData>[], parentUrl: string | null = null) => {
@@ -567,17 +608,31 @@ export class ProjectStateService {
                 if (!data) continue;
 
                 rows.push([
+                    //Current language
                     `"${data.h1 || ''}"`,
                     data.url || '',
+                    //Opposite language
+                    `"${data.metadata?.oppTitle || ''}"`,
                     data.metadata?.oppUrl || '',
+                    //Status
                     data.status.inScope ? 'Yes' : 'No',
                     data.status.isOrphan ? 'Yes' : 'No',
-                    data.status.isCrawled ? 'Yes' : 'No',
                     data.status.isNew ? 'Yes' : 'No',
                     data.status.isMoved ? 'Yes' : 'No',
                     data.status.isROT ? 'Yes' : 'No',
-                    data.status.isContainer ? 'Yes' : 'No',
-                    data.metadata?.baselineParent || ''
+                    //Owner
+                    data.metadata?.owner || '',
+                    data.metadata?.email || '',
+                    //Data
+                    data.metadata?.template || '',
+                    data.metadata?.task || '',
+                    //Metadata
+                    data.metadata?.title || '',
+                    data.metadata?.description || '',
+                    data.metadata?.keywords || '',
+                    //Move info
+                    data.originalParent || '',
+
                 ].join(','));
 
                 if (node.children?.length) {
@@ -621,5 +676,54 @@ export class ProjectStateService {
             console.error('Failed to generate prototype URL:', error);
             return '';
         }
+    }
+
+    deleteNode(selectedPages: FlattenedTreeNode[], canDeleteRoot: boolean = false) {
+        const projectTree = this.getProjectTree();
+
+        for (const page of selectedPages) {
+            const nodeToDelete = this.findNodeByUrl(projectTree, page.url)
+
+            if (!nodeToDelete) {
+                console.warn(`Node not found for URL: ${page.url}`);
+                continue;
+            }
+
+            console.log('Node to delete:', nodeToDelete);
+
+
+            // Root-level (don't delete the root!!!)
+            const rootIndex = this.project().projectData.findIndex(n => n === nodeToDelete)
+            if (rootIndex > -1) {
+                if (!canDeleteRoot) {
+                    console.warn('Cannot delete root node.');
+                    continue;
+                }
+                projectTree.splice(rootIndex, 1);
+                console.log('Deleted root node at index:', rootIndex);
+                continue;
+            }
+
+
+            // Child node
+            const findAndDelete = (nodes: TreeNode[]): boolean => {
+                for (const node of nodes) {
+                    const children: TreeNode[] = node.children ?? [];
+                    const childIndex = children.findIndex(c => c === nodeToDelete);
+                    if (childIndex > -1) {
+                        children.splice(childIndex, 1);
+                        node.children = children.length ? children : undefined;
+                        return true;
+                    }
+                    // recurse into grandchildren
+                    if (children.length && findAndDelete(children)) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+            findAndDelete(projectTree);
+        }
+        this.setProjectTree(projectTree);
     }
 }
