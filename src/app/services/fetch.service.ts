@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
+import { PageMetadata } from '../components/add-pages/add-pages.model';
 
 @Injectable({
   providedIn: 'root'
@@ -142,6 +143,50 @@ export class FetchService {
       statusText,
       headers: { "X-Suppressed-Error": "true", "X-Source-Url": url },
     });
+  }
+
+  // Extracts metadata from an HTML document
+  public extractPageMetadata(doc: Document, url: string): PageMetadata {
+    // Get H1 (or double H1)
+    const h1Elements = Array.from(doc.querySelectorAll('h1'));
+    const h1: string = h1Elements.map(e => e.textContent?.trim()).filter(Boolean).join('<br>');
+
+    // Get metadata
+    const title = doc.querySelector('meta[name="dcterms.title"]')?.getAttribute('content') || '';
+    const description = doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+    const keywords = doc.querySelector('meta[name="keywords"]')?.getAttribute('content') || '';
+
+    // Get template
+    const hasSubway = doc.querySelector('.gc-subway') !== null;
+    const hasMostRequested = doc.querySelector('.most-requested-bullets') !== null;
+    const hasGcSrvinfo = doc.querySelector('.gc-srvinfo') !== null;
+    const isContactH1 = h1.startsWith('Contact') || h1.startsWith('Contactez');
+    const isNewsUrl = url.includes('/news/') || url.includes('/nouvelles/');
+    const isCampaignUrl = url.includes('/campaigns/') || url.includes('/campagnes/');
+
+    let template = 'content'; // default
+    if (hasSubway) {
+      template = 'subway';
+    } else if (isNewsUrl) {
+      template = 'newsroom';
+    } else if (isCampaignUrl) {
+      template = 'campaign';
+    } else if (isContactH1) {
+      template = 'contact';
+    } else if (hasMostRequested || hasGcSrvinfo) {
+      template = 'topic';
+    }
+
+    //Opposite language url
+    const htmlLang = doc.documentElement.getAttribute('lang');
+    const metaLang = doc.querySelector('meta[name="dcterms.language"]')?.getAttribute('content');
+    const normalizedMetaLang = metaLang === 'eng' ? 'en' : metaLang === 'fra' ? 'fr' : null;
+    const urlLang = url.includes('/en/') ? 'en' : url.includes('/fr/') ? 'fr' : null;
+    const currentLang = htmlLang || normalizedMetaLang || urlLang || 'en'; // default to en
+    const oppLang = currentLang === 'en' ? 'fr' : 'en';
+    const oppUrl = doc.querySelector(`link[rel="alternate"][hreflang="${oppLang}"]`)?.getAttribute('href') || '';
+
+    return { h1, title, description, keywords, template, oppUrl };
   }
 
 }
