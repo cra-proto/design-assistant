@@ -22,8 +22,60 @@
         </div>
     </div>
 
+    <!-- Table toolbar -->
+    <p-toolbar styleClass="my-2">
+        <ng-template #start>
+            <p-iftalabel>
+                <p-multiSelect
+                               [options]="groupedColumns"
+                               [(ngModel)]="selectedColumnFields"
+                               optionLabel="label"
+                               optionValue="value"
+                               optionGroupLabel="label"
+                               optionGroupChildren="items"
+                               [group]="true"
+                               placeholder="Show/Hide Columns"
+                               [style]="{'min-width': '250px'}"
+                               (onChange)="onColumnSelectionChange()"
+                               [showHeader]="false"
+                               inputId="columns">
+                    <ng-template pTemplate="header">
+                        <div class="px-3 py-2">
+                            <span class="font-semibold">Select Columns</span>
+                        </div>
+                    </ng-template>
+                </p-multiSelect>
+
+                <label for="columns">Visible columns</label>
+            </p-iftalabel>
+            <!--p-selectbutton [options]="groupedColumns" [(ngModel)]="selectedColumnFields" [multiple]="true" optionLabel="name" optionValue="value" /-->
+
+        </ng-template>
+        <ng-template #center>
+            <!--p-button
+                      *ngIf="hasVisibleMetadata()"
+                      [label]="expandAllMetadata ? ('inventory.collapseAllMetadata' | translate) : ('inventory.expandAllMetadata' | translate)"
+                      [icon]="expandAllMetadata ? 'pi pi-minus' : 'pi pi-plus'"
+                      [outlined]="true"
+                      size="small"
+                      (click)="toggleExpandAllMetadata()" /-->
+        </ng-template>
+        <ng-template #end>
+            <p-button
+                      label="Delete selected pages and their children"
+                      icon="pi pi-trash"
+                      severity="danger"
+                      outlined
+                      size="small"
+                      styleClass="secondary-outline"
+                      (click)="projectState.deleteNode(selectedNodes, true)"
+                      [disabled]="selectedNodes.length === 0" />
+        </ng-template>
+    </p-toolbar>
+
     <p-table
              [value]="tableData()"
+             [(selection)]="selectedNodes" dataKey="url" selectionMode="multiple"
              [scrollable]="true"
              scrollHeight="flex"
              styleClass="p-datatable-sm">
@@ -31,6 +83,7 @@
         <ng-template pTemplate="header">
             <tr>
                 <!-- Frozen columns -->
+                <th style="width: 4rem" pFrozenColumn><p-tableHeaderCheckbox /></th>
                 <th *ngFor="let col of frozenColumns" pFrozenColumn>
                     {{ col.translationKey | translate }}
                 </th>
@@ -41,9 +94,10 @@
             </tr>
         </ng-template>
 
-        <ng-template pTemplate="body" let-node>
-            <tr>
+        <ng-template pTemplate="body" let-node let-rowIndex="rowIndex">
+            <tr [pSelectableRow]="node" [pSelectableRowIndex]="rowIndex">
                 <!-- Frozen columns -->
+                <td pFrozenColumn><p-tableCheckbox [value]="node" /></td>
                 <td *ngFor="let col of frozenColumns" pFrozenColumn>
                     <!-- Text fields -->
                     <ng-container *ngIf="col.type === 'text'">
@@ -99,8 +153,8 @@
             </tr>
         </ng-template>
     </p-table>
-
 </div>
+
 
 <div class="flex md:flex-row flex-column gap-3">
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-6 w-full">
