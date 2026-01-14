@@ -1,34 +1,24 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { TranslateModule } from "@ngx-translate/core";
-import { ToolbarModule } from 'primeng/toolbar';
 import { ThemeService } from '../services/theme.service';
 import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'aida-footer',
-  imports: [CommonModule, TranslateModule, ToolbarModule],
+  imports: [TranslateModule],
   template: `
-<footer class="container">
-  <p-toolbar>
-    <div class="flex align-items-end">
-      <p class="white-space-nowrap text-color-secondary text-sm pt-5">{{'app.version'|translate}} {{version}}</p>
-    </div>
-    <div class="flex align-items-end">
+<footer>
+    <div class="flex flex-row justify-content-between align-items-end mt-2">
+      <p class="white-space-nowrap text-color-secondary text-sm">{{'app.version'|translate}} {{version}}</p>
       <img
           class="img-fluid fip-colour"
           [src]="logoSrc"
           [alt]="'GoC' | translate"
         />
     </div>
-  </p-toolbar>
 </footer>
-  `,
-  styles: `
-    :host {
-      display: block;
-    }
-  `
+`,
+  styles: ``
 })
 export class FooterComponent {
   private theme = inject(ThemeService);
