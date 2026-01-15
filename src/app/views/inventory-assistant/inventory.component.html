@@ -25,40 +25,53 @@
     <!-- Table toolbar -->
     <p-toolbar styleClass="my-2">
         <ng-template #start>
-            <p-iftalabel>
-                <p-multiSelect
-                               [options]="groupedColumns"
-                               [(ngModel)]="selectedColumnFields"
-                               optionLabel="label"
-                               optionValue="value"
-                               optionGroupLabel="label"
-                               optionGroupChildren="items"
-                               [group]="true"
-                               placeholder="Show/Hide Columns"
-                               [style]="{'min-width': '250px'}"
-                               (onChange)="onColumnSelectionChange()"
-                               [showHeader]="false"
-                               inputId="columns">
-                    <ng-template pTemplate="header">
-                        <div class="px-3 py-2">
-                            <span class="font-semibold">Select Columns</span>
-                        </div>
-                    </ng-template>
-                </p-multiSelect>
+            <div class="flex gap-2 align-items-start">
+                <p-iftalabel>
+                    <p-multiSelect
+                                   [options]="groupedColumns"
+                                   [(ngModel)]="selectedColumnFields"
+                                   optionLabel="label"
+                                   optionValue="value"
+                                   optionGroupLabel="label"
+                                   optionGroupChildren="items"
+                                   [group]="true"
+                                   placeholder="Show/Hide Columns"
+                                   [style]="{'min-width': '250px'}"
+                                   (onChange)="onColumnSelectionChange()"
+                                   [showHeader]="true"
+                                   inputId="columns">
+                        <ng-template pTemplate="header">
+                            <div class="px-3 py-2">
+                                <span class="font-semibold">Select Columns</span>
+                            </div>
+                        </ng-template>
+                    </p-multiSelect>
 
-                <label for="columns">Visible columns</label>
-            </p-iftalabel>
-            <!--p-selectbutton [options]="groupedColumns" [(ngModel)]="selectedColumnFields" [multiple]="true" optionLabel="name" optionValue="value" /-->
-
+                    <label for="columns">Visible columns</label>
+                </p-iftalabel>
+                <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
+                    <span class="text-xs  my-1">Visible groups</span>
+                    <p-selectbutton class="mb-0" [options]="columnGroupButtons" [(ngModel)]="selectedGroups" [multiple]="true" optionLabel="tooltip" optionValue="value" (onChange)="onGroupSelectionChange()">
+                        <ng-template let-item pTemplate="item">
+                            <i [class]="'pb-0 pi ' + item.icon" [pTooltip]="item.tooltip" tooltipPosition="top"></i>
+                        </ng-template>
+                    </p-selectbutton>
+                    <p-selectbutton class="mb-0" [options]="columnMaterialButtons" [(ngModel)]="selectedGroups" [multiple]="true" optionLabel="tooltip" optionValue="value" (onChange)="onGroupSelectionChange()">
+                        <ng-template let-item pTemplate="item">
+                            <span class="material-icons" [pTooltip]="item.tooltip" tooltipPosition="top">{{ item.icon }}</span>
+                        </ng-template>
+                    </p-selectbutton>
+                </div>
+            </div>
         </ng-template>
         <ng-template #center>
-            <!--p-button
-                      *ngIf="hasVisibleMetadata()"
+            <p-button
+                      [disabled]="!hasVisibleMetadata()"
                       [label]="expandAllMetadata ? ('inventory.collapseAllMetadata' | translate) : ('inventory.expandAllMetadata' | translate)"
                       [icon]="expandAllMetadata ? 'pi pi-minus' : 'pi pi-plus'"
                       [outlined]="true"
                       size="small"
-                      (click)="toggleExpandAllMetadata()" /-->
+                      (click)="toggleExpandAllMetadata()" />
         </ng-template>
         <ng-template #end>
             <p-button
@@ -98,45 +111,35 @@
             <tr [pSelectableRow]="node" [pSelectableRowIndex]="rowIndex">
                 <!-- Frozen columns -->
                 <td pFrozenColumn><p-tableCheckbox [value]="node" /></td>
-                <td *ngFor="let col of frozenColumns" pFrozenColumn>
-                    <!-- Text fields -->
-                    <ng-container *ngIf="col.type === 'text'">
-                        {{ getCellValue(node, col) }}
-                    </ng-container>
-
-                    <!-- URL fields -->
-                    <ng-container *ngIf="col.type === 'url'">
-                        <a *ngIf="getCellValue(node, col)"
-                           [href]="getCellValue(node, col)"
-                           target="_blank"
-                           rel="noopener noreferrer">
-                            {{ getCellValue(node, col) }}
-                        </a>
-                    </ng-container>
-
-                    <!-- Boolean fields -->
-                    <ng-container *ngIf="col.type === 'boolean'">
-                        <i [class]="getBooleanIcon(getCellValue(node, col), col.field)"></i>
-                    </ng-container>
-                </td>
+                <td pFrozenColumn *ngFor="let col of frozenColumns">{{ node[col.field] }}</td>
 
                 <!-- Scrollable columns -->
                 <td *ngFor="let col of scrollableColumns">
                     <!-- Text fields -->
                     <ng-container *ngIf="col.type === 'text'">
-                        {{ getCellValue(node, col) }}
+                        {{ node[col.field] }}
                     </ng-container>
-
+                    <!-- Long text fields (metadata, may need to refactor when we add the notes column) -->
+                    <ng-container *ngIf="col.type === 'longText'">
+                        <div class="flex align-items-start gap-2">
+                            <div [class.line-clamp-3]="!isMetadataExpanded(rowIndex, col.field)">
+                                <p-tag pTooltip="character count" [severity]="node[col.field].length > 160 ? 'danger' : 'success'">{{node[col.field].length}}</p-tag>
+                                {{ node[col.field] }}
+                            </div>
+                            <p-button
+                                      *ngIf="!expandAllMetadata"
+                                      [icon]="isMetadataExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                                      text rounded size="small"
+                                      (click)="toggleMetadataCell(rowIndex, col.field)"
+                                      [pTooltip]="isMetadataExpanded(rowIndex, col.field) ? ('inventory.collapse' | translate) : ('inventory.expand' | translate)" />
+                        </div>
+                    </ng-container>
                     <!-- URL fields -->
                     <ng-container *ngIf="col.type === 'url'">
-                        <a *ngIf="getCellValue(node, col)"
-                           [href]="getCellValue(node, col)"
-                           target="_blank"
-                           rel="noopener noreferrer">
-                            {{ getCellValue(node, col) }}
-                        </a>
+                        <div class="max-w-30rem">
+                            <a [href]="node[col.field]" target="_blank" rel="noopener" [pTooltip]="expandAllUrls ? null : node[col.field]" [class.line-clamp-2]="!expandAllUrls">{{ node[col.field] }}</a>
+                        </div>
                     </ng-container>
-
                     <!-- Boolean fields -->
                     <ng-container *ngIf="col.type === 'boolean'">
                         <i [class]="getBooleanIcon(getCellValue(node, col), col.field)"></i>
@@ -157,10 +160,13 @@
 
 
 <div class="flex md:flex-row flex-column gap-3">
+
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-6 w-full">
         <aida-add-pages></aida-add-pages>
     </div>
+
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-6 w-full">
         <aida-find-pages></aida-find-pages>
     </div>
+
 </div>

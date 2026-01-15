@@ -48,6 +48,7 @@ export interface PageMeta {
     keywords?: string;              // Metadata keywords
     template?: string;              // Determined based on page content & url pattern
     task?: string;                  // Determined by comparing with task airtable data
+    visits?: number;                // Determined by comparing with UPD data
     oppUrl?: string;                // Opposite language URL 
     oppTitle?: string;              // jrc:content.json otherTitle
     owner?: string;                 // jrc:content.json gcContributor
@@ -95,6 +96,8 @@ export interface FlattenedTreeNode {
     //Opposite language
     oppTitle: string;
     oppUrl: string;
+    //GitHub
+    prototypeUrl: string;
     //Status
     inScope: boolean;
     isOrphan: boolean;
@@ -104,6 +107,7 @@ export interface FlattenedTreeNode {
     //Data
     template: string;
     task: string;
+    visits: number;
     //Metadata
     title: string;
     description: string;
@@ -116,9 +120,9 @@ export interface FlattenedTreeNode {
 export interface TableColumn {
     field: keyof FlattenedTreeNode;
     translationKey: string;
-    type: 'text' | 'url' | 'boolean';
+    type: 'text' | 'longText' | 'url' | 'boolean';
     frozen?: boolean;
-    group: 'page' | 'oppPage' | 'status' | 'owner' | 'data' | 'metadata';
+    group: 'page' | 'oppPage' | 'github' | 'status' | 'owner' | 'pageData' | 'metadata';
     visibleByDefault: boolean;
 }
 

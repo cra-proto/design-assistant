@@ -507,7 +507,6 @@ export class ProjectStateService {
             for (const node of nodes) {
                 const data = node.data;
                 if (!data) continue;
-
                 flatNodes.push({
                     //Current language
                     h1: data.h1 || '',
@@ -515,6 +514,8 @@ export class ProjectStateService {
                     //Opposite language
                     oppTitle: data.metadata?.oppTitle || '',
                     oppUrl: data.metadata?.oppUrl || '',
+                    //Github
+                    prototypeUrl: this.generatePrototypeUrl(data.url) || '',
                     //Status
                     inScope: data.status.inScope,
                     isOrphan: data.status.isOrphan,
@@ -524,6 +525,7 @@ export class ProjectStateService {
                     //Data
                     template: data.metadata?.template || '',
                     task: data.metadata?.task || '',
+                    visits: data.metadata?.visits || 0,
                     //Owner
                     owner: data.metadata?.owner || '',
                     email: data.metadata?.email || '',
@@ -551,6 +553,8 @@ export class ProjectStateService {
             //Opposite Language
             { field: 'oppTitle', translationKey: 'inventory.header.oppTitle', type: 'text', group: 'oppPage', visibleByDefault: false },
             { field: 'oppUrl', translationKey: 'inventory.header.oppUrl', type: 'url', group: 'oppPage', visibleByDefault: false },
+            //GitHub
+            { field: 'prototypeUrl', translationKey: 'inventory.header.prototypeUrl', type: 'url', group: 'github', visibleByDefault: false },
             //Status
             { field: 'inScope', translationKey: 'inventory.header.inScope', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'isOrphan', translationKey: 'inventory.header.isOrphan', type: 'boolean', group: 'status', visibleByDefault: true },
@@ -561,12 +565,13 @@ export class ProjectStateService {
             { field: 'owner', translationKey: 'inventory.header.owner', type: 'text', group: 'owner', visibleByDefault: true },
             { field: 'email', translationKey: 'inventory.header.email', type: 'text', group: 'owner', visibleByDefault: false },
             //Data
-            { field: 'template', translationKey: 'inventory.header.template', type: 'text', group: 'data', visibleByDefault: true },
-            { field: 'task', translationKey: 'inventory.header.task', type: 'text', group: 'data', visibleByDefault: true },
+            { field: 'template', translationKey: 'inventory.header.template', type: 'text', group: 'pageData', visibleByDefault: true },
+            { field: 'task', translationKey: 'inventory.header.task', type: 'text', group: 'pageData', visibleByDefault: true },
+            { field: 'visits', translationKey: 'inventory.header.visits', type: 'text', group: 'pageData', visibleByDefault: true },
             //Metadata
             { field: 'title', translationKey: 'inventory.header.title', type: 'text', group: 'metadata', visibleByDefault: false },
-            { field: 'description', translationKey: 'inventory.header.description', type: 'text', group: 'metadata', visibleByDefault: false },
-            { field: 'keywords', translationKey: 'inventory.header.keywords', type: 'text', group: 'metadata', visibleByDefault: false },
+            { field: 'description', translationKey: 'inventory.header.description', type: 'longText', group: 'metadata', visibleByDefault: false },
+            { field: 'keywords', translationKey: 'inventory.header.keywords', type: 'longText', group: 'metadata', visibleByDefault: false },
         ];
     }
 
@@ -582,6 +587,8 @@ export class ProjectStateService {
             //Opposite language
             'Opposite Language Title',
             'Opposite Language URL',
+            //GitHub
+            'Prototype Url',
             //Status
             'In Scope',
             'Is Orphan',
@@ -594,6 +601,7 @@ export class ProjectStateService {
             //Data
             'Template',
             'Task',
+            'Visits (last 52 weeks)',
             //Metadata
             'Title',
             'Description',
@@ -614,6 +622,8 @@ export class ProjectStateService {
                     //Opposite language
                     `"${data.metadata?.oppTitle || ''}"`,
                     data.metadata?.oppUrl || '',
+                    //GitHub
+                    this.generatePrototypeUrl(data.url),
                     //Status
                     data.status.inScope ? 'Yes' : 'No',
                     data.status.isOrphan ? 'Yes' : 'No',
@@ -626,6 +636,7 @@ export class ProjectStateService {
                     //Data
                     data.metadata?.template || '',
                     data.metadata?.task || '',
+                    data.metadata?.visits || '',
                     //Metadata
                     data.metadata?.title || '',
                     data.metadata?.description || '',
@@ -659,18 +670,12 @@ export class ProjectStateService {
     // Generate prototype URL from production URL
     generatePrototypeUrl(productionUrl: string, type: 'current' | 'baseline' = 'current'): string {
         const { owner, repo } = this.project().github;
-
-        if (!owner || !repo) {
-            return '';
-        }
-
+        if (!owner || !repo) { return ''; }
         try {
             const url = new URL(productionUrl);
             const path = url.pathname; // e.g., /en/revenue-agency/services/tax/individuals.html
-
             const repoSuffix = type === 'baseline' ? `${repo}-baseline` : repo;
             const prototypeUrl = `https://${owner}.github.io/${repoSuffix}${path}`;
-
             return prototypeUrl;
         } catch (error) {
             console.error('Failed to generate prototype URL:', error);
@@ -726,4 +731,5 @@ export class ProjectStateService {
         }
         this.setProjectTree(projectTree);
     }
+
 }
