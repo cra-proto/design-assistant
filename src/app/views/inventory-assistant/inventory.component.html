@@ -123,7 +123,7 @@
                     <ng-container *ngIf="col.type === 'longText'">
                         <div class="flex align-items-start gap-2">
                             <div [class.line-clamp-3]="!isMetadataExpanded(rowIndex, col.field)">
-                                <p-tag pTooltip="character count" [severity]="node[col.field].length > 160 ? 'danger' : 'success'">{{node[col.field].length}}</p-tag>
+                                <p-tag pTooltip="character count" [severity]="node[col.field].length >= 10 && node[col.field].length <= 160 ? 'success' : 'danger'">{{node[col.field].length}}</p-tag>
                                 {{ node[col.field] }}
                             </div>
                             <p-button
