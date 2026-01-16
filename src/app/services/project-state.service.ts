@@ -522,6 +522,7 @@ export class ProjectStateService {
                     isNew: data.status.isNew,
                     isMoved: data.status.isMoved,
                     isROT: data.status.isROT,
+                    archiveStatus: data.status.archiveStatus,
                     //Data
                     template: data.metadata?.template || '',
                     task: data.metadata?.task || '',
@@ -561,6 +562,7 @@ export class ProjectStateService {
             { field: 'isNew', translationKey: 'inventory.header.isNew', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'isMoved', translationKey: 'inventory.header.isMoved', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'isROT', translationKey: 'inventory.header.isROT', type: 'boolean', group: 'status', visibleByDefault: true },
+            { field: 'archiveStatus', translationKey: 'inventory.header.archiveStatus', type: 'archive', group: 'status', visibleByDefault: true },
             //Owner
             { field: 'owner', translationKey: 'inventory.header.owner', type: 'text', group: 'owner', visibleByDefault: true },
             { field: 'email', translationKey: 'inventory.header.email', type: 'text', group: 'owner', visibleByDefault: false },

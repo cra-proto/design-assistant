@@ -144,6 +144,10 @@
                     <ng-container *ngIf="col.type === 'boolean'">
                         <i [class]="getBooleanIcon(getCellValue(node, col), col.field)"></i>
                     </ng-container>
+                    <!-- Archive field -->
+                    <ng-container *ngIf="col.type === 'archive'">
+                        <i [class]="getArchiveStatusIcon(getCellValue(node, col))"></i>
+                    </ng-container>
                 </td>
             </tr>
         </ng-template>

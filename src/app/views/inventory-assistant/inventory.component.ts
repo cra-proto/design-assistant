@@ -236,6 +236,19 @@ export class InventoryComponent implements OnInit {
         return 'pi pi-minus text-gray-400';
     }
 
+    getArchiveStatusIcon(status: 'current' | 'archived' | 'to-archive'): string {
+        switch (status) {
+            case 'current':
+                return 'pi pi-minus text-gray-400';
+            case 'archived':
+                return 'pi pi-exclamation-triangle text-orange-500';
+            case 'to-archive':
+                return 'pi pi-exclamation-triangle text-red-500';
+            default:
+                return 'pi pi-minus text-gray-400'; // fallback
+        }
+    }
+
     // Table - update visible columns & check if metadata should autoexpand
     private updateVisibleColumns() {
         this.frozenColumns = this.allColumns.filter(col => col.frozen);

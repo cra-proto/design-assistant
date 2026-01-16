@@ -115,6 +115,23 @@ export class FetchService {
     return this.fetchWithRetry(url, "HEAD", retries, delay);
   }
 
+  public async fetchJSON(url: string, fields: string[]): Promise<Record<string, string>> {
+    const jsonUrl = url.replace('.html', '/jcr:content.json');
+    const result: Record<string, string> = {};
+
+    try {
+      const response = await this.fetchWithRetry(jsonUrl, "GET", 3, "none");
+      const json = await response.json();
+
+      for (const field of fields) {
+        result[field] = json[field] ?? undefined;
+      }
+    } catch (error) {
+      console.error(`Error fetching content.json for ${url}:`, error);
+    }
+    return result;
+  }
+
   //only delays on development build
   public async simulateDelay(delay: number | 'random' | 'none' = 'none'): Promise<void> {
     if (environment.production || delay === 'none') return;
@@ -156,26 +173,123 @@ export class FetchService {
     const description = doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
     const keywords = doc.querySelector('meta[name="keywords"]')?.getAttribute('content') || '';
 
+    // Get archive status
+    const isArchived = doc.querySelector('.gc-archv') !== null;
+    console.log('Is archived?' + isArchived)
+
     // Get template
     const hasSubway = doc.querySelector('.gc-subway') !== null;
+    const hasOldSubway = doc.querySelector('.gc-navseq') !== null;
     const hasMostRequested = doc.querySelector('.most-requested-bullets') !== null;
     const hasGcSrvinfo = doc.querySelector('.gc-srvinfo') !== null;
     const isContactH1 = h1.startsWith('Contact') || h1.startsWith('Contactez');
-    const isNewsUrl = url.includes('/news/') || url.includes('/nouvelles/');
     const isCampaignUrl = url.includes('/campaigns/') || url.includes('/campagnes/');
+    //News
+    const isNewsUrl = /\/(news|nouvelles)\/\d{4}\//.test(url);
+    const isTaxtip = url.includes('/newsroom/tax-tips/') || url.includes('/salle-presse/conseils-fiscaux/');
+    const isTFSMK = url.includes('/tax-tips/tax-filing-season-media-kit') || url.includes('/conseils-fiscaux/trousse-medias-periode-production-declarations-revenus');
+    const isEnforcementNotice = url.includes('/newsroom/criminal-investigations-actions-charges-convictions') || url.includes('/salle-presse/mesures-relatives-enquetes-criminelles-accusations-condamnations');
+    const isMultimedia = url.includes('/news/cra-multimedia-library/') || url.includes('/nouvelles/bibliotheque-multimedia-arc/');
+    //Video transcript pages
+    const hasVideo = doc.querySelector('video') !== null;
+    const hasTranscriptH2 = Array.from(doc.querySelectorAll('h2')).some(h2 =>
+      /transcript/i.test(h2.textContent?.trim() ?? '')
+    );
+    const isVideoTranscript = hasVideo && hasTranscriptH2 && isMultimedia;
+    //Forms & pubs
+    const isFormReadme = url.includes('/forms-publications/forms/') || url.includes('/formulaires-publications/formulaires/');
+    const isPubReadme = url.includes('/forms-publications/publications/') || url.includes('/formulaires-publications/publications/');
+    const isPub = /\/(forms-publications\/publications|formulaires-publications\/publications)\/[a-z0-9-]+\.html$/.test(url);
+    const is5000g = url.includes('/general-income-tax-benefit-package/5000-g.html') || url.includes('/trousse-generale-impot-prestations/5000-g.html')
+    const isT1Readme = /\/(general-income-tax-benefit-package|trousse-generale-impot-prestations)\/([a-z-]+\/)?5\d{3}-[a-z]{1,5}\.html$/.test(url);
+    const isT1Pub = /\/(general-income-tax-benefit-package|trousse-generale-impot-prestations)\/([a-z-]+\/)?5\d{3}-[a-z]{1,5}\/[a-z0-9-]+\.html$/.test(url);
+    const isTD1Readme = /\/(td1-forms-pay-received-on-january-1-(\d{4}-)?later|formulaires-td1-paies-recues-1er-janvier-(\d{4}-)?apres)\/[a-z0-9-]+\.html$/.test(url);
+    const payrollPatterns = [
+      't4127-payroll-deductions-formulas',
+      't4127-formules-calcul-retenues-paie',
+      'payroll-deductions-t4127-payroll-deductions-formulas',
+      't4127-formules-calcul-retenues-paie-annees-precedentes',
+      't4032-payroll-deductions-tables',
+      't4032-tables-retenues-paie',
+      't4032-payroll-deductions-tables-previous-years',
+      't4032-tables-retenues-paie-documents-annees-anterieures',
+      't4008-payroll-deductions-supplementary-tables',
+      't4008-tables-supplementaires-retenues-paie',
+      't4008-payroll-deductions-supplementary-tables-previous-years',
+      't4008-tables-supplementaires-retenues-paie-annees-anterieures'
+    ];
+    const isPayrollReadme = new RegExp(`\\/(${payrollPatterns.join('|')})\\/[a-z0-9-]+\\.html$`).test(url);
+    //Assume old topic page if more than 80% of list-group-items have links
+    const listGroupItemCount = doc.querySelectorAll('.list-group-item').length;
+    const listGroupLinkCount = doc.querySelectorAll('.list-group-item a').length;
+    const isOldTopic = listGroupItemCount > 0 && (listGroupLinkCount / listGroupItemCount) >= 0.8;
+    //Assume navigational page if over 70% of content is link text
+    const mainElement = doc.querySelector('main');
+    const mainText = mainElement?.innerText.trim() ?? '';
+    const mainLinks = mainElement?.querySelectorAll('a') ?? [];
+    const linkText = Array.from(mainLinks).map(a => a.innerText.trim()).join('');
+    const isNavigational = mainText.length > 0 && (linkText.length / mainText.length) >= 0.7;
+    console.log('Percent links: ' + linkText.length / mainText.length);
+    //PDF download pages
+    const hasPdfDownloadLink = doc.querySelector('a[href$=".pdf"].btn.stretched-link') !== null;
+    const hasThumbnailContainer = doc.querySelector('.thumbnail') !== null;
+    const hasPdfMetadata = Array.from(doc.querySelectorAll('small')).some(small =>
+      /PDF,.*(KB|Ko).*page/i.test(small.textContent?.trim() ?? '')
+    );
+    const isPdfDownload = hasPdfDownloadLink && (hasThumbnailContainer || hasPdfMetadata);
+    //Brochure page
+    const isBrochure = doc.querySelector('.panel-heading.bg-primary') !== null;
 
     let template = 'content'; // default
     if (hasSubway) {
       template = 'subway';
+    } else if (hasOldSubway) {
+      template = 'old subway';
     } else if (isNewsUrl) {
       template = 'newsroom';
+    } else if (isVideoTranscript) {
+      template = 'video transcript';
     } else if (isCampaignUrl) {
       template = 'campaign';
+    } else if (isFormReadme) {
+      template = 'readme (form)';
+    } else if (isPubReadme) {
+      template = 'readme (guide)';
+    } else if (isPub) {
+      template = 'guide';
+    } else if (is5000g) {
+      template = 'guide (T1)';
+    } else if (isT1Readme) {
+      template = 'readme (T1)';
+    } else if (isT1Pub) {
+      template = 'guide (T1)';
+    } else if (isTD1Readme) {
+      template = 'readme (TD1)';
+    } else if (isPayrollReadme) {
+      template = 'readme (payroll)';
     } else if (isContactH1) {
       template = 'contact';
     } else if (hasMostRequested || hasGcSrvinfo) {
       template = 'topic';
+    } else if (isOldTopic) {
+      template = 'old topic';
+    } else if (isNavigational) {
+      template = 'navigation';
+    } else if (isBrochure) {
+      template = 'brochure';
+    } else if (isPdfDownload) {
+      template = 'pdf download';
+    } else if (isMultimedia) {
+      template = 'multimedia gallery';
+    } else if (isTaxtip) {
+      template = 'taxtip';
+    } else if (isTFSMK) {
+      template = 'tax filing season media kit';
+    } else if (isEnforcementNotice) {
+      template = 'enforcement notice';
     }
+
+    //TODO:  DETECT FREESTYLE TEMPLATE (from json data)
 
     //Opposite language url
     const htmlLang = doc.documentElement.getAttribute('lang');
@@ -186,7 +300,7 @@ export class FetchService {
     const oppLang = currentLang === 'en' ? 'fr' : 'en';
     const oppUrl = doc.querySelector(`link[rel="alternate"][hreflang="${oppLang}"]`)?.getAttribute('href') || '';
 
-    return { h1, title, description, keywords, template, oppUrl };
+    return { h1, title, description, keywords, template, oppUrl, isArchived };
   }
 
 }

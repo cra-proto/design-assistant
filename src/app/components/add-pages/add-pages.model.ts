@@ -21,7 +21,16 @@ export interface PageMetadata {
     description: string;          // the page description
     keywords: string;             // the page keywords
     template: string;             // autodetected template
-    oppUrl?: string                // opposite language url
+    oppUrl?: string               // opposite language url
+    isArchived?: boolean          // archive status
+}
+
+export interface JsonMetadata {
+    oppTitle?: string;              // jrc:content.json otherTitle
+    owner?: string;                 // jrc:content.json gcContributor
+    email?: string;                 // jrc:content.json gcBranch
+    lastPublished?: Date;           // jrc:content.json gcLastPublished
+    lastModified?: Date;            // jrc:content.json cq:lastModified
 }
 
 export interface UrlData {

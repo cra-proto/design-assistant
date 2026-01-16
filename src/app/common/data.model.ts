@@ -65,6 +65,7 @@ export interface PageStatus {
     isNew: boolean;                  // True if url is 404
     isMoved: boolean;                // True if current parent doesn't match baseline parent
     isROT: boolean;                  // True if user flags page as ROT (redundant, outdated, trivial)
+    archiveStatus: 'current' | 'archived' | 'to-archive' // current/archived is set during add pages step, user can toggle to-archive
     isContainer: boolean;            // True if page is a container page (used to group together pages for AI combine/split actions)
 }
 
@@ -104,6 +105,7 @@ export interface FlattenedTreeNode {
     isNew: boolean;
     isMoved: boolean;
     isROT: boolean;
+    archiveStatus: 'current' | 'archived' | 'to-archive'
     //Data
     template: string;
     task: string;
@@ -120,7 +122,7 @@ export interface FlattenedTreeNode {
 export interface TableColumn {
     field: keyof FlattenedTreeNode;
     translationKey: string;
-    type: 'text' | 'longText' | 'url' | 'boolean';
+    type: 'text' | 'longText' | 'url' | 'boolean' | 'archive';
     frozen?: boolean;
     group: 'page' | 'oppPage' | 'github' | 'status' | 'owner' | 'pageData' | 'metadata';
     visibleByDefault: boolean;

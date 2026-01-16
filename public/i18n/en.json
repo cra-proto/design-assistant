@@ -382,6 +382,7 @@
 	"inventory.header.isNew": "New page",
 	"inventory.header.isMoved": "Page move",
 	"inventory.header.isROT": "ROT",
+	"inventory.header.archiveStatus": "Archived",
 	"inventory.header.owner": "Owner",
 	"inventory.header.email": "Email",
 	"inventory.header.template": "Template",
