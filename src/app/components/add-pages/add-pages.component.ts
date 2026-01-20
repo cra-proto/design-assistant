@@ -266,9 +266,10 @@ export class AddPagesComponent {
     }
 
     //Confirmation before validating breadcrumbs (if not all urls are valid)
-    onAddPages() {
+    onAddPages(event: Event) {
         if (!this.validationState.isOk) {
             this.confirmationService.confirm({
+                target: event.target as EventTarget,
                 message: 'Some urls are not valid. Do you want to proceed without them?',
                 header: 'Invalid urls',
                 icon: 'pi pi-exclamation-triangle',

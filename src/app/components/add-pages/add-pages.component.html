@@ -195,7 +195,7 @@
 <!-- Proceed to Breadcrumb Validation -->
 @if (validationState.isValidated) {
 <div class="mt-3 flex flex-column justify-content-start lg:flex-row lg:align-items-center lg:gap-2">
-    <p-button [label]="getAddPagesButtonLabel()" icon="pi pi-plus" (onClick)="onAddPages()" severity="success" [loading]="breadcrumbState.isValidating" [disabled]="breadcrumbState.isValidated" />
+    <p-button [label]="getAddPagesButtonLabel()" icon="pi pi-plus" (onClick)="onAddPages($event)" severity="success" [loading]="breadcrumbState.isValidating" [disabled]="breadcrumbState.isValidated" />
     <p class class="text-xs text-color-secondary">{{'addPages.addPagesButton.description' | translate}}</p>
 </div>
 }
