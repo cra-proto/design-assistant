@@ -525,7 +525,7 @@ export class ProjectStateService {
                     archiveStatus: data.status.archiveStatus,
                     //Data
                     template: data.metadata?.template || '',
-                    task: data.metadata?.task || '',
+                    task: data.metadata?.task || [],
                     visits: data.metadata?.visits || 0,
                     //Owner
                     owner: data.metadata?.owner || '',
@@ -568,8 +568,8 @@ export class ProjectStateService {
             { field: 'email', translationKey: 'inventory.header.email', type: 'text', group: 'owner', visibleByDefault: false },
             //Data
             { field: 'template', translationKey: 'inventory.header.template', type: 'text', group: 'pageData', visibleByDefault: true },
-            { field: 'task', translationKey: 'inventory.header.task', type: 'text', group: 'pageData', visibleByDefault: true },
-            { field: 'visits', translationKey: 'inventory.header.visits', type: 'text', group: 'pageData', visibleByDefault: true },
+            { field: 'task', translationKey: 'inventory.header.task', type: 'array', group: 'pageData', visibleByDefault: true },
+            { field: 'visits', translationKey: 'inventory.header.visits', type: 'number', group: 'pageData', visibleByDefault: true },
             //Metadata
             { field: 'title', translationKey: 'inventory.header.title', type: 'text', group: 'metadata', visibleByDefault: false },
             { field: 'description', translationKey: 'inventory.header.description', type: 'longText', group: 'metadata', visibleByDefault: false },
@@ -732,6 +732,50 @@ export class ProjectStateService {
             findAndDelete(projectTree);
         }
         this.setProjectTree(projectTree);
+    }
+
+    // Check for child pages that will be deleted (so component UI can display a warning)
+    checkDeletionImpact(selectedPages: FlattenedTreeNode[]): { url: string, h1: string, inScope: boolean }[] {
+        const projectTree = this.getProjectTree();
+        const selectedUrls = new Set(selectedPages.map(p => p.url));
+        const additionalPages: { url: string, h1: string, inScope: boolean }[] = [];
+
+        for (const page of selectedPages) {
+            const nodeToDelete = this.findNodeByUrl(projectTree, page.url);
+            if (!nodeToDelete) continue;
+
+            const descendants = this.collectAllDescendants(nodeToDelete);
+            for (const desc of descendants) {
+                const url = desc.data?.url;
+                if (url && !selectedUrls.has(url)) {
+                    additionalPages.push({
+                        url,
+                        h1: desc.data?.h1 || '',
+                        inScope: desc.data?.status.inScope || false
+                    });
+                    selectedUrls.add(url);
+                }
+            }
+        }
+
+        return additionalPages;
+    }
+
+    // Used to check if child pages will be deleted during a delete operation
+    private collectAllDescendants(node: TreeNode<ProjectTreeNodeData>): TreeNode<ProjectTreeNodeData>[] {
+        const descendants: TreeNode<ProjectTreeNodeData>[] = [];
+
+        const collect = (n: TreeNode<ProjectTreeNodeData>) => {
+            if (n.children) {
+                for (const child of n.children) {
+                    descendants.push(child);
+                    collect(child);
+                }
+            }
+        };
+
+        collect(node);
+        return descendants;
     }
 
 }

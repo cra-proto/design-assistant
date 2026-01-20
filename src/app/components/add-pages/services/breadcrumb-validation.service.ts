@@ -1,13 +1,24 @@
 import { Injectable, inject } from '@angular/core';
+
+//Services
+import { TranslateService } from '@ngx-translate/core';
 import { FetchService } from '../../../services/fetch.service';
-import { UrlItem, UrlData, BreadcrumbNode, PageMetadata, JsonMetadata } from '../add-pages.model';
+import { AirtableService } from '../../../services/airtable.service';
+import { UpdService } from '../../../services/upd.service';
+
+//Models
 import { TreeNode } from 'primeng/api';
+import { UrlItem, UrlData, BreadcrumbNode, PageMetadata, JsonMetadata } from '../add-pages.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BreadcrumbValidationService {
+  private translate = inject(TranslateService);
   private fetchService = inject(FetchService);
+  private airtableService = inject(AirtableService);
+  private updService = inject(UpdService);
+
 
   metadataCache = new Map<string, PageMetadata>();
   jsonCache = new Map<string, JsonMetadata>();
@@ -200,12 +211,12 @@ export class BreadcrumbValidationService {
   //Step 3.5: Collect additional metadata
   async collectJsonData(breadcrumbs: BreadcrumbNode[][]): Promise<void> {
     const uniqueUrls = this.extractUniqueUrls(breadcrumbs);
-    const fields = ['otherTitle', 'gcContributor', 'gcBranch', 'gcLastPublished', 'cq:lastModified'];
+    const fields = ['otherTitle', 'gcContributor', 'gcBranch', 'gcLastPublished', 'cq:lastModified', 'cq:template'];
     for (const url of uniqueUrls) {
       const contentData = await this.fetchService.fetchJSON(url, fields);
 
       // Get existing metadata from cache or create new entry
-      let jsonData = this.jsonCache.get(url) || {} as JsonMetadata;
+      const jsonData = this.jsonCache.get(url) || {} as JsonMetadata;
 
       // Merge jcr:content.json data into json cache
       jsonData.oppTitle = contentData['otherTitle'];
@@ -213,6 +224,7 @@ export class BreadcrumbValidationService {
       jsonData.email = contentData['gcBranch'];
       jsonData.lastPublished = contentData['gcLastPublished'] ? new Date(contentData['gcLastPublished']) : undefined;
       jsonData.lastModified = contentData['cq:lastModified'] ? new Date(contentData['cq:lastModified']) : undefined;
+      jsonData.isFreestyle = contentData['cq:template']?.includes('freestyle') ?? false;
 
       this.jsonCache.set(url, jsonData);
     }
@@ -237,6 +249,14 @@ export class BreadcrumbValidationService {
     // Collect additional page data
     await this.collectJsonData(breadcrumbs);
 
+    // Fetch Airtable tasks (uses cache if available)
+    await this.airtableService.fetchTasks();
+    const currentLang = this.translate.currentLang?.startsWith('fr') ? 'fr' : 'en';
+
+    // Fetch UPD visits
+    await this.updService.fetchData();
+
+    // Checks if child node is already in TreeNode
     const findChildByUrl = (nodes: TreeNode[] | undefined, url?: string | null) => {
       if (!nodes || !url) return undefined;
       return nodes.find(n => n.data?.url === url);
@@ -287,6 +307,8 @@ export class BreadcrumbValidationService {
         // check if node already exists for this crumb at the current level
         let node = findChildByUrl(currentLevel, crumb.url);
 
+        console.log()
+
         if (!node) {
           // create a new node for this crumb if it doesn't exist
           node = {
@@ -302,21 +324,23 @@ export class BreadcrumbValidationService {
                 isNew: false,
                 isMoved: false,
                 isROT: false,
-                isArchived: metadata.isArchived || false,
+                archiveStatus: metadata.isArchived ? 'archived' : 'current',
                 isContainer: false,
               },
               metadata: {
                 title: metadata?.title,
                 description: metadata?.description,
                 keywords: metadata?.keywords,
-                template: metadata?.template,
+                template: jsonData?.isFreestyle ? 'freestyle' : metadata?.template,
                 oppUrl: metadata?.oppUrl,
                 oppTitle: jsonData?.oppTitle || '',
                 owner: jsonData?.owner || '',
                 email: jsonData?.email || '',
                 lastPublished: jsonData?.lastPublished || '',
                 lastModified: jsonData?.lastModified || '',
-                //ADD AIRTABLE TASK AND UPD VISITS & MOBILE%
+                task: crumb.url ? this.airtableService.findTaskNamesByUrl(crumb.url, currentLang) : '',
+                visits: crumb.url ? this.updService.findVisitsByUrl(crumb.url.replace('https://', '')) : 0,
+                //ADD UPD MOBILE%
               }
             },
             expanded: true,

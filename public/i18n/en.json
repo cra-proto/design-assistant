@@ -402,6 +402,8 @@
 	"inventory.collapseAllMetadata": "Collapse all metadata",
 	"inventory.expand": "Expand",
 	"inventory.collapse": "Collapse",
+	"inventory.toggle.inScope": "In-scope pages",
+	"inventory.toggle.allScope": "All pages",
 	"--------ABOUT US---------------------": "--------------------------------ABOUT US---------------------------------------------",
 	"about.content": "<p>The DDPD GenAI Project is exploring how artificial intelligence and automation can improve web content design for Canada.ca.</p><p>The AI Design Assistant (AIDA) helps content designers manage projects, analyze pages, identify issues, and create prototypes.</p><h2 class=\"text-lg\">What it does now</h2><ul><li>Manage projects and content inventory</li><li>Visualize information architecture</li><li>Generate metadata with AI assistance</li><li>Export prototypes to GitHub for testing</li></ul><h2 class=\"text-lg\">What's coming next</h2><ul><li>AI-assisted content review</li><li>Accessibility checking</li><li>Automated quality assurance tools</li></ul><p>We're building this tool step by step based on user feedback. Release 1 focuses on project management and prototyping. Future releases will add more content review and quality assurance features.</p><p>Interested in testing or contributing? <a href=\"mailto:\">Contact CDIA</a></p>",
 	"--------TEST PAGE--------------------": "--------------------------------TEST PAGE--------------------------------------------",

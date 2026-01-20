@@ -31,6 +31,7 @@ export interface JsonMetadata {
     email?: string;                 // jrc:content.json gcBranch
     lastPublished?: Date;           // jrc:content.json gcLastPublished
     lastModified?: Date;            // jrc:content.json cq:lastModified
+    isFreestyle?: boolean           // jrc:content.json cq:template
 }
 
 export interface UrlData {

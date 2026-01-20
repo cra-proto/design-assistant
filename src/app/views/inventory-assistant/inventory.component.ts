@@ -13,6 +13,9 @@ import { IftaLabelModule } from 'primeng/iftalabel';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
+import { ToggleButtonModule } from 'primeng/togglebutton';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 
 //Components and models
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
@@ -30,30 +33,22 @@ import { FindPagesComponent } from "../../components/find-pages/find-pages.compo
     imports: [CommonModule, FormsModule, TranslateModule,
         TableModule, ButtonModule, PopoverModule, TooltipModule,
         ToolbarModule, IftaLabelModule, MultiSelectModule, SelectButtonModule,
-        TagModule,
+        TagModule, ToggleButtonModule, ConfirmDialogModule,
         ExportProjectComponent, AddPagesComponent, FindPagesComponent],
     templateUrl: './inventory.component.html',
-    styles: `
-    ::ng-deep .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    }
-    ::ng-deep .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    }
-    `})
+    styles: ``
+})
 export class InventoryComponent implements OnInit {
     public projectState = inject(ProjectStateService);
-    private translate = inject(TranslateService)
+    public translate = inject(TranslateService);
+    private confirmationService = inject(ConfirmationService);
     iaDiagram = inject(IaDiagramService);
 
     // Remove this later
     test() { console.log("Button click") }
+
+    // Signals
+    showInScopeOnly = signal<boolean>(true);
 
     // All table columns
     allColumns = this.projectState.getTreeTableColumns();
@@ -63,16 +58,19 @@ export class InventoryComponent implements OnInit {
 
     // Current selections
     selectedNodes = [] // Flattened TreeNode data (for delete, status toggles, etc.)
-    selectedColumnFields: string[] = []; // Multiselect data
-    selectedGroups: string[] = []; // Select button data
+    selectedColumnFields: string[] = []; // Multiselect column data
+    selectedGroups: string[] = []; // Multiselect group data
+    unselectedGroups: string[] = []; // Multiselect group data
     expandedMetadataCells = new Set<string>(); // Tracks which individual metadata cells are expanded
 
     // Booleans
     expandAllMetadata = false;
     expandAllUrls = false;
+    expandAllTasks = false;
 
     // Local storage key for loading previous table settings
-    private readonly STORAGE_KEY = 'inventoryColumnVisibility';
+    private readonly COLUMN_KEY = 'inventoryColumnVisibility';
+    private readonly GROUP_KEY = 'inventoryGroupVisibility';
 
     // Update column visibility on first load
     ngOnInit() {
@@ -80,9 +78,20 @@ export class InventoryComponent implements OnInit {
         this.updateVisibleColumns(); // Updates table
     }
 
+    // Multiselect - groups
+    get groups() {
+        const groups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
+
+        return groups.map(groupKey => ({
+            label: this.translate.instant(`inventory.columnGroups.${groupKey}`),
+            value: groupKey,
+        }));
+    }
+
     // Multiselect - column groups
     get groupedColumns() {
-        const groups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
+        const allGroups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
+        const groups = allGroups.filter(g => this.selectedGroups.includes(g));
 
         return groups.map(groupKey => ({
             label: this.translate.instant(`inventory.columnGroups.${groupKey}`),
@@ -167,9 +176,11 @@ export class InventoryComponent implements OnInit {
 
     // Local storage - load column visibility settings (for multiselect dropdown)
     private loadColumnVisibility() {
-        const stored = localStorage.getItem(this.STORAGE_KEY);
-        if (stored) {
-            this.selectedColumnFields = JSON.parse(stored);
+        const storedColumns = localStorage.getItem(this.COLUMN_KEY);
+        const storedGroups = localStorage.getItem(this.GROUP_KEY);
+        if (storedColumns && storedGroups) {
+            this.selectedGroups = JSON.parse(storedGroups);
+            this.selectedColumnFields = JSON.parse(storedColumns);
         } else {
             // Use default values
             this.selectedColumnFields = this.allColumns
@@ -195,10 +206,14 @@ export class InventoryComponent implements OnInit {
         console.log('groupMembers map:', Object.fromEntries(groupMembers));
         console.log('selectedColumnFields:', this.selectedColumnFields);
 
+        //Fully selected groups
         this.selectedGroups = Array.from(groupMembers.entries())
-            .filter(([group, fields]) =>
-                fields.every(field => this.selectedColumnFields.includes(field))
-            )
+            .filter(([group, fields]) => {
+                const hasAnySelected = fields.some(field =>
+                    this.selectedColumnFields.includes(field)
+                );
+                return hasAnySelected;
+            })
             .map(([group]) => group);
 
         console.log('syncSelectedGroups result:', this.selectedGroups);
@@ -206,17 +221,27 @@ export class InventoryComponent implements OnInit {
 
     // Local storage - save column visibility settings
     private saveColumnVisibility() {
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.selectedColumnFields));
+        localStorage.setItem(this.COLUMN_KEY, JSON.stringify(this.selectedColumnFields));
+        localStorage.setItem(this.GROUP_KEY, JSON.stringify(this.selectedGroups));
     }
 
     // Table - get current data
     tableData = computed<FlattenedTreeNode[]>(() => {
-        return this.projectState.flattenTree();
+        const allNodes = this.projectState.flattenTree();
+        const inScopeOnly = this.showInScopeOnly();
+        return inScopeOnly
+            ? allNodes.filter(node => node.inScope === true)
+            : allNodes;
     });
 
+    // Table - toggle visible rows based on scope
+    toggleInScopeFilter(): void {
+        this.showInScopeOnly.update(current => !current);
+    }
+
     // Table - returns the value of a cell (used by getBooleanIcon)
-    getCellValue(node: FlattenedTreeNode, col: TableColumn): any {
-        return node[col.field];
+    getCellValue(node: FlattenedTreeNode, col: TableColumn): boolean {
+        return node[col.field] as boolean;
     }
 
     // Table - map status booleans to icons
@@ -236,14 +261,15 @@ export class InventoryComponent implements OnInit {
         return 'pi pi-minus text-gray-400';
     }
 
-    getArchiveStatusIcon(status: 'current' | 'archived' | 'to-archive'): string {
+    getArchiveStatusIcon(node: FlattenedTreeNode, col: TableColumn): string {
+        const status = node[col.field];
         switch (status) {
             case 'current':
                 return 'pi pi-minus text-gray-400';
             case 'archived':
                 return 'pi pi-exclamation-triangle text-orange-500';
             case 'to-archive':
-                return 'pi pi-exclamation-triangle text-red-500';
+                return 'pi pi-exclamation-circle text-blue-500';
             default:
                 return 'pi pi-minus text-gray-400'; // fallback
         }
@@ -255,6 +281,7 @@ export class InventoryComponent implements OnInit {
         this.scrollableColumns = this.allColumns.filter(col => this.selectedColumnFields.includes(col.field));
         this.checkAutoExpandMetadata();
         this.checkAutoExpandUrls();
+        this.checkAutoExpandTasks();
     }
 
     // Table - autoexpand metadata when it's the only visible group (NOT WORKING!)
@@ -267,6 +294,12 @@ export class InventoryComponent implements OnInit {
     private checkAutoExpandUrls() {
         const selectedTypes = new Set(this.scrollableColumns.map(col => col.type));
         this.expandAllUrls = selectedTypes.size === 1 && selectedTypes.has('url');
+    }
+
+    // Table - autoexpand tasks when pageData is the only visible type (NOT WORKING!)
+    private checkAutoExpandTasks() {
+        const selectedGroups = new Set(this.scrollableColumns.map(col => col.group));
+        this.expandAllTasks = selectedGroups.size === 1 && selectedGroups.has('pageData');
     }
 
     // Table - check if metadata cell is expanded
@@ -328,10 +361,88 @@ export class InventoryComponent implements OnInit {
 
 
 
+    onDeleteSelected() {
+        if (!this.selectedNodes.length) return;
+        const additionalDeletions = this.projectState.checkDeletionImpact(this.selectedNodes);
+        if (additionalDeletions.length > 0) {
+            this.showDeletionConfirmation(this.selectedNodes.length, additionalDeletions);
+        } else {
+            this.confirmationService.confirm({
+                message: `Delete ${this.selectedNodes.length} page(s)?`,
+                header: 'Confirm Deletion',
+                icon: 'pi pi-exclamation-circle',
+                acceptIcon: 'pi pi-trash',
+                acceptLabel: 'Delete',
+                rejectLabel: 'Cancel',
+                acceptButtonStyleClass: 'p-button-danger',
+                rejectButtonStyleClass: 'p-button-secondary',
+                accept: () => {
+                    this.projectState.deleteNode(this.selectedNodes, true);
+                    this.selectedNodes = [];
+                }
+            });
+        }
+    }
 
+    private showDeletionConfirmation(deleteCount: number, additionalPages: { url: string, h1: string, inScope: boolean }[]) {
+        const inScopeCount = additionalPages.filter(p => p.inScope).length;
+        const inScopeList = additionalPages
+            .filter(p => p.inScope)
+            .map(p => `${p.h1}`)
+            .join('<br>');
+        const baselineCount = additionalPages.filter(p => !p.inScope).length;
+        const baselineList = additionalPages
+            .filter(p => !p.inScope)
+            .map(p => `${p.h1}`)
+            .join('<br>');
+        const message = `
+        <p class="mt-0">Deleting ${deleteCount} page(s) will also remove ${additionalPages.length} child page(s).</p>
+        ${inScopeCount > 0 ? `
+        <p>${inScopeCount > 0 ? `${inScopeCount} in-scope page(s) will be affected!` : ''}</p>
+        <h2>Delete these in-scope pages?</h2>
+        <p>${inScopeList}</p>
+        ` : ''}
+        ${baselineCount > 0 ? `
+        <h2>Delete these baseline pages?</h2>
+        <p>${baselineList}</p>
+        ` : ''}
+    `.trim();
+
+        this.confirmationService.confirm({
+            message,
+            header: 'Confirm Deletion',
+            icon: 'pi pi-exclamation-triangle',
+            acceptIcon: 'pi pi-trash',
+            acceptLabel: 'Delete',
+            rejectLabel: 'Cancel',
+            acceptButtonStyleClass: 'p-button-danger',
+            rejectButtonStyleClass: 'p-button-secondary',
+            accept: () => {
+                this.projectState.deleteNode(this.selectedNodes, true);
+                this.selectedNodes = []; // Clear selection after delete
+            }
+        });
+    }
 
     onExportCsv() {
         this.projectState.exportTreeAsCsv();
+    }
+
+
+    //ONLY NEEDED FOR TESTING UNLESS WE WANT A RESET TO DEFAULTS VIEW
+    resetColumnSettings() {
+        localStorage.removeItem('inventoryColumnVisibility');
+        localStorage.removeItem('inventoryGroupVisibility');
+
+        // Reset to defaults
+        this.selectedColumnFields = this.allColumns
+            .filter(col => col.visibleByDefault && !col.frozen)
+            .map(col => col.field);
+
+        this.syncSelectedGroups();
+        this.updateVisibleColumns();
+
+        console.log('Column settings reset to defaults');
     }
 
 }

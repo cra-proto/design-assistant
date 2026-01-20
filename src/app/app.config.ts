@@ -8,10 +8,16 @@ import { CustomTitleStrategy } from './common/custom-title-strategy';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr-CA';
+import localeEn from '@angular/common/locales/en-CA';
 //import Lara from '@primeng/themes/lara';
 import MyPreset from './mypreset';
 
 import { routes } from './app.routes';
+
+registerLocaleData(localeFr);
+registerLocaleData(localeEn);
 
 const httpLoaderFactory: (http: HttpClient) => TranslateHttpLoader = (http: HttpClient) =>
   new TranslateHttpLoader(http, './i18n/', '.json');
