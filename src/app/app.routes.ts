@@ -12,7 +12,7 @@ import { AuthCallbackComponent } from './components/sign-in/auth-callback.compon
 import { ExportGithubComponent } from './views/github-assistant/export-github.component';
 //import { ShareComponent } from './views/page-assistant/components/share.component';
 //Add & Find Pages
-import { AddPagesComponent } from './components/add-pages/add-pages.component';
+//import { AddPagesComponent } from './components/add-pages/add-pages.component';
 //import { FindPagesComponent } from './views/find-pages/find-pages.component';
 // Tools
 //import { PageUploadComponent } from './views/page-assistant/components/upload.component';
@@ -28,7 +28,7 @@ import { IaDiagramComponent } from './components/ia-diagram/ia-diagram.component
 import { NotFoundComponent } from './views/404/not-found.component';
 import { AboutComponent } from './views/about-us/about.component';
 //import { ExampleComponent } from './views/examples/example.component';
-import { GetTaskUrlsComponent } from './components/find-pages/get-task-urls.component';
+import { GetTaskUrlsComponent } from './components/find-pages/components/get-task-urls.component';
 
 export const routes: Routes = [
     {

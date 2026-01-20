@@ -10,7 +10,7 @@
 <aida-get-task-urls></aida-get-task-urls>
 
 <!-- Task Selection Section -->
-<p><strong>JSON version (Dec 2025)</strong></p>
+<!--p><strong>JSON version (Dec 2025)</strong></p>
 <p-iftalabel>
     <p-autoComplete
                     id="task-autocomplete"
@@ -40,15 +40,15 @@
         </ng-template>
     </p-autoComplete>
     <label for="task-autocomplete">{{ 'findPages.task.selectTask' | translate }}</label>
-</p-iftalabel>
+</p-iftalabel-->
 
 <!-- Loading indicator -->
-<div *ngIf="taskService.loading()" class="mt-2">
+<!--div *ngIf="taskService.loading()" class="mt-2">
     <p-progressSpinner
                        styleClass="w-2rem h-2rem"
                        strokeWidth="4"></p-progressSpinner>
     <span class="ml-2">{{ 'findPages.task.loadingTasks' | translate }}</span>
-</div>
+</div-->
 
 <!-- URLs List Section -->
 @if(taskUrls().length > 0){

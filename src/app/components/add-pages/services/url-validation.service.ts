@@ -11,7 +11,7 @@ export class UrlValidationService {
     //Parse raw URL input into UrlItem array
     parseUrls(rawUrls: string, existingUrls: Set<string>): { parsedUrls: UrlItem[]; duplicates: string[]; } {
         const seen = new Set<string>(existingUrls); //to track duplicates
-        var duplicates: string[] = []; //to store duplicates
+        const duplicates: string[] = []; //to store duplicates
         const parsedUrls = rawUrls
             .split(/\r?\n/) //split by new lines
             .map(line => line.trim().toLowerCase()) //normalize

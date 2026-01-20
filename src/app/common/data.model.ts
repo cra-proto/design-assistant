@@ -43,13 +43,13 @@ export interface GitHubRepo {
 
 //Page metadata
 export interface PageMeta {
-    url: string;                    // User-added URL
-    oppUrl: string;                 // Oppostie language URL    
-    baselineParent: string | null;  // Last url in breadcrumb (the parent page)
-    h1: string;                     // All H1's on the page
     title?: string;                 // Metadata title
     description?: string;           // Metadata description
     keywords?: string;              // Metadata keywords
+    template?: string;              // Determined based on page content & url pattern
+    task?: string[];                  // Determined by comparing with task airtable data
+    visits?: number;                // Determined by comparing with UPD data
+    oppUrl?: string;                // Opposite language URL 
     oppTitle?: string;              // jrc:content.json otherTitle
     owner?: string;                 // jrc:content.json gcContributor
     email?: string;                 // jrc:content.json gcBranch
@@ -65,6 +65,7 @@ export interface PageStatus {
     isNew: boolean;                  // True if url is 404
     isMoved: boolean;                // True if current parent doesn't match baseline parent
     isROT: boolean;                  // True if user flags page as ROT (redundant, outdated, trivial)
+    archiveStatus: 'current' | 'archived' | 'to-archive' // current/archived is set during add pages step, user can toggle to-archive
     isContainer: boolean;            // True if page is a container page (used to group together pages for AI combine/split actions)
 }
 
@@ -90,21 +91,48 @@ export interface ProjectTreeNodeData {
 }
 
 export interface FlattenedTreeNode {
+    //Current language
     h1: string;
     url: string;
+    //Opposite language
+    oppTitle: string;
     oppUrl: string;
+    //GitHub
+    prototypeUrl: string;
+    //Status
     inScope: boolean;
     isOrphan: boolean;
     isNew: boolean;
     isMoved: boolean;
     isROT: boolean;
+    archiveStatus: 'current' | 'archived' | 'to-archive'
+    //Data
+    template: string;
+    task: string[];
+    visits: number;
+    //Metadata
+    title: string;
+    description: string;
+    keywords: string;
+    //Owner
+    owner: string;
+    email: string;
 }
 
 export interface TableColumn {
     field: keyof FlattenedTreeNode;
     translationKey: string;
-    type: 'text' | 'url' | 'boolean';
+    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive';
     frozen?: boolean;
+    group: 'page' | 'oppPage' | 'github' | 'status' | 'owner' | 'pageData' | 'metadata';
+    visibleByDefault: boolean;
+}
+
+export interface ColumnGroup {
+    key: string;
+    translationKey: string;
+    columns: TableColumn[];
+    visible: boolean;
 }
 
 //Project interface

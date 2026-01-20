@@ -1,13 +1,27 @@
 import { Injectable, inject } from '@angular/core';
+
+//Services
+import { TranslateService } from '@ngx-translate/core';
 import { FetchService } from '../../../services/fetch.service';
-import { UrlItem, UrlData, BreadcrumbNode } from '../add-pages.model';
+import { AirtableService } from '../../../services/airtable.service';
+import { UpdService } from '../../../services/upd.service';
+
+//Models
 import { TreeNode } from 'primeng/api';
+import { UrlItem, UrlData, BreadcrumbNode, PageMetadata, JsonMetadata } from '../add-pages.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BreadcrumbValidationService {
+  private translate = inject(TranslateService);
   private fetchService = inject(FetchService);
+  private airtableService = inject(AirtableService);
+  private updService = inject(UpdService);
+
+
+  metadataCache = new Map<string, PageMetadata>();
+  jsonCache = new Map<string, JsonMetadata>();
 
   //Get one breadcrumb
   private getBreadcrumb(doc: Document, baseUrl: string): BreadcrumbNode[] {
@@ -29,7 +43,7 @@ export class BreadcrumbValidationService {
     return breadcrumbArray;
   }
 
-  //Step 1: Get all breadcrumbs
+  //Step 1: Get all breadcrumbs (and any other data we want from the page, H1, metadata, template etc.)
   public async getAllBreadcrumbs(pages: UrlItem[]): Promise<UrlData[]> {
     const results: UrlData[] = [];
 
@@ -43,13 +57,13 @@ export class BreadcrumbValidationService {
         //Get breadcrumb
         const breadcrumb = this.getBreadcrumb(doc, "https://www.canada.ca");
 
-        //Get H1 (or double H1)
-        const h1Elements = Array.from(doc.querySelectorAll('h1'));
-        const h1: string = h1Elements.map(e => e.textContent?.trim()).filter(Boolean).join('<br>');
+        //Get metadata
+        const metadata = this.fetchService.extractPageMetadata(doc, url);
+        this.metadataCache.set(url, metadata);
 
         results.push({
           href: url,
-          h1: h1,
+          h1: metadata.h1,
           breadcrumb: breadcrumb,
           descendants: []
         });
@@ -153,6 +167,8 @@ export class BreadcrumbValidationService {
         try {
 
           const doc = await this.fetchService.fetchContent(parent.url, "prod", 3, "random");
+          const metadata = this.fetchService.extractPageMetadata(doc, parent.url);
+          this.metadataCache.set(parent.url, metadata);
 
           const links = Array.from(doc.querySelectorAll('a'))
             .map(a => a.getAttribute('href'))
@@ -192,11 +208,55 @@ export class BreadcrumbValidationService {
     return breadcrumbs;
   }
 
+  //Step 3.5: Collect additional metadata
+  async collectJsonData(breadcrumbs: BreadcrumbNode[][]): Promise<void> {
+    const uniqueUrls = this.extractUniqueUrls(breadcrumbs);
+    const fields = ['otherTitle', 'gcContributor', 'gcBranch', 'gcLastPublished', 'cq:lastModified', 'cq:template'];
+    for (const url of uniqueUrls) {
+      const contentData = await this.fetchService.fetchJSON(url, fields);
+
+      // Get existing metadata from cache or create new entry
+      const jsonData = this.jsonCache.get(url) || {} as JsonMetadata;
+
+      // Merge jcr:content.json data into json cache
+      jsonData.oppTitle = contentData['otherTitle'];
+      jsonData.owner = contentData['gcContributor'];
+      jsonData.email = contentData['gcBranch'];
+      jsonData.lastPublished = contentData['gcLastPublished'] ? new Date(contentData['gcLastPublished']) : undefined;
+      jsonData.lastModified = contentData['cq:lastModified'] ? new Date(contentData['cq:lastModified']) : undefined;
+      jsonData.isFreestyle = contentData['cq:template']?.includes('freestyle') ?? false;
+
+      this.jsonCache.set(url, jsonData);
+    }
+    console.log(this.jsonCache)
+  }
+
+  private extractUniqueUrls(breadcrumbs: BreadcrumbNode[][]): string[] {
+    const urlSet = new Set<string>();
+    for (const breadcrumb of breadcrumbs) {
+      for (const crumb of breadcrumb) {
+        if (crumb.url) urlSet.add(crumb.url);
+      }
+    }
+    return Array.from(urlSet);
+  }
+
   //Step 4: Convert BreadcrumbNode's to TreeNode's
   async setTreeContext(projectTree: TreeNode[], breadcrumbs: BreadcrumbNode[][]): Promise<TreeNode[]> {
 
     const clonedTree = structuredClone(projectTree);
 
+    // Collect additional page data
+    await this.collectJsonData(breadcrumbs);
+
+    // Fetch Airtable tasks (uses cache if available)
+    await this.airtableService.fetchTasks();
+    const currentLang = this.translate.currentLang?.startsWith('fr') ? 'fr' : 'en';
+
+    // Fetch UPD visits
+    await this.updService.fetchData();
+
+    // Checks if child node is already in TreeNode
     const findChildByUrl = (nodes: TreeNode[] | undefined, url?: string | null) => {
       if (!nodes || !url) return undefined;
       return nodes.find(n => n.data?.url === url);
@@ -207,8 +267,47 @@ export class BreadcrumbValidationService {
       let parentUrl: string | null = null;
       for (const crumb of breadcrumb) {
 
+        // Get metadata from cache or fetch if missing
+        let metadata = this.metadataCache.get(crumb.url ?? '');
+        if (!metadata) {
+          if (crumb.url) {
+            try {
+              console.warn("Missing metadata. Starting new fetch.");
+              const doc = await this.fetchService.fetchContent(crumb.url, "prod", 3, "random");
+              metadata = this.fetchService.extractPageMetadata(doc, crumb.url);
+              this.metadataCache.set(crumb.url, metadata);
+            } catch (error) {
+              // If breadcrumb url is 404 (possible for out-of-scope pages, especially for pseudopages that aren't set up correctly)
+              console.error(`Error fetching metadata for ${crumb.url}:`, error);
+              metadata = {
+                h1: crumb.label,
+                title: '',
+                description: '',
+                keywords: '',
+                template: '404',
+                oppUrl: ''
+              };
+            }
+          } else {
+            // If URL was missing from breadcrumb (unlikely)
+            metadata = {
+              h1: crumb.label,
+              title: '',
+              description: '',
+              keywords: '',
+              template: '404',
+              oppUrl: ''
+            };
+          }
+        }
+
+        // Get JSON data from cache
+        const jsonData = this.jsonCache.get(crumb.url ?? '');
+
         // check if node already exists for this crumb at the current level
         let node = findChildByUrl(currentLevel, crumb.url);
+
+        console.log()
 
         if (!node) {
           // create a new node for this crumb if it doesn't exist
@@ -225,7 +324,23 @@ export class BreadcrumbValidationService {
                 isNew: false,
                 isMoved: false,
                 isROT: false,
+                archiveStatus: metadata.isArchived ? 'archived' : 'current',
                 isContainer: false,
+              },
+              metadata: {
+                title: metadata?.title,
+                description: metadata?.description,
+                keywords: metadata?.keywords,
+                template: jsonData?.isFreestyle ? 'freestyle' : metadata?.template,
+                oppUrl: metadata?.oppUrl,
+                oppTitle: jsonData?.oppTitle || '',
+                owner: jsonData?.owner || '',
+                email: jsonData?.email || '',
+                lastPublished: jsonData?.lastPublished || '',
+                lastModified: jsonData?.lastModified || '',
+                task: crumb.url ? this.airtableService.findTaskNamesByUrl(crumb.url, currentLang) : '',
+                visits: crumb.url ? this.updService.findVisitsByUrl(crumb.url.replace('https://', '')) : 0,
+                //ADD UPD MOBILE%
               }
             },
             expanded: true,

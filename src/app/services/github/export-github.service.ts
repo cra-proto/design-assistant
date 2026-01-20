@@ -1,6 +1,8 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { FetchService } from '../fetch.service';
 import { GitHubAuthService, GitHubUser } from './github-auth.service';
+import { TreeNode } from 'primeng/api';
+import { environment } from '../../../environments/environment';
 
 export interface GitHubFileRequest {
   message: string;
@@ -9,12 +11,21 @@ export interface GitHubFileRequest {
   sha?: string;    // needed when overwriting
 }
 
+interface MermaidNode {
+  id: string;
+  h1: string;
+  url: string;
+  inScope: boolean;
+  children: MermaidNode[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ExportGitHubService {
   private fetchService = inject(FetchService);
   private authService = inject(GitHubAuthService);
+  templateOrg = environment.templateOrg;
 
   //Manage GitHub token
   token = computed(() =>
@@ -419,10 +430,10 @@ defaults:
       css:
         - https://use.fontawesome.com/releases/v5.15.4/css/all.css
         - https://wet-boew.github.io/themes-dist/GCWeb/GCWeb/m%C3%A9li-m%C3%A9lo/2025-12-mille-iles.css
-        - https://cra-design.github.io/core-prototype/source/css/testing-banner.css
+        - https://${this.templateOrg}.github.io/core-prototype/source/css/testing-banner.css
       script:
         - https://wet-boew.github.io/themes-dist/GCWeb/GCWeb/m%C3%A9li-m%C3%A9lo/2025-12-mille-iles.js
-        - https://cra-design.github.io/core-prototype/source/scripts/external-link-detour.js
+        - https://${this.templateOrg}.github.io/core-prototype/source/scripts/external-link-detour.js
         `
     try {
       console.log(`Creating _config.yml for ${repo}`);
@@ -475,7 +486,7 @@ noFooterMain: true
   }
 
   //Set up README.md <-- add mermaid chart to this
-  async createInitialReadme(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>) {
+  async createInitialReadme(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>, treeNodes?: TreeNode[]) {
     const filename = "README.md";
     const date = new Date();
     const today = date.toISOString().split("T")[0];
@@ -483,6 +494,10 @@ noFooterMain: true
     const startDate = date.toISOString().split("T")[0]; // 2 weeks ago
     date.setDate(date.getDate() + 98);
     const endDate = date.toISOString().split("T")[0]; // 14 weeks from start
+
+    const mermaidChart = treeNodes
+      ? this.generateMermaidChart(treeNodes)
+      : 'flowchart TD;\n    A[No pages in project]';
 
     const content = `# ${repo} COP
 
@@ -500,7 +515,7 @@ GitHub Pages: [https://${owner}.github.io/${repo}](https://${owner}.github.io/${
 ---
 ## Update procedures
 
-Add information on how to manage the repo here.
+Add information on how to manage your repo here.
 
 ---
 ## Design phase roadmap:
@@ -513,6 +528,11 @@ Add information on how to manage the repo here.
 - [ ] Spot check usability (if required)
 
 **Updated:**  ${today}
+
+## Information Architecture
+\`\`\`mermaid
+${mermaidChart}
+\`\`\`
 `;
 
     try {
@@ -524,10 +544,11 @@ Add information on how to manage the repo here.
   }
 
   private filesToCopy = [
-    "https://raw.githubusercontent.com/cra-design/core-prototype/main/_includes/header/header.html",
-    "https://raw.githubusercontent.com/cra-design/core-prototype/main/_includes/resources-inc/footer.html",
-    "https://raw.githubusercontent.com/cra-design/core-prototype/main/source/exit-intent-e.html",
-    "https://raw.githubusercontent.com/cra-design/core-prototype/main/404.html",
+    `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/_includes/header/header.html`,
+    `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/_includes/headers-includes/sitesearch.html`,
+    `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/_includes/resources-inc/footer.html`,
+    `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/source/exit-intent-e.html`,
+    `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/404.html`,
   ];
 
   private async copyCoreFiles(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>) {
@@ -642,7 +663,7 @@ Add information on how to manage the repo here.
     return response.json();
   }
 
-  public async setupRepo(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>) {
+  public async setupRepo(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>, treeNodes?: TreeNode[]) {
     const exists = await this.repoExists(owner, repo);
 
     //Create repo
@@ -650,7 +671,7 @@ Add information on how to manage the repo here.
       await this.createRepo(owner, repo, branch, token);
       await this.enablePages(owner, repo, branch, token);
       const existingFiles = await this.getRepoTree(owner, repo, branch, token);
-      await this.createInitialReadme(owner, repo, branch, token, existingFiles);
+      await this.createInitialReadme(owner, repo, branch, token, existingFiles, treeNodes);
     } else {
       console.log(`Repo ${owner}/${repo} already exists. Skipping creation.`);
     }
@@ -746,5 +767,107 @@ Add information on how to manage the repo here.
 
     return response.json();
   }
+
+  private generateMermaidChart(treeNodes: TreeNode[]): string {
+    if (!treeNodes || treeNodes.length === 0) {
+      return 'flowchart TD;\n    A[No pages in project]';
+    }
+
+    let nodeCounter = 1;
+    const nodeDefinitions: string[] = [];
+    const relationships: string[] = [];
+    const clickHandlers: string[] = [];
+    const inScopeNodes: string[] = [];
+    const isRotNodes: string[] = [];
+    const isNewNodes: string[] = [];
+    const isMovedNodes: string[] = [];
+
+    // Recursive function to traverse tree and build mermaid data
+    const traverse = (node: TreeNode, parentId?: string): void => {
+      const nodeId = `node${nodeCounter++}`;
+      const h1 = node.data?.h1 || 'Untitled';
+      const url = node.data?.url || '';
+      const inScope = node.data?.status?.inScope || false;
+      const isOrphan = node.data?.status?.isOrphan || false;
+      const isRot = node.data?.status?.isRot || false;
+      const isNew = node.data?.status?.isNew || false;
+      const isMoved = node.data?.status?.isMoved || false;
+
+      // Define the node with its label
+      nodeDefinitions.push(`    ${nodeId}(${this.sanitizeMermaidLabel(h1)})`);
+
+      // Add relationship if there's a parent
+      if (parentId) {
+        const arrow = isOrphan ? '--x' : '-->';
+        relationships.push(`    ${parentId} ${arrow} ${nodeId}`);
+      }
+
+      // Add click handler
+      if (url) {
+        clickHandlers.push(`    click ${nodeId} "${url}" _blank`);
+      }
+
+      // Track styled nodes (background priority: isRot > isNew > isMoved)
+      if (isRot) {
+        isRotNodes.push(nodeId);
+      } else if (isNew) {
+        isNewNodes.push(nodeId);
+      } else if (isMoved) {
+        isMovedNodes.push(nodeId);
+      }
+
+      // Track in-scope nodes (border)
+      if (inScope) {
+        inScopeNodes.push(nodeId);
+      }
+
+      // Traverse children
+      if (node.children && node.children.length > 0) {
+        node.children.forEach((child: TreeNode) => traverse(child, nodeId));
+      }
+    };
+
+    // Start traversal from root
+    treeNodes.forEach(rootNode => traverse(rootNode));
+
+    // Build final mermaid chart
+    let chart = 'flowchart TD;\n';
+    chart += nodeDefinitions.join('\n') + '\n';
+    chart += relationships.join('\n') + '\n';
+    chart += clickHandlers.join('\n');
+
+    // Add & apply class definitions
+    if (inScopeNodes.length > 0) {
+      chart += '\n    classDef inscope stroke:#7636ab,stroke-width:3px';
+      chart += `\n    class ${inScopeNodes.join(',')} inscope`;
+    }
+    if (isRotNodes.length > 0) {
+      chart += '\n    classDef isrot fill:#c50028,color:#fff';
+      chart += `\n    class ${isRotNodes.join(',')} isrot`;
+    }
+    if (isNewNodes.length > 0) {
+      chart += '\n    classDef isnew fill:#00706f,color:#fff';
+      chart += `\n    class ${isNewNodes.join(',')} isnew`;
+    }
+    if (isMovedNodes.length > 0) {
+      chart += '\n    classDef ismoved fill:#eab308,color:#000';
+      chart += `\n    class ${isMovedNodes.join(',')} ismoved`;
+    }
+
+    console.log(chart)
+    return chart;
+  }
+
+  // Helper method to sanitize labels for mermaid (escape special characters)
+  private sanitizeMermaidLabel(label: string): string {
+    return label
+      .replace(/"/g, '#quot;')
+      .replace(/\(/g, '#40;')
+      .replace(/\)/g, '#41;')
+      .replace(/\[/g, '#91;')
+      .replace(/\]/g, '#93;')
+      .trim();
+  }
+
 }
 

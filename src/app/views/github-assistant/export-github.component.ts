@@ -34,6 +34,7 @@ import { ProjectStateService } from '../../services/project-state.service';
 import { FetchService } from '../../services/fetch.service';
 import { GitHubAuthService } from '../../services/github/github-auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { environment } from '../../../environments/environment';
 
 //Components
 import { SetupRepoComponent } from '../../components/setup-repo/setup-repo.component';
@@ -82,6 +83,8 @@ export class ExportGithubComponent implements OnInit {
   private fetchService = inject(FetchService);
   public translate = inject(TranslateService);
   private themeService = inject(ThemeService);
+
+  defaultOrg = environment.defaultOrg;
 
   url = "test";
   username = computed(() => this.exportGitHubService.user()?.name || this.exportGitHubService.user()?.login || 'User');
@@ -320,7 +323,7 @@ export class ExportGithubComponent implements OnInit {
     //console.warn("Existing files in repo:", existingFiles);
 
     // Step 5: Set up repo (create it if it doesn't exist, add _config.yml and copy over core files)
-    await this.exportGitHubService.setupRepo(owner, repo, branch, token, existingFiles);
+    await this.exportGitHubService.setupRepo(owner, repo, branch, token, existingFiles, nodes);
 
     console.log("Repository setup complete.");
 
@@ -379,6 +382,7 @@ export class ExportGithubComponent implements OnInit {
     const jekyllUpdateFiles: { path: string; content: string }[] = [
       { path: "404.html", content: "<!-- 404 page -->" }, //copied from core-prototype
       { path: "_includes/header/header.html", content: "<!-- header -->" }, //copied from core-prototype
+      { path: "_includes/headers-includes/sitesearch.html", content: "<!-- sitesearch -->" }, //copied from core-prototype
       { path: "_includes/resources-inc/footer.html", content: "<!-- footer -->" }, //copied from core-prototype
       { path: "source/exit-intent-e.html", content: "<!-- exit intent - english -->" }, //copied from core-prototype
       { path: "source/data/exclude-redirect-links.json", content: "<!-- redirects -->" }, //generated for all pages in repo

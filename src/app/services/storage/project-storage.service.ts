@@ -84,24 +84,35 @@ export class ProjectStorageService {
     // Save to either local or cloud based on project.storageType (returns true if successful)
     async saveProject(project: Project): Promise<boolean> {
         try {
-            const key = this.generateKeyFromName(project.projectName);
+            const newKey = this.generateKeyFromName(project.projectName);
             const storageType = project.storageType;
 
-            console.log(`Saving project "${key}" to ${storageType} storage...`);
+            //Get old key (in case of project rename)
+            const oldActiveProject = this.getActiveProject();
+            const oldKey = oldActiveProject?.key;
+
+            console.log(`Saving project "${newKey}" to ${storageType} storage...`);
 
             if (storageType === 'cloud') {
                 // Save to cloud
-                const success = await this.saveToCloud(project, key);
+                const success = await this.saveToCloud(project, newKey);
                 if (!success) {
                     console.error('Cloud save failed');
                     return false;
                 }
+                this.setActiveProject(newKey, storageType);
             } else {
                 // Save to local
-                this.saveToLocal(project, key);
+                this.saveToLocal(project, newKey);
+                // If key changed, delete the old one
+                if (oldKey && oldKey !== newKey) {
+                    console.log(`Key changed from "${oldKey}" to "${newKey}", deleting old key`);
+                    this.deleteLocalProject(oldKey);
+                }
+                this.setActiveProject(newKey, storageType);
             }
 
-            console.log(`Project "${key}" saved successfully to ${storageType}`);
+            console.log(`Project "${newKey}" saved successfully to ${storageType}`);
             return true;
 
         } catch (error) {

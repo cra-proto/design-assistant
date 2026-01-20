@@ -1,0 +1,70 @@
+<!--p class="my-2"><strong>Airtable version ({{airtableService.getLastFetchedTime() | date:'mediumDate'}})</strong></p-->
+
+<!-- Task Selection Section -->
+<p-iftalabel>
+    <p-autoComplete
+                    id="task-autocomplete"
+                    [(ngModel)]="selectedTask"
+                    [suggestions]="filteredTasks()"
+                    (completeMethod)="filterTasks($event)"
+                    (onSelect)="onTaskSelect($event)"
+                    (onFocus)="onAutocompleteInteraction()"
+                    [dropdown]="airtableService.hasData()"
+                    [virtualScroll]=true
+                    [virtualScrollItemSize]="40"
+                    optionLabel="label"
+                    [placeholder]="airtableService.isLoading() ? 
+     ('findPages.task.loadingTasks' | translate) : 
+     ('findPages.task.searchPlaceholder' | translate)"
+                    styleClass="w-full"
+                    [disabled]="airtableService.isLoading()"
+                    [showEmptyMessage]=true
+                    [emptyMessage]="'findPages.task.noTasksFound' | translate"
+                    fluid>
+        <ng-template let-option pTemplate="item">
+            <div class="flex align-items-center gap-2">
+                <p-tag
+                       [value]="option.urlCount.toString()"
+                       [severity]="option.urlCount === 0 ? 'danger' : 'success'"
+                       [rounded]="true">
+                </p-tag>
+                <span>{{ option.label }}</span>
+            </div>
+        </ng-template>
+    </p-autoComplete>
+    <label for="task-autocomplete">{{ 'findPages.task.selectTask' | translate }}</label>
+</p-iftalabel>
+
+<!-- Loading indicator -->
+@if(airtableService.isLoading()) {
+<div class="mt-2 flex align-items-center gap-2">
+    <p-progressSpinner
+                       styleClass="w-2rem h-2rem"
+                       strokeWidth="4"></p-progressSpinner>
+    <span>{{ 'findPages.task.loadingTasks' | translate }}</span>
+</div>
+}
+
+<!-- URLs List Section -->
+@if(taskUrls().length > 0) {
+<h3 class="text-xl my-2">URLs</h3>
+<p-button
+          [label]="'findPages.task.addToProject' | translate"
+          icon="pi pi-plus"
+          (onClick)="addUrlsToProject()" />
+<div class="flex flex-column gap-2 max-h-64 overflow-y-auto border border-color-border p-2 rounded">
+    @for(item of taskUrls(); track item.url; let i = $index) {
+    <div class="flex align-items-center gap-2">
+        <p-checkbox
+                    [(ngModel)]="taskUrls()[i].selected"
+                    [inputId]="'url-' + i"
+                    [binary]="true"
+                    size="large"></p-checkbox>
+        <label [for]="'url-' + i" class="break-all">{{item.url}}</label>
+    </div>
+    }
+</div>
+}
+@else if(selectedTaskId() !== null) {
+<p>{{ 'findPages.task.noUrls' | translate }}</p>
+}

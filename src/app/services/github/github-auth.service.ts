@@ -26,7 +26,7 @@ export class GitHubAuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
 
-  private readonly BACKEND_URL = environment.apiUrl;
+  private readonly BACKEND_URL = environment.apiGateway;
   private readonly TOKEN_KEY = 'github_access_token';
   private readonly USER_KEY = 'github_user';
 

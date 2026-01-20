@@ -15,6 +15,25 @@ export interface ValidationState {
     isOk: boolean;
 }
 
+export interface PageMetadata {
+    h1: string;                   // the page H1
+    title: string;                // the page title
+    description: string;          // the page description
+    keywords: string;             // the page keywords
+    template: string;             // autodetected template
+    oppUrl?: string               // opposite language url
+    isArchived?: boolean          // archive status
+}
+
+export interface JsonMetadata {
+    oppTitle?: string;              // jrc:content.json otherTitle
+    owner?: string;                 // jrc:content.json gcContributor
+    email?: string;                 // jrc:content.json gcBranch
+    lastPublished?: Date;           // jrc:content.json gcLastPublished
+    lastModified?: Date;            // jrc:content.json cq:lastModified
+    isFreestyle?: boolean           // jrc:content.json cq:template
+}
+
 export interface UrlData {
     href: string;                 // the page URL
     h1: string;                   // the page H1

@@ -115,7 +115,7 @@
                           [modal]="true"
                           [style]="{width: '50vw'}"
                           [breakpoints]="{'1199px': '75vw', '575': '90vw'}">
-                    <div class="text-sm" [innerHTML]="('github.connect.option2.token.help'| translate)"></div>
+                    <div class="text-sm" [innerHTML]="('github.connect.option2.token.help'| translate: {defaultOrg: defaultOrg})"></div>
                 </p-dialog>
             </div>
             } @else {

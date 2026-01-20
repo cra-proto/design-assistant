@@ -12,7 +12,7 @@ import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 
 //Components
-import { GetTaskUrlsComponent } from './get-task-urls.component';
+import { GetTaskUrlsComponent } from './components/get-task-urls.component';
 
 // Services
 import { ProjectStateService } from '../../services/project-state.service';

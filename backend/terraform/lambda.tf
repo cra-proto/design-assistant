@@ -208,7 +208,7 @@ resource "aws_lambda_function" "projects" {
   environment {
     variables = {
       TABLE_NAME = aws_dynamodb_table.projects.name
-      ALLOWED_ORIGIN = join(",", var.allowed_origins)
+      ALLOWED_ORIGINS = join(",", var.allowed_origins)
     }
   }
 }
@@ -262,6 +262,41 @@ resource "aws_apigatewayv2_route" "projects_options_id" {
   api_id    = aws_apigatewayv2_api.api.id
   route_key = "OPTIONS /projects/{id+}"
   target    = "integrations/${aws_apigatewayv2_integration.projects.id}"
+}
+
+#DynamoDB lambda funtion url
+resource "aws_lambda_function_url" "projects_api" {
+  function_name      = aws_lambda_function.projects.function_name
+  authorization_type = "NONE"
+
+  cors {
+    allow_credentials = true
+    allow_origins     = var.allowed_origins
+    allow_methods     = ["*"]
+    allow_headers     = ["*"]
+    max_age          = 86400
+  }
+}
+
+# Lambda Function URL permission (required as of October 2024)
+resource "aws_lambda_permission" "function_url_invoke" {
+  statement_id           = "FunctionURLAllowPublicAccess"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.projects.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+}
+
+# Also keep the InvokeFunction permission for compatibility
+resource "aws_lambda_permission" "function_invoke" {
+  statement_id  = "AllowPublicInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.projects.function_name
+  principal     = "*"
+}
+
+output "dynamodb_function_url" {
+  value = aws_lambda_function_url.projects_api.function_url
 }
 
 # Airtable Lambda Function

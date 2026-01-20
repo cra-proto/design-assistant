@@ -117,6 +117,18 @@ export class AirtableService {
         });
     }
 
+    // Finds all tasks for a given URL
+    findTaskNamesByUrl(url: string, language: 'en' | 'fr'): string[] {
+        const matchingTasks = this.tasks().filter(task => {
+            const urls = language === 'en' ? task.urlsEN : task.urlsFR;
+            return urls.some(taskUrl => taskUrl === url);
+        });
+
+        return matchingTasks.map(task =>
+            language === 'en' ? task.taskNameEN : task.taskNameFR
+        );
+    }
+
     /**
      * Check if data is available (cached or needs fetching)
      */

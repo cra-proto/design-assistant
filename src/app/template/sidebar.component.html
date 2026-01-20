@@ -41,7 +41,6 @@
             </a>
           </div>
         </div>
-        @if (!production) {
         <div class="section">
           <div class="nav_header text-primary-200 hover:text-primary-400" (click)="toggleSection('main')" (keydown)="toggleOnEnter($event, 'main')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.main" aria-controls="main">
             <span id="menu-content" class="nav_section_text">{{ 'menu.tools' | translate }}</span>
@@ -116,7 +115,6 @@
 
           </div>
         </div-->
-        }
 
       </div>
 
