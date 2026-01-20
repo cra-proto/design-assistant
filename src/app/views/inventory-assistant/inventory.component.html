@@ -1,12 +1,15 @@
 <h1 id="wb-cont">{{ 'inventory.title' | translate }}</h1>
 <p>{{ 'inventory.pages.description' | translate }}</p>
 
+@if (!production){
 <p-button
           label="Reset Column Settings"
           icon="pi pi-refresh"
           severity="secondary"
           size="small"
+          styleClass="mb-2"
           (onClick)="resetColumnSettings()" />
+}
 
 <div class="surface-card border-round-lg shadow-2 p-4 mb-3">
 

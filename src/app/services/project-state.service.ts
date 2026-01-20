@@ -30,7 +30,7 @@ export class ProjectStateService {
     private project = signal<Project>({
         id: this.generateId(),
         key: '',
-        version: 1.0,
+        version: environment.version,
         projectName: '',
         phase: ProjectPhase.Draft,
         created: new Date(),
@@ -389,9 +389,9 @@ export class ProjectStateService {
             const project: Project = JSON.parse(saved);
 
             // Version check
-            if (project.version !== 1.0) {
-                console.warn('Incompatible project version. Load skipped.');
-                return false;
+            if (project.version !== environment.version) {
+                console.warn(`Project version (${project.version}) differs from app version (${environment.version}). Some features may not work correctly.`);
+                //return false;
             }
 
             // Convert date strings back to Date objects
@@ -432,7 +432,7 @@ export class ProjectStateService {
         try {
             const project: Project = JSON.parse(jsonString);
 
-            if (project.version !== 1.0) {
+            if (project.version !== environment.version) {
                 console.warn('Incompatible project version. Import skipped.');
                 return false;
             }
@@ -474,7 +474,7 @@ export class ProjectStateService {
         this.project.set({
             id: this.generateId(),
             key: 'autosave',
-            version: 1.0,
+            version: environment.version,
             projectName: '',
             phase: ProjectPhase.Draft,
             created: new Date(),
@@ -486,7 +486,7 @@ export class ProjectStateService {
             baselinePages: 0,
             inScopePages: 0,
             github: {
-                owner: '',
+                owner: environment.defaultOrg,
                 repo: '',
                 branch: 'main',
                 hasBaselineRepo: false

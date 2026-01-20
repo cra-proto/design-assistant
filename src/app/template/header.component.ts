@@ -62,7 +62,7 @@ import { MessageService } from 'primeng/api'
       <aida-github-connect></aida-github-connect>
 
       <aida-api-reset
-        *ngIf="this.localStore.getData('apiKey') !== null">
+        *ngIf="this.localStore.getData('apiKey') !== null && !production">
       </aida-api-reset>
 
       <p-button (onClick)="theme.toggle()" rounded outlined size="small" severity="secondary" [icon]="theme.icon()" styleClass="darkmode-toggle surface-border"  ariaLabel="Toggle between dark and light mode"></p-button>

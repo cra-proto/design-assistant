@@ -137,7 +137,7 @@ export interface ColumnGroup {
 
 //Project interface
 export interface Project extends ProjectMetadata {
-    version: number;
+    version: string;
     created: Date;
     lastSaved: Date;
     lastExported: Date;
