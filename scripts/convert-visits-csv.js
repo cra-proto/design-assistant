@@ -80,7 +80,8 @@ function convertCSVToJSON() {
     console.log(`Found columns at indices: Title=${titleIndex}, Status=${statusIndex}, URL=${urlIndex}, Visits=${visitsIndex}`);
 
     const visitData = [];
-    let skippedCount = 0;
+    let skippedNoUrl = 0;
+    let skippedNonLive = 0;
 
     // Process data rows
     for (let i = 1; i < rows.length; i++) {
@@ -96,19 +97,26 @@ function convertCSVToJSON() {
         const visits = row[visitsIndex]?.trim();
 
         if (!url) {
-            skippedCount++;
+            skippedNoUrl++;
             continue; // Skip rows without URL
+        }
+
+        // Filter for "Live" status only (case-insensitive)
+        if (status.toLowerCase() !== 'live') {
+            skippedNonLive++;
+            continue;
         }
 
         visitData.push({
             url,
             title: title || '',
-            status: status || '',
             visits: visits ? parseInt(visits.replace(/,/g, ''), 10) : 0
         });
     }
 
-    console.log(`Processed ${visitData.length} URLs (skipped ${skippedCount} rows without URLs)`);
+    console.log(`Processed ${visitData.length} URLs`);
+    console.log(`  - Skipped ${skippedNoUrl} rows without URLs`);
+    console.log(`  - Filtered out ${skippedNonLive} non-Live URLs`);
 
     // Ensure output directory exists
     const outputDir = path.dirname(OUTPUT_PATH);
