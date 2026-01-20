@@ -27,6 +27,8 @@ import { ProjectStateService } from '../../services/project-state.service';
 import { IaDiagramService } from '../../components/ia-diagram/ia-diagram.service';
 import { FindPagesComponent } from "../../components/find-pages/find-pages.component";
 
+import { environment } from '../../../environments/environment';
+
 
 @Component({
     selector: 'aida-inventory',
@@ -43,6 +45,8 @@ export class InventoryComponent implements OnInit {
     public translate = inject(TranslateService);
     private confirmationService = inject(ConfirmationService);
     iaDiagram = inject(IaDiagramService);
+
+    production = environment.production;
 
     // Remove this later
     test() { console.log("Button click") }
