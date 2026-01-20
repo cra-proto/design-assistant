@@ -13,12 +13,13 @@ import { IaDiagramService } from '../../components/ia-diagram/ia-diagram.service
 import { SetupProjectComponent } from '../../components/setup-project/setup-project.component';
 import { SetupRepoComponent } from '../../components/setup-repo/setup-repo.component';
 import { AddPagesComponent } from '../../components/add-pages/add-pages.component';
+import { FindPagesComponent } from '../../components/find-pages/find-pages.component';
 
 @Component({
   selector: 'aida-edit-project',
   imports: [
     CommonModule, FormsModule, TranslateModule,
-    SetupProjectComponent, SetupRepoComponent, AddPagesComponent,
+    SetupProjectComponent, SetupRepoComponent, AddPagesComponent, FindPagesComponent,
     DrawerModule, ButtonModule,
   ],
   templateUrl: './edit-project.component.html',

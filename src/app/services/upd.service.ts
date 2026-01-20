@@ -95,7 +95,7 @@ export class UpdService {
      */
     findVisitsByUrl(url: string): number {
         const page = this.pageData().find(item => item.url === url);
-        return page?.visits ?? 0;
+        return page?.visits ?? -1;
     }
 
     /**

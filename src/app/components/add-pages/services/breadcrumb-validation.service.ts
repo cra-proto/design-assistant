@@ -339,7 +339,7 @@ export class BreadcrumbValidationService {
                 lastPublished: jsonData?.lastPublished || '',
                 lastModified: jsonData?.lastModified || '',
                 task: crumb.url ? this.airtableService.findTaskNamesByUrl(crumb.url, currentLang) : '',
-                visits: crumb.url ? this.updService.findVisitsByUrl(crumb.url.replace('https://', '')) : 0,
+                visits: crumb.url ? this.updService.findVisitsByUrl(crumb.url.replace('https://', '')) : -1,
                 //ADD UPD MOBILE%
               }
             },

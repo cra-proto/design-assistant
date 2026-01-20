@@ -201,7 +201,11 @@
                     </ng-container>
                     <!-- Number fields -->
                     <ng-container *ngIf="col.type === 'number'">
+                        @if (node[col.field] === -1) {
+                        <i class="pi pi-minus text-gray-400"></i>
+                        } @else {
                         {{ node[col.field] | number:'1.0-0':(translate.currentLang === 'en' ? 'en-CA' : 'fr-CA') }}
+                        }
                     </ng-container>
                     <!-- Archive field -->
                     <ng-container *ngIf="col.type === 'archive'">

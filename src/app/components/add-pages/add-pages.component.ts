@@ -46,7 +46,7 @@ import { environment } from '../../../environments/environment';
         TextareaModule, IftaLabelModule, ButtonModule,
         InputTextModule, InputGroupModule, InputGroupAddonModule, ConfirmPopupModule,
         ProgressBarModule, DialogModule, ChipModule, TooltipModule, MessageModule,
-        PopoverModule, AutoCompleteModule, TagModule
+        PopoverModule, AutoCompleteModule, TagModule,
     ],
     templateUrl: './add-pages.component.html',
     styles: `
@@ -265,6 +265,24 @@ export class AddPagesComponent {
         });
     }
 
+    //Confirmation before validating breadcrumbs (if not all urls are valid)
+    onAddPages(event: Event) {
+        if (!this.validationState.isOk) {
+            this.confirmationService.confirm({
+                target: event.target as EventTarget,
+                message: 'Some urls are not valid. Do you want to proceed without them?',
+                header: 'Invalid urls',
+                icon: 'pi pi-exclamation-triangle',
+                acceptButtonStyleClass: 'p-button-primary',
+                rejectButtonStyleClass: 'p-button-secondary',
+                accept: () => {
+                    this.validateBreadcrumbs();
+                }
+            });
+        } else {
+            this.validateBreadcrumbs();
+        }
+    }
 
     //Validate breadcrumb
     breadcrumbData = this.addPagesState.getBreadcrumbData();
@@ -280,7 +298,8 @@ export class AddPagesComponent {
                 currentStep: this.translate.instant('addPages.breadcrumb.step1'),
             });
             console.time("getAllBreadcrumbs");
-            const urls = this.validationState.urls
+            //const urls = this.validationState.urls
+            const urls = this.urlsOk;
             const allPages = await this.breadcrumbValidation.getAllBreadcrumbs(urls);
             console.timeEnd("getAllBreadcrumbs");
 
