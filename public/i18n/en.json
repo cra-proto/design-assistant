@@ -372,6 +372,7 @@
 	"inventory.pages": "Pages",
 	"inventory.pages.description": "Review, filter, add or find pages for your content inventory",
 	"inventory.exportCSV": "Export to CSV",
+	"inventory.emptyMessage": "There are no pages in your inventory",
 	"inventory.header.h1": "Page title (H1)",
 	"inventory.header.url": "URL",
 	"inventory.header.oppTitle": "Opposite language title",
