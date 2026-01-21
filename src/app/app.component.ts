@@ -58,6 +58,19 @@ export class AppComponent implements OnInit {
         });
       }
     });
+    //Set org from url parameter if present then remove the param
+    this.route.queryParams.subscribe(params => {
+      const orgKey = params['org'];
+      if (orgKey) {
+        this.localStore.saveData('myOrg', orgKey);
+        const allParams = { ...params };
+        delete allParams['org']; //only removes key from the params
+        this.router.navigate([], {
+          queryParams: allParams,
+          replaceUrl: true, // replaces the current history entry
+        });
+      }
+    });
     await this.loadProject();
     console.log('The initial API key is: ', this.localStore.getData('apiKey'));
   }

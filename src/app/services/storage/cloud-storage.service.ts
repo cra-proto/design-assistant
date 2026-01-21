@@ -56,8 +56,11 @@ export class CloudStorageService {
         this.error.set(null);
 
         try {
+            const org = localStorage.getItem('myOrg') || 'DEFAULT';
+            const url = `${this.API_URL}?org=${encodeURIComponent(org)}`;
+
             const projects = await firstValueFrom(
-                this.http.get<ProjectMetadata[]>(`${this.API_URL}`, {
+                this.http.get<ProjectMetadata[]>(url, {
                     headers: this.getHeaders()
                 }).pipe(
                     catchError(error => {
@@ -144,6 +147,9 @@ export class CloudStorageService {
             this.error.set('Project name or repository name is required');
             return null;
         }
+
+        // Get org
+        const org = localStorage.getItem('myOrg') || 'DEFAULT';
 
         this.loading.set(true);
         this.error.set(null);

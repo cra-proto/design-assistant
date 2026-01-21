@@ -3,6 +3,23 @@ import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanComma
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 
+const VALID_ORGS = [
+    "DEFAULT",  // Default & Fallback, visible to everyone
+    "ADMIN", // Can view every project
+    "CRA", // Can view CRA and DEFAULT
+    // Add other departments as we onboard them
+    // "ESDC",
+    // "IRCC",
+    "TEST", // Can view TEST and DEFAULT
+];
+
+function validateOrg(org: string | undefined): string {
+    if (!org || !VALID_ORGS.includes(org)) {
+        return "DEFAULT";
+    }
+    return org;
+}
+
 const client = new DynamoDBClient({ region: process.env.AWS_REGION || "ca-central-1" });
 const docClient = DynamoDBDocumentClient.from(client, {
     marshallOptions: {
@@ -41,6 +58,7 @@ interface Project {
         hasBaselineRepo: boolean;
     };
     storageType: string;
+    org: string; // Cloud-only variable for project filtering
     content: string; // JSON stringified projectData TreeNode[] (if filesize becomes an issue, replace with reference to S3 bucket)
 }
 
@@ -72,21 +90,38 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
     const corsHeaders = getCorsHeaders();
 
     try {
-        console.log('Listing projects from table:', TABLE_NAME);
+        const userOrg = validateOrg(event.queryStringParameters?.org);
+        console.log('Listing projects from table:', TABLE_NAME, 'for org:', userOrg);
 
         // Scan for all public projects
         const result = await docClient.send(new ScanCommand({
             TableName: TABLE_NAME,
-            ProjectionExpression: 'id, #k, projectName, lastModified, phase, inScopePages, collaborators, github',
+            ProjectionExpression: 'id, #k, projectName, lastModified, phase, inScopePages, collaborators, github. #org',
             ExpressionAttributeNames: {
                 '#k': 'key',
+                '#org': 'org',
             }
         }));
 
         console.log('Found projects:', result.Items?.length || 0);
 
+        // Filter projects based on org
+        const filteredItems = result.Items?.filter(item => {
+            const projectOrg = item.org || 'DEFAULT';
+
+            // ADMIN sees everything
+            if (userOrg === 'ADMIN') {
+                return true;
+            }
+
+            // Users see their org + DEFAULT projects
+            return projectOrg === userOrg || projectOrg === 'DEFAULT';
+        });
+
+        console.log('Filtered projects for', userOrg, ':', filteredItems?.length || 0);
+
         // Transform to match ProjectMetadata interface
-        const projects = result.Items?.map(item => ({
+        const projects = filteredItems?.map(item => ({
             id: item.id,
             key: item.key,
             projectName: item.projectName,
@@ -96,6 +131,7 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
             collaborators: item.collaborators || [],
             github: item.github,
             storageType: 'cloud',
+            org: item.org || 'ALL',
         })) || [];
 
         return {
@@ -230,6 +266,7 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
             })) || [],
             github: projectData.github,
             storageType: 'cloud',
+            org: validateOrg(projectData.org),
             content: JSON.stringify(projectData), // Store the entire project state
         };
 
