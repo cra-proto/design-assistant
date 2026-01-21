@@ -89,7 +89,7 @@
 
           <!--Loading-->
           <div class="flex flex-row gap-2 justify-content-center mt-5"
-               *ngIf="loadingKey === project.key; else projectSaved">
+               *ngIf="(project.storageType === 'local' && loadingKey === project.key) || (project.storageType === 'cloud' && loadingKey === project.id); else projectSaved">
             <i class="pi pi-spin pi-spinner text-primary-500 text-2xl"></i>
             <span class="text-sm text-color-secondary">Loading project<span class="loading-dots"></span></span>
           </div>
