@@ -4,7 +4,11 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION || "ca-central-1" });
-const docClient = DynamoDBDocumentClient.from(client);
+const docClient = DynamoDBDocumentClient.from(client, {
+    marshallOptions: {
+        removeUndefinedValues: true
+    }
+});
 const TABLE_NAME = process.env.TABLE_NAME || "design-assistant-projects";
 
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
