@@ -55,6 +55,10 @@ export class CollaboratorService {
         }
     }
 
+    //NOTE - avatars will always return images due to GitHub identicons
+    //       we can add parameter s=40 to get a 40x40 image for custom images and default size identicons
+    //       use that to strip out identicons and display initials instead or get rid of the functions below
+
     // Collaborator avatar - Get initials
     getCollaboratorInitials(collab: GitHubUser): string {
         if (collab.name) {
@@ -95,7 +99,7 @@ export class CollaboratorService {
             id: 12345,
             avatar_url: '',
             name: 'Amber L',
-            email: 'alice@email.com'
+            email: 'amber@email.com'
         },
         {
             login: 'miguel',
