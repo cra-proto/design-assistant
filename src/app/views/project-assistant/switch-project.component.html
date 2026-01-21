@@ -113,17 +113,20 @@
               </div>
             </div>
             <!-- Collaborators -->
-            <div class="flex justify-content-between border-top-1 surface-border mt-3 pt-2 -mb-3" *ngIf="project.collaborators && project.collaborators.length > 0">
-              <div class="flex align-items-center gap-2">
+            <div class="flex justify-content-between border-top-1 surface-border mt-3 pt-2 -mb-2" *ngIf="project.collaborators && project.collaborators.length > 0">
+              <div class="flex align-items-center gap-2 mt-1">
                 <i class="pi pi-users mr-2"></i>
-                <p-avatar *ngFor="let collab of project.collaborators.slice(0, 3)"
-                          [label]="collab.name?.substring(0, 2)?.toUpperCase()"
-                          size="normal"
-                          shape="circle"
-                          [image]="collab.avatar_url"
-                          [style]="{'background-color': '#2196F3', 'color': '#ffffff'}">
-                </p-avatar>
-                <span class="text-sm text-600" *ngIf="project.collaborators.length > 3">+{{ project.collaborators.length - 3 }} more</span>
+                <p-avatar-group>
+                  <p-avatar *ngFor="let collab of project.collaborators.slice(0, 3)"
+                            shape="circle"
+                            [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
+                            [image]="collab.avatar_url || undefined"
+                            [pTooltip]="collab.name ? collab.name : collab.login"
+                            tooltipPosition="top"
+                            [ngClass]="collaboratorService.getCollaboratorColorClass(collab)">
+                  </p-avatar>
+                  <p-avatar *ngIf="project.collaborators.length > 3" shape="circle" [label]="'+'+(project.collaborators.length - 3).toString()" [pTooltip]="'collaborator.plusMore' | translate: {number: project.collaborators.length - 3}" tooltipPosition="top" />
+                </p-avatar-group>
               </div>
               <p-button icon="pi pi-share-alt" text rounded size="small" pTooltip="Share" *ngIf="authService.isAuthenticated()"></p-button>
             </div>

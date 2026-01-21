@@ -31,7 +31,6 @@ export interface GitHubUser {
     avatar_url: string;
     name: string | null;
     email: string | null;
-    bio: string | null;
 }
 
 export interface GitHubRepo {

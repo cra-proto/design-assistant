@@ -15,6 +15,8 @@ import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { BadgeModule } from 'primeng/badge';
 import { AvatarModule } from 'primeng/avatar';
+import { AvatarGroupModule } from 'primeng/avatargroup';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 
@@ -33,13 +35,14 @@ import { MultiSelectModule } from 'primeng/multiselect';
 
 import { SetupProjectComponent } from '../../components/setup-project/setup-project.component';
 import { GitHubAuthService } from '../../services/github/github-auth.service';
+import { CollaboratorService } from '../../services/collaborator.service';
 
 //Storage
 import { ProjectStateService } from '../../services/project-state.service';
 import { ProjectStorageService } from '../../services/storage/project-storage.service';
 import { CloudStorageService } from '../../services/storage/cloud-storage.service';
 import { LocalStorageService } from '../../services/storage/local-storage.service';
-import { Project, ProjectMetadata } from '../../common/data.model';
+import { Project, ProjectMetadata, GitHubUser } from '../../common/data.model';
 
 
 @Component({
@@ -48,7 +51,7 @@ import { Project, ProjectMetadata } from '../../common/data.model';
   imports: [CommonModule, FormsModule, TranslateModule,
     CardModule, ButtonModule, DialogModule, FieldsetModule, TimelineModule, ProgressBarModule, SplitButtonModule, ChipModule,
     InputTextModule, IconFieldModule, InputIconModule, SelectModule, MultiSelectModule,
-    CheckboxModule, DividerModule, SelectButtonModule, TagModule, TableModule, TabsModule, BadgeModule, AvatarModule, MessageModule,
+    CheckboxModule, DividerModule, SelectButtonModule, TagModule, TableModule, TabsModule, BadgeModule, AvatarModule, AvatarGroupModule, TooltipModule, MessageModule,
     SetupProjectComponent],
   templateUrl: './switch-project.component.html',
   styles: ``
@@ -58,6 +61,7 @@ export class SwitchProjectComponent implements OnInit {
   public projectStorage = inject(ProjectStorageService);
   public authService = inject(GitHubAuthService);
   private cloudStorage = inject(CloudStorageService);
+  public collaboratorService = inject(CollaboratorService);
 
   public router = inject(Router);
   public message = inject(MessageService);
@@ -128,6 +132,7 @@ export class SwitchProjectComponent implements OnInit {
   }
 */
   //Actions - load saved project, start new project, save autosave as project, delete a project
+
 
 
 

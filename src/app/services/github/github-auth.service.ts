@@ -3,15 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
-
-export interface GitHubUser {
-  login: string;
-  id: number;
-  avatar_url: string;
-  name: string | null;
-  email: string | null;
-  bio: string | null;
-}
+import { GitHubUser } from '../../common/data.model';
 
 interface GitHubTokenResponse {
   access_token: string;
@@ -152,7 +144,14 @@ export class GitHubAuthService {
       );
 
       if (user) {
-        this.currentUser.set(user);
+        const mappedUser: GitHubUser = {
+          login: user.login,
+          id: user.id,
+          avatar_url: user.avatar_url,
+          name: user.name,
+          email: user.email
+        };
+        this.currentUser.set(mappedUser);
       }
     } catch (error) {
       console.error('Error fetching user info:', error);

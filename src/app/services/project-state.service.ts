@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import { FileUploadHandlerEvent } from 'primeng/fileupload';
 
 import { ProjectStorageService } from '../services/storage/project-storage.service';
+import { ExportGitHubService } from './github/export-github.service';
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
 
@@ -25,6 +26,7 @@ NO persistence logic (that goes to ProjectStorageService)*/
 })
 export class ProjectStateService {
     private projectStorage = inject(ProjectStorageService);
+    private exportGitHubService = inject(ExportGitHubService);
 
     // Main project state
     private project = signal<Project>({
@@ -38,7 +40,7 @@ export class ProjectStateService {
         lastSaved: new Date(),
         lastExported: new Date(),
         storageType: 'local',
-        collaborators: [],
+        collaborators: this.getInitialCollaborators(),
         baselinePages: 0,
         inScopePages: 0,
         github: {
@@ -90,6 +92,14 @@ export class ProjectStateService {
     private generateId(): string {
         return `project_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     }
+
+    // Helper to generate initial collaborator list (either current user or empty)
+    private getInitialCollaborators(): GitHubUser[] {
+        const currentUser = this.exportGitHubService.user();
+        console.log(currentUser);
+        return currentUser ? [currentUser] : [];
+    }
+
     // Set entire project
     setProject(project: Project) {
         console.log('Setting project:', project.projectName);
@@ -482,7 +492,7 @@ export class ProjectStateService {
             lastSaved: new Date(),
             lastExported: new Date(),
             storageType: 'local',
-            collaborators: [],
+            collaborators: this.getInitialCollaborators(),
             baselinePages: 0,
             inScopePages: 0,
             github: {

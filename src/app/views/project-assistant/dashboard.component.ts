@@ -8,6 +8,7 @@ import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { AvatarModule } from 'primeng/avatar';
+import { AvatarGroupModule } from 'primeng/avatargroup';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -16,17 +17,19 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { ProjectStateService } from '../../services/project-state.service';
 import { ProjectPhase, PhaseStatus, CurrentPhase, GitHubRepo } from '../../common/data.model';
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
+import { CollaboratorService } from '../../services/collaborator.service';
 
 @Component({
   selector: 'aida-dashboard',
   imports: [CommonModule, FormsModule, TranslateModule, RouterLink,
     ExportProjectComponent,
-    ButtonModule, TagModule, AvatarModule, TooltipModule, ProgressBarModule, CheckboxModule],
+    ButtonModule, TagModule, AvatarModule, AvatarGroupModule, TooltipModule, ProgressBarModule, CheckboxModule],
   templateUrl: './dashboard.component.html',
   styles: ``
 })
 export class DashboardComponent {
   projectState = inject(ProjectStateService);
+  collaboratorService = inject(CollaboratorService);
 
   get projectData() {
     return this.projectState.getProject();
@@ -107,12 +110,6 @@ export class DashboardComponent {
     { name: 'Approval', value: 'approve' },
   ];
 
-  collaborators = [
-    { name: 'Amber', initials: 'AL', color: '#2196F3' },
-    { name: 'Miguel', initials: 'MB', color: '#4CAF50' },
-    { name: 'Parissa', initials: 'PN', color: '#FF9800' },
-    { name: 'Naomi', initials: 'NH', color: '#9C27B0' }
-  ]
   assessmentStats = { issuesFound: 23 };
   approvalProgress = 2;
   problemProgress = 15;

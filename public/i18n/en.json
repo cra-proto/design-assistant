@@ -248,6 +248,7 @@
 	"status.pending": "Pending",
 	"status.current": "Current",
 	"status.complete": "Complete",
+	"collaborator.plusMore": "Plus {{number}} more",
 	"addPages.title": "Add pages",
 	"addPages.description": "Add Canada.ca URLs to your project. Pages will be validated and organized by their breadcrumb structure.",
 	"addPages.inputLabel": "Enter Canada.ca URLs (one per line)",

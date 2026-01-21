@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
@@ -12,6 +12,8 @@ import { CustomTitleStrategy } from './common/custom-title-strategy';
 import { PrimeNG } from 'primeng/config';
 import { ProjectStorageService } from './services/storage/project-storage.service';
 import { ProjectStateService } from './services/project-state.service';
+import { ExportGitHubService } from './services/github/export-github.service';
+import { CollaboratorService } from './services/collaborator.service';
 
 @Component({
   selector: 'aida-root',
@@ -28,6 +30,18 @@ export class AppComponent implements OnInit {
   route = inject(ActivatedRoute);
   projectStorage = inject(ProjectStorageService);
   projectState = inject(ProjectStateService);
+  private exportGitHubService = inject(ExportGitHubService);
+  private collaboratorService = inject(CollaboratorService);
+
+  constructor() {
+    // Auto-add current user as collaborator when they sign in
+    effect(() => {
+      const user = this.exportGitHubService.user();
+      if (user) {
+        this.collaboratorService.addCurrentUserToLocalProjects(user);
+      }
+    });
+  }
 
   async ngOnInit(): Promise<void> {
     this.primeng.ripple.set(true);

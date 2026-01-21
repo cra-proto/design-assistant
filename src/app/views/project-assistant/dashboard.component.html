@@ -51,25 +51,36 @@
         </div>
 
         <div class="col-12 md:col-6">
+            @if(projectData.collaborators.length > 0){
             <div class="flex flex-row align-content-center gap-2">
                 <i class="pi pi-users text-primary text-2xl mt-5"></i>
                 <div class="flex flex-column mt-0">
                     <p class="text-sm text-600 mb-1">Collaborators</p>
                     <div class="flex gap-2 align-items-center">
-                        <p-avatar
-                                  *ngFor="let collaborator of collaborators.slice(0, 3)"
-                                  [label]="collaborator.initials"
-                                  [style]="{'background-color': collaborator.color, 'color': '#ffffff'}"
-                                  shape="circle"
-                                  size="normal"
-                                  [pTooltip]="collaborator.name">
-                        </p-avatar>
-                        <span *ngIf="collaborators.length > 3" class="text-600 text-sm ml-1">
-                            +{{ collaborators.length - 3 }} more
-                        </span>
+                        <p-avatar-group>
+                            <p-avatar *ngFor="let collab of projectData.collaborators.slice(0, 3)"
+                                      shape="circle"
+                                      [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
+                                      [image]="collab.avatar_url || undefined"
+                                      [pTooltip]="collab.name ? collab.name : collab.login"
+                                      tooltipPosition="top"
+                                      [ngClass]="collaboratorService.getCollaboratorColorClass(collab)">
+                            </p-avatar>
+                            <p-avatar *ngIf="projectData.collaborators.length > 3" shape="circle" [label]="'+'+(projectData.collaborators.length - 3).toString()" [pTooltip]="'collaborator.plusMore' | translate: {number: projectData.collaborators.length - 3}" tooltipPosition="top" />
+                            <p-avatar *ngFor="let collab of collaboratorService.testCollaborators.slice(0, 3)"
+                                      shape="circle"
+                                      [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
+                                      [image]="collab.avatar_url || undefined"
+                                      [pTooltip]="collab.name ? collab.name : collab.login"
+                                      tooltipPosition="top"
+                                      [ngClass]="collaboratorService.getCollaboratorColorClass(collab)">
+                            </p-avatar>
+                            <p-avatar *ngIf="collaboratorService.testCollaborators.length > 3" shape="circle" [label]="'+'+(collaboratorService.testCollaborators.length - 3).toString()" [pTooltip]="'collaborator.plusMore' | translate: {number: collaboratorService.testCollaborators.length - 3}" tooltipPosition="top" />
+                        </p-avatar-group>
                     </div>
                 </div>
             </div>
+            }
         </div>
 
     </div>

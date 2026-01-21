@@ -67,7 +67,7 @@
 <h4 class="mb-2 mt-3">{{getStatusText('redirect','heading')}}</h4>
 <p class="text-sm text-color-secondary my-1">{{getStatusText('redirect','description')}}</p>
 <div class="flex flex-column gap-2">
-    @for (url of urlsRedirected; track url.href) {
+    @for (url of urlsRedirected; track url.originalHref) {
     <div class="border-1 border-round-lg surface-border">
         <div class="flex align-items-center gap-2 p-2">
             <i class="pi pi-directions text-2xl text-orange-500"></i>

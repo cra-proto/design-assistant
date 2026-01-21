@@ -29,7 +29,7 @@ export class ProjectStorageService {
     }
 
     // Signal for changes to project list
-    private projectListVersion = signal<number>(0);
+    public projectListVersion = signal<number>(0);
     public projectListChanged = computed(() => this.projectListVersion());
 
     /************************************
@@ -185,7 +185,7 @@ export class ProjectStorageService {
     }
 
     // Update list of local projects in localStorage
-    private updateLocalProjectList(key: string, project: Project): void {
+    public updateLocalProjectList(key: string, project: Project): void {
         const savedProjects = JSON.parse(this.localStorage.getData('savedProjects') || '[]');
         const existingIndex = savedProjects.findIndex((p: any) => p.key === key);
 
@@ -233,7 +233,7 @@ export class ProjectStorageService {
             .sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
     }
 
-    private getLocalProjectList(): ProjectMetadata[] {
+    public getLocalProjectList(): ProjectMetadata[] {
         const saved = this.localStorage.getData('savedProjects');
         if (!saved) return [];
 
@@ -372,6 +372,23 @@ export class ProjectStorageService {
         return true;
     }
 
+    /*******************************************
+    *********** BACKGROUND OPERATIONS **********
+    ********************************************/
+
+    // Loads project data without setting it as active
+    async loadProjectData(key: string, storageType: 'local' | 'cloud'): Promise<Project | null> {
+        try {
+            if (storageType === 'local') {
+                return await this.loadFromLocal(key);
+            } else {
+                return await this.loadFromCloud(key);
+            }
+        } catch (error) {
+            console.error(`Failed to load project data for ${key}:`, error);
+            return null;
+        }
+    }
 
     /************************************
     *********** EXPORT PROJECT **********

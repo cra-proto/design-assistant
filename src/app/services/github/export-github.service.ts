@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { FetchService } from '../fetch.service';
-import { GitHubAuthService, GitHubUser } from './github-auth.service';
+import { GitHubAuthService } from './github-auth.service';
+import { GitHubUser } from '../../common/data.model';
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../../environments/environment';
 
@@ -66,6 +67,15 @@ export class ExportGitHubService {
       : this.cachedPATUser()
   );
 
+  private mapGitHubUser(apiUser: any): GitHubUser {
+    return {
+      login: apiUser.login,
+      id: apiUser.id,
+      avatar_url: apiUser.avatar_url,
+      name: apiUser.name,
+      email: apiUser.email
+    };
+  }
   //Validate GitHub token
   public async validateToken(token: string, owner: string, repo: string): Promise<{ valid: boolean, repoExists?: boolean, hasRepoAccess?: boolean, canCreateRepo?: boolean, showDisclaimer?: boolean, error?: string }> {
 
@@ -87,7 +97,7 @@ export class ExportGitHubService {
 
       const user = await userResponse.json();
       if (!this.authService.isAuthenticated()) {
-        this.cachedPATUser.set(user);
+        this.cachedPATUser.set(this.mapGitHubUser(user));
       }
       const tokenScopes = userResponse.headers.get('x-oauth-scopes')?.split(',').map(s => s.trim()) || []; //Will be empty if using PAT
 
