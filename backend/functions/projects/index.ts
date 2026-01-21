@@ -273,21 +273,22 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
 
 
         // Check if user is authorized to update (must be a collaborator)
-        console.log('Project ID check:', projectData.id);
-
         if (projectData.id) {
-            console.log('Has project ID, checking if exists in DynamoDB...');
+            console.log('Checking existing project:', projectData.id);
             const existing = await docClient.send(new GetCommand({
                 TableName: TABLE_NAME,
                 Key: { id: projectData.id }
             }));
 
             if (existing.Item) {
+                // EXISTING PROJECT - check if user is collaborator in cloud version
+                console.log('Found existing project in DynamoDB');
                 const isCollaborator = existing.Item.collaborators?.some(
                     (c: any) => c.githubId === user.id.toString()
                 );
 
                 if (!isCollaborator) {
+                    console.log('User not in collaborator list');
                     return {
                         statusCode: 403,
                         headers: corsHeaders,
@@ -297,24 +298,22 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
 
                 // Preserve original creator and creation date
                 project.createdAt = existing.Item.createdAt;
-            }
-        }
+            } else {
+                // NEW PROJECT (add user to collaborators if missing so they have permission to edit this new file)
+                console.log('New project - checking if user is in incoming collaborators list');
+                const hasCurrentUser = project.collaborators.some(
+                    (c: any) => c.githubId === user.id.toString()
+                );
 
-        else {
-            // New project - ensure current user is in collaborators
-            console.log('No project ID, saving new project...');
-
-            const hasCurrentUser = project.collaborators.some(
-                (c: any) => c.githubId === user.id.toString()
-            );
-
-            if (!hasCurrentUser) {
-                project.collaborators.push({
-                    githubId: user.id.toString(),
-                    login: user.login,
-                    name: user.name || user.login,
-                    avatarUrl: user.avatar_url
-                });
+                if (!hasCurrentUser) {
+                    console.log('User not in collaborators, adding them');
+                    project.collaborators.push({
+                        githubId: user.id.toString(),
+                        login: user.login,
+                        name: user.name || user.login,
+                        avatarUrl: user.avatar_url
+                    });
+                }
             }
         }
         // Save to DynamoDB
