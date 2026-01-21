@@ -155,5 +155,4 @@ export interface ProjectMetadata {
     collaborators: GitHubUser[];
     github: GitHubRepo;
     storageType: 'local' | 'cloud';
-    canEdit?: boolean;  // computed based on auth status for cloud projects
 }

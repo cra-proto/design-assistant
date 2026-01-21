@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { FetchService } from '../fetch.service';
 import { GitHubAuthService } from './github-auth.service';
-import { GitHubUser } from '../../common/data.model';
+import { GitHubUser, ProjectMetadata } from '../../common/data.model';
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../../environments/environment';
 
@@ -28,21 +28,38 @@ export class ExportGitHubService {
   private authService = inject(GitHubAuthService);
   templateOrg = environment.templateOrg;
 
-  //Manage GitHub token
+  // Manage GitHub token & user integration from OAuth and PAT
   token = computed(() =>
     this.authService.isAuthenticated()
       ? this.authService.getToken() ?? ""
-      : this.patSignal()
+      : this.patToken()
   );
 
+  user = computed(() =>
+    this.authService.isAuthenticated()
+      ? this.authService.user()
+      : this.patUser()
+  );
+
+  canEditProject(project: ProjectMetadata): boolean {
+    const currentUser = this.user(); // OAuth or PAT
+    console.warn("Can edit check:")
+    console.log("Full user object:", currentUser)
+    console.log("Project collaborators:", project.collaborators)
+    console.log("Current user id:", currentUser?.id)
+    if (!currentUser) return false;
+    return project.collaborators.some(c => c.id === currentUser.id);
+  }
+
+  // PAT - token (fallback access when OAuth not available)
   private readonly PAT_STORAGE_KEY = 'github_pat';
-  private patSignal = signal<string>(this.loadPAT());
+  private patToken = signal<string>(this.loadPAT());
 
   public get pat(): string {
-    return this.patSignal();
+    return this.patToken();
   }
   public set pat(value: string) {
-    this.patSignal.set(value);
+    this.patToken.set(value);
     this.savePAT(value);
   }
 
@@ -58,25 +75,20 @@ export class ExportGitHubService {
     }
   }
 
-  //Manage GitHub user data
-  private cachedPATUser = signal<GitHubUser | null>(null);
+  // PAT - user (fallback access when OAuth not available)
+  private patUser = signal<GitHubUser | null>(null);
 
-  user = computed(() =>
-    this.authService.isAuthenticated()
-      ? this.authService.user()
-      : this.cachedPATUser()
-  );
-
-  private mapGitHubUser(apiUser: any): GitHubUser {
+  private mapGitHubUser(patUser: any): GitHubUser {
     return {
-      login: apiUser.login,
-      id: apiUser.id,
-      avatar_url: apiUser.avatar_url,
-      name: apiUser.name,
-      email: apiUser.email
+      login: patUser.login,
+      id: patUser.id,
+      avatar_url: patUser.avatar_url,
+      name: patUser.name,
+      email: patUser.email
     };
   }
-  //Validate GitHub token
+
+  // Validate GitHub token
   public async validateToken(token: string, owner: string, repo: string): Promise<{ valid: boolean, repoExists?: boolean, hasRepoAccess?: boolean, canCreateRepo?: boolean, showDisclaimer?: boolean, error?: string }> {
 
     try {
@@ -97,7 +109,7 @@ export class ExportGitHubService {
 
       const user = await userResponse.json();
       if (!this.authService.isAuthenticated()) {
-        this.cachedPATUser.set(this.mapGitHubUser(user));
+        this.patUser.set(this.mapGitHubUser(user));
       }
       const tokenScopes = userResponse.headers.get('x-oauth-scopes')?.split(',').map(s => s.trim()) || []; //Will be empty if using PAT
 

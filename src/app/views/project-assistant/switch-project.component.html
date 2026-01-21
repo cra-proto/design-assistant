@@ -65,10 +65,10 @@
             <div class="flex justify-content-between align-items-start p-3 pb-0">
               <!--Tags-->
               <div class="flex gap-2">
-                <p-tag value="Active" icon="pi pi-check" severity="success" [style]="{'font-size': '0.75rem'}" *ngIf="projectStorage.currentActive()?.key === project.key"></p-tag>
+                <p-tag value="Active" icon="pi pi-check" severity="success" [style]="{'font-size': '0.75rem'}" *ngIf="projectStorage.currentActive()?.key === project.key || projectStorage.currentActive()?.key === project.id"></p-tag>
                 <p-tag value="Local" icon="pi pi-home" severity="secondary" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'local'"></p-tag>
                 <p-tag value="Cloud" icon="pi pi-cloud" severity="info" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'cloud'"></p-tag>
-                <p-tag value="Read-only" icon="pi pi-eye" severity="warning" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'cloud' && !authService.isAuthenticated()"></p-tag>
+                <p-tag value="Read-only" icon="pi pi-eye" severity="warning" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'cloud' && !exportGitHubService.canEditProject(project)"></p-tag>
                 <p-tag value="Unsaved" icon="pi pi-exclamation-triangle" severity="danger" [style]="{'font-size': '0.75rem'}" *ngIf="project.key === 'autosave'"></p-tag>
               </div>
               <!--Actions-->
@@ -94,13 +94,12 @@
           </div>
 
           <!--Project details-->
-          <!--Project details-->
           <ng-template #projectSaved>
             <div class="flex flex-column gap-2 text-sm text-color-secondary">
               <div>
                 <i class="pi pi-github mr-2"></i>
-                <ng-container *ngIf="project.github?.repo">{{ project.github.owner }}/{{ project.github.repo }}</ng-container>
-                <ng-container *ngIf="!project.github?.repo">No repository</ng-container>
+                <ng-container *ngIf="project.github.repo">{{ project.github.owner }}/{{ project.github.repo }}</ng-container>
+                <ng-container *ngIf="!project.github.repo">No repository</ng-container>
               </div>
               <div>
                 <i class="pi pi-copy mr-2"></i>Pages: {{ project.inScopePages }}

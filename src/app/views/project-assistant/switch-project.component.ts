@@ -33,7 +33,9 @@ import { InputIconModule } from 'primeng/inputicon';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 
+//Services
 import { SetupProjectComponent } from '../../components/setup-project/setup-project.component';
+import { ExportGitHubService } from '../../services/github/export-github.service';
 import { GitHubAuthService } from '../../services/github/github-auth.service';
 import { CollaboratorService } from '../../services/collaborator.service';
 
@@ -62,6 +64,7 @@ export class SwitchProjectComponent implements OnInit {
   public authService = inject(GitHubAuthService);
   private cloudStorage = inject(CloudStorageService);
   public collaboratorService = inject(CollaboratorService);
+  public exportGitHubService = inject(ExportGitHubService);
 
   public router = inject(Router);
   public message = inject(MessageService);
@@ -75,15 +78,10 @@ export class SwitchProjectComponent implements OnInit {
   constructor() {
     // Watch for project list changes and reload
     effect(() => {
-      this.projectStorage.projectListChanged(); // Subscribe to changes
+      this.projectStorage.projectListChanged(); // Watch for changes
       console.log('Project list changed, reloading...');
-      this.loadProjectsSync(); // Load projects synchronously
+      this.loadProjects(); // Load projects
     });
-  }
-
-  private loadProjectsSync() {
-    const projects = this.projectStorage.getProjectList();
-    this.allProjects.set(projects);
   }
 
   async ngOnInit() {
@@ -101,39 +99,30 @@ export class SwitchProjectComponent implements OnInit {
     return this.allProjects();
   }
 
-  /*Track active project
-  activeProject = computed(() => {
-    const projects = this.allProjects();
-    return projects.length ? projects[0] : null;
-  });
+  // Project File Actions - load, new, delete, save to cloud & save autosave
 
-  //Other saved projects
-  savedProjects = computed(() => {
-    const active = this.activeProject();
-    return this.allProjects().filter(p => p.key !== active?.key);
-  });
+  async loadProject(key: string, id: string, storageType: 'local' | 'cloud' = 'local') {
 
-  getDisplayName(projectName: string): string {
-    return projectName
-      .replace(/-/g, " ")
-      .replace(/^\w/, char => char.toUpperCase());
+    let projectId = key;
+    if (storageType === 'cloud') {
+      projectId = id;
+    }
+    // Show loading state on card
+    this.loadingKey = key;
+    await new Promise(resolve => setTimeout(resolve, 600));
+
+    try {
+      const project = await this.projectStorage.loadProject(projectId, storageType);
+
+      if (project) {
+        this.projectState.setProject(project); // Update the project state
+      } else {
+        console.error('Failed to load project'); // Show error message
+      }
+    } finally {
+      this.loadingKey = null;
+    }
   }
-
-  formatDate(dateString: number): string {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-CA', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    }).replace(',', ' at');
-  }
-*/
-  //Actions - load saved project, start new project, save autosave as project, delete a project
-
-
 
 
   newProject() {
@@ -239,6 +228,8 @@ export class SwitchProjectComponent implements OnInit {
     }
   }
 
+  // End of Actions
+
   //testing
 
   //Sort
@@ -335,28 +326,7 @@ export class SwitchProjectComponent implements OnInit {
 
 
 
-  async loadProject(key: string, id: string, storageType: 'local' | 'cloud' = 'local') {
 
-    let projectId = key;
-    if (storageType === 'cloud') {
-      projectId = id;
-    }
-    // Show loading state on card
-    this.loadingKey = key;
-    await new Promise(resolve => setTimeout(resolve, 600));
-
-    try {
-      const project = await this.projectStorage.loadProject(projectId, storageType);
-
-      if (project) {
-        this.projectState.setProject(project); // Update the project state
-      } else {
-        console.error('Failed to load project'); // Show error message
-      }
-    } finally {
-      this.loadingKey = null;
-    }
-  }
 
 }
 

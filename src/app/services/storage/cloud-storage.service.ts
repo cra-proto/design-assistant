@@ -247,16 +247,4 @@ export class CloudStorageService {
         }
     }
 
-    /**
-     * Check if user can edit a project
-     */
-    canEdit(project: ProjectMetadata): boolean {
-        if (!this.authService.isAuthenticated()) return false;
-
-        const user = this.authService.user();
-        if (!user) return false;
-
-        return project.collaborators.some(c => c.id === user.id);
-    }
-
 }
