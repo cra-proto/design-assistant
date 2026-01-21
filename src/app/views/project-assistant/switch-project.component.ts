@@ -152,8 +152,11 @@ export class SwitchProjectComponent implements OnInit {
     }
   }
 
-  async deleteProject(key: string, storageType: 'local' | 'cloud', event?: Event) {
+  async deleteProject(project: ProjectMetadata, storageType: 'local' | 'cloud', event?: Event) {
     event?.stopPropagation();
+
+    let key = project.key;
+    if (storageType === 'cloud') { key = project.id }
 
     const success = await this.projectStorage.deleteProject(key, storageType);
 
