@@ -271,9 +271,12 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
             pages: project.pages
         });
 
+
         // Check if user is authorized to update (must be a collaborator)
+        console.log('Project ID check:', projectData.id);
+
         if (projectData.id) {
-            console.log('Checking existing project:', projectData.id);
+            console.log('Has project ID, checking if exists in DynamoDB...');
             const existing = await docClient.send(new GetCommand({
                 TableName: TABLE_NAME,
                 Key: { id: projectData.id }
@@ -299,6 +302,8 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
 
         else {
             // New project - ensure current user is in collaborators
+            console.log('No project ID, saving new project...');
+
             const hasCurrentUser = project.collaborators.some(
                 (c: any) => c.githubId === user.id.toString()
             );
