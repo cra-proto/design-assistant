@@ -14,33 +14,40 @@ const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
 interface Project {
     id: string;
     key: string;
-    name: string;
-    owner: string;
-    repo: string;
-    branch: string;
-    pages: number;
+    version: string;
+    projectName: string;
+    created: number;
+    lastModified: number;
+    lastSaved: number;
+    lastExported: number;
     phase: string;
-    timestamp: number;
+    inScopePages: number;
+    baselinePages: number;
     collaborators: Array<{
-        githubId: string;
+        id: number;
         login: string;
         name: string;
-        avatarUrl: string;
+        avatar_url: string;
+        email: string | null;
     }>;
-    content: string; // JSON stringified project data
-    isPublic: boolean;
-    createdAt: number;
-    updatedAt: number;
+    github: {
+        owner: string;
+        repo: string;
+        branch: string;
+        hasBaselineRepo: boolean;
+    };
+    storageType: string;
+    content: string; // JSON stringified projectData TreeNode[] (if filesize becomes an issue, replace with reference to S3 bucket)
 }
 
 // Function to get CORS headers based on request origin
-function getCorsHeaders(origin?: string): Record<string, string> {
+function getCorsHeaders(): Record<string, string> {
     return {
         'Content-Type': 'application/json',
     };
 }
 
-// Get user info from GitHub token
+// Get user info from GitHub token (user must be in collaborator list for save/delete functions)
 async function getUserFromToken(token: string) {
     const response = await fetch('https://api.github.com/user', {
         headers: {
@@ -58,7 +65,7 @@ async function getUserFromToken(token: string) {
 
 // List all public projects (no auth required)
 export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const corsHeaders = getCorsHeaders(event.headers?.origin || event.headers?.Origin);
+    const corsHeaders = getCorsHeaders();
 
     try {
         console.log('Listing projects from table:', TABLE_NAME);
@@ -66,16 +73,9 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
         // Scan for all public projects
         const result = await docClient.send(new ScanCommand({
             TableName: TABLE_NAME,
-            FilterExpression: 'isPublic = :public',
-            ExpressionAttributeValues: {
-                ':public': true
-            },
-            ProjectionExpression: 'id, #k, #n, #o, repo, pages, phase, #t, collaborators, github',
+            ProjectionExpression: 'id, #k, projectName, lastModified, phase, inScopePages, collaborators, github',
             ExpressionAttributeNames: {
                 '#k': 'key',
-                '#n': 'name',
-                '#o': 'owner',
-                '#t': 'timestamp'
             }
         }));
 
@@ -85,18 +85,13 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
         const projects = result.Items?.map(item => ({
             id: item.id,
             key: item.key,
-            projectName: item.name,
+            projectName: item.projectName,
+            lastModified: item.lastModified,
             phase: item.phase,
-            inScopePages: item.pages,
-            lastModified: item.timestamp,
-            storageType: 'cloud',
+            inScopePages: item.inScopePages,
             collaborators: item.collaborators || [],
-            github: {
-                owner: item.owner,
-                repo: item.repo,
-                branch: item.branch || 'main',
-                hasBaselineRepo: false
-            }
+            github: item.github,
+            storageType: 'cloud',
         })) || [];
 
         return {
@@ -118,9 +113,9 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
     }
 };
 
-// Get a specific project (no auth required for public projects)
+// Get a specific project (no auth required)
 export const getProject = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const corsHeaders = getCorsHeaders(event.headers?.origin || event.headers?.Origin);
+    const corsHeaders = getCorsHeaders();
 
     try {
         const projectId = event.pathParameters?.id;
@@ -146,39 +141,6 @@ export const getProject = async (event: APIGatewayProxyEvent): Promise<APIGatewa
             };
         }
 
-        // Check if project is public or user is authorized
-        const authHeader = event.headers?.Authorization || event.headers?.authorization;
-        if (!result.Item.isPublic && authHeader) {
-            try {
-                const token = authHeader.replace('Bearer ', '');
-                const user: any = await getUserFromToken(token);
-                const isCollaborator = result.Item.collaborators?.some(
-                    (c: any) => c.githubId === user.id.toString()
-                );
-
-                if (!isCollaborator) {
-                    // Return limited info for non-collaborators
-                    return {
-                        statusCode: 200,
-                        headers: corsHeaders,
-                        body: JSON.stringify({
-                            ...result.Item,
-                            content: undefined // Don't send content to non-collaborators
-                        })
-                    };
-                }
-            } catch {
-                // Invalid token, treat as public access
-                if (!result.Item.isPublic) {
-                    return {
-                        statusCode: 403,
-                        headers: corsHeaders,
-                        body: JSON.stringify({ error: 'Access denied' })
-                    };
-                }
-            }
-        }
-
         // Parse the stored content back to full project structure
         const fullProject = JSON.parse(result.Item.content);
 
@@ -199,7 +161,7 @@ export const getProject = async (event: APIGatewayProxyEvent): Promise<APIGatewa
 
 // Create or update project (requires auth)
 export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const corsHeaders = getCorsHeaders(event.headers?.origin || event.headers?.Origin);
+    const corsHeaders = getCorsHeaders();
 
     try {
         const authHeader = event.headers?.Authorization || event.headers?.authorization;
@@ -228,7 +190,6 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
 
         // Validate required fields for DynamoDB GSI
         const name = projectData.projectName || projectData.key || '';
-        const owner = projectData.gitHubData?.owner || projectData.owner || user.login;
 
         if (!name || name.trim() === '') {
             return {
@@ -247,28 +208,35 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
         const project: Project = {
             id: projectData.id || uuidv4(),
             key: projectData.key,
-            name: projectData.projectName,
-            owner: projectData.github.owner,
-            repo: projectData.github.repo,
-            branch: projectData.github.branch || 'main',
-            pages: projectData.inScopePages,
+            version: projectData.version,
+            projectName: projectData.projectName,
+            created: projectData.created,
+            lastModified: projectData.lastModified,
+            lastSaved: now,
+            lastExported: projectData.lastExported,
             phase: projectData.phase,
-            timestamp: projectData.lastModified,
-            collaborators: projectData.collaborators || [],
+            inScopePages: projectData.inScopePages,
+            baselinePages: projectData.baselinePages,
+            collaborators: projectData.collaborators?.map((c: any) => ({
+                id: c.id,
+                login: c.login,
+                name: c.name || c.login,
+                avatar_url: c.avatar_url,
+                email: c.email || null
+            })) || [],
+            github: projectData.github,
+            storageType: 'cloud',
             content: JSON.stringify(projectData), // Store the entire project state
-            isPublic: projectData.isPublic !== false, // Default to public
-            createdAt: projectData.created || now,
-            updatedAt: now
         };
 
         console.log('Project to save:', JSON.stringify(project, null, 2));
         console.log('Project to save:', {
             id: project.id,
             key: project.key,
-            name: project.name,
-            owner: project.owner,
-            repo: project.repo,
-            pages: project.pages
+            projectName: project.projectName,
+            inScopePages: project.inScopePages,
+            collaborators: project.collaborators,
+            github: project.github
         });
 
 
@@ -284,7 +252,7 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
                 // EXISTING PROJECT - check if user is collaborator in cloud version
                 console.log('Found existing project in DynamoDB');
                 const isCollaborator = existing.Item.collaborators?.some(
-                    (c: any) => c.githubId === user.id.toString()
+                    (c: any) => c.id === user.id
                 );
 
                 if (!isCollaborator) {
@@ -297,21 +265,22 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
                 }
 
                 // Preserve original creator and creation date
-                project.createdAt = existing.Item.createdAt;
+                project.created = existing.Item.created;
             } else {
                 // NEW PROJECT (add user to collaborators if missing so they have permission to edit this new file)
                 console.log('New project - checking if user is in incoming collaborators list');
                 const hasCurrentUser = project.collaborators.some(
-                    (c: any) => c.githubId === user.id.toString()
+                    (c: any) => c.id === user.id
                 );
 
                 if (!hasCurrentUser) {
                     console.log('User not in collaborators, adding them');
                     project.collaborators.push({
-                        githubId: user.id.toString(),
+                        id: user.id,
                         login: user.login,
                         name: user.name || user.login,
-                        avatarUrl: user.avatar_url
+                        avatar_url: user.avatar_url,
+                        email: user.email || null
                     });
                 }
             }
@@ -349,7 +318,7 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
 
 // Delete project (requires auth)
 export const deleteProject = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const corsHeaders = getCorsHeaders(event.headers?.origin || event.headers?.Origin);
+    const corsHeaders = getCorsHeaders();
 
     try {
         const authHeader = event.headers?.Authorization || event.headers?.authorization;
@@ -388,7 +357,7 @@ export const deleteProject = async (event: APIGatewayProxyEvent): Promise<APIGat
         }
 
         const isCollaborator = existing.Item.collaborators?.some(
-            (c: any) => c.githubId === user.id.toString()
+            (c: any) => c.id === user.id
         );
 
         if (!isCollaborator) {
@@ -422,18 +391,14 @@ export const deleteProject = async (event: APIGatewayProxyEvent): Promise<APIGat
 
 // Main handler that routes to appropriate function
 export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
-    const corsHeaders = getCorsHeaders(event.headers?.origin || event.headers?.Origin);
+    const corsHeaders = getCorsHeaders();
 
-    // Handle both v1.0 and v2.0 payload formats
-    const httpMethod = event.httpMethod || event.requestContext?.http?.method;
-    const path = event.path || event.requestContext?.http?.path || event.rawPath;
-    const pathParameters = event.pathParameters;
+    const httpMethod = event.requestContext?.http?.method || event.httpMethod;
+    const path = event.requestContext?.http?.path || event.rawPath || event.path;
 
     console.log('Request:', {
         method: httpMethod,
-        path: path,
-        origin: event.headers?.origin || event.headers?.Origin,
-        headers: event.headers
+        path: path
     });
 
     // Handle CORS preflight requests
@@ -446,40 +411,27 @@ export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
     }
 
     try {
-        // Create a normalized event object for our handler functions
-        const normalizedEvent: APIGatewayProxyEvent = {
-            ...event,
-            httpMethod: httpMethod,
-            path: path,
-            pathParameters: pathParameters
-        } as APIGatewayProxyEvent;
-
-        // NORMALIZE PATH - Remove stage prefix (/production or /dev)
-        const normalizedPath = path.replace(/^\/(production|dev)/, '');
-        console.log('Normalized path:', normalizedPath);
-
         // Route based on path and method
-        if (normalizedPath === '/projects') {
+        if (path === '/projects') {
             if (httpMethod === 'GET') {
-                return listProjects(normalizedEvent);
+                return listProjects(event);
             } else if (httpMethod === 'POST') {
-                return saveProject(normalizedEvent);
+                return saveProject(event);
             }
-        } else if (path?.includes('/projects/')) {
-            const pathParts = path.split('/');
-            const projectId = pathParts[pathParts.length - 1];
+        } else if (path?.startsWith('/projects/')) {
+            const projectId = path.split('/').pop();
 
-            // Set the path parameters if not already set
-            if (!normalizedEvent.pathParameters) {
-                normalizedEvent.pathParameters = { id: projectId };
+            // Ensure pathParameters exists
+            if (!event.pathParameters) {
+                event.pathParameters = { id: projectId };
             }
 
             if (httpMethod === 'GET') {
-                return getProject(normalizedEvent);
+                return getProject(event);
             } else if (httpMethod === 'PUT') {
-                return saveProject(normalizedEvent);
+                return saveProject(event);
             } else if (httpMethod === 'DELETE') {
-                return deleteProject(normalizedEvent);
+                return deleteProject(event);
             }
         }
 
