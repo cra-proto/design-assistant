@@ -163,10 +163,11 @@ export class CloudStorageService {
                 lastExported: project.lastExported instanceof Date ? project.lastExported.getTime() : project.lastExported,
                 storageType: 'cloud' as const,
                 collaborators: project.collaborators?.map(c => ({
-                    githubId: c.id.toString(),
+                    id: c.id,
                     login: c.login,
                     name: c.name || c.login,
-                    avatarUrl: c.avatar_url
+                    avatar_url: c.avatar_url,
+                    email: c.email || null
                 })),
                 baselinePages: project.baselinePages,
                 inScopePages: project.inScopePages,
