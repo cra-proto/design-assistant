@@ -27,6 +27,10 @@ export class CloudStorageService {
     private error = signal<string | null>(null);
     public errorMessage = computed(() => this.error());
 
+    constructor() {
+        this.loadProjects(); // Load projects on service initialization
+    }
+
     /**
      * Get headers with optional auth token
      */
