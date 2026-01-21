@@ -140,6 +140,7 @@ export interface Project extends ProjectMetadata {
     created: Date;
     lastSaved: Date;
     lastExported: Date;
+    baselinePages: number;
     projectData: TreeNode[];  // Full tree structure
 }
 
@@ -151,7 +152,6 @@ export interface ProjectMetadata {
     lastModified: Date;
     phase: ProjectPhase;
     inScopePages: number;
-    baselinePages: number;
     collaborators: GitHubUser[];
     github: GitHubRepo;
     storageType: 'local' | 'cloud';

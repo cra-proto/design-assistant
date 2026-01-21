@@ -195,7 +195,6 @@ export class ProjectStorageService {
             projectName: project.projectName,
             phase: project.phase,
             inScopePages: project.inScopePages,
-            baselinePages: project.baselinePages,
             lastModified: project.lastModified,
             storageType: 'local',
             collaborators: project.collaborators || [],
