@@ -335,14 +335,18 @@ export class SwitchProjectComponent implements OnInit {
 
 
 
-  async loadProject(key: string, storageType: 'local' | 'cloud' = 'local') {
+  async loadProject(key: string, id: string, storageType: 'local' | 'cloud' = 'local') {
 
+    let projectId = key;
+    if (storageType === 'cloud') {
+      projectId = id;
+    }
     // Show loading state on card
     this.loadingKey = key;
     await new Promise(resolve => setTimeout(resolve, 600));
 
     try {
-      const project = await this.projectStorage.loadProject(key, storageType);
+      const project = await this.projectStorage.loadProject(projectId, storageType);
 
       if (project) {
         this.projectState.setProject(project); // Update the project state

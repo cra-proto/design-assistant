@@ -59,7 +59,7 @@
   <ng-container *ngIf=" projects.length> 0; else none">
     <div class="grid">
       <div class="col-12 md:col-6 lg:col-4" *ngFor="let project of projects">
-        <p-card styleClass="h-full border-1 surface-border cursor-pointer" (click)="loadProject(project.key, project.storageType)">
+        <p-card styleClass="h-full border-1 surface-border cursor-pointer" (click)="loadProject(project.key, project.id, project.storageType)">
 
           <ng-template pTemplate="header">
             <div class="flex justify-content-between align-items-start p-3 pb-0">
