@@ -100,7 +100,7 @@ export class ProjectStorageService {
                     console.error('Cloud save failed');
                     return false;
                 }
-                this.setActiveProject(newKey, storageType);
+                this.setActiveProject(project.id, storageType);
             } else {
                 // Save to local
                 this.saveToLocal(project, newKey);
