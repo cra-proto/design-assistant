@@ -278,8 +278,8 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
                 );
 
                 if (!hasCurrentUser) {
-                    console.log('User not in collaborators, adding them');
-                    project.collaborators.push({
+                    console.log('User not in collaborators, adding them as first collaborator');
+                    project.collaborators.unshift({
                         id: user.id,
                         login: user.login,
                         name: user.name || user.login,
