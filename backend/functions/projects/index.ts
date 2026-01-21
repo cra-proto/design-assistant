@@ -96,7 +96,7 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
         // Scan for all public projects
         const result = await docClient.send(new ScanCommand({
             TableName: TABLE_NAME,
-            ProjectionExpression: 'id, #k, projectName, lastModified, phase, inScopePages, collaborators, github. #org',
+            ProjectionExpression: 'id, #k, projectName, lastModified, phase, inScopePages, collaborators, github, #org',
             ExpressionAttributeNames: {
                 '#k': 'key',
                 '#org': 'org',
