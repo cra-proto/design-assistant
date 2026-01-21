@@ -102,7 +102,7 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
         return {
             statusCode: 200,
             headers: corsHeaders,
-            body: JSON.stringify(result.Items || [])
+            body: JSON.stringify(projects || [])
         };
     } catch (error) {
         console.error('Error listing projects:', error);
