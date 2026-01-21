@@ -99,8 +99,8 @@
             <div class="flex flex-column gap-2 text-sm text-color-secondary">
               <div>
                 <i class="pi pi-github mr-2"></i>
-                <ng-container *ngIf="project.github.repo">{{ project.github.owner }}/{{ project.github.repo }}</ng-container>
-                <ng-container *ngIf="!project.github.repo">No repository</ng-container>
+                <ng-container *ngIf="project?.github?.repo">{{ project?.github?.owner }}/{{ project?.github?.repo }}</ng-container>
+                <ng-container *ngIf="!project?.github?.repo">No repository</ng-container>
               </div>
               <div>
                 <i class="pi pi-copy mr-2"></i>Pages: {{ project.inScopePages }}

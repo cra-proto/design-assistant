@@ -121,6 +121,7 @@ export class SwitchProjectComponent implements OnInit {
       }
     } finally {
       this.loadingKey = null;
+      this.router.navigate(['/']);
     }
   }
 
