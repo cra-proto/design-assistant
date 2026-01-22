@@ -14,6 +14,7 @@ import { ProjectStorageService } from './services/storage/project-storage.servic
 import { ProjectStateService } from './services/project-state.service';
 import { ExportGitHubService } from './services/github/export-github.service';
 import { CollaboratorService } from './services/collaborator.service';
+import { CloudStorageService } from './services/storage/cloud-storage.service';
 
 @Component({
   selector: 'aida-root',
@@ -29,6 +30,7 @@ export class AppComponent implements OnInit {
   router = inject(Router);
   route = inject(ActivatedRoute);
   projectStorage = inject(ProjectStorageService);
+  private cloudStorage = inject(CloudStorageService)
   projectState = inject(ProjectStateService);
   private exportGitHubService = inject(ExportGitHubService);
   private collaboratorService = inject(CollaboratorService);
@@ -75,6 +77,7 @@ export class AppComponent implements OnInit {
           queryParams: allParams,
           replaceUrl: true, // replaces the current history entry
         });
+        this.cloudStorage.loadProjects() //refresh project list
       }
     });
     await this.loadProject();
