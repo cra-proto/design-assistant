@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -241,6 +241,14 @@ export class ExportGithubComponent implements OnInit {
     //temp
     this.projectData().lastExported = new Date();
     await this.validateConnection();
+  }
+
+  // Show repo settings as secondary task button & overlay (if data exists or overlay is open)
+  // Otherwise, show as primary task card in place of data card
+  @ViewChild('settingsOverlay') settingsOverlay!: any;
+  showSettingsButton(): boolean {
+    const hasGithubData = this.projectData().github.owner && this.projectData().github.repo && this.projectData().github.branch;
+    return hasGithubData || this.settingsOverlay?.overlayVisible;
   }
 
   //Get in-scope URLs and page content

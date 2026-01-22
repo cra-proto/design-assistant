@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -12,7 +12,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 
 //Custom components and services
 import { ProjectStateService } from '../../services/project-state.service';
-import { GitHubAuthService } from '../../services/github/github-auth.service';
+import { ExportGitHubService } from '../../services/github/export-github.service';
 import { ProjectPhase } from '../../common/data.model';
 
 @Component({
@@ -26,33 +26,29 @@ import { ProjectPhase } from '../../common/data.model';
 })
 export class SetupProjectComponent {
     projectState = inject(ProjectStateService);
-    authService = inject(GitHubAuthService);
+    exportGitHubService = inject(ExportGitHubService);
 
-    //Check if project is loaded
-    get projectLoaded(): boolean {
-        const name = this.projectState.getProject().projectName;
-        return !!name;
+    constructor() {
+        // Refresh projectName when there are changes to repo name
+        effect(() => {
+            const stateRepo = this.projectData.github.repo;
+            this.projectName = this.projectData.projectName;
+        });
     }
 
-    //Project inputs
+    //Project data
     get projectData() {
         return this.projectState.getProject();
     }
 
-    //Project name
-    get projectName(): string {
-        return this.projectData.projectName;
+    //Name input
+    projectName = this.projectData.projectName;
+    nameFilter = /^[a-zA-Z0-9-._ :']*$/;
+    updateName() {
+        this.projectName = this.projectName.trim().replace(/^[-._ :']+|[-._ :']+$/g, '').replace(/[-]{2,}/g, '-').replace(/[.]{2,}/g, '.').replace(/[_]{2,}/g, '_').replace(/\s+/g, ' ').replace(/[:]{2,}/g, ':').replace(/[']{2,}/g, '\'');
+        this.projectState.setProjectName(this.projectName);
     }
-    set projectName(value: string) {
-        this.projectState.setProjectName(value);
-    }
-    //GitHub repo
-    get gitHubRepo(): string {
-        return this.projectData.github.repo;
-    }
-    set gitHubRepo(value: string) {
-        this.projectState.setGitHubRepo({ repo: value });
-    }
+
     //Phase dropdown
     get projectPhase(): ProjectPhase {
         return this.projectData.phase;
@@ -60,16 +56,6 @@ export class SetupProjectComponent {
     set projectPhase(value: ProjectPhase) {
         this.projectState.setProjectPhase(value);
     }
-    //Storage select button
-    get projectStorage(): 'local' | 'cloud' {
-        return this.projectData.storageType;
-    }
-    set projectStorage(value: 'local' | 'cloud') {
-        this.projectState.setStorageLocation(value);
-    }
-
-    //Input options and filters
-    nameFilter = /^[a-zA-Z0-9-._ :']*$/;
 
     phaseOptions = [
         { name: ProjectPhase.Draft, value: ProjectPhase.Draft },
@@ -80,22 +66,17 @@ export class SetupProjectComponent {
         { name: ProjectPhase.Complete, value: ProjectPhase.Complete },
     ];
 
+    //Storage select button
+    get projectStorage(): 'local' | 'cloud' {
+        return this.projectData.storageType;
+    }
+    set projectStorage(value: 'local' | 'cloud') {
+        this.projectState.setStorageLocation(value);
+    }
+
     storageOptions = [
-        { name: 'storage.browser', value: 'browser' as const, icon: 'pi pi-desktop' },
-        { name: 'storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: !this.authService.isAuthenticated() }
+        { name: 'storage.browser', value: 'local' as const, icon: 'pi pi-desktop' },
+        { name: 'storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: this.exportGitHubService.canEditProject }
     ];
 
-    updateName() {
-        this.projectName = this.projectName.trim().replace(/^[-._ :']+|[-._ :']+$/g, '').replace(/[-]{2,}/g, '-').replace(/[.]{2,}/g, '.').replace(/[_]{2,}/g, '_').replace(/\s+/g, ' ').replace(/[:]{2,}/g, ':').replace(/[']{2,}/g, '\'');
-        this.projectState.setProjectName(this.projectName);
-    }
-    updateRepo() {
-        this.gitHubRepo = this.gitHubRepo.trim().replace(/^[-._]+|[-._]+$/g, '').replace(/(\/|\.)lock$/, '').replace(/[-]{2,}/g, '-').replace(/[.]{2,}/g, '.').replace(/[_]{2,}/g, '_');
-        this.projectState.setGitHubRepo({ repo: this.gitHubRepo });
-    }
-    //Autocompletes project or repo name based on the other if one is empty
-    syncName() {
-        if (!this.projectName && this.gitHubRepo) { this.projectName = this.gitHubRepo.replace(/-/g, ' ').replace(/^./, char => char.toUpperCase()); this.updateName(); }
-        if (this.projectName && !this.gitHubRepo) { this.gitHubRepo = this.projectName.replace(/[:']/g, '').replace(/\s+/g, '-').toLowerCase(); this.updateRepo(); }
-    }
 }

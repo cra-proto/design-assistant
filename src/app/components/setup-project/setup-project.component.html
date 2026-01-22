@@ -2,7 +2,7 @@
 <div class="flex flex-column gap-2">
     <!--Name-->
     <p-iftalabel>
-        <input type="text" id="name" pInputText [(ngModel)]="projectName" pSize="small" fluid (blur)="updateName(); syncName()" [pKeyFilter]="nameFilter" />
+        <input type="text" id="name" pInputText [(ngModel)]="projectName" pSize="small" fluid (blur)="updateName()" [pKeyFilter]="nameFilter" />
         <label for="branch">Name</label>
     </p-iftalabel>
     <!--Phase-->

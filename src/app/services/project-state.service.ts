@@ -120,6 +120,11 @@ export class ProjectStateService {
             projectName: name,
             lastModified: new Date()
         }));
+        // Sync name to repo if not set
+        if (name && !this.project().github.repo) {
+            const repo = name.replace(/[:']/g, '').replace(/\s+/g, '-').toLowerCase();
+            this.setGitHubRepo({ repo });
+        }
     }
 
     setProjectPhase(phase: ProjectPhase) {
@@ -136,6 +141,11 @@ export class ProjectStateService {
             github: { ...curr.github, ...gitHubData },
             lastModified: new Date()
         }));
+        // Sync repo to name if not set
+        if (this.project().github.repo && !this.project().projectName) {
+            const name = this.project().github.repo.replace(/-/g, ' ').replace(/^./, char => char.toUpperCase());
+            this.setProjectName(name);
+        }
     }
 
     setCollaborators(collaborators: GitHubUser[]) {

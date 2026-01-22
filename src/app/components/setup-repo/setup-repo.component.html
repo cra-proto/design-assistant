@@ -8,7 +8,10 @@
         <p-message severity="error" variant="simple" size="small" *ngIf="ownerError">{{ownerError}}</p-message>
     </div>
     <p-iftalabel>
-        <p-autocomplete id="repo" [(ngModel)]="gitHubRepo" [suggestions]="filteredRepos" (input)="updateRepo()" (onBlur)="updateRepo();syncName()" (completeMethod)="filterRepos($event);" [dropdown]=true pSize="small" maxlength="100" [pKeyFilter]="repoFilter" fluid />
+        <p-autocomplete [(ngModel)]="gitHubRepo"
+                        (input)="onRepoInput()" (onBlur)="onRepoBlur()" (onSelect)="onRepoSelect($event)"
+                        [suggestions]="filteredRepos" (completeMethod)="filterRepos($event);"
+                        id="repo" [dropdown]=true pSize="small" maxlength="100" [pKeyFilter]="repoFilter" fluid />
         <label for="repo">Repository</label>
     </p-iftalabel>
     <p-iftalabel>

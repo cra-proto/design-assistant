@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, computed } from '@angular/core';
+import { Component, inject, OnInit, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -10,7 +10,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { CheckboxModule } from 'primeng/checkbox';
-import { AutoCompleteModule, AutoCompleteCompleteEvent } from 'primeng/autocomplete';
+import { AutoCompleteModule, AutoCompleteCompleteEvent, AutoCompleteSelectEvent } from 'primeng/autocomplete';
 import { KeyFilterModule } from 'primeng/keyfilter';
 import { MessageModule } from 'primeng/message';
 import { ButtonModule } from 'primeng/button';
@@ -42,10 +42,12 @@ export class SetupRepoComponent implements OnInit {
   authService = inject(GitHubAuthService);
   defaultOrg = environment.defaultOrg
 
-  //Check if project is loaded
-  get projectLoaded(): boolean {
-    const name = this.projectState.getProject().projectName;
-    return !!name;
+  constructor() {
+    // Refresh gitHubRepo when there are changes to project name
+    effect(() => {
+      const stateName = this.projectData.projectName;
+      this.gitHubRepo = this.projectData.github.repo;
+    });
   }
 
   async ngOnInit(): Promise<void> {
@@ -58,26 +60,9 @@ export class SetupRepoComponent implements OnInit {
   }
 
   //Text inputs
-  //projectName = this.projectData.projectName;
   gitHubOwner = this.projectData.github.owner;
-  //gitHubRepo = this.projectData.github.repo;
+  gitHubRepo = this.projectData.github.repo;
   gitHubBranch = this.projectData.github.branch;
-
-  //Project name
-  get projectName(): string {
-    return this.projectData.projectName;
-  }
-  set projectName(value: string) {
-    this.projectState.setProjectName(value);
-  }
-
-  //GitHub repo
-  get gitHubRepo(): string {
-    return this.projectData.github.repo;
-  }
-  set gitHubRepo(value: string) {
-    this.projectState.setGitHubRepo({ repo: value });
-  }
 
   //Baseline checkbox
   get gitHubBaseline(): boolean {
@@ -87,15 +72,9 @@ export class SetupRepoComponent implements OnInit {
     this.projectState.setGitHubRepo({ hasBaselineRepo: value });
   }
 
-  nameFilter = /^[a-zA-Z0-9-._ :']*$/;
   ownerFilter = /^[a-zA-Z0-9-]*$/;
   repoFilter = /^[a-zA-Z0-9-._]*$/;
   branchFilter = /^[a-zA-Z0-9-./]*$/;
-
-  updateName() {
-    this.projectName = this.projectName.trim().replace(/^[-._ :']+|[-._ :']+$/g, '').replace(/[-]{2,}/g, '-').replace(/[.]{2,}/g, '.').replace(/[_]{2,}/g, '_').replace(/\s+/g, ' ').replace(/[:]{2,}/g, ':').replace(/[']{2,}/g, '\'');
-    this.projectState.setProjectName(this.projectName);
-  }
 
   updateOwner() {
     this.gitHubOwner = this.gitHubOwner.trim().toLowerCase().replace(/^[-]+|[-]+$/g, '').replace(/[-]{2,}/g, '-');
@@ -103,8 +82,23 @@ export class SetupRepoComponent implements OnInit {
     this.projectState.setGitHubRepo({ owner: this.gitHubOwner });
   }
 
-  updateRepo() {
+  onRepoInput() {
     this.gitHubRepo = this.gitHubRepo.trim().replace(/^[-._]+|[-._]+$/g, '').replace(/(\/|\.)lock$/, '').replace(/[-]{2,}/g, '-').replace(/[.]{2,}/g, '.').replace(/[_]{2,}/g, '_');
+  }
+
+  private blurTimeout: ReturnType<typeof setTimeout> | undefined;
+  onRepoBlur() {
+    this.blurTimeout = setTimeout(() => {
+      this.updateRepo();
+    }, 200);
+  }
+
+  onRepoSelect(event: AutoCompleteSelectEvent) {
+    this.gitHubRepo = event.value;
+    this.updateRepo();
+  }
+
+  updateRepo() {
     this.projectState.setGitHubRepo({ repo: this.gitHubRepo });
   }
 
@@ -112,12 +106,6 @@ export class SetupRepoComponent implements OnInit {
     this.gitHubBranch = this.gitHubBranch.trim().replace(/^[-./]+|[-./]+$/g, '').replace(/(\/|\.)lock$/, '').replace(/[-]{2,}/g, '-').replace(/[.]{2,}/g, '.').replace(/\/{2,}/g, '/');
     if (!this.gitHubBranch) { this.gitHubBranch = 'main'; }
     this.projectState.setGitHubRepo({ branch: this.gitHubBranch });
-  }
-
-  //Autocompletes project or repo name based on the other if one is empty
-  syncName() {
-    if (!this.projectName && this.gitHubRepo) { this.projectName = this.gitHubRepo.replace(/-/g, ' ').replace(/^./, char => char.toUpperCase()); this.updateName(); }
-    if (this.projectName && !this.gitHubRepo) { this.gitHubRepo = this.projectName.replace(/[:']/g, '').replace(/\s+/g, '-').toLowerCase(); this.updateRepo(); }
   }
 
   //Loads repo list for filtering

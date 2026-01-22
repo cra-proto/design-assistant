@@ -40,6 +40,7 @@
 -->
             </div>
             <div class="mt-3 lg:mt-0 flex flex-row lg:flex-column gap-2">
+                @if(showSettingsButton()){
                 <p-button
                           [label]="'github.connect.settings' | translate"
                           icon="pi pi-cog"
@@ -65,6 +66,7 @@
                     </div>
                     }
                 </p-popover>
+                }
                 <p-button
                           [label]="'github.connect.openRepo' | translate"
                           icon="pi pi-external-link"
@@ -189,6 +191,28 @@
         </div>
 
     </div>
+    <!--GitHub settings (only visible if not configured)-->
+    @if(!showSettingsButton()){
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
+        <aida-setup-repo></aida-setup-repo>
+        @if (projectData().github.hasBaselineRepo) {
+        <div class="flex flex-column align-items-stretch mt-3">
+            <label class="text-sm font-semibold">{{ 'github.connect.export.label' | translate }}</label>
+            <div class="flex flex-row gap-3">
+                <p-selectButton [options]="exportTargetOptions"
+                                [(ngModel)]="selectedExportTarget"
+                                allowEmpty="false"
+                                optionLabel="label"
+                                optionValue="value"
+                                styleClass="secondary-outline max-h-3rem">
+                </p-selectButton>
+
+            </div>
+        </div>
+        }
+    </div>
+    }
+    @else{
     <!--Stats Card 2-->
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
         <h2 class="text-2xl my-1">{{ 'github.data' | translate }}</h2>
@@ -221,6 +245,7 @@
             </div>
         </div>
     </div>
+    }
 </div>
 
 
