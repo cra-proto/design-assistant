@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const VALID_ORGS = [
     "DEFAULT",  // Default & Fallback, visible to everyone
+    "DELETED", // Deleted projects from all orgs go here (needs to be set up)
     "ADMIN", // Can view every project
     "CRA", // Can view CRA and DEFAULT
     // Add other departments as we onboard them

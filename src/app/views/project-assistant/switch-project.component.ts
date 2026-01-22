@@ -80,12 +80,24 @@ export class SwitchProjectComponent implements OnInit {
     effect(() => {
       this.projectStorage.projectListChanged(); // Watch for changes
       console.log('Project list changed, reloading...');
-      this.loadProjects(); // Load projects
+      this.loadProjects(this.currentMode()); // Load projects
     });
   }
 
   async ngOnInit() {
-    await this.loadProjects();
+
+    // Delete deleted projects after a period of time
+    const deletedCount = this.projectStorage.cleanupDeletedProjects();
+    if (deletedCount > 0) {
+      this.message.add({
+        severity: 'info',
+        summary: 'Cleanup completed',
+        detail: `${deletedCount} expired project${deletedCount > 1 ? 's' : ''} automatically deleted`
+      });
+    }
+
+    // Load project list
+    await this.loadProjects(this.currentMode());
 
     //Filter action is not set up yet, collaborator list should be a unique set of collaborators from all projects
     this.groupedFilters = [
@@ -135,9 +147,20 @@ export class SwitchProjectComponent implements OnInit {
     }
   }
 
+  // Toggle between saved and deleted projects
+  currentMode = signal<'saved' | 'deleted'>('saved');
+
+  toggleProjectView() {
+    const newMode = this.currentMode() === 'saved' ? 'deleted' : 'saved';
+    this.currentMode.set(newMode);
+    this.loadProjects(newMode);
+  }
+
   //Load all projects
-  async loadProjects() {
-    const projects = this.projectStorage.getProjectList();
+  async loadProjects(mode: 'saved' | 'deleted' = 'saved') {
+    const projects = mode === 'deleted'
+      ? this.projectStorage.getLocalProjectList('deleted')
+      : await this.projectStorage.getProjectList();
     this.allProjects.set(projects);
   }
 
@@ -208,9 +231,15 @@ export class SwitchProjectComponent implements OnInit {
 
     const success = await this.projectStorage.deleteProject(key, project.storageType);
 
+    // Refresh project list
     if (success) {
-      // Refresh project list
-      await this.loadProjects();
+      // Toggle mode first if no more deleted projects
+      if (this.currentMode() === 'deleted') {
+        if (this.projectStorage.getLocalProjectList('deleted').length === 0) {
+          this.currentMode.set('saved');
+        }
+      }
+      await this.loadProjects(this.currentMode());
 
       // Check if we deleted the active project
       const active = this.projectStorage.getActiveProject();

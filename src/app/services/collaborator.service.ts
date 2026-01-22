@@ -16,7 +16,7 @@ export class CollaboratorService {
         console.log('Adding current user to local projects as collaborator:', user.login);
 
         // Get list of all local projects
-        const savedProjects = this.projectStorage.getLocalProjectList();
+        const savedProjects = this.projectStorage.getLocalProjectList('saved');
 
         for (const metadata of savedProjects) {
             // Only process projects with empty collaborators

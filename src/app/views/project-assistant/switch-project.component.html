@@ -36,7 +36,7 @@
     <div class="flex flex-row xl:flex-column gap-2">
       <!--New-->
       <p-button
-                label="New Project"
+                label="New project"
                 icon="pi pi-plus"
                 outlined
                 size="small"
@@ -45,21 +45,36 @@
       </p-button>
       <!--Import-->
       <p-button
-                label="Import Project"
+                label="Import project"
                 icon="pi pi-upload"
                 outlined
                 size="small"
-                styleClass="white-space-nowrap secondary-outline w-full">
+                styleClass="white-space-nowrap secondary-outline w-full"
+                disabled>
       </p-button>
+      <!--RECYCLE BIN-->
+      @if(projectStorage.getLocalProjectList('deleted').length > 0)
+      {<p-button
+                [label]="currentMode() === 'deleted' ? 'View saved projects' : 'View deleted projects'"
+                [icon]="currentMode() === 'deleted' ? 'pi pi-list' : 'pi pi-trash'"
+                outlined
+                size="small"
+                styleClass="white-space-nowrap secondary-outline w-full"
+                (onClick)="toggleProjectView()">
+      </p-button>
+      }
     </div>
 
   </div>
-
+  @if(currentMode() === 'deleted'){<p class="mt-0 text-sm text-color-secondary">These projects have been marked for deletion. They will be removed from this view in 30 days. Select a project to restore it.</p>}
   <!--Saved projects-->
   <ng-container *ngIf=" projects.length> 0; else none">
     <div class="grid">
       <div class="col-12 md:col-6 lg:col-4" *ngFor="let project of projects">
-        <p-card styleClass="h-full border-1 surface-border cursor-pointer" (click)="loadProject(project.key, project.id, project.storageType)">
+        <p-card [styleClass]="currentMode() === 'deleted'
+                              ? 'h-full border-2 border-red-500 cursor-pointer'
+                              : 'h-full border-1 surface-border cursor-pointer'"
+                (click)="loadProject(project.key, project.id, project.storageType)">
 
           <ng-template pTemplate="header">
             <div class="flex justify-content-between align-items-start p-3 pb-0">
