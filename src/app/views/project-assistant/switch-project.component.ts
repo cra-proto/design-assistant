@@ -26,7 +26,7 @@ import { ChipModule } from 'primeng/chip';
 import { TimelineModule } from 'primeng/timeline';
 import { ProgressBarModule } from 'primeng/progressbar';
 
-import { FilterService } from 'primeng/api';
+import { FilterService, MenuItem } from 'primeng/api';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -86,6 +86,53 @@ export class SwitchProjectComponent implements OnInit {
 
   async ngOnInit() {
     await this.loadProjects();
+
+    //Filter action is not set up yet, collaborator list should be a unique set of collaborators from all projects
+    this.groupedFilters = [
+      {
+        label: 'Storage type',
+        value: 'storage',
+        items: [
+          { label: 'Cloud', value: 'Cloud' },
+          { label: 'Local', value: 'Local' },
+        ]
+      },
+      {
+        label: 'Collaborators',
+        value: 'collab',
+        items: [
+          { label: 'Amber', value: 'Amber' },
+          { label: 'Miguel', value: 'Miguel' },
+          { label: 'Naomi', value: 'Naomi' },
+          { label: 'Marvin', value: 'Marvin' }
+        ]
+      },
+      {
+        label: 'Project Phase',
+        value: 'phase',
+        items: [
+          { label: 'Draft', value: 'Draft' },
+          { label: 'Discover', value: 'Discover' },
+          { label: 'Design', value: 'Design' },
+          { label: 'Assess', value: 'Assess' },
+          { label: 'Approve', value: 'Approve' },
+          { label: 'Complete', value: 'Complete' },
+        ]
+      }
+    ];
+
+    // Only add Organization filter if myOrg is set
+    const myOrg = localStorage.getItem('myOrg');
+    if (myOrg) {
+      this.groupedFilters.push({
+        label: 'Organization',
+        value: 'org',
+        items: [
+          { label: 'Default', value: 'Default' },
+          { label: myOrg, value: myOrg },
+        ]
+      });
+    }
   }
 
   //Load all projects
@@ -247,38 +294,7 @@ export class SwitchProjectComponent implements OnInit {
 
   //Filter
   selectedFilter = signal<string>('');
-  groupedFilters = [
-    {
-      label: 'Storage type',
-      value: 'storage',
-      items: [
-        { label: 'Cloud', value: 'Cloud' },
-        { label: 'Local', value: 'Local' },
-      ]
-    },
-    {
-      label: 'Collaborators',
-      value: 'collab',
-      items: [
-        { label: 'Amber', value: 'Amber' },
-        { label: 'Miguel', value: 'Miguel' },
-        { label: 'Naomi', value: 'Naomi' },
-        { label: 'Marvin', value: 'Marvin' }
-      ]
-    },
-    {
-      label: 'Project Phase',
-      value: 'phase',
-      items: [
-        { label: 'Draft', value: 'Draft' },
-        { label: 'Discover', value: 'Discover' },
-        { label: 'Design', value: 'Design' },
-        { label: 'Assess', value: 'Assess' },
-        { label: 'Approve', value: 'Approve' },
-        { label: 'Complete', value: 'Complete' },
-      ]
-    },
-  ];
+  groupedFilters: MenuItem[] = [];
 
   getPhaseIcon(phase: string | undefined): string {
     const iconMap: { [key: string]: string } = {

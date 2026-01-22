@@ -19,12 +19,12 @@
       <!--Search-->
       <p-iconfield>
         <p-inputicon styleClass="pi pi-search" />
-        <input type="text" pInputText placeholder="Search" class="min-w-min md:min-w-max w-full" />
+        <input id="search" type="text" pInputText placeholder="Search" class="min-w-min md:min-w-max w-full" />
       </p-iconfield>
       <!--Sort-->
-      <p-select [options]="sortOptions" [(ngModel)]="selectedSort" placeholder="Sort by" styleClass="min-w-min md:min-w-max" />
+      <p-select id="sort" [options]="sortOptions" [(ngModel)]="selectedSort" placeholder="Sort by" styleClass="min-w-min md:min-w-max" />
       <!--Filter-->
-      <p-multiselect [options]="groupedFilters" [group]="true" [(ngModel)]="selectedFilter" placeholder="Filter files" styleClass="min-w-min md:min-w-max">
+      <p-multiselect inputId="filter" [options]="groupedFilters" [group]="true" [(ngModel)]="selectedFilter" placeholder="Filter files" styleClass="min-w-min md:min-w-max">
         <ng-template let-group #group>
           <div class="flex items-center">
             <span>{{ group.label }}</span>
