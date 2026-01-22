@@ -158,16 +158,14 @@ export class CloudStorageService {
             // Prepare the payload
             // Convert Date objects to timestamps for JSON serialization
             const payload = {
-                id: project.id,
+                ...project,
+                org: org,
                 key: this.generateKeyFromName(project.projectName),
-                projectName: project.projectName,
-                version: project.version,
-                phase: project.phase,
+                storageType: 'cloud' as const,
                 created: project.created instanceof Date ? project.created.getTime() : project.created,
                 lastModified: project.lastModified instanceof Date ? project.lastModified.getTime() : project.lastModified,
                 lastSaved: project.lastSaved instanceof Date ? project.lastSaved.getTime() : project.lastSaved,
                 lastExported: project.lastExported instanceof Date ? project.lastExported.getTime() : project.lastExported,
-                storageType: 'cloud' as const,
                 collaborators: project.collaborators?.map(c => ({
                     id: c.id,
                     login: c.login,
@@ -175,13 +173,9 @@ export class CloudStorageService {
                     avatar_url: c.avatar_url,
                     email: c.email || null
                 })),
-                baselinePages: project.baselinePages,
-                inScopePages: project.inScopePages,
-                github: project.github,
-                projectData: project.projectData // Full tree structure
             };
 
-            console.log('Saving project to cloud:', payload.key);
+            console.log('Saving project to cloud:', payload.key, 'with org:', org);
 
             const url = projectId ? `${this.API_URL}/${projectId}` : this.API_URL;
             const method = projectId ? 'PUT' : 'POST';
