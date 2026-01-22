@@ -61,10 +61,16 @@ export class AppComponent implements OnInit {
     //Set org from url parameter if present then remove the param
     this.route.queryParams.subscribe(params => {
       const orgKey = params['org'];
-      if (orgKey) {
-        this.localStore.saveData('myOrg', orgKey);
+      if (orgKey !== undefined) {
+        if (orgKey === '' || orgKey.trim() === '') { //remove key if param is blank
+          localStorage.removeItem('myOrg');
+        }
+        else { //otherwise save it
+          const cleanOrgKey = orgKey.replace(/^["']|["']$/g, '').toUpperCase();
+          localStorage.setItem('myOrg', cleanOrgKey);
+        }
         const allParams = { ...params };
-        delete allParams['org']; //only removes key from the params
+        delete allParams['org']; //only removes org from the url params
         this.router.navigate([], {
           queryParams: allParams,
           replaceUrl: true, // replaces the current history entry
