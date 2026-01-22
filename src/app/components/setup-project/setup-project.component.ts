@@ -71,7 +71,7 @@ export class SetupProjectComponent {
         return this.projectData.storageType;
     }
     set projectStorage(value: 'local' | 'cloud') {
-        this.projectState.setStorageLocation(value);
+        this.projectState.setStorageType(value);
     }
 
     storageOptions = [

@@ -69,6 +69,11 @@ export class ProjectStateService {
             const currentProject = this.project();
             const hasChanges = currentProject.lastModified > currentProject.lastSaved;
             if (hasChanges) {
+                // Check if user has permission to save
+                if (currentProject.storageType === 'cloud' && !this.exportGitHubService.canEditProject(currentProject)) {
+                    console.log("Converting cloud project to local...");
+                    this.setStorageType('local');
+                }
                 this.saveStatus.set('unsaved');
                 // Calculate time since last save and save if exceeding the limit
                 const timeSinceLastSave = currentProject.lastModified.getTime() - currentProject.lastSaved.getTime();
@@ -156,10 +161,10 @@ export class ProjectStateService {
         }));
     }
 
-    setStorageLocation(location: 'local' | 'cloud') {
+    setStorageType(type: 'local' | 'cloud') {
         this.project.update(curr => ({
             ...curr,
-            storageLocation: location,
+            storageType: type,
             lastModified: new Date()
         }));
     }

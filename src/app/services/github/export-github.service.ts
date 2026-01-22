@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { FetchService } from '../fetch.service';
 import { GitHubAuthService } from './github-auth.service';
-import { GitHubUser, ProjectMetadata } from '../../common/data.model';
+import { GitHubUser, ProjectMetadata, Project } from '../../common/data.model';
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../../environments/environment';
 
@@ -41,7 +41,7 @@ export class ExportGitHubService {
       : this.patUser()
   );
 
-  canEditProject(project: ProjectMetadata): boolean {
+  canEditProject(project: ProjectMetadata | Project): boolean {
     const currentUser = this.user(); // OAuth or PAT
     console.warn("Can edit check:")
     console.log("Full user object:", currentUser)
