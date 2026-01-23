@@ -91,7 +91,7 @@
               <div class="flex gap-1">
                 <p-button icon="pi pi-save" text rounded size="small" severity="success" pTooltip="Save locally" (onClick)="showSave = true; $event.stopPropagation()" *ngIf="project.key === 'autosave' && !authService.isAuthenticated()" />
                 <p-button icon="pi pi-cloud-upload" text rounded size="small" severity="primary" pTooltip="Upload to cloud" (onClick)="uploadToCloud(project, $event)" *ngIf="exportGitHubService.canEditProject(project) && project.storageType === 'local'"></p-button>
-                <p-button icon="pi pi-trash" text rounded size="small" severity="danger" pTooltip="Delete" (onClick)="deleteProject(project, $event)"></p-button>
+                <p-button icon="pi pi-trash" text rounded size="small" severity="danger" pTooltip="Delete" (onClick)="deleteProject(project, $event)" *ngIf="exportGitHubService.canEditProject(project) || project.storageType === 'local'"></p-button>
               </div>
             </div>
           </ng-template>
