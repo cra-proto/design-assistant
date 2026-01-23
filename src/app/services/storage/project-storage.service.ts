@@ -352,6 +352,8 @@ export class ProjectStorageService {
                 }
                 return success;
             } else {
+                const projectToDelete = await this.loadProjectData(key, 'cloud')
+                if (projectToDelete) { this.saveToLocal(projectToDelete, key); this.deleteLocalProject(key) }
                 const success = await this.cloudStorage.deleteProject(key);
                 if (success) {
                     this.projectListVersion.update(v => v + 1); // Notify that project list has changed
