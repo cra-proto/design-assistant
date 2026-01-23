@@ -31,7 +31,7 @@ export class BreadcrumbValidationService {
       const rawHref = el.getAttribute('href') || '';
       let absoluteUrl = '';
       try {
-        absoluteUrl = new URL(rawHref, baseUrl).href; // handles both relative + absolute
+        absoluteUrl = new URL(rawHref, baseUrl).href.replace("/content/canadasite", ""); // handles both relative + absolute
       } catch {
         console.warn(`Invalid breadcrumb href: ${rawHref}`);
       }
