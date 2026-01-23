@@ -228,7 +228,7 @@ export class HeaderComponent implements OnInit {
 
   // Check if API gateway is available so we can surface the preferred sign-in method
   private checkApiGatewayAccess(): void {
-    this.http.head(environment.apiGateway, {
+    this.http.head(`${environment.apiGateway}/auth/github/url`, {
       observe: 'response',
       withCredentials: false
     })
