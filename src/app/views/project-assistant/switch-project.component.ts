@@ -265,10 +265,7 @@ export class SwitchProjectComponent implements OnInit {
   async uploadToCloud(project: ProjectMetadata, event?: Event) {
     event?.stopPropagation();
 
-    if (!this.authService.isAuthenticated()) {
-      this.showSave = true;
-      return;
-    }
+    if (!this.exportGitHubService.canEditProject(project)) { return; }
 
     // Load the full project from local storage
     const fullProject = await this.projectStorage.loadProject(project.key, 'local');
@@ -288,8 +285,8 @@ export class SwitchProjectComponent implements OnInit {
     const success = await this.projectStorage.saveProject(fullProject);
 
     if (success) {
-      // Optionally delete from local storage
-      // await this.projectStorage.deleteProject(project.key, 'local');
+      // Delete from local storage
+      await this.projectStorage.deleteProject(project.key, 'local');
 
       // Refresh project list
       await this.loadProjects();

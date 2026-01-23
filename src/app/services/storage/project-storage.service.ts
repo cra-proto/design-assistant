@@ -104,6 +104,7 @@ export class ProjectStorageService {
                     console.error('Cloud save failed');
                     return false;
                 }
+                else { this.deleteLocalProject(newKey) }
                 this.setActiveProject(project.id, storageType);
             } else {
                 // Save to local
@@ -114,6 +115,10 @@ export class ProjectStorageService {
                     this.deleteLocalProject(oldKey);
                 }
                 this.setActiveProject(newKey, storageType);
+                // Remove key from deleted project list (in case we are restoring a project from the deleted list)
+                const deletedProjects = JSON.parse(this.localStorage.getData(this.DELETED_PROJECTS_KEY) || '[]');
+                const updatedDeletedProjects = deletedProjects.filter((p: any) => p.key !== newKey && p.key !== oldKey);
+                this.localStorage.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
             }
 
             console.log(`Project "${newKey}" saved successfully to ${storageType}`);
@@ -368,15 +373,8 @@ export class ProjectStorageService {
         const savedProject = savedProjects.find((p: any) => p.key === key); // ProjectMetadata or undefined
         const inDeleted = deletedProjects.some((p: any) => p.key === key); // true or false
 
-        if (inDeleted) {
-            // Delete and remove from deleted project list
-            this.localStorage.removeData(key);
-            const updatedDeletedProjects = deletedProjects.filter((p: any) => p.key !== key);
-            this.localStorage.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
-            console.log(`Deleted project "${key}" deleted`);
-            return true;
-        }
-        else if (savedProject) {
+        //Process saved projects first in case same key is in both somehow. Prevents accidental permenent delete.
+        if (savedProject) {
             // Remove from saved project list and add to deleted project list
             const updatedSavedProjects = savedProjects.filter((p: any) => p.key !== key);
             this.localStorage.saveData(this.SAVED_PROJECTS_KEY, JSON.stringify(updatedSavedProjects));
@@ -387,8 +385,19 @@ export class ProjectStorageService {
             const updatedDeletedProjects = [...deletedProjects, deletedProject];
             this.localStorage.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
             console.log(`Local project "${key}" marked for deletion`);
+            this.projectListVersion.update(v => v + 1);
             return true;
         }
+        else if (inDeleted) {
+            // Delete and remove from deleted project list
+            this.localStorage.removeData(key);
+            const updatedDeletedProjects = deletedProjects.filter((p: any) => p.key !== key);
+            this.localStorage.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
+            console.log(`Deleted project "${key}" deleted`);
+            this.projectListVersion.update(v => v + 1);
+            return true;
+        }
+
         return false;
     }
 
