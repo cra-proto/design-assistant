@@ -1,6 +1,8 @@
-import { Component, inject, computed, signal, effect } from '@angular/core';
+import { Component, inject, computed, signal, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { timeout, catchError, of } from 'rxjs';
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
 import { Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
@@ -56,7 +58,8 @@ import { MessageService } from 'primeng/api'
       <p-toast></p-toast>
 
       <!--p-button (onClick)="goToProject()" rounded outlined severity="primary" styleClass="border-dashed surface-border" [label]="project | translate"></p-button-->
-
+      @if(isApiGatewayAccessible()){Gateway!}
+      @else{No gateway!}
       <p-divider *ngIf="showSaveButton()" layout="vertical" styleClass="mx-2"></p-divider>
 
       <aida-github-connect></aida-github-connect>
@@ -93,7 +96,7 @@ import { MessageService } from 'primeng/api'
   }
     `
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
   private translate = inject(TranslateService);
   public localStore = inject(LocalStorageService);
   public theme = inject(ThemeService);
@@ -102,6 +105,8 @@ export class HeaderComponent {
   public production = environment.production;
   public projectState = inject(ProjectStateService);
   public messageService = inject(MessageService);
+  private http = inject(HttpClient);
+
 
 
   // Get save status from project state
@@ -216,6 +221,28 @@ export class HeaderComponent {
         detail: 'Check console for errors'
       });
     }
+  }
+
+  // Signal to track if API Gateway is accessible
+  isApiGatewayAccessible = signal<boolean>(true);
+
+  // Check if API gateway is available so we can surface the preferred sign-in method
+  private checkApiGatewayAccess(): void {
+    this.http.head(environment.apiGateway, {
+      observe: 'response',
+      withCredentials: false
+    })
+      .pipe(
+        timeout(3000),
+        catchError(() => of(null))
+      )
+      .subscribe(response => {
+        this.isApiGatewayAccessible.set(response !== null);
+      });
+  }
+
+  ngOnInit() {
+    this.checkApiGatewayAccess();
   }
 
 }
