@@ -29,16 +29,39 @@
 }-->
 
 <p-menu #menu [model]="items" [popup]="true" />
-@if (authService.isAuthenticated()) {
-@if (authService.user(); as user) {
+@if (exportGitHubService.user(); as user) {
 <p-button [outlined]="true" size="small" rounded outlined styleClass="secondary-outline p-1" (onClick)="menu.toggle($event)">
     <p-avatar [image]="user.avatar_url" shape="circle" />
     <div class="font-semibold pr-2">{{ user.name || user.login }}</div>
 </p-button>
-}
 } @else {
 <p-button [outlined]="true" size="small" rounded outlined styleClass="secondary-outline p-1" (onClick)="connectGitHub()">
     <i class="pi pi-github text-4xl text-color-secondary"></i>
     <div class="font-semibold pr-2">Sign&nbsp;in</div>
 </p-button>
 }
+
+<p-dialog header="Sign in with your personal access token" [modal]="true" [(visible)]="showPatSignIn" class="w-12 lg:w-8">
+    <div class="flex flex-row align-items-center gap-3 -mt-2">
+        <i class="pi pi-key text-6xl text-900"></i>
+        <div class="w-full">
+            <p class="text-sm text-color-secondary my-2">{{ 'github.connect.pat.description' | translate }}</p>
+            <aida-pat></aida-pat>
+        </div>
+    </div>
+    <div class="flex justify-content-end mt-2">
+        <p-button label="Sign in" (onClick)="validatePAT()"></p-button>
+    </div>
+</p-dialog>
+
+<p-dialog header="User settings" [modal]="true" [(visible)]="showSettings" [style]="{width: '50vw'}" [breakpoints]="{'1199px': '75vw', '575': '90vw'}">
+    <div class="flex flex-row align-items-center gap-3">
+        <i class="pi pi-cog text-6xl text-900"></i>
+        <div class="w-full">
+            <p class="text-sm text-color-secondary my-2">Add user settings here.</p>
+        </div>
+    </div>
+    <div class="flex justify-content-end mt-2">
+        <p-button label="Save" (onClick)="showSettings = false"></p-button>
+    </div>
+</p-dialog>

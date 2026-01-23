@@ -72,7 +72,14 @@ export class ExportGitHubService {
       sessionStorage.setItem(this.PAT_STORAGE_KEY, value);
     } else {
       sessionStorage.removeItem(this.PAT_STORAGE_KEY);
+      console.log("Removing PAT from session storage");
     }
+  }
+
+  public clearPAT(): void {
+    this.patToken.set('');
+    this.patUser.set(null);
+    this.savePAT('');
   }
 
   // PAT - user (fallback access when OAuth not available)
@@ -87,6 +94,32 @@ export class ExportGitHubService {
       email: patUser.email
     };
   }
+
+  // Validate PAT
+  public async validatePAT() {
+    const token = this.pat;
+    console.log('Validating: ' + token);
+    try {
+      // Step 1: Validate token by calling /user endpoint
+      const userResponse = await fetch('https://api.github.com/user', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json'
+        }
+      });
+
+      if (!userResponse.ok) {
+        this.clearPAT()
+      }
+      else {
+        const user = await userResponse.json();
+        this.patUser.set(this.mapGitHubUser(user));
+      }
+    } catch (error) {
+      console.log('Network error validating token')
+    }
+  }
+
 
   // Validate GitHub token
   public async validateToken(token: string, owner: string, repo: string): Promise<{ valid: boolean, repoExists?: boolean, hasRepoAccess?: boolean, canCreateRepo?: boolean, showDisclaimer?: boolean, error?: string }> {

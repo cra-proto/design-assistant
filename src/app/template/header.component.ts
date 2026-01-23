@@ -1,8 +1,6 @@
-import { Component, inject, computed, signal, effect, OnInit } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { timeout, catchError, of } from 'rxjs';
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
 import { Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
@@ -58,8 +56,6 @@ import { MessageService } from 'primeng/api'
       <p-toast></p-toast>
 
       <!--p-button (onClick)="goToProject()" rounded outlined severity="primary" styleClass="border-dashed surface-border" [label]="project | translate"></p-button-->
-      @if(isApiGatewayAccessible()){Gateway!}
-      @else{No gateway!}
       <p-divider *ngIf="showSaveButton()" layout="vertical" styleClass="mx-2"></p-divider>
 
       <aida-github-connect></aida-github-connect>
@@ -96,7 +92,7 @@ import { MessageService } from 'primeng/api'
   }
     `
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent {
   private translate = inject(TranslateService);
   public localStore = inject(LocalStorageService);
   public theme = inject(ThemeService);
@@ -105,9 +101,6 @@ export class HeaderComponent implements OnInit {
   public production = environment.production;
   public projectState = inject(ProjectStateService);
   public messageService = inject(MessageService);
-  private http = inject(HttpClient);
-
-
 
   // Get save status from project state
   saveStatus = this.projectState.getSaveStatus;
@@ -221,29 +214,6 @@ export class HeaderComponent implements OnInit {
         detail: 'Check console for errors'
       });
     }
-  }
-
-  // Signal to track if API Gateway is accessible
-  isApiGatewayAccessible = signal<boolean>(true);
-
-  // Check if API gateway is available so we can surface the preferred sign-in method
-  private checkApiGatewayAccess(): void {
-    this.http.get(`${environment.apiGateway}/auth/github/url`, {
-      observe: 'response'
-    })
-      .pipe(
-        timeout(3000),
-        catchError(() => {
-          return of(null); // Any error (timeout, network, CORS, blocked) means it's inaccessible
-        })
-      )
-      .subscribe(response => {
-        this.isApiGatewayAccessible.set(response !== null);
-      });
-  }
-
-  ngOnInit() {
-    this.checkApiGatewayAccess();
   }
 
 }
