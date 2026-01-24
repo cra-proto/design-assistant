@@ -279,7 +279,7 @@
     </p-table>
     <p-button styleClass="mt-3" icon="pi pi-github" label="Export to GitHub" severity="primary"
               (onClick)="exportProjectToGitHub(gitHubData().owner,gitHubData().repo,gitHubData().branch,exportGitHubService.token(),true)"
-              [disabled]="projectData().inScopePages === 0 || (!exportGitHubService.token() && !authService.isAuthenticated())" />
+              [disabled]="projectData().inScopePages === 0 || !exportGitHubService.token() || !gitHubData().repo" />
     @if (filesTable().length) {
     <span class="text-color-secondary">
         {{ newCount() }} new and {{ updatedCount() }} updated pages

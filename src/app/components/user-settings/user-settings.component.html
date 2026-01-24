@@ -1,0 +1,30 @@
+<div class="flex flex-column gap-2">
+    <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
+        <span class="text-xs  my-1">Language</span>
+        <p-selectbutton class="mb-0" [options]="langOptions" [(ngModel)]="selectedLang" optionLabel="label" optionValue="value" (onChange)="changeLang()">
+            <ng-template let-item>
+                {{ item.label | translate }}
+            </ng-template>
+        </p-selectbutton>
+
+
+
+    </div>
+    <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
+        <span class="text-xs  my-1">Theme</span>
+
+
+
+        <p-selectbutton class="mb-0" [options]="themeOptions" [(ngModel)]="selectedTheme" optionValue="value" />
+
+        <p-dropdown
+                    [options]="colourSchemes"
+                    [(ngModel)]="selectedScheme"
+                    (onChange)="onSchemeChange()"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Select Colour Scheme"
+                    appendTo="body">
+        </p-dropdown>
+    </div>
+</div>

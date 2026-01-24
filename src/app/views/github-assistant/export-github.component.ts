@@ -254,7 +254,7 @@ export class ExportGithubComponent implements OnInit {
   //Get in-scope URLs and page content
   private async getUrlandContent(node: TreeNode): Promise<PageData[]> {
     const pages: PageData[] = [];
-    if (node.data.status.inScope && node.data.url) {
+    if (node?.data?.status.inScope && node?.data?.url && !this.gitHubData().repo) {
       try {
         const doc = await this.fetchService.fetchContent(node.data.url, "prod");
         const jekyllFormatted = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, this.gitHubData().repo);
@@ -264,8 +264,8 @@ export class ExportGithubComponent implements OnInit {
       }
     }
     // recurse into children
-    if (node.children) {
-      for (const child of node.children) {
+    if (node?.children) {
+      for (const child of node?.children) {
         const childPages = await this.getUrlandContent(child);
         pages.push(...childPages);
       }

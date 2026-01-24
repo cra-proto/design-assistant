@@ -20,6 +20,7 @@ import { ProjectStorageService } from '../../services/storage/project-storage.se
 import { ProjectStateService } from '../../services/project-state.service';
 import { environment } from '../../../environments/environment';
 import { PatComponent } from './pat.component';
+import { UserSettingsComponent } from '../user-settings/user-settings.component';
 
 @Component({
   selector: 'aida-github-connect',
@@ -27,7 +28,7 @@ import { PatComponent } from './pat.component';
     ButtonModule, AvatarModule,
     PopoverModule, MenuModule,
     DialogModule, IftaLabelModule, PasswordModule,
-    PatComponent],
+    PatComponent, UserSettingsComponent],
   templateUrl: './github-connect.component.html',
   styles: ``
 })
