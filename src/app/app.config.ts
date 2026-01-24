@@ -12,7 +12,7 @@ import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr-CA';
 import localeEn from '@angular/common/locales/en-CA';
 //import Lara from '@primeng/themes/lara';
-import MyPreset from './mypreset';
+import MyPreset from './preset';
 
 import { routes } from './app.routes';
 
