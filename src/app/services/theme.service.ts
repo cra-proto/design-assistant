@@ -1,32 +1,60 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, effect, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { updatePreset, updatePrimaryPalette } from '@primeng/themes';
-import MyPreset from '../preset';
-import DeutanPreset from '../preset-duetan';
-import ProtanPreset from '../preset-protan';
-import TritanPreset from '../preset-tritan';
+import MyPreset from '../common/preset';
+import DeutanPreset from '../common/preset-deutan';
+import ProtanPreset from '../common/preset-protan';
+import TritanPreset from '../common/preset-tritan';
 
-export type ColourScheme = 'default' | 'deutan' | 'protan' | 'tritan';
+export type ColorScheme = 'default' | 'deutan' | 'protan' | 'tritan';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ThemeService {
+  private translate = inject(TranslateService);
+
+  // Language
+  public currentLang = signal<string>('en');
 
   // Dark & Light themes
   public darkMode = signal<boolean>(false);
   public icon = signal<string>('pi pi-sun');
 
   // Default & Colorblind themes
-  private colourSchemeKey = 'colour-scheme';
-  colourScheme = signal<ColourScheme>(this.getStoredColorScheme());
+  private colorSchemeKey = 'color-scheme';
+  colorScheme = signal<ColorScheme>(this.getStoredColorScheme());
 
   constructor() {
+    // Language
+    this.translate.addLangs(['en', 'fr']);
+    this.translate.setDefaultLang('en');
+    const storedLang = localStorage.getItem('lang') || this.translate.getBrowserLang() || 'en';
+    this.setLanguage(storedLang);
+
     // Dark & Light
     const storedTheme = localStorage.getItem('darkMode');
     this.setDarkMode(storedTheme === 'true')
 
     // Default & Colorblind
-    this.applyColourScheme(this.colourScheme());
+    effect(() => {
+      this.applyColorScheme(this.colorScheme());
+    });
+
+  }
+
+  // Language
+  setLanguage(lang: string) {
+    const useLang = lang === 'en' ? 'en' : 'fr';
+    this.currentLang.set(useLang);
+    this.translate.use(useLang);
+    localStorage.setItem('lang', useLang);
+    console.log(`Language set to ${useLang}`);
+  }
+
+  toggleLanguage() {
+    const newLang = this.currentLang() === 'en' ? 'fr' : 'en';
+    this.setLanguage(newLang);
   }
 
   // Dark & Light
@@ -42,21 +70,21 @@ export class ThemeService {
     this.setDarkMode(!this.darkMode());
   }
 
-  // Default & Colourblind
-  private getStoredColorScheme(): ColourScheme {
-    const stored = localStorage.getItem(this.colourSchemeKey);
+  // Default & Colorblind
+  private getStoredColorScheme(): ColorScheme {
+    const stored = localStorage.getItem(this.colorSchemeKey);
     return (stored === 'deutan' || stored === 'protan' || stored === 'tritan' || stored === 'default')
       ? stored
       : 'default';
   }
 
-  setColourScheme(scheme: ColourScheme) {
-    this.colourScheme.set(scheme);
-    localStorage.setItem(this.colourSchemeKey, scheme);
-    this.applyColourScheme(scheme);
+  setColorScheme(scheme: ColorScheme) {
+    this.colorScheme.set(scheme);
+    localStorage.setItem(this.colorSchemeKey, scheme);
   }
 
-  private applyColourScheme(scheme: ColourScheme) {
+  private applyColorScheme(scheme: ColorScheme) {
+    console.log('Applying color scheme:', scheme);
     let preset;
     switch (scheme) {
       case 'deutan':
@@ -73,4 +101,5 @@ export class ThemeService {
     }
     updatePreset(preset);
   }
+
 }

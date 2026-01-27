@@ -29,6 +29,7 @@ import { NotFoundComponent } from './views/404/not-found.component';
 import { AboutComponent } from './views/about-us/about.component';
 //import { ExampleComponent } from './views/examples/example.component';
 import { GetTaskUrlsComponent } from './components/find-pages/components/get-task-urls.component';
+import { ColorTestComponent } from './views/example/color-palette/color-test.component';
 
 export const routes: Routes = [
     {
@@ -70,6 +71,11 @@ export const routes: Routes = [
         path: 'export-github',
         component: ExportGithubComponent,
         title: 'title.ia',
+    },
+    {
+        path: 'colors',
+        component: ColorTestComponent,
+        title: 'title.colors',
     },
     /* {
          path: 'page-assistant/share',

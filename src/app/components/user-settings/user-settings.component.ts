@@ -1,62 +1,67 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, Input, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from "@ngx-translate/core";
+import { TranslateModule } from "@ngx-translate/core";
 
 import { MenuItem } from 'primeng/api';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 
-import { ThemeService, ColourScheme } from '../../services/theme.service';
+import { ThemeService, ColorScheme } from '../../services/theme.service';
+
+export type SettingsMode = 'all' | 'language' | 'theme';
 
 @Component({
     selector: 'aida-user-settings',
     imports: [TranslateModule, FormsModule,
-        SelectButtonModule, DropdownModule
+        SelectButtonModule, SelectModule
     ],
     templateUrl: './user-settings.component.html',
     styles: ``
 })
 export class UserSettingsComponent {
-    translate = inject(TranslateService);
     themeService = inject(ThemeService);
 
-    // Language
-    langOptions: MenuItem[] = [];
+    @Input() mode: SettingsMode = 'all';
 
-    ngOnInit() {
-        this.translate.stream(['lang.eng', 'lang.fra']).subscribe(translations => {
-            this.langOptions = [
-                { label: translations['lang.eng'], value: 'en' },
-                { label: translations['lang.fra'], value: 'fr' }
-            ];
+    constructor() {
+        effect(() => {
+            this.selectedTheme = this.themeService.darkMode();
+            this.selectedScheme = this.themeService.colorScheme();
         });
     }
 
-    selectedLang: string = this.translate.currentLang;
+    // Language
+    langOptions: MenuItem[] = [{ label: 'lang.eng', value: 'en' }, { label: 'lang.fra', value: 'fr' }];
 
-    changeLang() {
-        const useLang = this.selectedLang === 'en' ? 'en' : 'fr'
-        this.translate.use(useLang)
-        localStorage.setItem('lang', useLang);
+    get selectedLang(): string {
+        return this.themeService.currentLang();
+    }
+
+    set selectedLang(value: string) {
+        this.themeService.setLanguage(value);
     }
 
     // Dark & Light theme
-    themeOptions: MenuItem[] = [{ label: 'theme.light', value: 'light' }, { label: 'theme.dark', value: 'dark' }];
+    themeOptions: MenuItem[] = [{ label: 'theme.light', value: false }, { label: 'theme.dark', value: true }];
 
-    selectedTheme: string = 'light';
+    selectedTheme: boolean = this.themeService.darkMode();
+
+    changeTheme() {
+        this.themeService.toggle();
+    }
 
     // Default & other themes
-    colourSchemes = [
-        { label: 'Default Colors', value: 'default' as ColourScheme },
-        { label: 'Deuteranopia (Green-Deficient)', value: 'deutan' as ColourScheme },
-        { label: 'Protanopia (Red-Deficient)', value: 'protan' as ColourScheme },
-        { label: 'Tritanopia (Blue-Deficient)', value: 'tritan' as ColourScheme }
+    colorSchemes = [
+        { label: 'theme.default', value: 'default' as ColorScheme },
+        { label: 'theme.deutan', value: 'deutan' as ColorScheme },
+        { label: 'theme.protan', value: 'protan' as ColorScheme },
+        { label: 'theme.tritan', value: 'tritan' as ColorScheme }
     ];
 
-    selectedScheme = this.themeService.colourScheme();
+    selectedScheme = this.themeService.colorScheme();
 
-    onSchemeChange() {
-        this.themeService.setColourScheme(this.selectedScheme);
+    changeScheme() {
+        this.themeService.setColorScheme(this.selectedScheme);
         console.log(`Tried to set: `)
     }
 }

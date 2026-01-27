@@ -1,0 +1,538 @@
+<h1>Colour scheme test page</h1>
+<aida-user-settings mode="all"></aida-user-settings>
+
+<!-- Semantic Color Grid -->
+<div class="mb-6">
+    <h2 class="mb-3">Semantic colour grouping</h2>
+    <p class="mb-3 text-sm text-color-secondary">
+        Colours should be clearly distinguishable between quadrants. Contrast ratio must be above 4.5 for normal text and above 3:1 for large text (24px or 18.5px bold) to meet AA WCAG requirements.
+    </p>
+
+    <div class="grid">
+        <!-- POSITIVE -->
+        <div class="col-12 md:col-6">
+            <div class="surface-50 border-round p-4 max-h-full">
+                <h3 class="mt-0 mb-3 text-center text-lg font-bold text-green-600">POSITIVE</h3>
+                <div class="grid h-full">
+                    <div class="col-6">
+                        <div class="flex flex-column justify-content-between text-center h-full gap-2">
+                            <div class="flex flex-column gap-2">
+                                <p class="text-sm font-semibold mb-0">PRIMARY</p>
+                                <div class="flex flex-wrap justify-content-center align-items-center gap-2">
+                                    <p-button label="Primary button" severity="primary" size="small" />
+                                    <p-button label="Primary button" severity="primary" size="small" outlined styleClass="secondary-outline" />
+                                    <p-tag value="Primary tag" severity="primary" />
+                                    <p-badge value="1" />
+                                </div>
+                                <div class="flex flex-row gap-2">
+                                    <div class="w-full h-3rem bg-primary-400 border-round align-content-center text-black-alpha-90">Black text</div>
+                                    <div class="w-full h-3rem bg-primary-500 border-round align-content-center text-white">White text</div>
+                                </div>
+                            </div>
+                            <aida-color-picker [key]="theme.colorScheme() + '-primary'" initialColor="bg-primary-500" [externalShades]="customShades['primary']"
+                                               [contrastTests]="[
+                    { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+                    { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
+                    ]"
+                                               (colorChanged)="onColorChange($event, 'primary')">
+                            </aida-color-picker>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="flex flex-column justify-content-between text-center h-full gap-2">
+                            <div class="flex flex-column gap-2">
+                                <p class="text-sm font-semibold mb-0">SUCCESS</p>
+                                <div class="flex flex-wrap justify-content-center align-items-center gap-2">
+                                    <p-button label="Success button" severity="success" size="small" />
+                                    <p-button label="Success button" severity="success" size="small" outlined styleClass="secondary-outline" />
+                                    <p-tag value="Success tag" severity="success" />
+                                    <p-badge value="2" severity="success" />
+                                </div>
+                                <div class="flex flex-row gap-2">
+                                    <div class="w-full h-3rem bg-green-400 border-round align-content-center text-black-alpha-90">Black text</div>
+                                    <div class="w-full h-3rem bg-green-500 border-round align-content-center text-white">White text</div>
+                                </div>
+                                <p-message severity="success" text="Success: message" />
+                            </div>
+                            <aida-color-picker [key]="theme.colorScheme() + '-success'" initialColor="bg-green-500" [externalShades]="customShades['green']"
+                                               [contrastTests]="[
+                    { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+                    { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
+                    ]"
+                                               (colorChanged)="onColorChange($event, 'green')">
+                            </aida-color-picker>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- NEGATIVE -->
+        <div class="col-12 md:col-6">
+            <div class="surface-50 border-round p-4 max-h-full">
+                <h3 class="mt-0 mb-3 text-center text-lg font-bold text-red-600">NEGATIVE</h3>
+                <div class="grid h-full">
+                    <div class="col-6">
+                        <div class="flex flex-column justify-content-between text-center h-full gap-2">
+                            <div class="flex flex-column gap-2">
+                                <p class="text-sm font-semibold mb-0">DANGER</p>
+                                <div class="flex flex-wrap justify-content-center align-items-center gap-2">
+                                    <p-button label="Danger button" severity="danger" size="small" />
+                                    <p-button label="Danger button" severity="danger" size="small" outlined styleClass="secondary-outline" />
+                                    <p-tag value="Danger tag" severity="danger" />
+                                    <p-badge value="3" severity="danger" />
+                                </div>
+                                <div class="flex flex-row gap-2">
+                                    <div class="w-full h-3rem bg-red-400 border-round align-content-center text-black-alpha-90">Black text</div>
+                                    <div class="w-full h-3rem bg-red-500 border-round align-content-center text-white">White text</div>
+                                </div>
+                                <p-message severity="error" text="Error: message" />
+                            </div>
+                            <aida-color-picker [key]="theme.colorScheme() + '-danger'" initialColor="bg-red-500" [externalShades]="customShades['red']"
+                                               [contrastTests]="[
+                    { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+                    { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
+                    ]"
+                                               (colorChanged)="onColorChange($event, 'red')">
+                            </aida-color-picker>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="flex flex-column justify-content-between text-center h-full gap-2">
+                            <div class="flex flex-column gap-2">
+                                <p class="text-sm font-semibold mb-0">WARNING</p>
+                                <div class="flex flex-wrap justify-content-center align-items-center gap-2">
+                                    <p-button label="Warning button" severity="warn" size="small" />
+                                    <p-button label="Warning button" severity="warn" size="small" outlined styleClass="secondary-outline" />
+                                    <p-tag value="Warning tag" severity="warn" />
+                                    <p-badge value="4" severity="warn" />
+                                </div>
+                                <div class="flex flex-row gap-2">
+                                    <div class="w-full h-3rem bg-orange-400 border-round align-content-center text-black-alpha-90">Black text</div>
+                                    <div class="w-full h-3rem bg-orange-500 border-round align-content-center text-white">White text</div>
+                                </div>
+                                <p-message severity="warn" text="Warning: message" />
+                            </div>
+                            <aida-color-picker [key]="theme.colorScheme() + '-warn'" initialColor="bg-orange-500" [externalShades]="customShades['orange']"
+                                               [contrastTests]="[
+                                                { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+                                                { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
+                                                ]"
+                                               (colorChanged)="onWarnColorChange($event)">
+                            </aida-color-picker>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- INFORMATION -->
+        <div class="col-12 md:col-6">
+            <div class="surface-50 border-round p-4 max-h-full">
+                <h3 class="mt-0 mb-3 text-center text-lg font-bold text-blue-600">INFORMATION</h3>
+                <div class="grid h-full">
+                    <div class="col-6">
+                        <div class="flex flex-column justify-content-between text-center h-full gap-2">
+                            <div class="flex flex-column gap-2">
+                                <p class="text-sm font-semibold mb-0">INFO</p>
+                                <div class="flex flex-wrap justify-content-center align-items-center gap-2">
+                                    <p-button label="Info button" severity="info" size="small" />
+                                    <p-button label="Info button" severity="info" size="small" outlined styleClass="secondary-outline" />
+                                    <p-tag value="Info tag" severity="info" />
+                                    <p-badge value="5" severity="info" />
+                                </div>
+                                <div class="flex flex-row gap-2">
+                                    <div class="w-full h-3rem bg-blue-400 border-round align-content-center text-black-alpha-90">Black text</div>
+                                    <div class="w-full h-3rem bg-blue-500 border-round align-content-center text-white">White text</div>
+                                </div>
+                                <p-message severity="info" text="Info: message" />
+                            </div>
+                            <aida-color-picker [key]="theme.colorScheme() + '-info'" initialColor="bg-blue-500" [externalShades]="customShades['blue']"
+                                               [contrastTests]="[
+                                                { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+                                                { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
+                                                ]"
+                                               (colorChanged)="onInfoColorChange($event)">
+                            </aida-color-picker>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="flex flex-column justify-content-between text-center h-full gap-2">
+                            <div class="flex flex-column gap-2">
+                                <p class="text-sm font-semibold mb-0">HELP</p>
+                                <div class="flex flex-wrap justify-content-center align-items-center gap-2">
+                                    <p-button label="Help button" severity="help" size="small" />
+                                    <p-button label="Help button" severity="help" size="small" outlined styleClass="secondary-outline" />
+                                    <!--p-tag value="Help" severity="help" class="mb-2 mx-1" /-->
+                                </div>
+                                <div class="flex flex-row gap-2">
+                                    <div class="w-full h-3rem bg-purple-400 border-round align-content-center text-black-alpha-90">Black text</div>
+                                    <div class="w-full h-3rem bg-purple-500 border-round align-content-center text-white">White text</div>
+                                </div>
+                            </div>
+                            <aida-color-picker [key]="theme.colorScheme() + '-help'" initialColor="bg-purple-500" [externalShades]="customShades['purple']"
+                                               [contrastTests]="[
+                                                                            { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+                                                                            { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
+                                                                            ]"
+                                               (colorChanged)="onColorChange($event, 'purple')">
+                            </aida-color-picker>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- NEUTRAL -->
+        <div class="col-12 md:col-6">
+            <div class="surface-50 border-round p-4 h-full">
+                <h3 class="mt-0 mb-3 text-center text-lg font-bold text-color-secondary">NEUTRAL</h3>
+                <div class="grid h-full">
+                    <div class="col-6">
+                        <div class="flex flex-column justify-content-between text-center h-full gap-2">
+                            <div class="flex flex-column gap-2">
+                                <p class="text-sm font-semibold mb-0">SECONDARY</p>
+                                <div class="flex flex-wrap justify-content-center align-items-center gap-2">
+                                    <p-button label="Secondary button" severity="secondary" size="small" />
+                                    <p-button label="Secondary button" severity="secondary" size="small" outlined styleClass="secondary-outline" />
+                                    <p-tag value="Secondary tag" severity="secondary" />
+                                    <p-badge value="7" severity="secondary" />
+                                </div>
+                                <div class="w-full h-3rem surface-100 border-round align-content-center">Secondary background</div>
+                                <p-message severity="secondary" text="Secondary: message" />
+                            </div>
+                            <p class="text-xs text-color-secondary">No customization available</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="flex flex-column justify-content-between text-center h-full gap-2">
+                            <div class="flex flex-column gap-2">
+                                <p class="text-sm font-semibold mb-0">CONTRAST</p>
+                                <div class="flex flex-wrap justify-content-center align-items-center gap-2">
+                                    <p-button label="Contrast button" severity="contrast" size="small" />
+                                    <p-button label="Contrast button" severity="contrast" size="small" outlined styleClass="secondary-outline" />
+                                    <p-tag value="Contrast tag" severity="contrast" />
+                                    <p-badge value="8" severity="contrast" />
+                                </div>
+                                <div class="w-full h-3rem surface-900 border-round align-content-center" [class]="theme.darkMode() ? 'text-black-alpha-90' : 'text-white'">Contrast background</div>
+                                <p-message severity="contrast" text="Contrast: message" />
+                            </div>
+                            <p class="text-xs text-color-secondary">No customization available</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <p-divider />
+
+
+    <!-- All Colors in One Row -->
+    <div class="mb-6">
+        <h2 class="mb-3">All components side-by-side</h2>
+        <div class="flex flex-wrap gap-2 mb-4">
+            <p>Regular Buttons</p>
+            <p-button label="Primary" severity="primary" />
+            <p-button label="Success" severity="success" />
+            <p-button label="Danger" severity="danger" />
+            <p-button label="Warning" severity="warn" />
+            <p-button label="Info" severity="info" />
+            <p-button label="Help" severity="help" />
+            <p-button label="Secondary" severity="secondary" />
+            <p-button label="Contrast" severity="contrast" />
+        </div>
+
+        <div class="flex flex-wrap gap-2 mb-4">
+            <p>Outlined Buttons</p>
+            <p-button label="Primary" severity="primary" outlined />
+            <p-button label="Success" severity="success" outlined />
+            <p-button label="Danger" severity="danger" outlined />
+            <p-button label="Warning" severity="warn" outlined />
+            <p-button label="Info" severity="info" outlined />
+            <p-button label="Help" severity="help" outlined />
+            <p-button label="Secondary" severity="secondary" outlined />
+            <p-button label="Contrast" severity="contrast" outlined />
+        </div>
+
+        <div class="flex flex-wrap gap-2 mb-4">
+            <span>Tags</span>
+            <p-tag value="Primary" severity="primary" />
+            <p-tag value="Success" severity="success" />
+            <p-tag value="Danger" severity="danger" />
+            <p-tag value="Warning" severity="warn" />
+            <p-tag value="Info" severity="info" />
+            <!--p-tag value="Help" severity="help" /-->
+            <p-tag value="Secondary" severity="secondary" />
+            <p-tag value="Contrast" severity="contrast" />
+        </div>
+        <div class="flex flex-wrap gap-2 mb-4">
+            <span>Badges</span>
+            <p-badge value="1" />
+            <p-badge value="2" severity="success" />
+            <p-badge value="3" severity="danger" />
+            <p-badge value="4" severity="warn" />
+            <p-badge value="5" severity="info" />
+            <!--p-badge value="6" severity="help" /-->
+            <p-badge value="7" severity="secondary" />
+            <p-badge value="8" severity="contrast" />
+        </div>
+
+        <div class="flex gap-1 mb-2">
+            <p>Backgrounds</p>
+            <div class="flex-1 h-4rem bg-primary-500 border-round flex align-items-center justify-content-center text-white text-xs font-semibold">Primary</div>
+            <div class="flex-1 h-4rem bg-green-500 border-round flex align-items-center justify-content-center text-white text-xs font-semibold">Success</div>
+            <div class="flex-1 h-4rem bg-red-500 border-round flex align-items-center justify-content-center text-white text-xs font-semibold">Danger</div>
+            <div class="flex-1 h-4rem bg-orange-500 border-round flex align-items-center justify-content-center text-white text-xs font-semibold">Warning</div>
+            <div class="flex-1 h-4rem bg-blue-500 border-round flex align-items-center justify-content-center text-white text-xs font-semibold">Info</div>
+            <div class="flex-1 h-4rem bg-purple-500 border-round flex align-items-center justify-content-center text-white text-xs font-semibold">Help</div>
+            <div class="flex-1 h-4rem surface-100 border-round flex align-items-center justify-content-center text-color text-xs font-semibold">Secondary</div>
+            <div class="flex-1 h-4rem surface-900 border-round flex align-items-center justify-content-center text-xs font-semibold" [class]="theme.darkMode() ? 'text-black-alpha-90' : 'text-white'">Contrast</div>
+        </div>
+
+        <div class="flex flex-column gap-1 mb-2">
+            <p>Messages</p>
+            <p-message severity="info" text="Info: message" />
+            <p-message severity="success" text="Success: message" />
+            <p-message severity="error" text="Error: message" />
+            <p-message severity="warn" text="Warning: message" />
+            <p-message severity="secondary" text="Secondary: message" />
+            <p-message severity="contrast" text="Contrast: message" />
+        </div>
+    </div>
+
+    <p-divider />
+
+    <!-- Messages Grouped by Semantic Meaning -->
+    <div class="mb-6">
+        <h2 class="mb-3">Messages by semantic meaning</h2>
+        <p class="mb-3 text-sm text-color-secondary">
+            Colours should be clearly distinguishable between quadrants.
+        </p>
+
+        <div class="grid">
+            <div class="col-12 md:col-6">
+                <h4 class="mb-2 text-sm font-semibold uppercase text-green-600">Positive Messages</h4>
+                <div class="flex flex-column gap-2 mb-4">
+                    <!--p-message severity="primary" text="Primary: Click here to continue" /-->
+                    <p-message severity="success" text="Success: message" />
+                </div>
+            </div>
+
+            <div class="col-12 md:col-6">
+                <h4 class="mb-2 text-sm font-semibold uppercase text-red-600">Negative Messages</h4>
+                <div class="flex flex-column gap-2 mb-4">
+                    <p-message severity="error" text="Error: message" />
+                    <p-message severity="warn" text="Warning: message" />
+                </div>
+            </div>
+
+            <div class="col-12 md:col-6">
+                <h4 class="mb-2 text-sm font-semibold uppercase text-blue-600">Information Messages</h4>
+                <div class="flex flex-column gap-2 mb-4">
+                    <p-message severity="info" text="Info: message" />
+                    <!--p-message text="Help: Click here for assistance" /-->
+                </div>
+            </div>
+
+            <div class="col-12 md:col-6">
+                <h4 class="mb-2 text-sm font-semibold uppercase text-color-secondary">Neutral Messages</h4>
+                <div class="flex flex-column gap-2 mb-4">
+                    <p-message severity="secondary" text="Secondary: message" />
+                    <p-message severity="contrast" text="Contrast: message" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p-divider />
+
+    <!-- Color Palette Swatches -->
+    <div class="mb-6">
+        <h2 class="mb-3">Full colour palettes</h2>
+        <aida-user-settings mode="theme"></aida-user-settings>
+        <div class="flex flex-row gap-2 mt-2">
+            <div class="flex flex-column">Primary
+                <aida-color-picker [key]=" theme.colorScheme() + '-primary'" initialColor=" bg-primary-500" [externalShades]="customShades['primary']"
+                                   [contrastTests]="[
+                            { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },                            
+                            { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
+                            ]"
+                                   (colorChanged)="onColorChange($event, 'primary')">
+                </aida-color-picker>
+            </div>
+            <div class="flex flex-column">Green (success)
+                <aida-color-picker [key]="theme.colorScheme() + '-success'" initialColor="bg-green-500" [externalShades]="customShades['green']"
+                                   [contrastTests]="[
+                                    { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+                                    { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
+                                    ]"
+                                   (colorChanged)="onColorChange($event, 'green')">
+                </aida-color-picker>
+            </div>
+            <div class="flex flex-column">Red (danger)
+                <aida-color-picker [key]="theme.colorScheme() + '-danger'" initialColor="bg-red-500" [externalShades]="customShades['red']"
+                                   [contrastTests]="[
+                                                { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+                                                { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
+                                                ]"
+                                   (colorChanged)="onColorChange($event, 'red')">
+                </aida-color-picker>
+            </div>
+            <div class="flex flex-column">Orange (warn)
+                <aida-color-picker [key]="theme.colorScheme() + '-warn'" initialColor="bg-orange-500" [externalShades]="customShades['orange']"
+                                   [contrastTests]="[
+                                                { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+                                                { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
+                                                ]"
+                                   (colorChanged)="onWarnColorChange($event)">
+                </aida-color-picker>
+            </div>
+            <div class="flex flex-column">Blue (info)
+                <aida-color-picker [key]="theme.colorScheme() + '-info'" initialColor="bg-blue-500" [externalShades]="customShades['blue']"
+                                   [contrastTests]="[
+                                                { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+                                                { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
+                                                ]"
+                                   (colorChanged)="onInfoColorChange($event)">
+                </aida-color-picker>
+            </div>
+            <div class="flex flex-column">Purple (help)
+                <aida-color-picker [key]="theme.colorScheme() + '-help'" initialColor="bg-purple-500" [externalShades]="customShades['purple']"
+                                   [contrastTests]="[
+                                                { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+                                                { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
+                                                ]"
+                                   (colorChanged)="onColorChange($event, 'purple')">
+                </aida-color-picker>
+            </div>
+        </div>
+        <div class="grid">
+            <div class="col-12 md:col-6">
+                <h4 class="text-sm">Primary</h4>
+                <div class="flex gap-1 mb-3">
+                    <div class="flex-1 h-3rem bg-primary-50 border-round"></div>
+                    <div class="flex-1 h-3rem bg-primary-100 border-round"></div>
+                    <div class="flex-1 h-3rem bg-primary-200 border-round"></div>
+                    <div class="flex-1 h-3rem bg-primary-300 border-round"></div>
+                    <div class="flex-1 h-3rem bg-primary-400 border-round"></div>
+                    <div class="flex-1 h-3rem bg-primary-500 border-round"></div>
+                    <div class="flex-1 h-3rem bg-primary-600 border-round"></div>
+                    <div class="flex-1 h-3rem bg-primary-700 border-round"></div>
+                    <div class="flex-1 h-3rem bg-primary-800 border-round"></div>
+                    <div class="flex-1 h-3rem bg-primary-900 border-round"></div>
+                </div>
+            </div>
+            <div class="col-12 md:col-6">
+                <h4 class="text-sm">Green (success)</h4>
+                <div class="flex gap-1 mb-3">
+                    <div class="flex-1 h-3rem bg-green-50 border-round"></div>
+                    <div class="flex-1 h-3rem bg-green-100 border-round"></div>
+                    <div class="flex-1 h-3rem bg-green-200 border-round"></div>
+                    <div class="flex-1 h-3rem bg-green-300 border-round"></div>
+                    <div class="flex-1 h-3rem bg-green-400 border-round"></div>
+                    <div class="flex-1 h-3rem bg-green-500 border-round"></div>
+                    <div class="flex-1 h-3rem bg-green-600 border-round"></div>
+                    <div class="flex-1 h-3rem bg-green-700 border-round"></div>
+                    <div class="flex-1 h-3rem bg-green-800 border-round"></div>
+                    <div class="flex-1 h-3rem bg-green-900 border-round"></div>
+                </div>
+            </div>
+            <div class="col-12 md:col-6">
+                <h4 class="text-sm">Red (danger)</h4>
+                <div class="flex gap-1 mb-3">
+                    <div class="flex-1 h-3rem bg-red-50 border-round"></div>
+                    <div class="flex-1 h-3rem bg-red-100 border-round"></div>
+                    <div class="flex-1 h-3rem bg-red-200 border-round"></div>
+                    <div class="flex-1 h-3rem bg-red-300 border-round"></div>
+                    <div class="flex-1 h-3rem bg-red-400 border-round"></div>
+                    <div class="flex-1 h-3rem bg-red-500 border-round"></div>
+                    <div class="flex-1 h-3rem bg-red-600 border-round"></div>
+                    <div class="flex-1 h-3rem bg-red-700 border-round"></div>
+                    <div class="flex-1 h-3rem bg-red-800 border-round"></div>
+                    <div class="flex-1 h-3rem bg-red-900 border-round"></div>
+                </div>
+            </div>
+            <div class="col-12 md:col-6">
+                <h4 class="text-sm">Orange (warn)</h4>
+                <div class="flex gap-1 mb-3">
+                    <div class="flex-1 h-3rem bg-orange-50 border-round"></div>
+                    <div class="flex-1 h-3rem bg-orange-100 border-round"></div>
+                    <div class="flex-1 h-3rem bg-orange-200 border-round"></div>
+                    <div class="flex-1 h-3rem bg-orange-300 border-round"></div>
+                    <div class="flex-1 h-3rem bg-orange-400 border-round"></div>
+                    <div class="flex-1 h-3rem bg-orange-500 border-round"></div>
+                    <div class="flex-1 h-3rem bg-orange-600 border-round"></div>
+                    <div class="flex-1 h-3rem bg-orange-700 border-round"></div>
+                    <div class="flex-1 h-3rem bg-orange-800 border-round"></div>
+                    <div class="flex-1 h-3rem bg-orange-900 border-round"></div>
+                </div>
+            </div>
+            <div class="col-12 md:col-6">
+                <h4 class="text-sm">Blue (info)</h4>
+                <div class="flex gap-1 mb-3">
+                    <div class="flex-1 h-3rem bg-blue-50 border-round"></div>
+                    <div class="flex-1 h-3rem bg-blue-100 border-round"></div>
+                    <div class="flex-1 h-3rem bg-blue-200 border-round"></div>
+                    <div class="flex-1 h-3rem bg-blue-300 border-round"></div>
+                    <div class="flex-1 h-3rem bg-blue-400 border-round"></div>
+                    <div class="flex-1 h-3rem bg-blue-500 border-round"></div>
+                    <div class="flex-1 h-3rem bg-blue-600 border-round"></div>
+                    <div class="flex-1 h-3rem bg-blue-700 border-round"></div>
+                    <div class="flex-1 h-3rem bg-blue-800 border-round"></div>
+                    <div class="flex-1 h-3rem bg-blue-900 border-round"></div>
+                </div>
+            </div>
+            <div class="col-12 md:col-6">
+                <h4 class="text-sm">Purple (help)</h4>
+                <div class="flex gap-1 mb-3">
+                    <div class="flex-1 h-3rem bg-purple-50 border-round"></div>
+                    <div class="flex-1 h-3rem bg-purple-100 border-round"></div>
+                    <div class="flex-1 h-3rem bg-purple-200 border-round"></div>
+                    <div class="flex-1 h-3rem bg-purple-300 border-round"></div>
+                    <div class="flex-1 h-3rem bg-purple-400 border-round"></div>
+                    <div class="flex-1 h-3rem bg-purple-500 border-round"></div>
+                    <div class="flex-1 h-3rem bg-purple-600 border-round"></div>
+                    <div class="flex-1 h-3rem bg-purple-700 border-round"></div>
+                    <div class="flex-1 h-3rem bg-purple-800 border-round"></div>
+                    <div class="flex-1 h-3rem bg-purple-900 border-round"></div>
+                </div>
+            </div>
+            <div class="col-12 md:col-6">
+                <h4 class="text-sm">Surface (secondary)</h4>
+                <div class="flex gap-1 mb-3">
+                    <div class="flex-1 h-3rem surface-50 border-round"></div>
+                    <div class="flex-1 h-3rem surface-100 border-round"></div>
+                    <div class="flex-1 h-3rem surface-200 border-round"></div>
+                    <div class="flex-1 h-3rem surface-300 border-round"></div>
+                    <div class="flex-1 h-3rem surface-400 border-round"></div>
+                    <div class="flex-1 h-3rem surface-500 border-round"></div>
+                    <div class="flex-1 h-3rem surface-600 border-round"></div>
+                    <div class="flex-1 h-3rem surface-700 border-round"></div>
+                    <div class="flex-1 h-3rem surface-800 border-round"></div>
+                    <div class="flex-1 h-3rem surface-900 border-round"></div>
+                </div>
+            </div>
+            <div class="col-12 md:col-6">
+                <h4 class="text-sm">Surface (contrast)</h4>
+                <div class="flex gap-1 mb-3">
+                    <div class="flex-1 h-3rem surface-900 border-round"></div>
+                    <div class="flex-1 h-3rem surface-800 border-round"></div>
+                    <div class="flex-1 h-3rem surface-700 border-round"></div>
+                    <div class="flex-1 h-3rem surface-600 border-round"></div>
+                    <div class="flex-1 h-3rem surface-500 border-round"></div>
+                    <div class="flex-1 h-3rem surface-400 border-round"></div>
+                    <div class="flex-1 h-3rem surface-300 border-round"></div>
+                    <div class="flex-1 h-3rem surface-200 border-round"></div>
+                    <div class="flex-1 h-3rem surface-100 border-round"></div>
+                    <div class="flex-1 h-3rem surface-50 border-round"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <aida-copy-preset [customShades]="customShades"></aida-copy-preset>

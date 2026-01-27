@@ -198,9 +198,11 @@ font-family: 'Noto Sans';
   -webkit-font-smoothing: antialiased;
 }
 
+/*
 html.dark-mode .p-button.p-button-primary {
   color: #ffffff;
 }
+*/
 
 /*override accordion style*/
 .p-accordion>.p-accordionpanel {
@@ -323,4 +325,21 @@ html.dark-mode .secondary-outline {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/*Override message text color in dark mode (not enough contrast)*/
+.dark-mode .p-message-error {
+  color: var(--p-red-400);
+}
+
+.dark-mode .p-message-success {
+  color: var(--p-green-400);
+}
+
+.dark-mode .p-message-warn {
+  color: var(--p-yellow-400);
+}
+
+.dark-mode .p-message-info {
+  color: var(--p-blue-400);
 }

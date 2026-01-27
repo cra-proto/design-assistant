@@ -160,21 +160,8 @@ export class HeaderComponent {
     return this.theme.darkMode() ? 'cra-logo-dark.png' : 'cra-logo.png';
   }
 
-  // constructor(public langToggle: LangToggleService){} //putting the code below into a service works but we aren't calling it anywhere else
-  constructor() {
-    const curLang = this.localStore.getData('lang') || this.translate.getBrowserLang() || 'en';
-    console.log(this.translate.getBrowserLang());
-    this.translate.addLangs(['en', 'fr']);
-    this.translate.setDefaultLang('en');
-    this.translate.use(curLang);
-  }
-
   selectLanguage(): void {
-    let oppLang = ""
-    if (this.translate.currentLang == "en") { oppLang = "fr" }
-    else { oppLang = "en" }
-    this.translate.use(oppLang);
-    this.localStore.saveData('lang', oppLang);
+    this.theme.toggleLanguage();
 
     //Update title on language change
     const titleKey = this.router.routerState.snapshot.root.firstChild?.title;
@@ -185,32 +172,18 @@ export class HeaderComponent {
     }
   }
 
-  goToProject() {
-    //this.iaState.saveToLocalStorage();
-    this.router.navigate(['']);
-  }
-
   async save() {
-    await this.projectState.saveProject();
-  }
-
-  async testSave() {
-    console.log('=== TEST SAVE TRIGGERED ===');
-    const currentProject = this.projectState.getProject();
-    console.log('Current project before save:', currentProject.projectName);
-
     const success = await this.projectState.saveProject();
-
     if (success) {
       this.messageService.add({
         severity: 'success',
-        summary: 'Test Save Successful',
+        summary: 'Save Successful',
         detail: 'Check console for details'
       });
     } else {
       this.messageService.add({
         severity: 'error',
-        summary: 'Test Save Failed',
+        summary: 'Save Failed',
         detail: 'Check console for errors'
       });
     }
