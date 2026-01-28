@@ -12,7 +12,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 
 //Custom components and services
 import { ProjectStateService } from '../../services/project-state.service';
-import { ExportGitHubService } from '../../services/github/export-github.service';
+import { CollaboratorService } from '../../services/collaborator.service';
 import { ProjectPhase } from '../../common/data.model';
 
 @Component({
@@ -26,7 +26,7 @@ import { ProjectPhase } from '../../common/data.model';
 })
 export class SetupProjectComponent {
     projectState = inject(ProjectStateService);
-    exportGitHubService = inject(ExportGitHubService);
+    collaboratorService = inject(CollaboratorService);
 
     constructor() {
         // Refresh projectName when there are changes to repo name
@@ -76,7 +76,7 @@ export class SetupProjectComponent {
 
     storageOptions = [
         { name: 'storage.browser', value: 'local' as const, icon: 'pi pi-desktop' },
-        { name: 'storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: this.exportGitHubService.canEditProject }
+        { name: 'storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: this.collaboratorService.canEditProject }
     ];
 
 }

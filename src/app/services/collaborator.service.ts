@@ -2,7 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { GitHubUser } from '../common/data.model';
 import { ProjectStorageService } from './storage/project-storage.service';
 import { LocalStorageService } from './storage/local-storage.service';
-import { ProjectMetadata } from '../common/data.model';
+import { ProjectMetadata, Project } from '../common/data.model';
+import { ExportGitHubService } from './github/export-github.service';
 
 @Injectable({
     providedIn: 'root'
@@ -10,6 +11,20 @@ import { ProjectMetadata } from '../common/data.model';
 export class CollaboratorService {
     private projectStorage = inject(ProjectStorageService);
     private localStorage = inject(LocalStorageService);
+    private exportGithub = inject(ExportGitHubService);
+
+    // Check if current user is a collaborator
+    canEditProject(project: ProjectMetadata | Project): boolean {
+        const currentUser = this.exportGithub.user(); // OAuth or PAT
+        if (!currentUser) return false;
+        return project.collaborators.some(c => c.id === currentUser.id);
+    }
+
+    // Get current user to add to new projects
+    getInitialCollaborators(): GitHubUser[] {
+        const currentUser = this.exportGithub.user();
+        return currentUser ? [currentUser] : [];
+    }
 
     // Add current user to all local projects without collaborators 
     async addCurrentUserToLocalProjects(user: GitHubUser): Promise<void> {
@@ -55,9 +70,65 @@ export class CollaboratorService {
         }
     }
 
+    addCollaborators(project: Project, collabs: GitHubUser[]): Project {
+        console.log(`Adding/updating ${collabs.length} collaborator(s) for project ${project.projectName}`);
+
+        const updatedCollaborators = [...project.collaborators];
+        let addedCount = 0;
+        let updatedCount = 0;
+
+        collabs.forEach(newCollab => {
+            const existingIndex = updatedCollaborators.findIndex(existing => existing.id === newCollab.id);
+
+            if (existingIndex !== -1) {
+                // Update existing collaborator with fresh data
+                updatedCollaborators[existingIndex] = newCollab;
+                updatedCount++;
+                console.log(`Updated collaborator: ${newCollab.login}`);
+            } else {
+                // Add new collaborator
+                updatedCollaborators.push(newCollab);
+                addedCount++;
+                console.log(`Added new collaborator: ${newCollab.login}`);
+            }
+        });
+
+        console.log(`Added ${addedCount}, updated ${updatedCount} collaborator(s)`);
+
+        return {
+            ...project,
+            collaborators: updatedCollaborators,
+            lastModified: new Date()
+        };
+
+    }
+
+    removeCollaborator(project: Project, collab: GitHubUser): Project {
+        console.log(`Removing ${collab.login} from project ${project.projectName}`);
+        const originalCount = project.collaborators.length;
+        const updatedCollaborators = project.collaborators = project.collaborators.filter(c => c.id !== collab.id);
+
+        // Check if anything was actually removed
+        if (updatedCollaborators.length === originalCount) {
+            console.warn(`Collaborator ${collab.login} not found in project`);
+            return project;
+        }
+
+        return {
+            ...project,
+            collaborators: updatedCollaborators,
+            lastModified: new Date()
+        };
+    }
+
     //NOTE - avatars will always return images due to GitHub identicons
     //       we can add parameter s=40 to get a 40x40 image for custom images and default size identicons
     //       use that to strip out identicons and display initials instead or get rid of the functions below
+
+    // Collaborator avatar - Get initials
+    getCollaboratorName(collab: GitHubUser): string {
+        return collab.name ? collab.name : collab.login
+    }
 
     // Collaborator avatar - Get initials
     getCollaboratorInitials(collab: GitHubUser): string {
@@ -130,4 +201,78 @@ export class CollaboratorService {
             email: 'rosa@email.com'
         }
     ];
+
+    // Get list of org members (for adding as collaborators)
+    public async getOrgMembers(org: string): Promise<GitHubUser[]> {
+        const token = this.exportGithub.token();
+
+        if (!token) {
+            console.warn('No GitHub token available');
+            return [];
+        }
+
+        try {
+            const response = await fetch(`https://api.github.com/orgs/${org}/members?per_page=100`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/vnd.github+json'
+                }
+            });
+
+            if (!response.ok) {
+                console.error(`Failed to fetch org members: ${response.status}`);
+                return [];
+            }
+
+            const members = await response.json();
+
+            // Map to GitHubUser format (note: org members API returns limited info, name & email may be null)
+            return members.map((member: GitHubUser) => ({
+                login: member.login,
+                id: member.id,
+                avatar_url: member.avatar_url,
+                name: member.name || null,
+                email: member.email || null
+            }));
+        } catch (error) {
+            console.error('Error fetching org members:', error);
+            return [];
+        }
+    }
+
+    // Get detailed user information
+    public async getUserDetails(username: string): Promise<GitHubUser | null> {
+        const token = this.exportGithub.token();
+
+        if (!token) {
+            console.warn('No GitHub token available');
+            return null;
+        }
+
+        try {
+            const response = await fetch(`https://api.github.com/users/${username}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/vnd.github+json'
+                }
+            });
+
+            if (!response.ok) {
+                console.error(`Failed to fetch user details for ${username}: ${response.status}`);
+                return null;
+            }
+
+            const userData = await response.json();
+            return {
+                login: userData.login,
+                id: userData.id,
+                avatar_url: userData.avatar_url,
+                name: userData.name || null,
+                email: userData.email || null
+            };
+        } catch (error) {
+            console.error(`Error fetching user details for ${username}:`, error);
+            return null;
+        }
+    }
 }

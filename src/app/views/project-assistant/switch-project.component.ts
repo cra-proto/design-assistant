@@ -35,7 +35,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 
 //Services
 import { SetupProjectComponent } from '../../components/setup-project/setup-project.component';
-import { ExportGitHubService } from '../../services/github/export-github.service';
+import { AddCollaboratorsComponent } from '../../components/add-collaborators/add-collaborators.component';
 import { GitHubAuthService } from '../../services/github/github-auth.service';
 import { CollaboratorService } from '../../services/collaborator.service';
 
@@ -43,8 +43,7 @@ import { CollaboratorService } from '../../services/collaborator.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { ProjectStorageService } from '../../services/storage/project-storage.service';
 import { CloudStorageService } from '../../services/storage/cloud-storage.service';
-import { LocalStorageService } from '../../services/storage/local-storage.service';
-import { Project, ProjectMetadata, GitHubUser } from '../../common/data.model';
+import { ProjectMetadata } from '../../common/data.model';
 
 
 @Component({
@@ -54,7 +53,7 @@ import { Project, ProjectMetadata, GitHubUser } from '../../common/data.model';
     CardModule, ButtonModule, DialogModule, FieldsetModule, TimelineModule, ProgressBarModule, SplitButtonModule, ChipModule,
     InputTextModule, IconFieldModule, InputIconModule, SelectModule, MultiSelectModule,
     CheckboxModule, DividerModule, SelectButtonModule, TagModule, TableModule, TabsModule, BadgeModule, AvatarModule, AvatarGroupModule, TooltipModule, MessageModule,
-    SetupProjectComponent],
+    SetupProjectComponent, AddCollaboratorsComponent],
   templateUrl: './switch-project.component.html',
   styles: ``
 })
@@ -64,7 +63,6 @@ export class SwitchProjectComponent implements OnInit {
   public authService = inject(GitHubAuthService);
   private cloudStorage = inject(CloudStorageService);
   public collaboratorService = inject(CollaboratorService);
-  public exportGitHubService = inject(ExportGitHubService);
 
   public router = inject(Router);
   public message = inject(MessageService);
@@ -265,7 +263,7 @@ export class SwitchProjectComponent implements OnInit {
   async uploadToCloud(project: ProjectMetadata, event?: Event) {
     event?.stopPropagation();
 
-    if (!this.exportGitHubService.canEditProject(project)) { return; }
+    if (!this.collaboratorService.canEditProject(project)) { return; }
 
     // Load the full project from local storage
     const fullProject = await this.projectStorage.loadProject(project.key, 'local');

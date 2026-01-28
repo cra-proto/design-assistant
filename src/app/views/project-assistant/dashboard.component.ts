@@ -18,11 +18,12 @@ import { ProjectStateService } from '../../services/project-state.service';
 import { ProjectPhase, PhaseStatus, CurrentPhase, GitHubRepo } from '../../common/data.model';
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
 import { CollaboratorService } from '../../services/collaborator.service';
+import { AddCollaboratorsComponent } from '../../components/add-collaborators/add-collaborators.component';
 
 @Component({
   selector: 'aida-dashboard',
   imports: [CommonModule, FormsModule, TranslateModule, RouterLink,
-    ExportProjectComponent,
+    ExportProjectComponent, AddCollaboratorsComponent,
     ButtonModule, TagModule, AvatarModule, AvatarGroupModule, TooltipModule, ProgressBarModule, CheckboxModule],
   templateUrl: './dashboard.component.html',
   styles: ``

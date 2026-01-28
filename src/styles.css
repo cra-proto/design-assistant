@@ -343,3 +343,9 @@ html.dark-mode .secondary-outline {
 .dark-mode .p-message-info {
   color: var(--p-blue-400);
 }
+
+.list-unstyled {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}

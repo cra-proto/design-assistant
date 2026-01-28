@@ -41,16 +41,6 @@ export class ExportGitHubService {
       : this.patUser()
   );
 
-  canEditProject(project: ProjectMetadata | Project): boolean {
-    const currentUser = this.user(); // OAuth or PAT
-    //console.warn("Can edit check:")
-    //console.log("Full user object:", currentUser)
-    //console.log("Project collaborators:", project.collaborators)
-    //console.log("Current user id:", currentUser?.id)
-    if (!currentUser) return false;
-    return project.collaborators.some(c => c.id === currentUser.id);
-  }
-
   // PAT - token (fallback access when OAuth not available)
   private readonly PAT_STORAGE_KEY = 'github_pat';
   private patToken = signal<string>(this.loadPAT());

@@ -84,14 +84,14 @@
                 <p-tag value="Active" icon="pi pi-check" severity="success" [style]="{'font-size': '0.75rem'}" *ngIf="projectStorage.currentActive()?.key === project.id && project.storageType === 'cloud'"></p-tag>
                 <p-tag value="Local" icon="pi pi-home" severity="secondary" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'local'"></p-tag>
                 <p-tag value="Cloud" icon="pi pi-cloud" severity="info" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'cloud'"></p-tag>
-                <p-tag value="Read-only" icon="pi pi-eye" severity="warning" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'cloud' && !exportGitHubService.canEditProject(project)"></p-tag>
+                <p-tag value="Read-only" icon="pi pi-eye" severity="warning" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'cloud' && !collaboratorService.canEditProject(project)"></p-tag>
                 <p-tag value="Unsaved" icon="pi pi-exclamation-triangle" severity="danger" [style]="{'font-size': '0.75rem'}" *ngIf="project.key === 'autosave'"></p-tag>
               </div>
               <!--Actions-->
               <div class="flex gap-1">
                 <p-button icon="pi pi-save" text rounded size="small" severity="success" pTooltip="Save locally" (onClick)="showSave = true; $event.stopPropagation()" *ngIf="project.key === 'autosave' && !authService.isAuthenticated()" />
-                <p-button icon="pi pi-cloud-upload" text rounded size="small" severity="primary" pTooltip="Upload to cloud" (onClick)="uploadToCloud(project, $event)" *ngIf="exportGitHubService.canEditProject(project) && project.storageType === 'local'"></p-button>
-                <p-button icon="pi pi-trash" text rounded size="small" severity="danger" pTooltip="Delete" (onClick)="deleteProject(project, $event)" *ngIf="exportGitHubService.canEditProject(project) || project.storageType === 'local'"></p-button>
+                <p-button icon="pi pi-cloud-upload" text rounded size="small" severity="primary" pTooltip="Upload to cloud" (onClick)="uploadToCloud(project, $event)" *ngIf="collaboratorService.canEditProject(project) && project.storageType === 'local'"></p-button>
+                <p-button icon="pi pi-trash" text rounded size="small" severity="danger" pTooltip="Delete" (onClick)="deleteProject(project, $event)" *ngIf="collaboratorService.canEditProject(project) || project.storageType === 'local'"></p-button>
               </div>
             </div>
           </ng-template>
@@ -131,7 +131,7 @@
             <div class="flex justify-content-between border-top-1 surface-border mt-3 pt-2 -mb-2" *ngIf="project.collaborators && project.collaborators.length > 0">
               <div class="flex align-items-center gap-2 mt-1">
                 <i class="pi pi-users mr-2"></i>
-                <p-avatar-group>
+                <!--p-avatar-group>
                   <p-avatar *ngFor="let collab of project.collaborators.slice(0, 3)"
                             shape="circle"
                             [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
@@ -143,7 +143,9 @@
                   <p-avatar *ngIf="project.collaborators.length > 3" shape="circle" [label]="'+'+(project.collaborators.length - 3).toString()" [pTooltip]="'collaborator.plusMore' | translate: {number: project.collaborators.length - 3}" tooltipPosition="top" />
                 </p-avatar-group>
               </div>
-              <p-button icon="pi pi-share-alt" text rounded size="small" pTooltip="Share" *ngIf="authService.isAuthenticated()"></p-button>
+              <p-button icon="pi pi-share-alt" text rounded size="small" pTooltip="Share" *ngIf="authService.isAuthenticated()"></p-button-->
+                <aida-add-collaborators mode="switch" [collabs]="project.collaborators"></aida-add-collaborators>
+              </div>
             </div>
           </ng-template>
 

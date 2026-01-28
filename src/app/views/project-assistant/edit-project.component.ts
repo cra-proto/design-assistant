@@ -12,6 +12,7 @@ import { ProjectStateService } from '../../services/project-state.service';
 import { IaDiagramService } from '../../components/ia-diagram/ia-diagram.service';
 import { SetupProjectComponent } from '../../components/setup-project/setup-project.component';
 import { SetupRepoComponent } from '../../components/setup-repo/setup-repo.component';
+import { AddCollaboratorsComponent } from '../../components/add-collaborators/add-collaborators.component';
 import { AddPagesComponent } from '../../components/add-pages/add-pages.component';
 import { FindPagesComponent } from '../../components/find-pages/find-pages.component';
 
@@ -19,7 +20,7 @@ import { FindPagesComponent } from '../../components/find-pages/find-pages.compo
   selector: 'aida-edit-project',
   imports: [
     CommonModule, FormsModule, TranslateModule,
-    SetupProjectComponent, SetupRepoComponent, AddPagesComponent, FindPagesComponent,
+    SetupProjectComponent, SetupRepoComponent, AddCollaboratorsComponent, AddPagesComponent, FindPagesComponent,
     DrawerModule, ButtonModule,
   ],
   templateUrl: './edit-project.component.html',

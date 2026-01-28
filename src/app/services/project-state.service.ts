@@ -6,6 +6,7 @@ import { FileUploadHandlerEvent } from 'primeng/fileupload';
 
 import { ProjectStorageService } from '../services/storage/project-storage.service';
 import { ExportGitHubService } from './github/export-github.service';
+import { CollaboratorService } from './collaborator.service';
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
 
@@ -26,7 +27,7 @@ NO persistence logic (that goes to ProjectStorageService)*/
 })
 export class ProjectStateService {
     private projectStorage = inject(ProjectStorageService);
-    private exportGitHubService = inject(ExportGitHubService);
+    private collaboratorService = inject(CollaboratorService);
 
     // Main project state
     private project = signal<Project>({
@@ -40,7 +41,7 @@ export class ProjectStateService {
         lastSaved: new Date(),
         lastExported: new Date(),
         storageType: 'local',
-        collaborators: this.getInitialCollaborators(),
+        collaborators: this.collaboratorService.getInitialCollaborators(),
         baselinePages: 0,
         inScopePages: 0,
         github: {
@@ -70,7 +71,7 @@ export class ProjectStateService {
             const hasChanges = currentProject.lastModified > currentProject.lastSaved;
             if (hasChanges) {
                 // Check if user has permission to save
-                if (currentProject.storageType === 'cloud' && !this.exportGitHubService.canEditProject(currentProject)) {
+                if (currentProject.storageType === 'cloud' && !this.collaboratorService.canEditProject(currentProject)) {
                     console.log("Converting cloud project to local...");
                     this.setStorageType('local');
                 }
@@ -96,13 +97,6 @@ export class ProjectStateService {
     // Helper to generate unique project ID
     private generateId(): string {
         return `project_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    }
-
-    // Helper to generate initial collaborator list (either current user or empty)
-    private getInitialCollaborators(): GitHubUser[] {
-        const currentUser = this.exportGitHubService.user();
-        console.log(currentUser);
-        return currentUser ? [currentUser] : [];
     }
 
     // Set entire project
@@ -507,7 +501,7 @@ export class ProjectStateService {
             lastSaved: new Date(),
             lastExported: new Date(),
             storageType: 'local',
-            collaborators: this.getInitialCollaborators(),
+            collaborators: this.collaboratorService.getInitialCollaborators(),
             baselinePages: 0,
             inScopePages: 0,
             github: {

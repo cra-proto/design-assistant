@@ -1,0 +1,112 @@
+@if(mode==="list"){
+<h2 class="text-2xl my-1">Collaborators</h2>
+@if(collaborators().length > 0){
+<ul class="list-unstyled">
+    <li *ngFor="let collab of collaborators()" [class.mb-2]="!collaboratorService.canEditProject(projectData())">
+        <div class="flex flex-row justify-content-between align-items-center gap-2">
+            <div class="flex align-items-center gap-2">
+                <p-avatar
+                          shape="circle"
+                          [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
+                          [image]="collab.avatar_url || undefined"
+                          [ngClass]="collaboratorService.getCollaboratorColorClass(collab)">
+                </p-avatar>
+                {{collaboratorService.getCollaboratorName(collab)}}
+            </div>
+            @if(collaboratorService.canEditProject(projectData())){
+            <p-button icon="pi pi-trash" severity="danger" text rounded
+                      pTooltip="Remove {{collaboratorService.getCollaboratorName(collab)}}"
+                      (onClick)="removeCollaborator(collab)"></p-button>
+            }
+        </div>
+    </li>
+</ul>
+<p-confirmDialog />
+@if(collaboratorService.canEditProject(projectData())){
+<p-iftalabel>
+    <p-autocomplete
+                    [(ngModel)]="selectedCollaborators" optionLabel="login"
+                    (onSelect)="onCollabSelect($event)" (onDropdownClick)="onDropdownClick()"
+                    [pKeyFilter]="collabFilter" [maxlength]="39"
+                    [suggestions]="filteredCollaborators" (completeMethod)="filterCollaborators($event)"
+                    id="collab" [dropdown]="true" [multiple]="true" size="small" fluid>
+        <ng-template let-collab #item>
+            <div class="flex flex-row gap-2 align-items-center">
+                <p-avatar
+                          shape="circle"
+                          [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
+                          [image]="collab.avatar_url || undefined"
+                          [ngClass]="collaboratorService.getCollaboratorColorClass(collab)">
+                </p-avatar>
+                {{collaboratorService.getCollaboratorName(collab)}}
+            </div>
+        </ng-template>
+        <ng-template let-selected #selectedItem>{{selected.login}}</ng-template>
+    </p-autocomplete>
+    <label for="collab">Select collaborators</label>
+</p-iftalabel>
+<p-button label="Add" icon="pi pi-plus" class="flex justify-content-end mt-2" [disabled]="selectedCollaborators.length===0"
+          (onClick)="addSelectedCollaborators()"></p-button>
+
+}@else{<p class="text-sm text-color-secondary mt-3">Sign in as a collaborator to edit.</p>}
+}@else{<p class="text-sm text-color-secondary mt-3">Sign in to edit collaborators.</p>}
+}
+@if(mode==="dashboard" || mode==="switch"){
+<div class="flex flex-row align-content-center">
+    <p-avatar-group>
+        <p-avatar *ngFor="let collab of collaborators().slice(0, 3)"
+                  shape="circle"
+                  [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
+                  [image]="collab.avatar_url || undefined"
+                  [pTooltip]="collaboratorService.getCollaboratorName(collab)"
+                  tooltipPosition="top"
+                  [ngClass]="collaboratorService.getCollaboratorColorClass(collab)">
+        </p-avatar>
+        <p-avatar *ngIf="collaborators().length > 3" shape="circle" [label]="'+'+(collaborators().length - 3).toString()" [pTooltip]="'collaborator.plusMore' | translate: {number: collaborators().length - 3}" tooltipPosition="top" />
+    </p-avatar-group>
+    @if(mode ==="dashboard"){
+    <p-button icon="pi pi-share-alt" text rounded size="small" pTooltip="Add collaborators" *ngIf="collaboratorService.canEditProject(projectData())" (onClick)="openShareDialog()"></p-button>
+    <p-dialog [(visible)]="showShareDialog"
+              header="Add Collaborators"
+              [modal]="true"
+              styleClass="w-12 md:w-8 lg:w-6">
+        <p-iftalabel>
+            <p-autocomplete
+                            [(ngModel)]="selectedCollaborators" optionLabel="login"
+                            (onSelect)="onCollabSelect($event)" (onDropdownClick)="onDropdownClick()"
+                            [pKeyFilter]="collabFilter" [maxlength]="39"
+                            [suggestions]="filteredCollaborators" (completeMethod)="filterCollaborators($event)"
+                            id="collab" [dropdown]="true" [multiple]="true" size="small" fluid
+                            [appendTo]="'body'">
+                <ng-template let-collab #item>
+                    <div class="flex flex-row gap-2 align-items-center">
+                        <p-avatar
+                                  shape="circle"
+                                  [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
+                                  [image]="collab.avatar_url || undefined"
+                                  [ngClass]="collaboratorService.getCollaboratorColorClass(collab)">
+                        </p-avatar>
+                        {{collaboratorService.getCollaboratorName(collab)}}
+                    </div>
+                </ng-template>
+                <ng-template let-selected #selectedItem>{{selected.login}}</ng-template>
+            </p-autocomplete>
+            <label for="collab">Select collaborators</label>
+        </p-iftalabel>
+        <div class="flex justify-content-end gap-2 mt-3">
+            <p-button label="Cancel"
+                      severity="secondary"
+                      outlined
+                      styleClass="secondary-outline"
+                      (onClick)="closeShareDialog()">
+            </p-button>
+            <p-button label="Add"
+                      icon="pi pi-plus"
+                      [disabled]="selectedCollaborators.length===0"
+                      (onClick)="addSelectedCollaborators(); closeShareDialog()">
+            </p-button>
+        </div>
+    </p-dialog>
+    }
+</div>
+}
