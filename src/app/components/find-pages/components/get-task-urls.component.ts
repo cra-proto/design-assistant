@@ -90,9 +90,7 @@ export class GetTaskUrlsComponent implements OnInit {
   }
 
   ngOnInit() {
-    // EAGER LOADING (like your find-pages component)
-    // Data loads immediately when component initializes
-    //this.airtableService.fetchTasks();
+    this.onAutocompleteInteraction(); //disable this if we want to wait for user interaction before loading data
   }
 
   async onAutocompleteInteraction() {
