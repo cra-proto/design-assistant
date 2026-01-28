@@ -55,7 +55,8 @@ export class UserSettingsComponent {
         { label: 'theme.default', value: 'default' as ColorScheme },
         { label: 'theme.deutan', value: 'deutan' as ColorScheme },
         { label: 'theme.protan', value: 'protan' as ColorScheme },
-        { label: 'theme.tritan', value: 'tritan' as ColorScheme }
+        { label: 'theme.tritan', value: 'tritan' as ColorScheme },
+        { label: 'theme.custom', value: 'custom' as ColorScheme }
     ];
 
     selectedScheme = this.themeService.colorScheme();

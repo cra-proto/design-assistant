@@ -71,6 +71,7 @@
 	"theme.deutan": "Deuteranopia (green-deficient)",
 	"theme.protan": "Protanopia (red-deficient)",
 	"theme.tritan": "Tritanopia (blue-deficient)",
+	"theme.custom": "Custom (testing)",
 	"--------API KEY----------------------": "--------------------------------API KEY----------------------------------------------",
 	"apiKey.change": "Change API key",
 	"apiKey.save": "Save API key",

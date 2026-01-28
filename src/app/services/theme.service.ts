@@ -5,8 +5,9 @@ import MyPreset from '../common/preset';
 import DeutanPreset from '../common/preset-deutan';
 import ProtanPreset from '../common/preset-protan';
 import TritanPreset from '../common/preset-tritan';
+import CustomPreset from '../common/preset-custom';
 
-export type ColorScheme = 'default' | 'deutan' | 'protan' | 'tritan';
+export type ColorScheme = 'default' | 'deutan' | 'protan' | 'tritan' | 'custom';
 
 @Injectable({
   providedIn: 'root'
@@ -73,7 +74,7 @@ export class ThemeService {
   // Default & Colorblind
   private getStoredColorScheme(): ColorScheme {
     const stored = localStorage.getItem(this.colorSchemeKey);
-    return (stored === 'deutan' || stored === 'protan' || stored === 'tritan' || stored === 'default')
+    return (stored === 'deutan' || stored === 'protan' || stored === 'tritan' || stored === 'custom' || stored === 'default')
       ? stored
       : 'default';
   }
@@ -95,6 +96,9 @@ export class ThemeService {
         break;
       case 'tritan':
         preset = TritanPreset;
+        break;
+      case 'custom':
+        preset = CustomPreset;
         break;
       default:
         preset = MyPreset;
