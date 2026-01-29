@@ -1,14 +1,11 @@
 # AIDA (AI Design Assistant)
 
-AIDA is an internal web application for Government of Canada departments to manage content design projects and export prototypes to GitHub repositories for user testing.
-
-
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.14.
+AIDA is an internal web application for Government of Canada departments to manage content design projects, identify problems, and create prototypes with the support of AI.
 
 ## Prerequisites
 
 - **Node.js**: v22.22.0 (recommended to use [nvm](https://github.com/nvm-sh/nvm) for version management)
-- **Angular CLI**: v19.2.14 [Angular CLI](https://github.com/angular/angular-cli)
+- **Angular CLI**: v19.2.14 ([Angular CLI](https://github.com/angular/angular-cli))
 - **Git**: Latest version
 
 ## First-Time Setup
@@ -46,11 +43,11 @@ npm install
 
 ### 5. Environment Configuration
 
-The application uses environment files located in `src/environments/`:
-- `environment.development.ts` - Local, sandbox, and dev development
-- `environment.ts` - Production
+The application uses environment files located in `src/environments/`
+- `environment.development.ts` - local development, sandbox, and dev branches
+- `environment.ts` - production
 
-These files contain Lambda function URLs and are already configured. No additional setup required.
+These files contain Lambda function URLs and are already configured. No additional setup required unless you are setting up your own AWS environment.
 
 ## Development Workflow
 
@@ -132,10 +129,10 @@ All deployments are automated via GitHub Actions:
 ## Tech Stack
 
 ### Frontend
-- **Angular**: v19
+- **Angular**: v19.2.14
 - **PrimeNG**: v19 (UI component library)
 - **PrimeFlex**: v4 (CSS utility library)
-- **ngx-translate**: Internationalization (English, Canadian French)
+- **ngx-translate**: Internationalization (English, French)
 - **Additional libraries**: Document processing (mammoth, pdfjs), diff visualization, file handling
 
 ### Backend
@@ -148,8 +145,69 @@ All deployments are automated via GitHub Actions:
 ### Architecture Highlights
 - Multi-tenant architecture using URL parameters and localStorage
 - GitHub OAuth and PAT integration for authentication
-- Content inventory and validation for Canada.ca
+- Content inventory for Canada.ca pages
 - Export functionality for GitHub repositories
+
+## Project Structure
+
+Understanding the folder organization will help you find what you need quickly:
+```
+src/
+├── app/
+│   ├── common/           # Shared resources (interfaces, utilities, theme presets)
+│   ├── components/       # Reusable UI components
+│   │   └── component-name/
+│   │       ├── component files
+│   │       └── component.service.ts (if component-specific)
+│   ├── services/         # Shared services used by multiple components (similar services may be grouped by folder)
+│   ├── template/         # App shell components (header, sidenav, footer)
+│   ├── views/            # Route components (pages)
+│   │   └── view-name/    # Each view composes multiple components
+│   └── app.routes.ts         # Route definitions
+└── public/               # Static assets
+```
+
+**Key conventions:**
+- **common/**: Interfaces, utilities, theme presets, and type definitions
+- **components/**: Individual UI pieces (headings, inputs, cards) - not directly routable
+- **views/**: Page-level components mapped to routes - control layout and composition
+- **services/**: Put services here if used by multiple components; keep in component folder if only used by one component
+- **template/**: App navigation and shell structure
+
+## Key Implementation Details
+
+### Organization Configuration & Multi-Tenancy
+- User's organization is set via `?org=DEPT_CODE` URL parameter on first visit
+- Stored in localStorage for subsequent visits
+- If no org parameter is set, projects save to a default org visible to all users
+- File lists are pre-filtered by user's org - users only see their own org's files plus default org files
+- GitHub organization will be configured similarly (planned feature)
+- See `app.component.ts` for URL parameter implementation
+
+### Authentication & Access Control
+- GitHub OAuth for user authentication - no separate user management system needed
+- Alternative personal access token (PAT) authentication method is provided when API gateway is blocked by local IT policies
+- Most features work without authentication (discovery, content inventory, etc.)
+- Authentication required for: saving to DynamoDB, exporting to GitHub, and collaborator management
+- Project access controlled via `collaborators` field (GitHub usernames)
+- Users must be listed as collaborators in DynamoDB to edit/save/delete existing projects
+- For new projects, user must be listed as collaborator in local project to save to DynamoDB
+
+### Data Model
+- Projects use a TreeNode structure to maintain page hierarchy from Canada.ca
+- Page-level data is merged into the `data` field of TreeNode objects
+- Project-level data stored in ProjectMetadata interface
+- See `src/app/services/project-state.service.ts` for state management
+- See `src/app/common/data.model.ts` for data structure definitions
+
+### Internationalization
+- English and French supported via ngx-translate
+- Language toggle updates all text and maintains state across sessions
+- Translation files located in `public/i18n/`
+
+---
+
+**Note**: This section highlights key patterns. Detailed documentation will be added as features stabilize.
 
 ## Common Development Tasks
 
@@ -203,6 +261,30 @@ If `sandbox` has conflicts when trying to merge your feature:
 1. Don't worry - `sandbox` is just a testing ground
 2. You can force-push your feature to your fork's `sandbox` if needed
 3. Coordinate with your team if multiple people are testing
+
+## Setting Up Your Own AWS Environment
+
+If you're deploying AIDA to your own AWS infrastructure (not using the existing dev/production environments):
+
+### 1. Configure Frontend Environment Files
+
+Update Lambda function URLs in:
+- `src/environments/environment.ts` (production)
+- `src/environments/environment.development.ts` (development)
+
+### 2. Configure Terraform Variables
+
+Update the following files in `/backend/terraform/`:
+- `production.tfvars`:
+  - `allowed_origins` - Your production frontend URL
+  - `github_oauth_redirect_uri` - Your GitHub OAuth callback URL
+- `dev.tfvars`:
+  - `allowed_origins` - Your dev frontend URL
+  - `github_oauth_redirect_uri` - Your GitHub OAuth callback URL
+
+---
+
+**Note**: Most developers won't need this section - it's only for setting up entirely new AWS environments.
 
 ## Questions or Issues?
 
