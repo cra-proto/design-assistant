@@ -5,7 +5,7 @@ import { TranslateModule } from "@ngx-translate/core";
   selector: 'aida-about',
   imports: [TranslateModule],
   template: `
-    <h1 id="wb-cont">{{ 'title.about' | translate}}</h1>
+    <h1 id="wb-cont">{{ 'about._title' | translate}}</h1>
     <div [innerHTML]="'about.content' | translate"></div>
   `,
   styles: ``

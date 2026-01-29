@@ -48,8 +48,12 @@
 <p-button label="Add" icon="pi pi-plus" class="flex justify-content-end mt-2" [disabled]="selectedCollaborators.length===0"
           (onClick)="addSelectedCollaborators()"></p-button>
 
-}@else{<p class="text-sm text-color-secondary mt-3">Sign in as a collaborator to edit.</p>}
-}@else{<p class="text-sm text-color-secondary mt-3">Sign in to edit collaborators.</p>}
+}@else{
+<p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'collaborators.message.hasCollab' | translate" />
+}
+}@else{
+<p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'collaborators.message.firstCollab' | translate" />
+}
 }
 @if(mode==="dashboard" || mode==="switch"){
 <div class="flex flex-row align-content-center">

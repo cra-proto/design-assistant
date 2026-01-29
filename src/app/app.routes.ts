@@ -29,23 +29,23 @@ import { NotFoundComponent } from './views/404/not-found.component';
 import { AboutComponent } from './views/about-us/about.component';
 //import { ExampleComponent } from './views/examples/example.component';
 import { GetTaskUrlsComponent } from './components/find-pages/components/get-task-urls.component';
-import { ColorTestComponent } from './views/example/color-palette/color-test.component';
+
 
 export const routes: Routes = [
     {
         path: '',
         component: DashboardComponent,
-        title: (environment.production ? 'title.landing' : 'title.landing.dev'),
+        title: (environment.production ? '_app._title' : environment.sandbox ? '_app._title.sandbox' : '_app._title.dev'),
     },
     {
         path: 'dashboard',
         component: DashboardComponent,
-        title: 'title.dashboard',
+        title: 'dashboard._title',
     },
     {
         path: 'switch-project',
         component: SwitchProjectComponent,
-        title: 'title.saved',
+        title: 'switch._title',
     },
     {
         path: 'new-project',
@@ -74,8 +74,13 @@ export const routes: Routes = [
     },
     {
         path: 'colors',
-        component: ColorTestComponent,
+        loadComponent: () => import('./views/example/color-palette/color-test.component').then(m => m.ColorTestComponent),
         title: 'title.colors',
+    },
+    {
+        path: 'patterns',
+        loadComponent: () => import('./views/example/design-patterns/design-patterns.component').then(m => m.DesignPatternsComponent),
+        title: 'title.patterns',
     },
     /* {
          path: 'page-assistant/share',
@@ -153,7 +158,7 @@ export const routes: Routes = [
     {
         path: 'about-us',
         component: AboutComponent,
-        title: 'title.about',
+        title: 'about._title',
     },
     {
         path: 'ia-diagram',

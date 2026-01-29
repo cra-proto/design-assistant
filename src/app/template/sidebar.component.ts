@@ -13,6 +13,7 @@ import { environment } from '../../environments/environment';
 })
 export class SidebarComponent {
   public production = environment.production;
+  public sandbox = environment.sandbox;
 
   public projectState = inject(ProjectStateService);
   get projectLoaded(): boolean {

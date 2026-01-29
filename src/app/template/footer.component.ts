@@ -9,11 +9,11 @@ import { environment } from '../../environments/environment';
   template: `
 <footer>
     <div class="flex flex-row justify-content-between align-items-end mt-2">
-      <p class="white-space-nowrap text-color-secondary text-sm">{{'app.version'|translate}} {{version}}</p>
+      <p class="white-space-nowrap text-color-secondary text-sm">{{'_app.version'|translate}} {{version}}</p>
       <img
           class="img-fluid fip-colour"
           [src]="logoSrc"
-          [alt]="'GoC' | translate"
+          [alt]="'common.GoC' | translate"
         />
     </div>
 </footer>

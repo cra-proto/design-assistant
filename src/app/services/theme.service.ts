@@ -1,11 +1,11 @@
 import { Injectable, signal, effect, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { updatePreset, updatePrimaryPalette } from '@primeng/themes';
-import MyPreset from '../common/preset';
-import DeutanPreset from '../common/preset-deutan';
-import ProtanPreset from '../common/preset-protan';
-import TritanPreset from '../common/preset-tritan';
-import CustomPreset from '../common/preset-custom';
+import MyPreset from '../common/theme-presets/preset';
+import DeutanPreset from '../common/theme-presets/preset-deutan';
+import ProtanPreset from '../common/theme-presets/preset-protan';
+import TritanPreset from '../common/theme-presets/preset-tritan';
+import CustomPreset from '../common/theme-presets/preset-custom';
 
 export type ColorScheme = 'default' | 'deutan' | 'protan' | 'tritan' | 'custom';
 

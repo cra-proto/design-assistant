@@ -232,6 +232,48 @@ npm run lint
 ng generate --help
 ```
 
+## Translation Workflow
+
+### NPM Scripts
+
+- **`npm run i18n:extract`** - Extract and sort all translation keys (preserves unused keys)
+- **`npm run i18n:clean`** - Remove unused keys and sort everything (use before releases)
+
+### During Active Development
+
+When adding new features with translation keys:
+
+1. Run extraction to add and sort all keys:
+```bash
+   npm run i18n:extract
+```
+
+2. Open `public/i18n/en.json` and `public/i18n/fr.json`
+
+3. Search for `": ""` to find keys that need translation
+
+4. Add translations and save
+
+### Before a Release
+
+When preparing for a release or during maintenance:
+
+1. Run a full cleanup to remove unused keys:
+```bash
+   npm run i18n:clean
+```
+
+2. Review the changes to ensure no important keys were removed
+
+3. Commit the cleaned translation files
+
+### Translation Key Conventions
+
+- **`_.*`** - App-level constants (sorts to top)
+- **`common.*`** - Reusable text across the app (yes, no, cancel, etc.)
+- **`title.*`** - Page and section titles
+- **`[feature].*`** - Feature-specific translations (e.g., `projects.*`, `inventory.*`)
+
 ## VS Code Setup
 
 Recommended extensions:

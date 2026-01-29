@@ -13,6 +13,7 @@ import { AutoCompleteModule, AutoCompleteCompleteEvent, AutoCompleteSelectEvent 
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { KeyFilterModule } from 'primeng/keyfilter';
 import { DialogModule } from 'primeng/dialog';
+import { MessageModule } from 'primeng/message';
 
 import { CollaboratorService } from '../../services/collaborator.service';
 import { ProjectStateService } from '../../services/project-state.service';
@@ -24,7 +25,8 @@ export type CollaboratorMode = 'list' | 'dashboard' | 'switch';
 @Component({
     selector: 'aida-add-collaborators',
     imports: [CommonModule, FormsModule, TranslateModule,
-        AvatarModule, AvatarGroupModule, TooltipModule, ButtonModule, ConfirmDialogModule, DialogModule,
+        AvatarModule, AvatarGroupModule, TooltipModule, ButtonModule, ConfirmDialogModule,
+        DialogModule, MessageModule,
         AutoCompleteModule, IftaLabelModule, KeyFilterModule
     ],
     templateUrl: './add-collaborators.component.html',

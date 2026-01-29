@@ -37,7 +37,7 @@ import { MessageService } from 'primeng/api'
         id="cra-logo"
         class="img-fluid fip-colour w-28rem"
         [src]="logoSrc"
-        [alt]="'CRA' | translate"
+        [alt]="'common.cra' | translate"
         priority="true"
       />
     </div>
@@ -64,33 +64,18 @@ import { MessageService } from 'primeng/api'
         *ngIf="this.localStore.getData('apiKey') !== null && !production">
       </aida-api-reset>
 
-      <p-button (onClick)="theme.toggle()" rounded outlined size="small" severity="secondary" [icon]="theme.icon()" styleClass="darkmode-toggle surface-border"  ariaLabel="Toggle between dark and light mode"></p-button>
+      <p-button (onClick)="theme.toggle()" rounded outlined size="small" severity="secondary" [icon]="theme.icon()" styleClass="darkmode-toggle surface-border" ariaLabel="Toggle between dark and light mode"></p-button>
 
-      <p-button (onClick)="selectLanguage()" rounded text styleClass="underline text-blue-600 hover:text-blue-700 nohover w-5rem" severity="secondary" [label]="'opp.lang' | translate" [ariaLabel]="'opp.lang' | translate"></p-button>
+      <p-button (onClick)="selectLanguage()" rounded text styleClass="underline text-blue-600 hover:text-blue-700 nohover w-5rem" severity="secondary" [label]="'_app.oppLang' | translate" [ariaLabel]="'_app.oppLang' | translate"></p-button>
 
     </div>
   </p-toolbar>
 </header>
 <div *ngIf="!production" class="sticky top-0 z-2 border-round-bottom-lg bg-primary text-center w-full">
-  {{'app.dev' | translate}}
+  {{(sandbox? '_app.env.sandbox' : '_app.env.dev') | translate}}
 </div>
 `,
-  styles: `
-  header {
-      border-bottom-style: solid;
-      border-bottom-color: var(--p-gray-400);
-      border-width: 1px;
-      margin-top: -4rem;
-    }
-    
-  ::ng-deep .darkmode-toggle:hover .p-button-icon {
-    color: var(--p-cyan-400) !important;
-  }
-
-  ::ng-deep html.dark-mode .darkmode-toggle:hover .p-button-icon {
-    color: var(--p-amber-400) !important;
-  }
-    `
+  styleUrl: './header.component.css'
 })
 export class HeaderComponent {
   private translate = inject(TranslateService);
@@ -99,6 +84,7 @@ export class HeaderComponent {
   private router = inject(Router);
   private title = inject(Title);
   public production = environment.production;
+  public sandbox = environment.sandbox;
   public projectState = inject(ProjectStateService);
   public messageService = inject(MessageService);
 

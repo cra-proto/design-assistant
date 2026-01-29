@@ -1,0 +1,14 @@
+header {
+    border-bottom-style: solid;
+    border-bottom-color: var(--p-gray-400);
+    border-width: 1px;
+    margin-top: -4rem;
+}
+
+::ng-deep .darkmode-toggle:hover .p-button-icon {
+    color: var(--p-cyan-400) !important;
+}
+
+::ng-deep html.dark-mode .darkmode-toggle:hover .p-button-icon {
+    color: var(--p-amber-400) !important;
+}

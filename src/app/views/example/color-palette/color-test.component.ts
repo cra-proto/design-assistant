@@ -25,11 +25,7 @@ import { updatePreset } from '@primeng/themes';
     UserSettingsComponent, ColorPickerComponent, CopyPresetComponent
   ],
   templateUrl: './color-test.component.html',
-  styles: [`
-    :host {
-      display: block;
-    }
-  `]
+  styles: ``
 })
 export class ColorTestComponent {
   theme = inject(ThemeService);
@@ -55,10 +51,10 @@ export class ColorTestComponent {
 
     let presetPromise: Promise<any>;
     switch (scheme) {
-      case 'deutan': presetPromise = import('../../../common/preset-deutan'); break;
-      case 'protan': presetPromise = import('../../../common/preset-protan'); break;
-      case 'tritan': presetPromise = import('../../../common/preset-tritan'); break;
-      default: presetPromise = import('../../../common/preset');
+      case 'deutan': presetPromise = import('../../../common/theme-presets/preset-deutan'); break;
+      case 'protan': presetPromise = import('../../../common/theme-presets/preset-protan'); break;
+      case 'tritan': presetPromise = import('../../../common/theme-presets/preset-tritan'); break;
+      default: presetPromise = import('../../../common/theme-presets/preset');
     }
 
     presetPromise.then(module => {
