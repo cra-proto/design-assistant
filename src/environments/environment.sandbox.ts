@@ -1,6 +1,6 @@
-export const environment = {
+export const environment = { // Same infrastructure as development, only difference is sandbox flag
     production: false,
-    sandbox: false,
+    sandbox: true,
     version: '0.2.0', //major.minor.patch
     apiGateway: 'https://nappswkoie.execute-api.ca-central-1.amazonaws.com/dev',
     dynamodbFunctionUrl: 'https://chi2rsccsm5tsbq3dzqez735gu0pxnlj.lambda-url.ca-central-1.on.aws/',
