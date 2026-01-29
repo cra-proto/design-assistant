@@ -1,5 +1,5 @@
 <h1>Colour scheme test page</h1>
-<aida-user-settings mode="all"></aida-user-settings>
+<aida-user-settings mode="all" />
 
 <!-- Semantic Color Grid -->
 <div class="mb-6">
@@ -34,8 +34,7 @@
                     { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                     { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
                     ]"
-                                               (colorChanged)="onColorChange($event, 'primary')">
-                            </aida-color-picker>
+                                               (colorChanged)="onColorChange($event, 'primary')" />
                         </div>
                     </div>
                     <div class="col-6">
@@ -59,8 +58,7 @@
                     { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                     { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
                     ]"
-                                               (colorChanged)="onColorChange($event, 'green')">
-                            </aida-color-picker>
+                                               (colorChanged)="onColorChange($event, 'green')" />
                         </div>
                     </div>
 
@@ -94,8 +92,7 @@
                     { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                     { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
                     ]"
-                                               (colorChanged)="onColorChange($event, 'red')">
-                            </aida-color-picker>
+                                               (colorChanged)="onColorChange($event, 'red')" />
                         </div>
                     </div>
                     <div class="col-6">
@@ -119,8 +116,7 @@
                                                 { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                 { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
                                                 ]"
-                                               (colorChanged)="onWarnColorChange($event)">
-                            </aida-color-picker>
+                                               (colorChanged)="onWarnColorChange($event)" />
                         </div>
                     </div>
 
@@ -154,8 +150,7 @@
                                                 { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                 { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
                                                 ]"
-                                               (colorChanged)="onInfoColorChange($event)">
-                            </aida-color-picker>
+                                               (colorChanged)="onInfoColorChange($event)" />
                         </div>
                     </div>
                     <div class="col-6">
@@ -177,8 +172,7 @@
                                                                             { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                                             { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
                                                                             ]"
-                                               (colorChanged)="onColorChange($event, 'purple')">
-                            </aida-color-picker>
+                                               (colorChanged)="onColorChange($event, 'purple')" />
                         </div>
                     </div>
 
@@ -355,7 +349,7 @@
     <!-- Color Palette Swatches -->
     <div class="mb-6">
         <h2 class="mb-3">Full colour palettes</h2>
-        <aida-user-settings mode="theme"></aida-user-settings>
+        <aida-user-settings mode="theme" />
         <div class="flex flex-row gap-2 mt-2">
             <div class="flex flex-column">Primary
                 <aida-color-picker [key]=" theme.colorScheme() + '-primary'" initialColor=" bg-primary-500" [externalShades]="customShades['primary']"
@@ -363,8 +357,7 @@
                             { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },                            
                             { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
                             ]"
-                                   (colorChanged)="onColorChange($event, 'primary')">
-                </aida-color-picker>
+                                   (colorChanged)="onColorChange($event, 'primary')" />
             </div>
             <div class="flex flex-column">Green (success)
                 <aida-color-picker [key]="theme.colorScheme() + '-success'" initialColor="bg-green-500" [externalShades]="customShades['green']"
@@ -372,8 +365,7 @@
                                     { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                     { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
                                     ]"
-                                   (colorChanged)="onColorChange($event, 'green')">
-                </aida-color-picker>
+                                   (colorChanged)="onColorChange($event, 'green')" />
             </div>
             <div class="flex flex-column">Red (danger)
                 <aida-color-picker [key]="theme.colorScheme() + '-danger'" initialColor="bg-red-500" [externalShades]="customShades['red']"
@@ -381,8 +373,7 @@
                                                 { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                 { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
                                                 ]"
-                                   (colorChanged)="onColorChange($event, 'red')">
-                </aida-color-picker>
+                                   (colorChanged)="onColorChange($event, 'red')" />
             </div>
             <div class="flex flex-column">Orange (warn)
                 <aida-color-picker [key]="theme.colorScheme() + '-warn'" initialColor="bg-orange-500" [externalShades]="customShades['orange']"
@@ -390,8 +381,7 @@
                                                 { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                 { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
                                                 ]"
-                                   (colorChanged)="onWarnColorChange($event)">
-                </aida-color-picker>
+                                   (colorChanged)="onWarnColorChange($event)" />
             </div>
             <div class="flex flex-column">Blue (info)
                 <aida-color-picker [key]="theme.colorScheme() + '-info'" initialColor="bg-blue-500" [externalShades]="customShades['blue']"
@@ -399,8 +389,7 @@
                                                 { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                 { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
                                                 ]"
-                                   (colorChanged)="onInfoColorChange($event)">
-                </aida-color-picker>
+                                   (colorChanged)="onInfoColorChange($event)" />
             </div>
             <div class="flex flex-column">Purple (help)
                 <aida-color-picker [key]="theme.colorScheme() + '-help'" initialColor="bg-purple-500" [externalShades]="customShades['purple']"
@@ -408,8 +397,7 @@
                                                 { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                 { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
                                                 ]"
-                                   (colorChanged)="onColorChange($event, 'purple')">
-                </aida-color-picker>
+                                   (colorChanged)="onColorChange($event, 'purple')" />
             </div>
         </div>
         <div class="grid">
@@ -535,4 +523,4 @@
             </div>
         </div>
     </div>
-    <aida-copy-preset [customShades]="customShades"></aida-copy-preset>
+    <aida-copy-preset [customShades]="customShades" />

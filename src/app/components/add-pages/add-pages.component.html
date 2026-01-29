@@ -5,7 +5,7 @@
     <label for="urls">{{"addPages.inputLabel" | translate}}</label>
 </p-iftalabel>
 
-<p-message severity="error" size="small" variant="simple" styleClass="mb-2" *ngIf="duplicatesSkipped.length > 0" [text]="getDuplicateMessage()"></p-message>
+<p-message severity="error" size="small" variant="simple" styleClass="mb-2" *ngIf="duplicatesSkipped.length > 0" [text]="getDuplicateMessage()" />
 
 <div class="flex flex-row gap-2">
     <!--Validate URLs-->
@@ -166,15 +166,14 @@
                         <p-tag
                                [value]="option.inProject ? ('addPages.new.tag.inProject' | translate) : ('addPages.new.tag.validating' | translate)"
                                [severity]="option.inProject ? 'success' : 'info'"
-                               [rounded]="true">
-                        </p-tag>
+                               [rounded]="true" />
                         <span>{{ option.label }}</span>
                     </div>
                 </ng-template>
             </p-autoComplete>
             <label for="parent-autocomplete">{{ 'addPages.new.parent' | translate }}</label>
         </p-iftalabel>
-        <p-button styleClass="h-full" label="Confirm" (click)="confirmParent = true"></p-button>
+        <p-button styleClass="h-full" label="Confirm" (click)="confirmParent = true" />
     </div>
     <div class="flex gap-2 mt-3">
         <p-button

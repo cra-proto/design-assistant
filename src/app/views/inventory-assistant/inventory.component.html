@@ -26,9 +26,8 @@
                       outlined
                       size="small"
                       styleClass="secondary-outline w-full min-w-max"
-                      (click)="iaDiagram.openDiagram()">
-            </p-button>
-            <aida-export-project></aida-export-project>
+                      (click)="iaDiagram.openDiagram()" />
+            <aida-export-project />
         </div>
     </div>
 
@@ -133,7 +132,7 @@
                       styleClass="secondary-outline"
                       (click)="onDeleteSelected()"
                       [disabled]="selectedNodes.length === 0" />
-            <p-confirmDialog></p-confirmDialog>
+            <p-confirmDialog />
         </ng-template>
     </p-toolbar>
 
@@ -229,11 +228,11 @@
 <div class="flex md:flex-row flex-column gap-3">
 
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-6 w-full">
-        <aida-add-pages></aida-add-pages>
+        <aida-add-pages />
     </div>
 
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-6 w-full">
-        <aida-find-pages></aida-find-pages>
+        <aida-find-pages />
     </div>
 
 </div>

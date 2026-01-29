@@ -59,15 +59,15 @@ export interface ContrastTest {
   `
 })
 export class ColorPickerComponent implements OnInit, OnChanges {
-    @Input() key: string = '';
-    @Input() initialColor: string = '#000000'; // Can be hex like '#00cccc' or CSS class like 'bg-green-500'
+    @Input() key = '';
+    @Input() initialColor = '#000000'; // Can be hex like '#00cccc' or CSS class like 'bg-green-500'
     @Input() externalShades?: Record<number, string>;
     @Input() contrastTests?: ContrastTest[];
-    @Input() showReset: boolean = true;
+    @Input() showReset = true;
     @Output() colorChanged = new EventEmitter<{ hex: string; shades: Record<number, string> }>();
 
-    currentColor: string = '';
-    defaultColor: string = '';
+    currentColor = '';
+    defaultColor = '';
     generatedShades: Record<number, string> = {};
 
     ngOnInit() {

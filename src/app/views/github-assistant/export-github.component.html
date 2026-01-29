@@ -49,7 +49,7 @@
                           styleClass="secondary-outline w-full"
                           (click)="settingsOverlay.toggle($event)" />
                 <p-popover #settingsOverlay styleClass="w-full lg:w-30rem">
-                    <aida-setup-repo></aida-setup-repo>
+                    <aida-setup-repo />
                     @if (projectData().github.hasBaselineRepo) {
                     <div class="flex flex-column align-items-stretch mt-3">
                         <label class="text-sm font-semibold">{{ 'github.connect.export.label' | translate }}</label>
@@ -59,8 +59,7 @@
                                             allowEmpty="false"
                                             optionLabel="label"
                                             optionValue="value"
-                                            styleClass="secondary-outline max-h-3rem">
-                            </p-selectButton>
+                                            styleClass="secondary-outline max-h-3rem" />
 
                         </div>
                     </div>
@@ -194,7 +193,7 @@
     <!--GitHub settings (only visible if not configured)-->
     @if(!showSettingsButton()){
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
-        <aida-setup-repo></aida-setup-repo>
+        <aida-setup-repo />
         @if (projectData().github.hasBaselineRepo) {
         <div class="flex flex-column align-items-stretch mt-3">
             <label class="text-sm font-semibold">{{ 'github.connect.export.label' | translate }}</label>
@@ -204,8 +203,7 @@
                                 allowEmpty="false"
                                 optionLabel="label"
                                 optionValue="value"
-                                styleClass="secondary-outline max-h-3rem">
-                </p-selectButton>
+                                styleClass="secondary-outline max-h-3rem" />
 
             </div>
         </div>
@@ -221,7 +219,7 @@
             <div class="text-600 text-sm opacity-90">{{ 'github.data.lastExported' | translate }}</div>
             <div class="text-primary text-xl font-semibold">{{ projectData().lastExported | date:'mediumDate' }}, {{ projectData().lastExported | date:'shortTime' }}</div>
         </div>
-        <p-divider></p-divider>
+        <p-divider />
 
         <!-- Total pages -->
         <div class="text-center">
@@ -272,7 +270,7 @@
                             [icon]="getIcon(file.location)"
                             [class]="'capitalize font-bold center-chip w-9rem p-1 ' + getBgAndText(file.location, 'alwaysDark')"
                             [class.cursor-pointer]="file.location === 'skip' || file.location === 'update'"
-                            (click)="(file.location === 'skip' || file.location === 'update') && toggleUpdate(file)"></p-chip>
+                            (click)="(file.location === 'skip' || file.location === 'update') && toggleUpdate(file)" />
                 </td>
             </tr>
         </ng-template>

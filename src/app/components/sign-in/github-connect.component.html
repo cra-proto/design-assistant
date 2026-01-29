@@ -16,11 +16,11 @@
         <i class="pi pi-key text-6xl text-900"></i>
         <div class="w-full">
             <p class="text-sm text-color-secondary my-2">{{ 'github.connect.pat.description' | translate }}</p>
-            <aida-pat></aida-pat>
+            <aida-pat />
         </div>
     </div>
     <div class="flex justify-content-end mt-2">
-        <p-button label="Sign in" (onClick)="validatePAT()"></p-button>
+        <p-button label="Sign in" (onClick)="validatePAT()" />
     </div>
 </p-dialog>
 
@@ -28,10 +28,10 @@
     <div class="flex flex-row align-items-center gap-3">
         <i class="pi pi-cog text-6xl text-900"></i>
         <div class="w-full">
-            <aida-user-settings></aida-user-settings>
+            <aida-user-settings />
         </div>
     </div>
     <div class="flex justify-content-end mt-2">
-        <p-button label="common.close" (onClick)="showSettings = false"></p-button>
+        <p-button label="common.close" (onClick)="showSettings = false" />
     </div>
 </p-dialog>

@@ -321,7 +321,7 @@ export class SwitchProjectComponent implements OnInit {
   groupedFilters: MenuItem[] = [];
 
   getPhaseIcon(phase: string | undefined): string {
-    const iconMap: { [key: string]: string } = {
+    const iconMap: Record<string, string> = {
       'Discover': 'search',
       'Design': 'pencil',
       'Assess': 'chart-line',
@@ -338,7 +338,7 @@ export class SwitchProjectComponent implements OnInit {
 
   async loadCloudProject(cloudId: string) {
     const project = await this.cloudStorage.getProject(cloudId);
-    if (!project || !project.projectData) return;
+    if (!project?.projectData) return;
 
     /* Parse the content and load it into the state
     const state = JSON.parse(project.content);

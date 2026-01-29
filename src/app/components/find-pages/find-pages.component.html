@@ -8,7 +8,7 @@
     <li>Find parent for new page</li>
 </ul>
 
-<aida-get-task-urls></aida-get-task-urls>
+<aida-get-task-urls />
 
 <!-- Task Selection Section -->
 <!--p><strong>JSON version (Dec 2025)</strong></p>
@@ -65,7 +65,7 @@
                     [(ngModel)]="taskUrls()[i].selected"
                     inputId="url-{{i}}"
                     [binary]="true"
-                    size="large"></p-checkbox>
+                    size="large" />
         <label for="url-{{i}}" class="break-all">{{item.url}}</label>
     </div>
 </div>

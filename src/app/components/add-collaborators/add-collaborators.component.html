@@ -9,14 +9,13 @@
                           shape="circle"
                           [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
                           [image]="collab.avatar_url || undefined"
-                          [ngClass]="collaboratorService.getCollaboratorColorClass(collab)">
-                </p-avatar>
+                          [ngClass]="collaboratorService.getCollaboratorColorClass(collab)" />
                 {{collaboratorService.getCollaboratorName(collab)}}
             </div>
             @if(collaboratorService.canEditProject(projectData())){
             <p-button icon="pi pi-trash" severity="danger" text rounded
                       pTooltip="Remove {{collaboratorService.getCollaboratorName(collab)}}"
-                      (onClick)="removeCollaborator(collab)"></p-button>
+                      (onClick)="removeCollaborator(collab)" />
             }
         </div>
     </li>
@@ -36,8 +35,7 @@
                           shape="circle"
                           [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
                           [image]="collab.avatar_url || undefined"
-                          [ngClass]="collaboratorService.getCollaboratorColorClass(collab)">
-                </p-avatar>
+                          [ngClass]="collaboratorService.getCollaboratorColorClass(collab)" />
                 {{collaboratorService.getCollaboratorName(collab)}}
             </div>
         </ng-template>
@@ -46,7 +44,7 @@
     <label for="collab">Select collaborators</label>
 </p-iftalabel>
 <p-button label="Add" icon="pi pi-plus" class="flex justify-content-end mt-2" [disabled]="selectedCollaborators.length===0"
-          (onClick)="addSelectedCollaborators()"></p-button>
+          (onClick)="addSelectedCollaborators()" />
 
 }@else{
 <p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'collaborators.message.hasCollab' | translate" />
@@ -64,12 +62,11 @@
                   [image]="collab.avatar_url || undefined"
                   [pTooltip]="collaboratorService.getCollaboratorName(collab)"
                   tooltipPosition="top"
-                  [ngClass]="collaboratorService.getCollaboratorColorClass(collab)">
-        </p-avatar>
+                  [ngClass]="collaboratorService.getCollaboratorColorClass(collab)" />
         <p-avatar *ngIf="collaborators().length > 3" shape="circle" [label]="'+'+(collaborators().length - 3).toString()" [pTooltip]="'collaborator.plusMore' | translate: {number: collaborators().length - 3}" tooltipPosition="top" />
     </p-avatar-group>
     @if(mode ==="dashboard"){
-    <p-button icon="pi pi-share-alt" text rounded size="small" pTooltip="Add collaborators" *ngIf="collaboratorService.canEditProject(projectData())" (onClick)="openShareDialog()"></p-button>
+    <p-button icon="pi pi-share-alt" text rounded size="small" pTooltip="Add collaborators" *ngIf="collaboratorService.canEditProject(projectData())" (onClick)="openShareDialog()" />
     <p-dialog [(visible)]="showShareDialog"
               header="Add Collaborators"
               [modal]="true"
@@ -88,8 +85,7 @@
                                   shape="circle"
                                   [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
                                   [image]="collab.avatar_url || undefined"
-                                  [ngClass]="collaboratorService.getCollaboratorColorClass(collab)">
-                        </p-avatar>
+                                  [ngClass]="collaboratorService.getCollaboratorColorClass(collab)" />
                         {{collaboratorService.getCollaboratorName(collab)}}
                     </div>
                 </ng-template>
@@ -102,13 +98,11 @@
                       severity="secondary"
                       outlined
                       styleClass="secondary-outline"
-                      (onClick)="closeShareDialog()">
-            </p-button>
+                      (onClick)="closeShareDialog()" />
             <p-button label="Add"
                       icon="pi pi-plus"
                       [disabled]="selectedCollaborators.length===0"
-                      (onClick)="addSelectedCollaborators(); closeShareDialog()">
-            </p-button>
+                      (onClick)="addSelectedCollaborators(); closeShareDialog()" />
         </div>
     </p-dialog>
     }

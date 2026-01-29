@@ -51,22 +51,20 @@ import { MessageService } from 'primeng/api'
         [severity]="saveButtonConfig().severity"
         text rounded
         size="small"
-        styleClass="white-space-nowrap">
-      </p-button>
-      <p-toast></p-toast>
+        styleClass="white-space-nowrap" />
+      <p-toast />
 
       <!--p-button (onClick)="goToProject()" rounded outlined severity="primary" styleClass="border-dashed surface-border" [label]="project | translate"></p-button-->
-      <p-divider *ngIf="showSaveButton()" layout="vertical" styleClass="mx-2"></p-divider>
+      <p-divider *ngIf="showSaveButton()" layout="vertical" styleClass="mx-2" />
 
-      <aida-github-connect></aida-github-connect>
+      <aida-github-connect />
 
       <aida-api-reset
-        *ngIf="this.localStore.getData('apiKey') !== null && !production">
-      </aida-api-reset>
+        *ngIf="this.localStore.getData('apiKey') !== null && !production" />
 
-      <p-button (onClick)="theme.toggle()" rounded outlined size="small" severity="secondary" [icon]="theme.icon()" styleClass="darkmode-toggle surface-border" ariaLabel="Toggle between dark and light mode"></p-button>
+      <p-button (onClick)="theme.toggle()" rounded outlined size="small" severity="secondary" [icon]="theme.icon()" styleClass="darkmode-toggle surface-border" ariaLabel="Toggle between dark and light mode" />
 
-      <p-button (onClick)="selectLanguage()" rounded text styleClass="underline text-blue-600 hover:text-blue-700 nohover w-5rem" severity="secondary" [label]="'_app.oppLang' | translate" [ariaLabel]="'_app.oppLang' | translate"></p-button>
+      <p-button (onClick)="selectLanguage()" rounded text styleClass="underline text-blue-600 hover:text-blue-700 nohover w-5rem" severity="secondary" [label]="'_app.oppLang' | translate" [ariaLabel]="'_app.oppLang' | translate" />
 
     </div>
   </p-toolbar>

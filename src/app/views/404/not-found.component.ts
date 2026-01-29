@@ -12,7 +12,7 @@ import { TranslateModule } from "@ngx-translate/core";
 })
 export class NotFoundComponent implements OnInit {
 
-  random404Key: string = '404.message.0';
+  random404Key = '404.message.0';
 
   ngOnInit() {
     const randomIndex = Math.floor(Math.random() * 6);

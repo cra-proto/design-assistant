@@ -41,8 +41,7 @@
                 outlined
                 size="small"
                 styleClass="white-space-nowrap secondary-outline w-full"
-                (onClick)="newProject()">
-      </p-button>
+                (onClick)="newProject()" />
       <!--Import-->
       <p-button
                 label="Import project"
@@ -50,8 +49,7 @@
                 outlined
                 size="small"
                 styleClass="white-space-nowrap secondary-outline w-full"
-                disabled>
-      </p-button>
+                disabled />
       <!--RECYCLE BIN-->
       @if(projectStorage.getLocalProjectList('deleted').length > 0)
       {<p-button
@@ -60,8 +58,7 @@
                 outlined
                 size="small"
                 styleClass="white-space-nowrap secondary-outline w-full"
-                (onClick)="toggleProjectView()">
-      </p-button>
+                (onClick)="toggleProjectView()" />
       }
     </div>
 
@@ -80,18 +77,36 @@
             <div class="flex justify-content-between align-items-start p-3 pb-0">
               <!--Tags-->
               <div class="flex gap-2">
-                <p-tag value="Active" icon="pi pi-check" severity="success" [style]="{'font-size': '0.75rem'}" *ngIf="projectStorage.currentActive()?.key === project.key && project.storageType === 'local'"></p-tag>
-                <p-tag value="Active" icon="pi pi-check" severity="success" [style]="{'font-size': '0.75rem'}" *ngIf="projectStorage.currentActive()?.key === project.id && project.storageType === 'cloud'"></p-tag>
-                <p-tag value="Local" icon="pi pi-home" severity="secondary" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'local'"></p-tag>
-                <p-tag value="Cloud" icon="pi pi-cloud" severity="info" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'cloud'"></p-tag>
-                <p-tag value="Read-only" icon="pi pi-eye" severity="warning" [style]="{'font-size': '0.75rem'}" *ngIf="project.storageType === 'cloud' && !collaboratorService.canEditProject(project)"></p-tag>
-                <p-tag value="Unsaved" icon="pi pi-exclamation-triangle" severity="danger" [style]="{'font-size': '0.75rem'}" *ngIf="project.key === 'autosave'"></p-tag>
+                @if (projectStorage.currentActive()?.key === project.key && project.storageType === 'local') {
+                <p-tag value="Active" icon="pi pi-check" severity="success" [style]="{'font-size': '0.75rem'}" />
+                }
+                @if (projectStorage.currentActive()?.key === project.id && project.storageType === 'cloud') {
+                <p-tag value="Active" icon="pi pi-check" severity="success" [style]="{'font-size': '0.75rem'}" />
+                }
+                @if (project.storageType === 'local') {
+                <p-tag value="Local" icon="pi pi-home" severity="secondary" [style]="{'font-size': '0.75rem'}" />
+                }
+                @if (project.storageType === 'cloud') {
+                <p-tag value="Cloud" icon="pi pi-cloud" severity="info" [style]="{'font-size': '0.75rem'}" />
+                }
+                @if (project.storageType === 'cloud' && !collaboratorService.canEditProject(project)) {
+                <p-tag value="Read-only" icon="pi pi-eye" severity="warning" [style]="{'font-size': '0.75rem'}" />
+                }
+                @if (project.key === 'autosave') {
+                <p-tag value="Unsaved" icon="pi pi-exclamation-triangle" severity="danger" [style]="{'font-size': '0.75rem'}" />
+                }
               </div>
               <!--Actions-->
               <div class="flex gap-1">
-                <p-button icon="pi pi-save" text rounded size="small" severity="success" pTooltip="Save locally" (onClick)="showSave = true; $event.stopPropagation()" *ngIf="project.key === 'autosave' && !authService.isAuthenticated()" />
-                <p-button icon="pi pi-cloud-upload" text rounded size="small" severity="primary" pTooltip="Upload to cloud" (onClick)="uploadToCloud(project, $event)" *ngIf="collaboratorService.canEditProject(project) && project.storageType === 'local'"></p-button>
-                <p-button icon="pi pi-trash" text rounded size="small" severity="danger" pTooltip="Delete" (onClick)="deleteProject(project, $event)" *ngIf="collaboratorService.canEditProject(project) || project.storageType === 'local'"></p-button>
+                @if (project.key === 'autosave') {
+                <p-button icon="pi pi-save" text rounded size="small" severity="success" pTooltip="Save locally" (onClick)="showSave = true; $event.stopPropagation()" />
+                }
+                @if (collaboratorService.canEditProject(project) && project.storageType === 'local') {
+                <p-button icon="pi pi-cloud-upload" text rounded size="small" severity="primary" pTooltip="Upload to cloud" (onClick)="uploadToCloud(project, $event)" />
+                }
+                @if (collaboratorService.canEditProject(project) || project.storageType === 'local') {
+                <p-button icon="pi pi-trash" text rounded size="small" severity="danger" pTooltip="Delete" (onClick)="deleteProject(project, $event)" />
+                }
               </div>
             </div>
           </ng-template>
@@ -144,7 +159,7 @@
                 </p-avatar-group>
               </div>
               <p-button icon="pi pi-share-alt" text rounded size="small" pTooltip="Share" *ngIf="authService.isAuthenticated()"></p-button-->
-                <aida-add-collaborators mode="switch" [collabs]="project.collaborators"></aida-add-collaborators>
+                <aida-add-collaborators mode="switch" [collabs]="project.collaborators" />
               </div>
             </div>
           </ng-template>
@@ -164,7 +179,7 @@
 <!-- Save Project Dialog -->
 <p-dialog header="Save project" [modal]="true" [(visible)]="showSave" styleClass="max-w-25rem">
   <p class="text-color-secondary -mt-1">Name your project to save it for later.</p>
-  <aida-setup-project></aida-setup-project>
+  <aida-setup-project />
   <div class="flex justify-end gap-2 mt-2">
     <p-button label="Cancel" severity="secondary" (onClick)="showSave = false" />
     <p-button label="Save" (onClick)="showSave = false;saveProject()" />

@@ -1,9 +1,9 @@
 <body vocab="http://schema.org/" typeof="WebPage" class="mx-8 my-2 container">
   <main class="container">
-    <aida-header></aida-header>
-    <aida-sidebar></aida-sidebar>
-    <aida-api-key *ngIf="this.localStore.getData('apiKey') === null"></aida-api-key>
-    <router-outlet *ngIf="this.localStore.getData('apiKey') !== null"></router-outlet>
+    <aida-header />
+    <aida-sidebar />
+    <aida-api-key *ngIf="this.localStore.getData('apiKey') === null" />
+    <router-outlet *ngIf="this.localStore.getData('apiKey') !== null" />
   </main>
-  <aida-footer></aida-footer>
+  <aida-footer />
 </body>

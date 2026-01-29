@@ -545,7 +545,7 @@ export class ProjectStateService {
                     //Data
                     template: data.metadata?.template || '',
                     task: data.metadata?.task || [],
-                    visits: data.metadata?.visits || 0,
+                    visits: data.metadata?.visits ?? undefined,
                     //Owner
                     owner: data.metadata?.owner || '',
                     email: data.metadata?.email || '',
@@ -704,7 +704,7 @@ export class ProjectStateService {
         }
     }
 
-    deleteNode(selectedPages: FlattenedTreeNode[], canDeleteRoot: boolean = false) {
+    deleteNode(selectedPages: FlattenedTreeNode[], canDeleteRoot = false) {
         const projectTree = this.getProjectTree();
 
         for (const page of selectedPages) {

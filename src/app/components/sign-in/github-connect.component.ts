@@ -42,8 +42,8 @@ export class GithubConnectComponent implements OnInit {
   private translate = inject(TranslateService);
 
   // Variables
-  showPatSignIn: boolean = false;
-  showSettings: boolean = false;
+  showPatSignIn = false;
+  showSettings = false;
 
   connectGitHub() {
     if (this.isApiGatewayAccessible()) {

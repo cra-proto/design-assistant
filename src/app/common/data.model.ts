@@ -108,7 +108,7 @@ export interface FlattenedTreeNode {
     //Data
     template: string;
     task: string[];
-    visits: number;
+    visits: number | undefined;
     //Metadata
     title: string;
     description: string;
