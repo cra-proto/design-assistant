@@ -164,10 +164,12 @@ export class AddCollaboratorsComponent implements OnInit {
     getRequestAccessMailto(): string {
         const emails = this.collaboratorService.getCollaboratorEmails(this.collaborators());
         const name = this.projectData().projectName;
+        const user = this.exportGithub.user();
         if (emails.length === 0) return '';
-        const subject = encodeURIComponent(`Request access to ${name} in AIDA`);
+        const subject = encodeURIComponent(`Request access to "${name}" project in AIDA`);
         const body = encodeURIComponent(
-            `Hi,\n\nI would like to request edit access to the "${name}" project in AIDA.\n\nThank you!`
+            `Hi,\n\nCan you add "${user}" as a collaborator to the "${name}" project in AIDA?\n\nThank you!\n\n\n\n` +
+            `Bonjour,\n\nPouvez-vous ajouter « ${user} » en tant que collaborateur au projet « ${name} » dans AIDA ?\n\nMerci!`
         );
         return `mailto:${emails.join(',')}?subject=${subject}&body=${body}`;
     }

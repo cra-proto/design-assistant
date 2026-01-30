@@ -82,6 +82,7 @@
 	"collaborators._": "------------------------------COLLABORATORS------------------------------",
 	"collaborators._title": "Collaborators",
 	"collaborators.addCollab": "Add collaborators",
+	"collaborators.button.requestAccess": "Request access",
 	"collaborators.confirm.removeSelf.accept": "Yes, remove me",
 	"collaborators.confirm.removeSelf.header": "Confirm Removal",
 	"collaborators.confirm.removeSelf.message": "Are you sure you want to remove yourself from this project?",
