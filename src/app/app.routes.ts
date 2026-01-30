@@ -73,6 +73,11 @@ export const routes: Routes = [
         title: 'title.ia',
     },
     {
+        path: 'test',
+        loadComponent: () => import('./views/example/example.component').then(m => m.ExampleComponent),
+        title: 'title.patterns',
+    },
+    {
         path: 'colors',
         loadComponent: () => import('./views/example/color-palette/color-test.component').then(m => m.ColorTestComponent),
         title: 'title.colors',

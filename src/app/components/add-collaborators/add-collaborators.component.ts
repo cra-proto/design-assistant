@@ -20,6 +20,7 @@ import { ProjectStateService } from '../../services/project-state.service';
 import { ExportGitHubService } from '../../services/github/export-github.service';
 import { GitHubUser } from '../../common/data.model';
 
+
 export type CollaboratorMode = 'list' | 'dashboard' | 'switch';
 
 @Component({
@@ -157,6 +158,22 @@ export class AddCollaboratorsComponent implements OnInit {
     closeShareDialog() {
         this.showShareDialog = false;
         this.selectedCollaborators = []; // Reset on close
+    }
+
+    // Request access button
+    getRequestAccessMailto(): string {
+        const emails = this.collaboratorService.getCollaboratorEmails(this.collaborators());
+        const name = this.projectData().projectName;
+        if (emails.length === 0) return '';
+        const subject = encodeURIComponent(`Request access to ${name} in AIDA`);
+        const body = encodeURIComponent(
+            `Hi,\n\nI would like to request edit access to the "${name}" project in AIDA.\n\nThank you!`
+        );
+        return `mailto:${emails.join(',')}?subject=${subject}&body=${body}`;
+    }
+
+    openMailto(mailto: string): void {
+        window.open(mailto, '_self');
     }
 
 }

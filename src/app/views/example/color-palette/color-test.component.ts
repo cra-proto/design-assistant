@@ -1,6 +1,7 @@
 import { Component, inject, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -19,7 +20,7 @@ import { updatePreset } from '@primeng/themes';
   selector: 'aida-color-test',
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
+    CommonModule, FormsModule, TranslateModule,
     ButtonModule, TagModule, BadgeModule, MessageModule,
     DividerModule,
     UserSettingsComponent, ColorPickerComponent, CopyPresetComponent

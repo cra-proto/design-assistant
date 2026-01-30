@@ -46,6 +46,18 @@
 <p-button [label]="'common.add' | translate" icon="pi pi-plus" class="flex justify-content-end mt-2" [disabled]="selectedCollaborators.length===0"
           (onClick)="addSelectedCollaborators()" />
 
+}@else if(exportGithub.user()){
+<p-message severity="warn" icon="pi pi-exclamation-triangle font-bold" [text]="'collaborators.message.notCollab' | translate" />
+@if(getRequestAccessMailto()) {
+<p-button
+          [label]="'collaborators.button.requestAccess' | translate"
+          icon="pi pi-envelope"
+          severity="secondary"
+          size="small"
+          styleClass="mt-2"
+          [link]="true"
+          (onClick)="openMailto(getRequestAccessMailto())" />
+}
 }@else{
 <p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'collaborators.message.hasCollab' | translate" />
 }

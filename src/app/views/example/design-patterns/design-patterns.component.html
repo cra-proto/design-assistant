@@ -1,10 +1,10 @@
 <div class="p-4">
-    <h1>{{ 'example.pattern.title' | translate }}</h1>
-    <p class="text-color-secondary mb-4">{{ 'example.pattern.subtitle' | translate }}</p>
+    <h1>{{ 'example.patterns._title' | translate }}</h1>
+    <p class="text-color-secondary mb-4">{{ 'example.patterns.description' | translate }}</p>
 
     <p-tabView>
         <!-- Messages Tab -->
-        <p-tabPanel [header]="'example.pattern.tab.messages' | translate">
+        <p-tabPanel [header]="'example.patterns.tab.messages' | translate">
             <div class="flex flex-column gap-4">
                 @for (example of messageExamples; track example.label; let i = $index) {
                 <div class="surface-section border-1 surface-border border-round p-4">
@@ -38,7 +38,7 @@
                                   size="small"
                                   severity="secondary"
                                   styleClass="absolute top-0 right-0 mt-2 mr-2 secondary-outline"
-                                  [ariaLabel]="'example.pattern.copy' | translate" />
+                                  [ariaLabel]="'common.copyCode' | translate" />
                         <pre class="m-0" #codeContainer [attr.data-code]="example.code"><code class="language-html"></code></pre>
                     </div>
                 </div>
@@ -47,7 +47,7 @@
         </p-tabPanel>
 
         <!-- Buttons Tab -->
-        <p-tabPanel [header]="'example.pattern.tab.buttons' | translate">
+        <p-tabPanel [header]="'example.patterns.tab.buttons' | translate">
             <div class="flex flex-column gap-4">
                 @for (example of buttonExamples; track example.label; let i = $index) {
                 <div class="surface-section border-1 surface-border border-round p-4">
@@ -91,7 +91,7 @@
                                   size="small"
                                   severity="secondary"
                                   styleClass="absolute top-0 right-0 mt-2 mr-2 secondary-outline"
-                                  [ariaLabel]="'example.pattern.copy' | translate" />
+                                  [ariaLabel]="'common.copyCode' | translate" />
                         <pre class="m-0" #codeContainer [attr.data-code]="example.code"><code class="language-html"></code></pre>
                     </div>
                 </div>
@@ -100,7 +100,7 @@
         </p-tabPanel>
 
         <!-- Card Styles Tab -->
-        <p-tabPanel [header]="'example.pattern.tab.cards' | translate">
+        <p-tabPanel [header]="'example.patterns.tab.cards' | translate">
             <div class="flex flex-column gap-4">
                 @for (example of cardExamples; track example.label; let i = $index) {
                 <div class="surface-section border-1 surface-border border-round p-4">
@@ -132,7 +132,7 @@
                                   size="small"
                                   severity="secondary"
                                   styleClass="absolute top-0 right-0 mt-2 mr-2 secondary-outline"
-                                  [ariaLabel]="'example.pattern.copy' | translate" />
+                                  [ariaLabel]="'common.copyCode' | translate" />
                         <pre class="m-0" #codeContainer [attr.data-code]="example.code"><code class="language-html"></code></pre>
                     </div>
                 </div>
@@ -140,7 +140,7 @@
             </div>
         </p-tabPanel>
         <!-- Input Fields Tab -->
-        <p-tabPanel [header]="'example.pattern.tab.inputs' | translate">
+        <p-tabPanel [header]="'example.patterns.tab.inputs' | translate">
             <div class="flex flex-column gap-4">
                 @for (example of inputExamples; track example.label; let i = $index) {
                 <div class="surface-section border-1 surface-border border-round p-4">
@@ -185,7 +185,7 @@
                                   size="small"
                                   severity="secondary"
                                   styleClass="absolute top-0 right-0 mt-2 mr-2 secondary-outline"
-                                  [ariaLabel]="'example.pattern.copy' | translate" />
+                                  [ariaLabel]="'common.copyCode' | translate" />
                         <pre class="m-0" #codeContainer [attr.data-code]="example.code"><code class="language-html"></code></pre>
                     </div>
                 </div>
