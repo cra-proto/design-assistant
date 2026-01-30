@@ -39,8 +39,8 @@ module.exports = tseslint.config(
       // Modern JavaScript/TypeScript patterns
       "@typescript-eslint/prefer-optional-chain": "warn", // foo && foo.bar → foo?.bar
       "@typescript-eslint/prefer-nullish-coalescing": ["warn", { // value || default → value ?? default
-        ignoreConditionalTests: true,
-        ignorePrimitives: { string: true }
+        ignoreConditionalTests: true, // TODO: remove after fixing conditionals
+        ignorePrimitives: { string: true } // TODO: remove after reviewing string defaults
       }],
       "@typescript-eslint/prefer-for-of": "warn", // for (i=0...) → for (const item of array)
       "@typescript-eslint/prefer-includes": "warn", // indexOf() !== -1 → includes()

@@ -42,7 +42,7 @@ export class UserSettingsComponent {
     }
 
     // Dark & Light theme
-    themeOptions: MenuItem[] = [{ label: 'theme.light', value: false }, { label: 'theme.dark', value: true }];
+    themeOptions: MenuItem[] = [{ label: 'settings.theme.light', value: false }, { label: 'settings.theme.dark', value: true }];
 
     selectedTheme: boolean = this.themeService.darkMode();
 
@@ -52,11 +52,11 @@ export class UserSettingsComponent {
 
     // Default & other themes
     colorSchemes = [
-        { label: 'theme.default', value: 'default' as ColorScheme },
-        { label: 'theme.deutan', value: 'deutan' as ColorScheme },
-        { label: 'theme.protan', value: 'protan' as ColorScheme },
-        { label: 'theme.tritan', value: 'tritan' as ColorScheme },
-        { label: 'theme.custom', value: 'custom' as ColorScheme }
+        { label: 'settings.theme.default', value: 'default' as ColorScheme },
+        { label: 'settings.theme.deutan', value: 'deutan' as ColorScheme },
+        { label: 'settings.theme.protan', value: 'protan' as ColorScheme },
+        { label: 'settings.theme.tritan', value: 'tritan' as ColorScheme },
+        { label: 'settings.theme.custom', value: 'custom' as ColorScheme }
     ];
 
     selectedScheme = this.themeService.colorScheme();

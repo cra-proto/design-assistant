@@ -6,6 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 //PrimeNG modules
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
+import { MessageModule } from 'primeng/message';
 
 //Custom components and services
 import { ProjectStateService } from '../../services/project-state.service';
@@ -21,7 +22,7 @@ import { FindPagesComponent } from '../../components/find-pages/find-pages.compo
   imports: [
     CommonModule, FormsModule, TranslateModule,
     SetupProjectComponent, SetupRepoComponent, AddCollaboratorsComponent, AddPagesComponent, FindPagesComponent,
-    DrawerModule, ButtonModule,
+    DrawerModule, ButtonModule, MessageModule
   ],
   templateUrl: './edit-project.component.html',
   styles: ``
@@ -30,10 +31,15 @@ export class EditProjectComponent {
   projectState = inject(ProjectStateService);
   iaDiagram = inject(IaDiagramService);
 
-  //Check if project is loaded
-  get projectLoaded(): boolean {
+  //Check if project is named and has repo
+  get hasName(): boolean {
     const name = this.projectState.getProject().projectName;
     return !!name;
+  }
+
+  get hasRepo(): boolean {
+    const repo = this.projectState.getProject().github.repo;
+    return !!repo;
   }
 
   //Todo: Collaborators management

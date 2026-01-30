@@ -155,7 +155,7 @@
                             tooltipPosition="top"
                             [ngClass]="collaboratorService.getCollaboratorColorClass(collab)">
                   </p-avatar>
-                  <p-avatar *ngIf="project.collaborators.length > 3" shape="circle" [label]="'+'+(project.collaborators.length - 3).toString()" [pTooltip]="'collaborator.plusMore' | translate: {number: project.collaborators.length - 3}" tooltipPosition="top" />
+                  <p-avatar *ngIf="project.collaborators.length > 3" shape="circle" [label]="'+'+(project.collaborators.length - 3).toString()" [pTooltip]="'collaborators.plusMore' | translate: {number: project.collaborators.length - 3}" tooltipPosition="top" />
                 </p-avatar-group>
               </div>
               <p-button icon="pi pi-share-alt" text rounded size="small" pTooltip="Share" *ngIf="authService.isAuthenticated()"></p-button-->

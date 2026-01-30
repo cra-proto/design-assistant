@@ -27,7 +27,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/design-assistant",
+            "outputPath": "dist/content-assistant",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [

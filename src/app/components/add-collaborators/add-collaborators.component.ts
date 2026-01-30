@@ -1,7 +1,7 @@
 import { Component, inject, computed, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from "@ngx-translate/core";
+import { TranslateModule, TranslateService } from "@ngx-translate/core";
 
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
@@ -33,6 +33,7 @@ export type CollaboratorMode = 'list' | 'dashboard' | 'switch';
     styles: ``
 })
 export class AddCollaboratorsComponent implements OnInit {
+    private translate = inject(TranslateService);
     private confirmationService = inject(ConfirmationService);
     collaboratorService = inject(CollaboratorService);
     projectState = inject(ProjectStateService);
@@ -48,22 +49,22 @@ export class AddCollaboratorsComponent implements OnInit {
     removeCollaborator(collab: GitHubUser) {
         const currentUser = this.exportGithub.user();
         if (currentUser && collab.id === currentUser.id) {
-            console.warn("Attempting to remove self from project");
             this.confirmationService.confirm({
                 icon: 'pi pi-exclamation-triangle',
-                header: 'Confirm Removal',
-                message: `Are you sure you want to remove yourself from this project?`,
+                header: this.translate.instant('collaborators.confirm.removeSelf.header'),
+                message: this.translate.instant('collaborators.confirm.removeSelf.message'),
                 acceptButtonProps: {
-                    label: 'Yes, remove me',
+                    label: this.translate.instant('collaborators.confirm.removeSelf.accept'),
                     severity: 'danger'
                 },
                 rejectButtonProps: {
-                    label: 'Cancel',
+                    label: this.translate.instant('common.cancel'),
                     severity: 'secondary',
                     outlined: true
                 },
                 accept: () => {
                     this.removeUser(collab);
+                    console.warn("You removed yourself from the project. You will no longer be able to save changes.");
                 }
             });
         } else {
@@ -85,7 +86,7 @@ export class AddCollaboratorsComponent implements OnInit {
     async ngOnInit() {
         const owner = this.projectData().github.owner;
         if (owner) {
-            console.log('Fetching org members for: ', owner);
+            //console.log('Fetching org members for: ', owner);
             this.orgMembers = await this.collaboratorService.getOrgMembers(owner);
             this.filteredCollaborators = [...this.orgMembers];
         }
@@ -127,7 +128,7 @@ export class AddCollaboratorsComponent implements OnInit {
         if (!selected.name && !selected.email) {
             const details = await this.collaboratorService.getUserDetails(selected.login);
             if (details) {
-                console.log('Fetched details for selected user:', details);
+                //console.log('Fetched details for selected user:', details);
                 const index = this.selectedCollaborators.findIndex(c => c.id === selected.id);
                 if (index !== -1) {
                     this.selectedCollaborators[index] = details;

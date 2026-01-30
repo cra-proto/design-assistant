@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, computed, effect } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 //PrimeNG Modules
 import { TableModule } from 'primeng/table';
@@ -28,7 +29,6 @@ import { IaDiagramService } from '../../components/ia-diagram/ia-diagram.service
 import { FindPagesComponent } from "../../components/find-pages/find-pages.component";
 
 import { environment } from '../../../environments/environment';
-
 
 @Component({
     selector: 'aida-inventory',
@@ -90,6 +90,16 @@ export class InventoryComponent implements OnInit {
             label: this.translate.instant(`inventory.columnGroups.${groupKey}`),
             value: groupKey,
         }));
+    }
+
+    private markForTranslation() {
+        marker('inventory.columnGroups.page');
+        marker('inventory.columnGroups.oppPage');
+        marker('inventory.columnGroups.github');
+        marker('inventory.columnGroups.status');
+        marker('inventory.columnGroups.owner');
+        marker('inventory.columnGroups.pageData');
+        marker('inventory.columnGroups.metadata');
     }
 
     // Multiselect - column groups

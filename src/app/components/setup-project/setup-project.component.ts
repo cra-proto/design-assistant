@@ -75,8 +75,8 @@ export class SetupProjectComponent {
     }
 
     storageOptions = [
-        { name: 'storage.browser', value: 'local' as const, icon: 'pi pi-desktop' },
-        { name: 'storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: this.collaboratorService.canEditProject }
+        { name: 'project.storage.browser', value: 'local' as const, icon: 'pi pi-desktop' },
+        { name: 'project.storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: this.collaboratorService.canEditProject }
     ];
 
 }

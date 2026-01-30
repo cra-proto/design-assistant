@@ -32,7 +32,6 @@ export class CollaboratorService {
 
         // Get list of all local projects
         const savedProjects = this.projectStorage.getLocalProjectList('saved');
-
         for (const metadata of savedProjects) {
             // Only process projects with empty collaborators
             if (!metadata.collaborators || metadata.collaborators.length === 0) {

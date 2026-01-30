@@ -13,7 +13,7 @@ import { environment } from '../../environments/environment';
       <img
           class="img-fluid fip-colour"
           [src]="logoSrc"
-          [alt]="'common.GoC' | translate"
+          [alt]="'common.goc' | translate"
         />
     </div>
 </footer>

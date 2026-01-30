@@ -8,7 +8,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "i18n:extract": "ngx-translate-extract --input ./src --output ./public/i18n/en.json ./public/i18n/fr.json --sort --format json",
-    "i18n:clean": "ngx-translate-extract --input ./src --output ./public/i18n/en.json ./public/i18n/fr.json --sort --format json --clean",
+    "i18n:clean": "ngx-translate-extract --input ./src --output ./public/i18n/en-new.json ./public/i18n/fr-new.json --sort --format json --clean",
     "checksize": "ng build --configuration production --base-href /content-assistant/ --stats-json && node scripts/check-size.js"
   },
   "private": true,

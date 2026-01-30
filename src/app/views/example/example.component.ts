@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { TranslateModule } from "@ngx-translate/core";
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 @Component({
   selector: 'aida-example',
@@ -7,25 +8,31 @@ import { TranslateModule } from "@ngx-translate/core";
   template: `
     <h1 id="wb-cont">{{ 'example._title' | translate}}</h1>
     <div [innerHTML]="'example.description' | translate"></div>
-    <!-- Views -->
-    <p>{{ 'dashboard._' | translate}}</p>
-    <p>{{ 'project._' | translate}}</p>
-    <p>{{ 'switch._' | translate}}</p>
-    <p>{{ 'inventory._' | translate}}</p>
-    <p>{{ 'github._' | translate}}</p>
-    <p>{{ 'about._' | translate}}</p>
-    <!-- Components -->
-    <p>{{ 'nav._' | translate}}</p>
-    <p>{{ 'export._' | translate}}</p>
-    <p>{{ 'signin._' | translate}}</p>
-    <p>{{ 'settings._' | translate}}</p>
-    <p>{{ 'collaborators._' | translate}}</p>
-    <p>{{ 'addPages._' | translate}}</p>
-    <p>{{ 'findPages._' | translate}}</p>
-    <p>{{ 'apiKey._' | translate}}</p>
   `,
   styles: ``
 })
 export class ExampleComponent {
-
+  /**
+  * Translation markers for visual separators in translation files.
+  * These keys (feature._) create visual breaks between feature sections.
+  * DO NOT REMOVE - needed to preserve separators during i18n:clean
+  */
+  markForTranslation() {
+    //Views
+    marker('dashboard._');
+    marker('project._');
+    marker('switch._');
+    marker('inventory._');
+    marker('github._');
+    marker('about._');
+    // Components
+    marker('nav._');
+    marker('export._');
+    marker('signin._');
+    marker('settings._');
+    marker('collaborators._');
+    marker('addPages._');
+    marker('findPages._');
+    marker('apiKey._');
+  }
 }

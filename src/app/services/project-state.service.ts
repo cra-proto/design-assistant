@@ -3,6 +3,7 @@ import { Project, ProjectMetadata, ProjectPhase, CurrentPhase, PageMeta, PageSta
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../environments/environment';
 import { FileUploadHandlerEvent } from 'primeng/fileupload';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { ProjectStorageService } from '../services/storage/project-storage.service';
 import { ExportGitHubService } from './github/export-github.service';
@@ -486,7 +487,7 @@ export class ProjectStateService {
 
 
     // Reset project
-    resetProject() {
+    async resetProject() {
         // Save current project if needed before resetting
         this.saveIfNeeded();
 
@@ -513,7 +514,7 @@ export class ProjectStateService {
             projectData: []
         });
 
-        this.saveStatus.set('saved');
+        await this.saveProject();
         console.log('Project reset');
     }
 
@@ -565,6 +566,29 @@ export class ProjectStateService {
         return flatNodes;
     }
 
+    markForTranslation() {
+        marker('inventory.header.h1');
+        marker('inventory.header.url');
+        marker('inventory.header.oppTitle');
+        marker('inventory.header.oppUrl');
+        marker('inventory.header.prototypeUrl');
+        marker('inventory.header.inScope');
+        marker('inventory.header.isOrphan');
+        marker('inventory.header.isNew');
+        marker('inventory.header.isMoved');
+        marker('inventory.header.isROT');
+        marker('inventory.header.archiveStatus');
+        marker('inventory.header.owner');
+        marker('inventory.header.email');
+        marker('inventory.header.template');
+        marker('inventory.header.task');
+        marker('inventory.header.visits');
+        marker('inventory.header.title');
+        marker('inventory.header.description');
+        marker('inventory.header.keywords');
+    }
+
+    // NOTE: Add new translation keys to the markForTranslation() method above
     getTreeTableColumns(): TableColumn[] {
         return [
             //Current Language

@@ -194,12 +194,11 @@ export class SwitchProjectComponent implements OnInit {
   }
 
 
-  newProject() {
+  async newProject() {
     this.projectStorage.clearActiveProject();
-    this.projectState.resetProject();
+    await this.projectState.resetProject();
     this.router.navigate(['/new-project']);
   }
-
 
   async saveProject() {
     const success = await this.projectState.saveProject();

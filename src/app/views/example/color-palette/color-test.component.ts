@@ -54,6 +54,7 @@ export class ColorTestComponent {
       case 'deutan': presetPromise = import('../../../common/theme-presets/preset-deutan'); break;
       case 'protan': presetPromise = import('../../../common/theme-presets/preset-protan'); break;
       case 'tritan': presetPromise = import('../../../common/theme-presets/preset-tritan'); break;
+      case 'custom': presetPromise = import('../../../common/theme-presets/preset-custom'); break;
       default: presetPromise = import('../../../common/theme-presets/preset');
     }
 

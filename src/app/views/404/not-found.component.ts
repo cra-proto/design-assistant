@@ -12,11 +12,11 @@ import { TranslateModule } from "@ngx-translate/core";
 })
 export class NotFoundComponent implements OnInit {
 
-  random404Key = '404.message.0';
+  random404Key = 'notFound.message.0';
 
   ngOnInit() {
     const randomIndex = Math.floor(Math.random() * 6);
-    this.random404Key = `404.message.${randomIndex}`;
+    this.random404Key = `notFound.message.${randomIndex}`;
     console.log('Selected 404 message key:', this.random404Key);
   }
 }

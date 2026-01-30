@@ -237,7 +237,7 @@ ng generate --help
 ### NPM Scripts
 
 - **`npm run i18n:extract`** - Extract and sort all translation keys (preserves unused keys)
-- **`npm run i18n:clean`** - Remove unused keys and sort everything (use before releases)
+- **`npm run i18n:clean`** - Remove unused keys (including dyncamically generated keys) and sort everything (do not use on main translation files)
 
 ### During Active Development
 
@@ -254,16 +254,16 @@ When adding new features with translation keys:
 
 4. Add translations and save
 
-### Before a Release
+### Maintenance
 
-When preparing for a release or during maintenance:
+We have dynamically generated translation keys so we cannot use --clean on our main translation files. If the files need to be cleaned up:
 
-1. Run a full cleanup to remove unused keys:
+1. Run this to create a separate translation file without the unused keys.
 ```bash
    npm run i18n:clean
 ```
 
-2. Review the changes to ensure no important keys were removed
+2. Review what was removed and manually remove keys from the main translation files.
 
 3. Commit the cleaned translation files
 
@@ -271,7 +271,9 @@ When preparing for a release or during maintenance:
 
 - **`_.*`** - App-level constants (sorts to top)
 - **`common.*`** - Reusable text across the app (yes, no, cancel, etc.)
-- **`title.*`** - Page and section titles
+- **`[feature]._*`** - Section dividers (for easy scanning)
+- **`[feature]._nav*`** - Page titles to be used in navigation
+- **`[feature]._title*`** - Page and section titles
 - **`[feature].*`** - Feature-specific translations (e.g., `projects.*`, `inventory.*`)
 
 ## VS Code Setup

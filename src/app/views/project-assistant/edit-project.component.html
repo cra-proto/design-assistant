@@ -1,4 +1,12 @@
-<h1 id="wb-cont">{{ (projectLoaded ? 'project._nav.edit' : 'project._nav.new') | translate }}</h1>
+<h1 id="wb-cont">{{ (hasName ? 'project._nav.edit' : 'project._nav.new') | translate }}</h1>
+
+<!--TODO: move these 2 messages to their respective components, under the H2's-->
+@if (!hasName){
+<p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'project.message.noName' | translate" styleClass="mb-2" />
+}
+@if(!hasRepo){
+<p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'project.message.noRepo' | translate" styleClass="mb-2" />
+}
 
 <div class="flex lg:flex-row flex-column gap-3">
     <!--Project Card-->

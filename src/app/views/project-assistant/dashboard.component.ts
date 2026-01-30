@@ -52,7 +52,7 @@ export class DashboardComponent {
     if (currentPhase === ProjectPhase.Draft) {
       return this.displayedPhases.map(phase => ({
         name: phase,
-        status: 'status.pending' as PhaseStatus
+        status: 'phase.status.pending' as PhaseStatus
       }));
     }
 
@@ -60,7 +60,7 @@ export class DashboardComponent {
     if (currentPhase === ProjectPhase.Complete) {
       return this.displayedPhases.map(phase => ({
         name: phase,
-        status: 'status.complete' as PhaseStatus
+        status: 'phase.status.complete' as PhaseStatus
       }));
     }
 
@@ -70,9 +70,9 @@ export class DashboardComponent {
     return this.displayedPhases.map((phase, index) => ({
       name: phase,
       status:
-        index < currentIndex ? 'status.complete' as PhaseStatus :
-          index === currentIndex ? 'status.current' as PhaseStatus :
-            'status.pending' as PhaseStatus
+        index < currentIndex ? 'phase.status.complete' as PhaseStatus :
+          index === currentIndex ? 'phase.status.current' as PhaseStatus :
+            'phase.status.pending' as PhaseStatus
     }));
   }
 
@@ -80,12 +80,12 @@ export class DashboardComponent {
     const clickedIndex = this.displayedPhases.indexOf(phase.name);
     const currentPhase = this.projectData.phase;
     //Set clicked phase to current if NOT current
-    if (phase.status !== 'status.current') {
+    if (phase.status !== 'phase.status.current') {
       this.projectState.setProjectPhase(phase.name);
       return;
     }
     //Advance to next phase if clicked phase was current
-    if (phase.status === 'status.current') {
+    if (phase.status === 'phase.status.current') {
       if (clickedIndex === this.displayedPhases.length - 1) {
         this.projectState.setProjectPhase(ProjectPhase.Complete); // Last phase (not in displayedPhases)
       } else {
