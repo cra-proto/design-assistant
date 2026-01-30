@@ -4,12 +4,17 @@
   "scripts": {
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration production",
+    "build:dev": "ng build --configuration development",
+    "build:sandbox": "ng build --configuration sandbox",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
+    "predeploy": "ng build --configuration production --base-href /ai-design-assistant/",
+    "deploy": "npx angular-cli-ghpages --dir=dist/ai-design-assistant/browser --no-silent --branch=gh-pages",
     "i18n:extract": "ngx-translate-extract --input ./src --output ./public/i18n/en.json ./public/i18n/fr.json --sort --format json",
     "i18n:clean": "ngx-translate-extract --input ./src --output ./public/i18n/en-new.json ./public/i18n/fr-new.json --sort --format json --clean",
-    "checksize": "ng build --configuration production --base-href /content-assistant/ --stats-json && node scripts/check-size.js"
+    "checksize": "ng build --configuration production --base-href /ai-design-assistant/ --stats-json && node scripts/check-size.js"
   },
   "private": true,
   "dependencies": {
