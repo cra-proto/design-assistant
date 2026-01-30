@@ -236,8 +236,8 @@ ng generate --help
 
 ### NPM Scripts
 
-- **`npm run i18n:extract`** - Extract and sort all translation keys (preserves unused keys)
-- **`npm run i18n:clean`** - Remove unused keys (including dyncamically generated keys) and sort everything (do not use on main translation files)
+- **`npm run i18n:extract`** - Extract and sort all translation keys
+- **`npm run i18n:clean`** - Remove unused keys and sort everything
 
 ### During Active Development
 
@@ -254,18 +254,30 @@ When adding new features with translation keys:
 
 4. Add translations and save
 
-### Maintenance
+### Marking Dynamic Translation Keys
 
-We have dynamically generated translation keys so we cannot use --clean on our main translation files. If the files need to be cleaned up:
+For dynamically generated translation keys (e.g., keys built from variables), use the `marker` function to ensure they aren't removed during cleanup:
+```typescript
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
-1. Run this to create a separate translation file without the unused keys.
-```bash
-   npm run i18n:clean
+private markForTranslation() {
+    marker('inventory.columnGroups.page');
+    marker('inventory.columnGroups.oppPage');
+    marker('inventory.columnGroups.github');
+    marker('inventory.columnGroups.status');
+}
 ```
 
-2. Review what was removed and manually remove keys from the main translation files.
+**Important:** Always run `npm run i18n:extract` after adding translations to verify all keys are properly marked. If keys are missing, add the `marker()` function for those keys.
 
-3. Commit the cleaned translation files
+### Maintenance & Cleanup
+
+To remove unused translation keys:
+```bash
+npm run i18n:clean
+```
+
+Review the changes to ensure no dynamically generated keys were accidentally removed (if they were, they need `marker()` added).
 
 ### Translation Key Conventions
 
