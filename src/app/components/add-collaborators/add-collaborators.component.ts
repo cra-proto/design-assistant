@@ -2,6 +2,7 @@ import { Component, inject, computed, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
@@ -43,6 +44,8 @@ export class AddCollaboratorsComponent implements OnInit {
     @Input() mode: CollaboratorMode = 'list';
     @Input() collabs: GitHubUser[] | null = null;
 
+    readonly maxVisibleCollaborators = 5;
+
     projectData = this.projectState.getProject;
     collaborators = computed(() => this.collabs ?? this.projectData().collaborators);
 
@@ -65,7 +68,7 @@ export class AddCollaboratorsComponent implements OnInit {
                 },
                 accept: () => {
                     this.removeUser(collab);
-                    console.warn("You removed yourself from the project. You will no longer be able to save changes.");
+                    console.warn("You removed yourself from the project. You will no longer be able to save changes to the cloud.");
                 }
             });
         } else {
@@ -160,18 +163,25 @@ export class AddCollaboratorsComponent implements OnInit {
         this.selectedCollaborators = []; // Reset on close
     }
 
+    private markForTranslation() {
+        marker('collaborators.email.requestAccess.subject');
+        marker('collaborators.email.requestAccess.bodyEN');
+        marker('collaborators.email.requestAccess.bodyFR');
+    }
+
     // Request access button
     getRequestAccessMailto(): string {
         const emails = this.collaboratorService.getCollaboratorEmails(this.collaborators());
         const name = this.projectData().projectName;
         const user = this.exportGithub.user();
         if (emails.length === 0) return '';
-        const subject = encodeURIComponent(`Request access to "${name}" project in AIDA`);
-        const body = encodeURIComponent(
-            `Hi,\n\nCan you add "${user}" as a collaborator to the "${name}" project in AIDA?\n\nThank you!\n\n\n\n` +
-            `Bonjour,\n\nPouvez-vous ajouter « ${user} » en tant que collaborateur au projet « ${name} » dans AIDA ?\n\nMerci!`
-        );
-        return `mailto:${emails.join(',')}?subject=${subject}&body=${body}`;
+
+        const subject = this.translate.instant('collaborators.email.requestAccess.subject', { name });
+        const bodyEn = this.translate.instant('collaborators.email.requestAccess.bodyEN', { user, name });
+        const bodyFr = this.translate.instant('collaborators.email.requestAccess.bodyFR', { user, name });
+        const body = `${bodyEn}\n\n\n\n${bodyFr}`;
+
+        return `mailto:${emails.join(',')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     }
 
     openMailto(mailto: string): void {

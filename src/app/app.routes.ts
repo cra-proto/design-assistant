@@ -50,42 +50,42 @@ export const routes: Routes = [
     {
         path: 'new-project',
         component: EditProjectComponent,
-        title: 'title.new-project',
+        title: 'newProject._title',
     },
     {
         path: 'edit-project',
         component: EditProjectComponent,
-        title: 'title.edit-project',
+        title: 'editProject._title',
     },
     {
         path: 'auth/login',
         component: GithubConnectComponent,
-        title: 'title.ia',
+        title: 'app._title',
     },
     {
         path: 'auth/callback',
         component: AuthCallbackComponent,
-        title: 'title.ia',
+        title: 'app._title',
     },
     {
         path: 'export-github',
         component: ExportGithubComponent,
-        title: 'title.ia',
+        title: 'exportGithub._title',
     },
     {
         path: 'test',
         loadComponent: () => import('./views/example/example.component').then(m => m.ExampleComponent),
-        title: 'title.patterns',
+        title: 'example._title',
     },
     {
         path: 'colors',
         loadComponent: () => import('./views/example/color-palette/color-test.component').then(m => m.ColorTestComponent),
-        title: 'title.colors',
+        title: 'example.colors._title',
     },
     {
         path: 'patterns',
         loadComponent: () => import('./views/example/design-patterns/design-patterns.component').then(m => m.DesignPatternsComponent),
-        title: 'title.patterns',
+        title: 'example.patterns._title',
     },
     /* {
          path: 'page-assistant/share',
@@ -143,13 +143,9 @@ export const routes: Routes = [
     {
         path: 'inventory',
         component: InventoryComponent,
-        title: 'title.inventory',
+        title: 'inventory._title',
     },
-    {
-        path: 'airtable',
-        component: GetTaskUrlsComponent,
-        title: 'title.inventory',
-    },/*
+    /*
      {
          path: 'metadata-assistant',
          component: MetadataAssistantComponent,
@@ -168,12 +164,12 @@ export const routes: Routes = [
     {
         path: 'ia-diagram',
         component: IaDiagramComponent,
-        title: 'title.ia',
+        title: 'iaDiagram._title',
     },
     {
         path: '**',
         component: NotFoundComponent,
-        title: 'title.404',
+        title: 'notFound._title',
     },
 ];
 export default routes;

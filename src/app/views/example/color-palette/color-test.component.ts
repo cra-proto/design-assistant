@@ -2,7 +2,9 @@ import { Component, inject, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { RouterLink } from '@angular/router';
 
+import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { BadgeModule } from 'primeng/badge';
@@ -20,8 +22,8 @@ import { updatePreset } from '@primeng/themes';
   selector: 'aida-color-test',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, TranslateModule,
-    ButtonModule, TagModule, BadgeModule, MessageModule,
+    CommonModule, FormsModule, TranslateModule, RouterLink,
+    BreadcrumbModule, ButtonModule, TagModule, BadgeModule, MessageModule,
     DividerModule,
     UserSettingsComponent, ColorPickerComponent, CopyPresetComponent
   ],
@@ -31,6 +33,8 @@ import { updatePreset } from '@primeng/themes';
 export class ColorTestComponent {
   theme = inject(ThemeService);
   customShades: Record<string, Record<number, string>> = {};
+
+  breadcrumbs = [{ label: 'example._title', route: '/test' }, { label: 'example.colors._title' }]
 
   onColorChange(event: { hex: string; shades: Record<number, string> }, color: 'primary' | 'red' | 'green' | 'purple') {
     this.customShades[color] = event.shades;

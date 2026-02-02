@@ -9,15 +9,15 @@ import { TreeNode } from "primeng/api";
 
 //Project phase
 export enum ProjectPhase {
-    Draft = 'phase.draft',
-    Discover = 'phase.discover',
-    Assess = 'phase.assess',
-    Design = 'phase.design',
-    Approve = 'phase.approve',
-    Complete = 'phase.complete'
+    Draft = 'project.phase.draft',
+    Discover = 'project.phase.discover',
+    Assess = 'project.phase.assess',
+    Design = 'project.phase.design',
+    Approve = 'project.phase.approve',
+    Complete = 'project.phase.complete'
 }
 
-export type PhaseStatus = 'phase.status.complete' | 'phase.status.current' | 'phase.status.pending';
+export type PhaseStatus = 'project.phase.status.complete' | 'project.phase.status.current' | 'project.phase.status.pending';
 
 export interface CurrentPhase {
     name: ProjectPhase;

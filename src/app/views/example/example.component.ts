@@ -5,10 +5,11 @@ import { TranslateModule } from "@ngx-translate/core";
 import { RouterLink } from '@angular/router';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { CheckboxModule } from 'primeng/checkbox';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'aida-example',
-  imports: [TranslateModule, CommonModule, FormsModule, CheckboxModule, RouterLink],
+  imports: [TranslateModule, CommonModule, FormsModule, CheckboxModule, RouterLink, ButtonModule],
   template: `
     <h1 id="wb-cont">{{ 'example._title' | translate}}</h1>
     <p>{{ 'example.description' | translate}}</p>
@@ -42,6 +43,10 @@ import { CheckboxModule } from 'primeng/checkbox';
               <label [for]="component.name + '-trans'" class="ml-2">Translations</label>
             </div>
             <div class="flex align-items-center">
+              <p-checkbox [(ngModel)]="component.help" [binary]="true" inputId="{{component.name}}-help" (onChange)="saveChecklist()" />
+              <label [for]="component.name + '-help'" class="ml-2">Help Messages</label>
+            </div>
+            <div class="flex align-items-center">
               <p-checkbox [(ngModel)]="component.reactivity" [binary]="true" inputId="{{component.name}}-react" (onChange)="saveChecklist()" />
               <label [for]="component.name + '-react'" class="ml-2">Reactivity</label>
             </div>
@@ -52,10 +57,6 @@ import { CheckboxModule } from 'primeng/checkbox';
             <div class="flex align-items-center">
               <p-checkbox [(ngModel)]="component.lint" [binary]="true" inputId="{{component.name}}-lint" (onChange)="saveChecklist()" />
               <label [for]="component.name + '-lint'" class="ml-2">Lint Errors</label>
-            </div>
-            <div class="flex align-items-center">
-              <p-checkbox [(ngModel)]="component.help" [binary]="true" inputId="{{component.name}}-help" (onChange)="saveChecklist()" />
-              <label [for]="component.name + '-help'" class="ml-2">Help Messages</label>
             </div>
             <div class="flex align-items-center">
               <p-checkbox [(ngModel)]="component.consoleLogs" [binary]="true" inputId="{{component.name}}-console" (onChange)="saveChecklist()" />
@@ -75,6 +76,7 @@ import { CheckboxModule } from 'primeng/checkbox';
     }
   </div>
 </div>
+<p-button (click)="exportChecklist()" styleClass="mt-4">Export progress to console</p-button>
   `,
   styles: ``
 })
@@ -101,55 +103,368 @@ export class ExampleComponent {
     marker('addPages._');
     marker('findPages._');
     marker('apiKey._');
+    marker('project.github._');
+    marker('project.message._');
+    marker('project.phase._');
+    marker('project.setup._');
+    marker('project.phase._');
+    marker('project.phase._');
+
   }
 
 
   componentChecklist: any[] = [
-    // Sub-components
-    { isHeader: true, name: 'Sub-components' },
-    { name: 'Add Collaborators', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Add Pages', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Auth Callback', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Export Project', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Find Pages', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Get Task URLs', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'GitHub Connect', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'PAT', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Setup Project', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Setup Repo', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'User Settings', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-
-    // Template
-    { isHeader: true, name: 'Template' },
-    { name: 'Header', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Sidebar', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Footer', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'App', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-
-    // Main Views
-    { isHeader: true, name: 'Main Views' },
-    { name: 'Dashboard', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Edit Project', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Switch Project', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Inventory', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'IA Diagram', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Export GitHub', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'About', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Not Found', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-
-    // Dev Components
-    { isHeader: true, name: 'Dev Components' },
-    { name: 'Example', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Color Picker', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Color Test', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Copy Preset', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'Design Patterns', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-
-    // Deprecated
-    { isHeader: true, name: 'Deprecated' },
-    { name: 'API Key', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-    { name: 'API Reset', translations: false, reactivity: false, unusedFunctions: false, lint: false, help: false, consoleLogs: false, responsive: false, aria: false },
-  ];
+    {
+      "isHeader": true,
+      "name": "Sub-components"
+    },
+    {
+      "name": "Add Collaborators",
+      "translations": true,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": true,
+      "help": true,
+      "consoleLogs": true,
+      "responsive": true,
+      "aria": false
+    },
+    {
+      "name": "Add Pages",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Auth Callback",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": true,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Export Project",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Find Pages",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Get Task URLs",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "GitHub Connect",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "PAT",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": true,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Setup Project",
+      "translations": true,
+      "reactivity": true,
+      "unusedFunctions": true,
+      "lint": true,
+      "help": true,
+      "consoleLogs": true,
+      "responsive": true,
+      "aria": false
+    },
+    {
+      "name": "Setup Repo",
+      "translations": true,
+      "reactivity": true,
+      "unusedFunctions": true,
+      "lint": true,
+      "help": true,
+      "consoleLogs": true,
+      "responsive": true,
+      "aria": false
+    },
+    {
+      "name": "User Settings",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": true,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "isHeader": true,
+      "name": "Template"
+    },
+    {
+      "name": "Header",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Sidebar",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": true,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Footer",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "App",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "isHeader": true,
+      "name": "Main Views"
+    },
+    {
+      "name": "Dashboard",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Edit Project",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Switch Project",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Inventory",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "IA Diagram",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Export GitHub",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "About",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": true,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Not Found",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": true,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "isHeader": true,
+      "name": "Dev Components"
+    },
+    {
+      "name": "Example",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Color Picker",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Color Test",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Copy Preset",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "Design Patterns",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": true,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "isHeader": true,
+      "name": "Deprecated"
+    },
+    {
+      "name": "API Key",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    },
+    {
+      "name": "API Reset",
+      "translations": false,
+      "reactivity": false,
+      "unusedFunctions": false,
+      "lint": false,
+      "help": false,
+      "consoleLogs": false,
+      "responsive": false,
+      "aria": false
+    }
+  ]
 
   ngOnInit() {
     //localStorage.removeItem('componentQAChecklist'); // Uncomment to reset checklist
@@ -161,6 +476,10 @@ export class ExampleComponent {
 
   saveChecklist() {
     localStorage.setItem('componentQAChecklist', JSON.stringify(this.componentChecklist));
+  }
+
+  exportChecklist() {
+    console.log(JSON.stringify(this.componentChecklist, null, 2));
   }
 
 }

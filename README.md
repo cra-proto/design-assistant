@@ -288,6 +288,10 @@ Review the changes to ensure no dynamically generated keys were accidentally rem
 - **`[feature]._title*`** - Page and section titles
 - **`[feature].*`** - Feature-specific translations (e.g., `projects.*`, `inventory.*`)
 
+### Avoid translate.instant()
+
+translate.instant() does not update when a user toggles languages. 
+
 ## VS Code Setup
 
 Recommended extensions:

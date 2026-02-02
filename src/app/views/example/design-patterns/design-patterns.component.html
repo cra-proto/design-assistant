@@ -1,3 +1,14 @@
+<p-breadcrumb [model]="breadcrumbs">
+    <ng-template pTemplate="item" let-item>
+        <a [routerLink]="item.route" *ngIf="item.route" class="p-menuitem-link">
+            {{ item.label | translate }}
+        </a>
+        <span *ngIf="!item.route" class="p-menuitem-text">
+            {{ item.label | translate }}
+        </span>
+    </ng-template>
+</p-breadcrumb>
+
 <div class="p-4">
     <h1>{{ 'example.patterns._title' | translate }}</h1>
     <p class="text-color-secondary mb-4">{{ 'example.patterns.description' | translate }}</p>

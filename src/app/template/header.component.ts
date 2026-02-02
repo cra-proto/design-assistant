@@ -132,14 +132,6 @@ export class HeaderComponent {
     };
   });
 
-  get project(): string {
-    const repo = this.projectState.getProject().github.repo;
-    const display = repo
-      ? repo.replace(/-/g, " ").replace(/^\w/, char => char.toUpperCase())
-      : this.translate.instant("project.save");
-    return `${this.translate.instant("project.display")} ${display}`;
-  }
-
   get logoSrc() {
     return this.theme.darkMode() ? 'cra-logo-dark.png' : 'cra-logo.png';
   }

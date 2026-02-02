@@ -2,6 +2,7 @@ import { Component, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 //PrimeNG modules
 import { IftaLabelModule } from 'primeng/iftalabel';
@@ -9,6 +10,7 @@ import { KeyFilterModule } from 'primeng/keyfilter';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { MessageModule } from 'primeng/message';
 
 //Custom components and services
 import { ProjectStateService } from '../../services/project-state.service';
@@ -19,7 +21,7 @@ import { ProjectPhase } from '../../common/data.model';
     selector: 'aida-setup-project',
     imports: [
         CommonModule, FormsModule, TranslateModule,
-        IftaLabelModule, KeyFilterModule, InputTextModule, SelectModule, SelectButtonModule,
+        IftaLabelModule, KeyFilterModule, InputTextModule, SelectModule, SelectButtonModule, MessageModule
     ],
     templateUrl: './setup-project.component.html',
     styles: ``
@@ -29,9 +31,10 @@ export class SetupProjectComponent {
     collaboratorService = inject(CollaboratorService);
 
     constructor() {
-        // Refresh projectName when there are changes to repo name
+        // Refresh projectName when there are changes to repo name (for initial sync fxn)
         effect(() => {
-            const stateRepo = this.projectData.github.repo;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const stateRepo = this.projectData.github.repo; // waching for changes to repo name
             this.projectName = this.projectData.projectName;
         });
     }
@@ -57,6 +60,20 @@ export class SetupProjectComponent {
         this.projectState.setProjectPhase(value);
     }
 
+    markForTranslation() {
+        marker('project.setup.storage.local');
+        marker('project.setup.storage.cloud');
+        marker('project.phase.approve');
+        marker('project.phase.assess');
+        marker('project.phase.complete');
+        marker('project.phase.design');
+        marker('project.phase.discover');
+        marker('project.phase.draft');
+        marker('project.phase.status.complete');
+        marker('project.phase.status.current');
+        marker('project.phase.status.pending');
+    }
+
     phaseOptions = [
         { name: ProjectPhase.Draft, value: ProjectPhase.Draft },
         { name: ProjectPhase.Discover, value: ProjectPhase.Discover },
@@ -75,8 +92,8 @@ export class SetupProjectComponent {
     }
 
     storageOptions = [
-        { name: 'project.storage.browser', value: 'local' as const, icon: 'pi pi-desktop' },
-        { name: 'project.storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: this.collaboratorService.canEditProject }
+        { name: 'project.setup.storage.local', value: 'local' as const, icon: 'pi pi-desktop' },
+        { name: 'project.setup.storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: this.collaboratorService.canEditProject }
     ];
 
 }

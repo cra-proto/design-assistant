@@ -2,7 +2,8 @@
 <h2 class="text-2xl my-1">{{'collaborators._title' | translate}}</h2>
 @if(collaborators().length > 0){
 <ul class="list-unstyled">
-    <li *ngFor="let collab of collaborators()" [class.mb-2]="!collaboratorService.canEditProject(projectData())">
+    @for(collab of collaborators(); track collab.id) {
+    <li [class.mb-2]="!collaboratorService.canEditProject(projectData())">
         <div class="flex flex-row justify-content-between align-items-center gap-2">
             <div class="flex align-items-center gap-2">
                 <p-avatar
@@ -19,6 +20,7 @@
             }
         </div>
     </li>
+    }
 </ul>
 <p-confirmDialog />
 @if(collaboratorService.canEditProject(projectData())){
@@ -41,7 +43,7 @@
         </ng-template>
         <ng-template let-selected #selectedItem>{{selected.login}}</ng-template>
     </p-autocomplete>
-    <label for="collab">{{'collaborators.select' | translate}}</label>
+    <label for="collab">{{'collaborators.label.select' | translate}}</label>
 </p-iftalabel>
 <p-button [label]="'common.add' | translate" icon="pi pi-plus" class="flex justify-content-end mt-2" [disabled]="selectedCollaborators.length===0"
           (onClick)="addSelectedCollaborators()" />
@@ -66,19 +68,25 @@
 }
 }
 @if(mode==="dashboard" || mode==="switch"){
+@if(collaborators().length > 0){
 <div class="flex flex-row align-content-center">
     <p-avatar-group>
-        <p-avatar *ngFor="let collab of collaborators().slice(0, 3)"
-                  shape="circle"
+        @for(collab of collaborators().slice(0, maxVisibleCollaborators); track collab.id) {
+        <p-avatar shape="circle"
                   [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
                   [image]="collab.avatar_url || undefined"
                   [pTooltip]="collaboratorService.getCollaboratorName(collab)"
                   tooltipPosition="top"
                   [ngClass]="collaboratorService.getCollaboratorColorClass(collab)" />
-        <p-avatar *ngIf="collaborators().length > 3" shape="circle" [label]="'+'+(collaborators().length - 3).toString()" [pTooltip]="'collaborators.plusMore' | translate: {number: collaborators().length - 3}" tooltipPosition="top" />
+        }
+        @if(collaborators().length > maxVisibleCollaborators){
+        <p-avatar shape="circle" [label]="'+'+(collaborators().length - maxVisibleCollaborators).toString()" [pTooltip]="'collaborators.plusMore' | translate: {number: collaborators().length - maxVisibleCollaborators}" tooltipPosition="top" />
+        }
     </p-avatar-group>
     @if(mode ==="dashboard"){
-    <p-button icon="pi pi-share-alt" text rounded size="small" [pTooltip]="'collaborators.addCollab' | translate" *ngIf="collaboratorService.canEditProject(projectData())" (onClick)="openShareDialog()" />
+    @if(collaboratorService.canEditProject(projectData())){
+    <p-button icon="pi pi-share-alt" text rounded size="small" [pTooltip]="'collaborators.addCollab' | translate" (onClick)="openShareDialog()" />
+    }
     <p-dialog [(visible)]="showShareDialog"
               [header]="'collaborators.addCollab' | translate"
               [modal]="true"
@@ -103,7 +111,7 @@
                 </ng-template>
                 <ng-template let-selected #selectedItem>{{selected.login}}</ng-template>
             </p-autocomplete>
-            <label for="collab">{{'collaborators.select' | translate}}</label>
+            <label for="collab">{{'collaborators.label.select' | translate}}</label>
         </p-iftalabel>
         <div class="flex justify-content-end gap-2 mt-3">
             <p-button [label]="'common.cancel' | translate"
@@ -119,4 +127,7 @@
     </p-dialog>
     }
 </div>
+} @else {
+<p class="text-md mt-0">{{'common.none' | translate}}</p>
+}
 }

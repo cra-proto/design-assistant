@@ -1,37 +1,26 @@
-import { Component, inject, OnInit, computed, effect } from '@angular/core';
+import { Component, inject, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { RouterLink } from '@angular/router';
 
 //PrimeNG modules
-import { InputTextModule } from 'primeng/inputtext';
-import { TextareaModule } from 'primeng/textarea';
-import { SelectModule } from 'primeng/select';
 import { IftaLabelModule } from 'primeng/iftalabel';
-import { CheckboxModule } from 'primeng/checkbox';
+import { InputTextModule } from 'primeng/inputtext';
 import { AutoCompleteModule, AutoCompleteCompleteEvent, AutoCompleteSelectEvent } from 'primeng/autocomplete';
+import { CheckboxModule } from 'primeng/checkbox';
 import { KeyFilterModule } from 'primeng/keyfilter';
 import { MessageModule } from 'primeng/message';
-import { ButtonModule } from 'primeng/button';
-import { DrawerModule } from 'primeng/drawer';
-import { OrganizationChartModule } from 'primeng/organizationchart';
-import { TreeNode } from 'primeng/api';
-import { TooltipModule } from 'primeng/tooltip';
 
 //Custom components and services
 import { ProjectStateService } from '../../services/project-state.service';
 import { ExportGitHubService } from '../../services/github/export-github.service';
-import { GitHubAuthService } from '../../services/github/github-auth.service';
 import { environment } from '../../../environments/environment';
-
 
 @Component({
   selector: 'aida-setup-repo',
   imports: [
     CommonModule, FormsModule, TranslateModule,
-    InputTextModule, TextareaModule, SelectModule, IftaLabelModule, CheckboxModule, AutoCompleteModule, KeyFilterModule, MessageModule,
-    DrawerModule, ButtonModule, OrganizationChartModule, TooltipModule
+    InputTextModule, IftaLabelModule, CheckboxModule, AutoCompleteModule, KeyFilterModule, MessageModule,
   ],
   templateUrl: './setup-repo.component.html',
   styles: ``
@@ -39,13 +28,13 @@ import { environment } from '../../../environments/environment';
 export class SetupRepoComponent implements OnInit {
   projectState = inject(ProjectStateService);
   exportGitHubService = inject(ExportGitHubService);
-  authService = inject(GitHubAuthService);
   defaultOrg = environment.defaultOrg
 
   constructor() {
-    // Refresh gitHubRepo when there are changes to project name
+    // Refresh gitHubRepo when there are changes to project name (for initial sync fxn)
     effect(() => {
-      const stateName = this.projectData.projectName;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const stateName = this.projectData.projectName; // waching for changes to project name
       this.gitHubRepo = this.projectData.github.repo;
     });
   }
@@ -110,9 +99,9 @@ export class SetupRepoComponent implements OnInit {
 
   //Loads repo list for filtering
   repos: string[] = [];
-  ownerError = '';
+  ownerError: { key: string, params?: { owner: string } } | null = null;
   async updateRepoList() {
-    this.ownerError = '';
+    this.ownerError = null;
     this.repos = [];
 
     try {
@@ -121,14 +110,14 @@ export class SetupRepoComponent implements OnInit {
     }
     catch (error) {
       if ((error as Error).message?.includes('404')) {
-        this.ownerError = `GitHub owner "${this.gitHubOwner}" not found.`;
+        this.ownerError = { key: 'project.github.error.ownerNotFound', params: { owner: this.gitHubOwner } };
       } else {
-        this.ownerError = `Failed to load repositories for "${this.gitHubOwner}".`;
+        this.ownerError = { key: 'project.github.error.loadFailed', params: { owner: this.gitHubOwner } };
       }
     }
   }
 
-  //Filters repo list for autocomplete
+  //Filters repo list for autocomplete (starts with, then includes)
   filteredRepos: string[] = [];
   filterRepos(event: AutoCompleteCompleteEvent) {
     const query = event.query?.trim().toLowerCase() || '';

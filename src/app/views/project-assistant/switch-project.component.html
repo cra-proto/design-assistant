@@ -135,7 +135,7 @@
               <div>
                 <i class="pi pi-copy mr-2"></i>Pages: {{ project.inScopePages }}
               </div>
-              <div *ngIf="project.phase && project.phase !== 'phase.draft'">
+              <div *ngIf="project.phase && project.phase !== 'project.phase.draft'">
                 <i [class]="'pi pi-' + getPhaseIcon(project.phase) + ' mr-2'"></i>Phase: {{ project.phase | translate }}
               </div>
               <div>

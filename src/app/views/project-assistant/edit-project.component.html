@@ -1,6 +1,6 @@
 <h1 id="wb-cont">{{ (hasName ? 'project._nav.edit' : 'project._nav.new') | translate }}</h1>
 
-<!--TODO: move these 2 messages to their respective components, under the H2's-->
+<!--Messages if user has required actions that affect the app globally-->
 @if (!hasName){
 <p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'project.message.noName' | translate" styleClass="mb-2" />
 }
@@ -8,28 +8,81 @@
 <p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'project.message.noRepo' | translate" styleClass="mb-2" />
 }
 
-<div class="flex lg:flex-row flex-column gap-3">
-    <!--Project Card-->
-    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
-        <aida-setup-project />
-    </div>
-    <!--GitHub Card-->
-    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
-        <aida-setup-repo />
-    </div>
-    <!--Collaborators Card-->
-    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
-        <aida-add-collaborators mode="list" />
-    </div>
-</div>
+<!--Content-->
+<div class="flex flex-column gap-3">
 
-<div class="flex lg:flex-row flex-column gap-3">
-    <div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0 lg:w-8">
+    <!--Row 1-->
+    <div class="flex lg:flex-row flex-column gap-3">
+        <!--Project Card-->
+        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-4 min-w-min">
+            <aida-setup-project />
+        </div>
+        <!--GitHub Card-->
+        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-4 min-w-min">
+            <aida-setup-repo />
+        </div>
+        <!--Collaborators Card-->
+        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-4 min-w-min">
+            <aida-add-collaborators mode="list" />
+        </div>
+    </div>
+
+    <!--Row 2-->
+    <div class="flex lg:flex-row flex-column gap-3">
+        <!--Add Pages Card-->
+        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-6 min-w-min">
+            <aida-add-pages />
+        </div>
+        <!--Find Pages Card-->
+        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-6 min-w-min">
+            <aida-find-pages />
+        </div>
+    </div>
+
+    <!--Row 3-->
+    <!--Current Pages Card-->
+    <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+        <div class="flex lg:flex-row flex-column gap-2">
+            <h2 class="text-2xl my-1">View pages</h2>
+            <div class="flex flex-row justify-content-center align-items-center">
+                <i class="pi pi-copy text-primary text-6xl"></i>
+                <div class="flex flex-column">
+                    <p class="my-0 font-bold text-2xl">{{inScopePageCount()}}</p>
+                    <p class="my-0">pages</p>
+                </div>
+            </div>
+
+            <p-button
+                      label="View project URLs"
+                      icon="pi pi-list"
+                      outlined
+                      size="small"
+                      styleClass="secondary-outline w-full min-w-max"
+                      (click)="showUrls = true" />
+            <p-drawer header="URLs" [(visible)]="showUrls" position="right" styleClass="w-6">
+                <ul>
+                    @for(url of projectState.getAllUrls('inScope'); track url){
+                    <li>{{url}}</li>
+                    }
+                </ul>
+            </p-drawer>
+            <p-button
+                      label="View IA diagram"
+                      icon="pi pi-sitemap"
+                      outlined
+                      size="small"
+                      styleClass="secondary-outline w-full min-w-max"
+                      (click)="iaDiagram.openDiagram()" />
+
+        </div>
+        <!--div class="flex lg:flex-row flex-column gap-3">
+    <div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0 lg:w-8 min-w-min">
         <div class="flex flex-column lg:flex-row justify-content-between align-items-start gap-3">
             <div class="w-full">
                 <aida-add-pages />
             </div>
-            <div class="mt-3 lg:mt-0 flex flex-row lg:flex-column gap-2">
+            @if(inScopePageCount() > 0){
+            <div class="mt-3 lg:mt-0 flex flex-column md:flex-row lg:flex-column gap-2">
                 <p-button
                           label="View project URLs"
                           icon="pi pi-list"
@@ -50,15 +103,6 @@
                           styleClass="secondary-outline w-full min-w-max"
                           (click)="iaDiagram.openDiagram()" />
 
-                <!--p-button
-                      label="View breadcrumbs"
-                      icon="pi pi-equals"
-                      outlined
-                      size="small"
-                      styleClass="secondary-outline w-full min-w-max"
-                      (click)="showBreadcrumb = true">
-            </p-button>
-            <p-drawer header="Breadcrumb" [(visible)]="showBreadcrumb" position="bottom"></p-drawer-->
 
                 <div class="flex flex-row justify-content-center align-items-center">
                     <i class="pi pi-copy text-primary text-6xl"></i>
@@ -69,9 +113,11 @@
                 </div>
 
             </div>
+            }
         </div>
     </div>
     <div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0 lg:w-4">
         <aida-find-pages />
     </div>
-</div>
+</div-->
+    </div>

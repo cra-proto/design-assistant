@@ -2,8 +2,11 @@ import { Component, effect, OnDestroy, AfterViewInit, ViewChildren, QueryList, E
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { TabViewModule } from 'primeng/tabview';
+import { RouterLink } from '@angular/router';
 
+import { BreadcrumbModule } from 'primeng/breadcrumb';
+
+import { TabViewModule } from 'primeng/tabview';
 import { MessageModule } from 'primeng/message';
 import { ButtonModule } from 'primeng/button';
 
@@ -25,8 +28,8 @@ interface CodeExample {
     selector: 'aida-design-patterns',
     standalone: true,
     imports: [
-        CommonModule, FormsModule, TranslateModule,
-        TabViewModule, MessageModule, ButtonModule, TooltipModule,
+        CommonModule, FormsModule, TranslateModule, RouterLink,
+        BreadcrumbModule, TabViewModule, MessageModule, ButtonModule, TooltipModule,
         InputTextModule, TextareaModule, SelectModule, IftaLabelModule,
     ],
     templateUrl: './design-patterns.component.html',
@@ -36,6 +39,8 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
     public themeService = inject(ThemeService);
 
     @ViewChildren('codeContainer') codeContainers!: QueryList<ElementRef>;
+
+    breadcrumbs = [{ label: 'example._title', route: '/test' }, { label: 'example.patterns._title' }]
 
     private darkModeEffect;
     private prismLoaded = false;
