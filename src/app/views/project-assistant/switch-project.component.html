@@ -67,7 +67,8 @@
   <!--Saved projects-->
   <ng-container *ngIf=" projects.length> 0; else none">
     <div class="grid">
-      <div class="col-12 md:col-6 lg:col-4" *ngFor="let project of projects">
+      @for(project of projects; track project.key + project.storageType) {
+      <div class="col-12 md:col-6 lg:col-4">
         <p-card [styleClass]="currentMode() === 'deleted'
                               ? 'h-full border-2 border-red-500 cursor-pointer'
                               : 'h-full border-1 surface-border cursor-pointer'"
@@ -118,54 +119,43 @@
           </ng-template>
 
           <!--Loading-->
-          <div class="flex flex-row gap-2 justify-content-center mt-5"
-               *ngIf="(project.storageType === 'local' && loadingKey === project.key) || (project.storageType === 'cloud' && loadingKey === project.id); else projectSaved">
+          @if((project.storageType === 'local' && loadingKey === project.key) || (project.storageType === 'cloud' && loadingKey === project.id)){
+          <div class="flex flex-row gap-2 justify-content-center mt-5">
             <i class="pi pi-spin pi-spinner text-primary-500 text-2xl"></i>
             <span class="text-sm text-color-secondary">Loading project<span class="loading-dots"></span></span>
           </div>
-
+          } @else {
           <!--Project details-->
-          <ng-template #projectSaved>
-            <div class="flex flex-column gap-2 text-sm text-color-secondary">
-              <div>
-                <i class="pi pi-github mr-2"></i>
-                <ng-container *ngIf="project?.github?.repo">{{ project?.github?.owner }}/{{ project?.github?.repo }}</ng-container>
-                <ng-container *ngIf="!project?.github?.repo">No repository</ng-container>
-              </div>
-              <div>
-                <i class="pi pi-copy mr-2"></i>Pages: {{ project.inScopePages }}
-              </div>
-              <div *ngIf="project.phase && project.phase !== 'project.phase.draft'">
-                <i [class]="'pi pi-' + getPhaseIcon(project.phase) + ' mr-2'"></i>Phase: {{ project.phase | translate }}
-              </div>
-              <div>
-                <i class="pi pi-clock mr-2"></i>Modified: {{ project.lastModified | date:'short' }}
-              </div>
+          <div class="flex flex-column gap-2 text-sm text-color-secondary">
+            <div>
+              <i class="pi pi-github mr-2"></i>
+              @if (project?.github?.repo){{{project?.github?.owner}}/{{project?.github?.repo}}} @else {No repository}
             </div>
-            <!-- Collaborators -->
-            <div class="flex justify-content-between border-top-1 surface-border mt-3 pt-2 -mb-2" *ngIf="project.collaborators && project.collaborators.length > 0">
-              <div class="flex align-items-center gap-2 mt-1">
-                <i class="pi pi-users mr-2"></i>
-                <!--p-avatar-group>
-                  <p-avatar *ngFor="let collab of project.collaborators.slice(0, 3)"
-                            shape="circle"
-                            [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
-                            [image]="collab.avatar_url || undefined"
-                            [pTooltip]="collab.name ? collab.name : collab.login"
-                            tooltipPosition="top"
-                            [ngClass]="collaboratorService.getCollaboratorColorClass(collab)">
-                  </p-avatar>
-                  <p-avatar *ngIf="project.collaborators.length > 3" shape="circle" [label]="'+'+(project.collaborators.length - 3).toString()" [pTooltip]="'collaborators.plusMore' | translate: {number: project.collaborators.length - 3}" tooltipPosition="top" />
-                </p-avatar-group>
-              </div>
-              <p-button icon="pi pi-share-alt" text rounded size="small" pTooltip="Share" *ngIf="authService.isAuthenticated()"></p-button-->
-                <aida-add-collaborators mode="switch" [collabs]="project.collaborators" />
-              </div>
+            <div>
+              <i class="pi pi-copy mr-2"></i>Pages: {{ project.inScopePages }}
             </div>
-          </ng-template>
+            @if(project.phase && project.phase !== 'project.phase.draft'){
+            <div>
+              <i [class]="'pi pi-' + getPhaseIcon(project.phase) + ' mr-2'"></i>Phase: {{ project.phase | translate }}
+            </div>
+            }
+            <div>
+              <i class="pi pi-clock mr-2"></i>Modified: {{ project.lastModified | date:'short' }}
+            </div>
+          </div>
+          <!-- Collaborators -->
+          @if(project.collaborators && project.collaborators.length > 0){
+          <div class="flex justify-content-between border-top-1 surface-border mt-3 pt-2 -mb-2">
+            <div class="flex align-items-center gap-2 mt-1">
+              <i class="pi pi-users mr-2"></i>
+              <aida-add-collaborators mode="switch" [collabs]="project.collaborators" />
+            </div>
+          </div>}
 
+          }
         </p-card>
       </div>
+      }
     </div>
   </ng-container>
 

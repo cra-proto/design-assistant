@@ -17,7 +17,11 @@ export enum ProjectPhase {
     Complete = 'project.phase.complete'
 }
 
-export type PhaseStatus = 'project.phase.status.complete' | 'project.phase.status.current' | 'project.phase.status.pending';
+export enum PhaseStatus {
+    Complete = 'project.phase.status.complete',
+    Current = 'project.phase.status.current',
+    Pending = 'project.phase.status.pending'
+}
 
 export interface CurrentPhase {
     name: ProjectPhase;

@@ -109,9 +109,7 @@ export class ExampleComponent {
     marker('project.setup._');
     marker('project.phase._');
     marker('project.phase._');
-
   }
-
 
   componentChecklist: any[] = [
     {
@@ -467,7 +465,7 @@ export class ExampleComponent {
   ]
 
   ngOnInit() {
-    //localStorage.removeItem('componentQAChecklist'); // Uncomment to reset checklist
+    //localStorage.removeItem('componentQAChecklist'); // Uncomment to reset checklist (or to force dev to new key with my updates)
     const saved = localStorage.getItem('componentQAChecklist');
     if (saved) {
       this.componentChecklist = JSON.parse(saved);
