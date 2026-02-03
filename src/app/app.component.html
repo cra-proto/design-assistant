@@ -2,8 +2,8 @@
   <main class="container">
     <aida-header />
     <aida-sidebar />
-    <aida-api-key *ngIf="this.localStore.getData('apiKey') === null" />
-    <router-outlet *ngIf="this.localStore.getData('apiKey') !== null" />
+    @if(!this.localStore.getData('apiKey')){<aida-api-key />}
+    @else{<router-outlet />}
   </main>
   <aida-footer />
 </body>

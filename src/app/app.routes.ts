@@ -1,46 +1,62 @@
 import { Routes, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { environment } from '../environments/environment';
-// Project files
+
+// Project views
 import { DashboardComponent } from './views/project-assistant/dashboard.component';
 import { SwitchProjectComponent } from './views/project-assistant/switch-project.component';
 import { EditProjectComponent } from './views/project-assistant/edit-project.component';
-// Authentication
-import { GithubConnectComponent } from './components/sign-in/github-connect.component';
-import { AuthCallbackComponent } from './components/sign-in/auth-callback.component';
-//Export & Share
-import { ExportGithubComponent } from './views/github-assistant/export-github.component';
-//import { ShareComponent } from './views/page-assistant/components/share.component';
-//Add & Find Pages
-//import { AddPagesComponent } from './components/add-pages/add-pages.component';
-//import { FindPagesComponent } from './views/find-pages/find-pages.component';
-// Tools
-//import { PageUploadComponent } from './views/page-assistant/components/upload.component';
-//import { UploadStateService } from './views/page-assistant/services/upload-state.service';
-//import { ImageAssistantComponent } from './views/standalone/image-assistant/image-assistant.component';
-//import { TranslationAssistantComponent } from './views/standalone/translation-assistant/translation-assistant.component';
-import { InventoryComponent } from './views/inventory-assistant/inventory.component';
-//import { MetadataAssistantComponent } from './views/metadata-assistant/metadata-assistant.component';
-//import { LlmEvaluationComponent } from './views/standalone/llm-evaluation/llm-evaluation.component';
-//import { IaAssistantComponent } from './views/ia-assistant/ia-assistant.component';
+
+// Task Views
 import { IaDiagramComponent } from './components/ia-diagram/ia-diagram.component';
+import { InventoryComponent } from './views/inventory-assistant/inventory.component';
+import { ExportGithubComponent } from './views/github-assistant/export-github.component';
+
 // Static pages
 import { NotFoundComponent } from './views/404/not-found.component';
 import { AboutComponent } from './views/about-us/about.component';
-//import { ExampleComponent } from './views/examples/example.component';
-import { GetTaskUrlsComponent } from './components/find-pages/components/get-task-urls.component';
 
+// Authentication
+import { GithubConnectComponent } from './components/sign-in/github-connect.component';
+import { AuthCallbackComponent } from './components/sign-in/auth-callback.component';
+
+// Examples and utility components - LAZY LOAD THESE!
+
+// Project Storage
+import { ProjectStorageService } from './services/storage/project-storage.service';
+import { ProjectStateService } from './services/project-state.service';
+
+//Route guards
+export const landingGuard = () => {
+    const router = inject(Router);
+    const projectStorage = inject(ProjectStorageService);
+    if (projectStorage.hasActiveProject()) {
+        return router.createUrlTree(['/dashboard']);
+    } else {
+        return router.createUrlTree(['/new-project']);
+    }
+};
+
+export const editProjectGuard = () => {
+    const router = inject(Router);
+    const projectState = inject(ProjectStateService);
+    const name = projectState.getProject().projectName
+    if (!name) {
+        return router.createUrlTree(['/new-project']);
+    }
+    return true;
+};
 
 export const routes: Routes = [
     {
         path: '',
-        component: DashboardComponent,
-        title: (environment.production ? '_app._title' : environment.sandbox ? '_app._title.sandbox' : '_app._title.dev'),
+        canActivate: [landingGuard],
+        children: []
     },
     {
         path: 'dashboard',
         component: DashboardComponent,
-        title: 'dashboard._title',
+        title: (environment.production ? '_app._title' : environment.sandbox ? '_app._title.sandbox' : '_app._title.dev'),
     },
     {
         path: 'switch-project',
@@ -55,6 +71,7 @@ export const routes: Routes = [
     {
         path: 'edit-project',
         component: EditProjectComponent,
+        canActivate: [editProjectGuard],
         title: 'editProject._title',
     },
     {

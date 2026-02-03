@@ -2,6 +2,7 @@ import { Component, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { Router } from '@angular/router';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 //PrimeNG modules
@@ -29,6 +30,7 @@ import { ProjectPhase } from '../../common/data.model';
 export class SetupProjectComponent {
     projectState = inject(ProjectStateService);
     collaboratorService = inject(CollaboratorService);
+    router = inject(Router);
 
     constructor() {
         // Refresh projectName when there are changes to repo name (for initial sync fxn)
@@ -50,6 +52,13 @@ export class SetupProjectComponent {
     updateName() {
         this.projectName = this.projectName.trim().replace(/^[-._ :']+|[-._ :']+$/g, '').replace(/[-]{2,}/g, '-').replace(/[.]{2,}/g, '.').replace(/[_]{2,}/g, '_').replace(/\s+/g, ' ').replace(/[:]{2,}/g, ':').replace(/[']{2,}/g, '\'');
         this.projectState.setProjectName(this.projectName);
+        // Manage routes for named projects
+        if (this.router.url === '/new-project' && this.projectName) {
+            this.router.navigate(['/edit-project']);
+        }
+        else if (this.router.url === '/edit-project' && !this.projectName) {
+            this.router.navigate(['/new-project']);
+        }
     }
 
     //Phase dropdown

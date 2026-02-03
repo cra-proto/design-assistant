@@ -76,7 +76,10 @@ import { ButtonModule } from 'primeng/button';
     }
   </div>
 </div>
-<p-button (click)="exportChecklist()" styleClass="mt-4">Export progress to console</p-button>
+<div class="flex flex-row gap-2 mt-4">
+  <p-button (click)="resetChecklist()" severity="danger">Reset to stored state</p-button>
+  <p-button (click)="exportChecklist()" severity="secondary">Export progress to console</p-button>
+</div>
   `,
   styles: ``
 })
@@ -111,7 +114,7 @@ export class ExampleComponent {
     marker('project.phase._');
   }
 
-  componentChecklist: any[] = [
+  private initialChecklist = [
     {
       "isHeader": true,
       "name": "Sub-components"
@@ -464,8 +467,10 @@ export class ExampleComponent {
     }
   ]
 
+  componentChecklist: any[] = [...this.initialChecklist];
+
   ngOnInit() {
-    //localStorage.removeItem('componentQAChecklist'); // Uncomment to reset checklist (or to force dev to new key with my updates)
+    //localStorage.removeItem('componentQAChecklist'); // Uncomment to reset checklist (or to force dev to new key with my updates)<p-button (click)="exportChecklist()">Export Progress</p-button>
     const saved = localStorage.getItem('componentQAChecklist');
     if (saved) {
       this.componentChecklist = JSON.parse(saved);
@@ -478,6 +483,12 @@ export class ExampleComponent {
 
   exportChecklist() {
     console.log(JSON.stringify(this.componentChecklist, null, 2));
+  }
+
+  resetChecklist() {
+    this.componentChecklist = JSON.parse(JSON.stringify(this.initialChecklist))
+    localStorage.removeItem('componentQAChecklist');
+    this.saveChecklist();
   }
 
 }
