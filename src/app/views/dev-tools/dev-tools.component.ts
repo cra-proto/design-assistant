@@ -16,15 +16,15 @@ import { ButtonModule } from 'primeng/button';
 
     <div class="flex justify-content-evenly my-4">
   <div class="text-center">
-    <a routerLink="/colors" class="text-xl font-semibold">{{'example.colors._title' | translate}}</a>
+    <a routerLink="/dev/color-generator" class="text-xl font-semibold">{{'example.colors._title' | translate}}</a>
     <p class="text-color-secondary mt-2">{{'example.colors.description' | translate}}</p>
   </div>
   <div class="text-center">
-    <a routerLink="/patterns" class="text-xl font-semibold">{{'example.patterns._title' | translate}}</a>
+    <a routerLink="/dev/design-patterns" class="text-xl font-semibold">{{'example.patterns._title' | translate}}</a>
     <p class="text-color-secondary mt-2">{{'example.patterns.description' | translate}}</p>
   </div>
   <div class="text-center">
-    <a routerLink="/prompt-editor" class="text-xl font-semibold">{{'example.prompt._title' | translate}}</a>
+    <a routerLink="/dev/prompt-editor" class="text-xl font-semibold">{{'example.prompt._title' | translate}}</a>
     <p class="text-color-secondary mt-2">{{'example.prompt.description' | translate}}</p>
   </div>
 </div>
@@ -438,32 +438,6 @@ export class DevToolsComponent {
       "reactivity": false,
       "unusedFunctions": false,
       "lint": true,
-      "help": false,
-      "consoleLogs": false,
-      "responsive": false,
-      "aria": false
-    },
-    {
-      "isHeader": true,
-      "name": "Deprecated"
-    },
-    {
-      "name": "API Key",
-      "translations": false,
-      "reactivity": false,
-      "unusedFunctions": false,
-      "lint": false,
-      "help": false,
-      "consoleLogs": false,
-      "responsive": false,
-      "aria": false
-    },
-    {
-      "name": "API Reset",
-      "translations": false,
-      "reactivity": false,
-      "unusedFunctions": false,
-      "lint": false,
       "help": false,
       "consoleLogs": false,
       "responsive": false,

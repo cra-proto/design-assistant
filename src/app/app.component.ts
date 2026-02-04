@@ -6,7 +6,6 @@ import { TranslateModule } from "@ngx-translate/core";
 import { HeaderComponent } from './template/header.component';
 import { SidebarComponent } from './template/sidebar.component';
 import { FooterComponent } from './template/footer.component';
-import { ApiKeyComponent } from './components/ai-api/api-key.component';
 import { LocalStorageService } from './services/storage/local-storage.service';
 import { CustomTitleStrategy } from './common/custom-title-strategy';
 import { PrimeNG } from 'primeng/config';
@@ -18,7 +17,7 @@ import { CloudStorageService } from './services/storage/cloud-storage.service';
 
 @Component({
   selector: 'aida-root',
-  imports: [CommonModule, RouterOutlet, RouterModule, TranslateModule, HeaderComponent, SidebarComponent, FooterComponent, ApiKeyComponent],
+  imports: [CommonModule, RouterOutlet, RouterModule, TranslateModule, HeaderComponent, SidebarComponent, FooterComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
@@ -49,20 +48,8 @@ export class AppComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.primeng.ripple.set(true);
-    //Set api key from url parameter if present then remove the param
-    this.route.queryParams.subscribe(params => {
-      const apiKey = params['key'];
-      if (apiKey) {
-        this.localStore.saveData('apiKey', apiKey);
-        const allParams = { ...params };
-        delete allParams['key']; //only removes key from the params
-        this.router.navigate([], {
-          queryParams: allParams,
-          replaceUrl: true, // replaces the current history entry
-        });
-      }
-    });
-    //Set org from url parameter if present then remove the param
+
+    //Set org from url parameter (if present) then remove the param
     this.route.queryParams.subscribe(params => {
       const orgKey = params['org'];
       if (orgKey !== undefined) {
@@ -83,9 +70,9 @@ export class AppComponent implements OnInit {
       }
     });
     await this.loadProject();
-    console.log('The initial API key is: ', this.localStore.getData('apiKey'));
   }
 
+  // Load previously active project
   async loadProject() {
     const active = this.projectStorage.getActiveProject();
     if (!active) return;

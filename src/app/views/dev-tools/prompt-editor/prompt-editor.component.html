@@ -1,11 +1,11 @@
 <p-breadcrumb [model]="breadcrumbs">
     <ng-template pTemplate="item" let-item>
-        <a [routerLink]="item.route" *ngIf="item.route" class="p-menuitem-link">
-            {{ item.label | translate }}
-        </a>
-        <span *ngIf="!item.route" class="p-menuitem-text">
-            {{ item.label | translate }}
-        </span>
+        @if(item.route){
+        <a [routerLink]="item.route" class="p-menuitem-link">{{ item.label | translate }}</a>
+        }
+        @else{
+        <span class="p-menuitem-text">{{ item.label | translate }}</span>
+        }
     </ng-template>
 </p-breadcrumb>
 

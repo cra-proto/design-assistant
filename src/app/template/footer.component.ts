@@ -11,7 +11,7 @@ import { environment } from '../../environments/environment';
     <div class="flex flex-row justify-content-between align-items-end mt-2">
       <p class="white-space-nowrap text-color-secondary text-sm">{{'_app.version'|translate}} {{version}}</p>
       <img
-          class="img-fluid fip-colour"
+          class="opacity-70"
           [src]="logoSrc"
           [alt]="'common.goc' | translate"
         />

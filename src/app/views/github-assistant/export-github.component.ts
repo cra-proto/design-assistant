@@ -1,31 +1,17 @@
 import { Component, OnInit, inject, signal, computed, effect, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 //PrimeNG Modules
 import { TableModule } from 'primeng/table';
-import { IftaLabelModule } from 'primeng/iftalabel';
-import { InputTextModule } from 'primeng/inputtext';
-import { AutoCompleteModule } from 'primeng/autocomplete';
-import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
-import { AutoCompleteCompleteEvent } from 'primeng/autocomplete';
-import { FilterService, SelectItemGroup, TreeNode } from 'primeng/api';
-import { KeyFilterModule } from 'primeng/keyfilter';
+import { TreeNode } from 'primeng/api';
 import { MessageModule } from 'primeng/message';
-import { FieldsetModule } from 'primeng/fieldset';
 import { ChipModule } from 'primeng/chip';
 import { TooltipModule } from 'primeng/tooltip';
-import { PopoverModule } from 'primeng/popover';
-import { CardModule } from 'primeng/card';
-import { DialogModule } from 'primeng/dialog';
+import { PopoverModule, Popover } from 'primeng/popover';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { InputGroupModule } from 'primeng/inputgroup';
-import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
-import { TabsModule } from 'primeng/tabs';
-import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 
 //Services
@@ -70,10 +56,9 @@ interface ExportMessage {
 @Component({
   selector: 'aida-export-github',
   imports: [CommonModule, FormsModule, TranslateModule,
-    SetupRepoComponent,
-    TableModule, IftaLabelModule, InputTextModule, KeyFilterModule, AutoCompleteModule, PasswordModule, ButtonModule, MessageModule, FieldsetModule, ChipModule, TooltipModule,
-    PopoverModule, CardModule, DialogModule, SelectButtonModule,
-    InputGroupModule, InputGroupAddonModule, TabsModule, TagModule, DividerModule, PatComponent],
+    MessageModule, ButtonModule, TooltipModule, PopoverModule, SelectButtonModule, DividerModule,
+    TableModule, ChipModule,
+    SetupRepoComponent, PatComponent],
   templateUrl: './export-github.component.html',
   styles: ``
 })
@@ -145,7 +130,7 @@ export class ExportGithubComponent implements OnInit {
       console.warn(`Cannot create repo in ${owner}`);
     } else {
       this.connectionStatus.set('connected');
-      this.showDisclaimer.set(result.showDisclaimer || false);
+      this.showDisclaimer.set(result.showDisclaimer ?? false);
       if (result.showDisclaimer) {
         console.warn('Connected to GitHub but PAT scope cannot be verified. Please ensure PAT has appropriate scopes.');
       }
@@ -247,9 +232,9 @@ export class ExportGithubComponent implements OnInit {
 
   // Show repo settings as secondary task button & overlay (if data exists or overlay is open)
   // Otherwise, show as primary task card in place of data card
-  @ViewChild('settingsOverlay') settingsOverlay!: any;
+  @ViewChild('settingsOverlay') settingsOverlay!: Popover;
   showSettingsButton(): boolean {
-    const hasGithubData = this.projectData().github.owner && this.projectData().github.repo && this.projectData().github.branch;
+    const hasGithubData = !!(this.projectData().github.owner && this.projectData().github.repo && this.projectData().github.branch);
     return hasGithubData || this.settingsOverlay?.overlayVisible;
   }
 
@@ -267,7 +252,7 @@ export class ExportGithubComponent implements OnInit {
     }
     // recurse into children
     if (node?.children) {
-      for (const child of node?.children) {
+      for (const child of node.children) {
         const childPages = await this.getUrlandContent(child);
         pages.push(...childPages);
       }

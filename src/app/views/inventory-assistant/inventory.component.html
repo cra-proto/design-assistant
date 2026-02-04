@@ -183,12 +183,12 @@
                             <p-tag pTooltip="character count" [severity]="node[col.field].length >= 10 && node[col.field].length <= 160 ? 'success' : 'danger'">{{node[col.field].length}}</p-tag>
                             {{ node[col.field] }}
                         </div>
-                        <p-button
-                                  *ngIf="!expandAllMetadata"
-                                  [icon]="isMetadataExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                        @if(!expandAllMetadata){
+                        <p-button [icon]="isMetadataExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                                   text rounded size="small"
                                   (click)="toggleMetadataCell(rowIndex, col.field)"
                                   [pTooltip]="isMetadataExpanded(rowIndex, col.field) ? ('inventory.collapse' | translate) : ('inventory.expand' | translate)" />
+                        }
                     </div>
                     }
                     <!-- URL fields -->

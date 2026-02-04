@@ -123,22 +123,22 @@ export const routes: Routes = [
         title: 'about._title',
     },
     {
-        path: 'dev-tools',
+        path: 'dev',
         loadComponent: () => import('./views/dev-tools/dev-tools.component').then(m => m.DevToolsComponent),
         title: 'example._title',
     },
     {
-        path: 'dev-tools/color-generator',
+        path: 'dev/color-generator',
         loadComponent: () => import('./views/dev-tools/color-generator/color-generator.component').then(m => m.ColorGeneratorComponent),
         title: 'example.colors._title',
     },
     {
-        path: 'dev-tools/design-patterns',
+        path: 'dev/design-patterns',
         loadComponent: () => import('./views/dev-tools/design-patterns/design-patterns.component').then(m => m.DesignPatternsComponent),
         title: 'example.patterns._title',
     },
     {
-        path: 'dev-tools/prompt-editor',
+        path: 'dev/prompt-editor',
         loadComponent: () => import('./views/dev-tools/prompt-editor/prompt-editor.component').then(m => m.PromptEditorComponent),
         title: 'example.patterns._title',
     },

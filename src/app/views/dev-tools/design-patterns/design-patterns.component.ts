@@ -40,7 +40,7 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
 
     @ViewChildren('codeContainer') codeContainers!: QueryList<ElementRef>;
 
-    breadcrumbs = [{ label: 'example._title', route: '/test' }, { label: 'example.patterns._title' }];
+    breadcrumbs = [{ label: 'example._title', route: '/dev' }, { label: 'example.patterns._title' }];
 
     private darkModeEffect;
     private prismLoaded = false;

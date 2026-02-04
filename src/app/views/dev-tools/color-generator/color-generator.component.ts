@@ -1,4 +1,4 @@
-import { Component, inject, effect, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -34,7 +34,7 @@ export class ColorGeneratorComponent {
   theme = inject(ThemeService);
   customShades: Record<string, Record<number, string>> = {};
 
-  breadcrumbs = [{ label: 'example._title', route: '/test' }, { label: 'example.colors._title' }]
+  breadcrumbs = [{ label: 'example._title', route: '/dev' }, { label: 'example.colors._title' }]
 
   onColorChange(event: { hex: string; shades: Record<number, string> }, color: 'primary' | 'red' | 'green' | 'purple') {
     this.customShades[color] = event.shades;
@@ -54,7 +54,8 @@ export class ColorGeneratorComponent {
   updateTheme() {
     const scheme = this.theme.colorScheme();
 
-    let presetPromise: Promise<any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let presetPromise: Promise<{ default: any }>;
     switch (scheme) {
       case 'deutan': presetPromise = import('../../../common/theme-presets/preset-deutan'); break;
       case 'protan': presetPromise = import('../../../common/theme-presets/preset-protan'); break;

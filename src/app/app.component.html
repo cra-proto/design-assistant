@@ -1,9 +1,8 @@
-<body vocab="http://schema.org/" typeof="WebPage" class="mx-8 my-2 container">
+<div class="container md:mx-6 my-2">
+  <aida-header />
   <main class="container">
-    <aida-header />
     <aida-sidebar />
-    @if(!this.localStore.getData('apiKey')){<aida-api-key />}
-    @else{<router-outlet />}
+    <router-outlet />
   </main>
   <aida-footer />
-</body>
+</div>
