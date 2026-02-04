@@ -43,38 +43,37 @@ export class ExportGitHubService {
 
   // PAT - token (fallback access when OAuth not available)
   private readonly PAT_STORAGE_KEY = 'github_pat';
+  private readonly PAT_USER_STORAGE_KEY = 'github_pat_user';
   private patToken = signal<string>(this.loadPAT());
+  private patUser = signal<GitHubUser | null>(this.loadPATUser());
 
   public get pat(): string {
     return this.patToken();
   }
   public set pat(value: string) {
     this.patToken.set(value);
-    this.savePAT(value);
+    sessionStorage.setItem(this.PAT_STORAGE_KEY, value);
   }
+
+  //Note: we do not need get/set for the patUser. It's updated when the token is validated.
 
   private loadPAT(): string {
     return sessionStorage.getItem(this.PAT_STORAGE_KEY) ?? "";
   }
 
-  private savePAT(value: string): void {
-    if (value) {
-      sessionStorage.setItem(this.PAT_STORAGE_KEY, value);
-    } else {
-      sessionStorage.removeItem(this.PAT_STORAGE_KEY);
-      console.log("Removing PAT from session storage");
-    }
+  private loadPATUser(): GitHubUser | null {
+    const stored = sessionStorage.getItem(this.PAT_USER_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
   }
 
   public clearPAT(): void {
     this.patToken.set('');
     this.patUser.set(null);
-    this.savePAT('');
+    sessionStorage.removeItem(this.PAT_STORAGE_KEY);
+    sessionStorage.removeItem(this.PAT_USER_STORAGE_KEY);
   }
 
   // PAT - user (fallback access when OAuth not available)
-  private patUser = signal<GitHubUser | null>(null);
-
   private mapGitHubUser(patUser: any): GitHubUser {
     return {
       login: patUser.login,
@@ -104,6 +103,7 @@ export class ExportGitHubService {
       else {
         const user = await userResponse.json();
         this.patUser.set(this.mapGitHubUser(user));
+        sessionStorage.setItem(this.PAT_USER_STORAGE_KEY, JSON.stringify(user));
       }
     } catch (error) {
       console.log('Network error validating token')
@@ -131,9 +131,9 @@ export class ExportGitHubService {
       }
 
       const user = await userResponse.json();
-      if (!this.authService.isAuthenticated()) {
-        this.patUser.set(this.mapGitHubUser(user));
-      }
+      //if (!this.authService.isAuthenticated()) {
+      //  this.patUser.set(this.mapGitHubUser(user));
+      //}
       const tokenScopes = userResponse.headers.get('x-oauth-scopes')?.split(',').map(s => s.trim()) || []; //Will be empty if using PAT
 
       // Step 2: Check if repo exists (and get permissions if it does)
