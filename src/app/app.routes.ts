@@ -20,9 +20,9 @@ import { AboutComponent } from './views/about-us/about.component';
 import { GithubConnectComponent } from './components/sign-in/github-connect.component';
 import { AuthCallbackComponent } from './components/sign-in/auth-callback.component';
 
-// Examples and utility components - LAZY LOAD THESE!
+// Dev tools - LAZY LOAD THESE!
 
-// Project Storage
+// Project Storage (for route guards)
 import { ProjectStorageService } from './services/storage/project-storage.service';
 import { ProjectStateService } from './services/project-state.service';
 
@@ -90,31 +90,16 @@ export const routes: Routes = [
         title: 'exportGithub._title',
     },
     {
-        path: 'test',
-        loadComponent: () => import('./views/example/example.component').then(m => m.ExampleComponent),
-        title: 'example._title',
+        path: 'inventory',
+        component: InventoryComponent,
+        title: 'inventory._title',
     },
     {
-        path: 'colors',
-        loadComponent: () => import('./views/example/color-palette/color-test.component').then(m => m.ColorTestComponent),
-        title: 'example.colors._title',
+        path: 'ia-diagram',
+        component: IaDiagramComponent,
+        title: 'iaDiagram._title',
     },
-    {
-        path: 'patterns',
-        loadComponent: () => import('./views/example/design-patterns/design-patterns.component').then(m => m.DesignPatternsComponent),
-        title: 'example.patterns._title',
-    },
-    /* {
-         path: 'page-assistant/share',
-         component: ShareComponent,
-         title: 'title.page',
-     },
-     {
-         path: 'export-github',
-         component: ExportGithubComponent,
-         title: 'title.ia',
-     },
-     {
+    /*{
          path: 'page-assistant/compare',
          title: 'title.page',
          canActivate: [() => {
@@ -131,47 +116,6 @@ export const routes: Routes = [
          loadComponent: () => import('./views/page-assistant/page-assistant.component')
              .then(m => m.PageAssistantCompareComponent)
  
-     },
-     {
-         path: 'page-assistant',
-         component: PageUploadComponent,
-         title: 'title.page',
-     },
-     {
-         path: 'add-pages',
-         component: AddPagesComponent,
-         title: 'menu.add-pages',
-     },
-     {
-         path: 'find-pages',
-         component: IaAssistantComponent,
-         title: 'menu.find-pages',
-     },
-     {
-         path: 'image-assistant',
-         component: ImageAssistantComponent,
-         title: 'title.image',
-     },
-     {
-         path: 'translation-assistant',
-         component: TranslationAssistantComponent,
-         title: 'title.translation',
-     },*/
-    {
-        path: 'inventory',
-        component: InventoryComponent,
-        title: 'inventory._title',
-    },
-    /*
-     {
-         path: 'metadata-assistant',
-         component: MetadataAssistantComponent,
-         title: 'title.metadata',
-     },
-     {
-         path: 'llm-evaluation',
-         component: LlmEvaluationComponent,
-         title: 'title.llmEvaluation',
      },*/
     {
         path: 'about-us',
@@ -179,9 +123,24 @@ export const routes: Routes = [
         title: 'about._title',
     },
     {
-        path: 'ia-diagram',
-        component: IaDiagramComponent,
-        title: 'iaDiagram._title',
+        path: 'dev-tools',
+        loadComponent: () => import('./views/dev-tools/dev-tools.component').then(m => m.DevToolsComponent),
+        title: 'example._title',
+    },
+    {
+        path: 'dev-tools/color-generator',
+        loadComponent: () => import('./views/dev-tools/color-generator/color-generator.component').then(m => m.ColorGeneratorComponent),
+        title: 'example.colors._title',
+    },
+    {
+        path: 'dev-tools/design-patterns',
+        loadComponent: () => import('./views/dev-tools/design-patterns/design-patterns.component').then(m => m.DesignPatternsComponent),
+        title: 'example.patterns._title',
+    },
+    {
+        path: 'dev-tools/prompt-editor',
+        loadComponent: () => import('./views/dev-tools/prompt-editor/prompt-editor.component').then(m => m.PromptEditorComponent),
+        title: 'example.patterns._title',
     },
     {
         path: '**',
