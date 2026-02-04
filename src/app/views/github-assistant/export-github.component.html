@@ -20,16 +20,16 @@
                 <!-- Repository Info Row -->
                 <div class="flex gap-5">
                     <div>
-                        <label class="text-xs font-semibold">{{ 'github.owner' | translate }}</label>
-                        <p class="text-color-secondary text-sm my-0">{{ projectData().github.owner }}</p>
+                        <label for="owner" class="text-xs font-semibold">{{ 'github.owner' | translate }}</label>
+                        <p id="owner" class="text-color-secondary text-sm my-0">{{ projectData().github.owner }}</p>
                     </div>
                     <div>
-                        <label class="text-xs font-semibold">{{ 'github.repo' | translate }}</label>
-                        <p class="text-color-secondary text-sm my-0">{{ projectData().github.repo }}{{(selectedExportTarget === 'baseline')?'-baseline':''}}</p>
+                        <label for="repo" class="text-xs font-semibold">{{ 'github.repo' | translate }}</label>
+                        <p id="repo" class="text-color-secondary text-sm my-0">{{ projectData().github.repo }}{{(selectedExportTarget === 'baseline')?'-baseline':''}}</p>
                     </div>
                     <div>
-                        <label class="text-xs font-semibold">{{ 'github.branch' | translate }}</label>
-                        <p class="text-color-secondary text-sm my-0">{{ projectData().github.branch }}</p>
+                        <label for="branch" class="text-xs font-semibold">{{ 'github.branch' | translate }}</label>
+                        <p id="branch" class="text-color-secondary text-sm my-0">{{ projectData().github.branch }}</p>
                     </div>
                 </div>
 
@@ -52,16 +52,14 @@
                     <aida-setup-repo />
                     @if (projectData().github.hasBaselineRepo) {
                     <div class="flex flex-column align-items-stretch mt-3">
-                        <label class="text-sm font-semibold">{{ 'github.connect.export.label' | translate }}</label>
-                        <div class="flex flex-row gap-3">
-                            <p-selectButton [options]="exportTargetOptions"
-                                            [(ngModel)]="selectedExportTarget"
-                                            allowEmpty="false"
-                                            optionLabel="label"
-                                            optionValue="value"
-                                            styleClass="secondary-outline max-h-3rem" />
-
-                        </div>
+                        <label for="export-type" class="text-sm font-semibold">{{ 'github.connect.export.label' | translate }}</label>
+                        <p-selectButton id="export-type"
+                                        [options]="exportTargetOptions"
+                                        [(ngModel)]="selectedExportTarget"
+                                        allowEmpty="false"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        styleClass="secondary-outline max-h-3rem" />
                     </div>
                     }
                 </p-popover>
@@ -79,7 +77,7 @@
         <h2 class="text-2xl mt-3 mb-1">{{connectionStatus() === 'connected' ? ('github.connected' | translate) : ('github.connect' | translate) }}</h2>
         <div class="flex flex-column gap-3">
             <!--Sign in options -->
-            @if (!exportGitHubService.token() && !authService.isAuthenticated()) {
+            @if (!exportGitHubService.user(); as user) {
             <p class="my-0">{{ 'github.connect.description' | translate }}</p>
             <!-- Option 1: OAuth Sign In -->
             <div class="flex flex-column lg:flex-row gap-2">
@@ -102,22 +100,8 @@
                     <i class="pi pi-key text-6xl text-900 mb-3"></i>
                     <p class="font-semibold my-0">{{ 'github.connect.option2.title' | translate }}</p>
                     <p class="text-sm text-color-secondary my-2">{{ 'github.connect.option2.description' | translate }}</p>
-                    <div class="flex flex-row">
-                        <p-iftalabel class="w-full">
-                            <p-password feedback="false" toggleMask id="token" [(ngModel)]="pat" pSize="small" fluid styleClass="w-full" (onBlur)="savePAT()" (paste)="onPastePAT()" />
-                            <label for="token">{{ 'github.connect.option2.token' | translate }}</label>
-                        </p-iftalabel>
-                        <p-button icon="pi pi-question-circle" [pTooltip]="'github.connect.option2.token.tooltip' | translate" tooltipPosition="top" severity="info" outlined size="large" styleClass="min-h-full surface-ground secondary-outline" (click)="showHelp = true" />
-                    </div>
+                    <aida-pat [validateOnBlur]="true" />
                 </div>
-                <!--Token Help Dialog-->
-                <p-dialog header="{{ 'github.connect.option2.token.helpHeader' | translate }}"
-                          [(visible)]="showHelp"
-                          [modal]="true"
-                          [style]="{width: '50vw'}"
-                          [breakpoints]="{'1199px': '75vw', '575': '90vw'}">
-                    <div class="text-sm" [innerHTML]="('github.connect.option2.token.help'| translate: {defaultOrg: defaultOrg})"></div>
-                </p-dialog>
             </div>
             } @else {
             <!--Connection Status-->
@@ -196,16 +180,14 @@
         <aida-setup-repo />
         @if (projectData().github.hasBaselineRepo) {
         <div class="flex flex-column align-items-stretch mt-3">
-            <label class="text-sm font-semibold">{{ 'github.connect.export.label' | translate }}</label>
-            <div class="flex flex-row gap-3">
-                <p-selectButton [options]="exportTargetOptions"
-                                [(ngModel)]="selectedExportTarget"
-                                allowEmpty="false"
-                                optionLabel="label"
-                                optionValue="value"
-                                styleClass="secondary-outline max-h-3rem" />
-
-            </div>
+            <label for="export-type" class="text-sm font-semibold">{{ 'github.connect.export.label' | translate }}</label>
+            <p-selectButton id="export-type"
+                            [options]="exportTargetOptions"
+                            [(ngModel)]="selectedExportTarget"
+                            allowEmpty="false"
+                            optionLabel="label"
+                            optionValue="value"
+                            styleClass="secondary-outline max-h-3rem" />
         </div>
         }
     </div>

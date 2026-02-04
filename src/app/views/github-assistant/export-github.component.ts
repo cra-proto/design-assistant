@@ -38,6 +38,7 @@ import { environment } from '../../../environments/environment';
 
 //Components
 import { SetupRepoComponent } from '../../components/setup-repo/setup-repo.component';
+import { PatComponent } from "../../components/sign-in/pat.component";
 
 export interface PageData {
   url: string;
@@ -72,7 +73,7 @@ interface ExportMessage {
     SetupRepoComponent,
     TableModule, IftaLabelModule, InputTextModule, KeyFilterModule, AutoCompleteModule, PasswordModule, ButtonModule, MessageModule, FieldsetModule, ChipModule, TooltipModule,
     PopoverModule, CardModule, DialogModule, SelectButtonModule,
-    InputGroupModule, InputGroupAddonModule, TabsModule, TagModule, DividerModule],
+    InputGroupModule, InputGroupAddonModule, TabsModule, TagModule, DividerModule, PatComponent],
   templateUrl: './export-github.component.html',
   styles: ``
 })
@@ -106,12 +107,12 @@ export class ExportGithubComponent implements OnInit {
       const token = this.exportGitHubService.token();
       const owner = this.projectData().github.owner;
       const repo = this.projectData().github.repo;
-      const isAuthenticated = this.authService.isAuthenticated();
-      console.log("Effect triggered: token or repo changed.", { token, owner, repo, isAuthenticated });
+      console.log("Effect triggered: token or repo changed.", { token, owner, repo });
       // Only run precheck if we have a token and repo configured
       if (token && owner && repo) {
         await this.validateConnection();
-      } else if (!token && !this.authService.isAuthenticated()) {
+        console.warn("Running validation again!")
+      } else if (!token) {
         // No authentication method available
         this.connectionStatus.set('missing');
       }
@@ -155,6 +156,7 @@ export class ExportGithubComponent implements OnInit {
   //Manage PAT
   savePAT(): void {
     this.exportGitHubService.pat = this.pat();
+    this.exportGitHubService.validatePAT()
   }
   onPastePAT() {
     setTimeout(() => this.savePAT(), 0);

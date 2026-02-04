@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from "@ngx-translate/core";
 
@@ -20,6 +20,8 @@ import { environment } from '../../../environments/environment';
 })
 export class PatComponent {
     exportGitHubService = inject(ExportGitHubService)
+
+    @Input() validateOnBlur = false;
 
     get pat(): string {
         return this.exportGitHubService.pat;

@@ -1,6 +1,7 @@
 <div class="flex flex-row">
     <p-iftalabel class="w-full">
-        <p-password feedback="false" toggleMask id="token" [(ngModel)]="pat" pSize="small" fluid styleClass="w-full" />
+        <p-password feedback="false" toggleMask id="token" [(ngModel)]="pat" pSize="small" fluid styleClass="w-full"
+                    (onBlur)="validateOnBlur && exportGitHubService.validatePAT()" />
         <label for="token">{{ 'github.connect.option2.token' | translate }}</label>
     </p-iftalabel>
     <p-button icon="pi pi-question-circle" [pTooltip]="'github.connect.option2.token.tooltip' | translate" tooltipPosition="top" severity="info" outlined size="large" styleClass="min-h-full surface-ground secondary-outline" (click)="showHelp = true" />
