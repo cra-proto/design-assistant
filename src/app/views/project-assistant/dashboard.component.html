@@ -76,7 +76,7 @@
             <!-- Phase Connector -->
             @if(i < projectPhases.length - 1){
               <div class="hidden xl:block align-self-center mx-3">
-                <i class="text-primary pi"
+                <i class="text-primary text-2xl pi"
                    [class.pi-arrow-right-arrow-left]="phase.name === ProjectPhase.Assess"
                    [class.pi-arrow-right]="phase.name !== ProjectPhase.Assess"></i>
         </div>
@@ -190,22 +190,24 @@
                     </div>
                 </div>
                 <div class="flex flex-column gap-2">
-                    <p-progressbar *ngIf="projectData.inScopePages > 0"
-                                   [value]="pageProgress/projectData.inScopePages * 100"
+                    @if(projectData.inScopePages > 0){
+                    <p-progressbar [value]="pageProgress/projectData.inScopePages * 100"
                                    [showValue]="false"
                                    styleClass="h-2rem centered-label">
                         <ng-template #content let-value>
                             <span>{{pageProgress}}/{{projectData.inScopePages}}&nbsp;pages&nbsp;edited</span>
                         </ng-template>
                     </p-progressbar>
-                    <p-progressbar *ngIf="assessmentStats.issuesFound > 0"
-                                   [value]="problemProgress/assessmentStats.issuesFound * 100"
+                    }
+                    @if(assessmentStats.issuesFound > 0){
+                    <p-progressbar [value]="problemProgress/assessmentStats.issuesFound * 100"
                                    [showValue]="false"
                                    styleClass="h-2rem centered-label">
                         <ng-template #content let-value>
                             <span>{{problemProgress}}/{{assessmentStats.issuesFound}} issues fixed</span>
                         </ng-template>
                     </p-progressbar>
+                    }
                 </div>
             </div>
 
@@ -225,10 +227,12 @@
                             <li><span class="text-sm text-700">Problem summary</span></li>
                             <li><span class="text-sm text-700">Design Checklist</span>
                                 <div class="flex flex-column gap-1 mt-1">
-                                    <div *ngFor="let item of checklist" class="flex items-center">
+                                    @for(item of checklist; track item.key){
+                                    <div class="flex flex-row gap-2">
                                         <p-checkbox [inputId]="item.key" name="group" [value]="item" [(ngModel)]="selectedItems" />
-                                        <label [for]="item.key" class="ml-2"> {{ item.key | translate }} </label>
+                                        <label [for]="item.key">{{ item.key | translate }}</label>
                                     </div>
+                                    }
                                 </div>
                             </li>
                         </ul>
@@ -236,15 +240,15 @@
 
                     </div>
                 </div>
-
-                <p-progressbar *ngIf="assessmentStats.issuesFound > 0"
-                               [value]="selectedItems.length/checklist.length * 100"
+                @if(assessmentStats.issuesFound > 0){
+                <p-progressbar [value]="selectedItems.length/checklist.length * 100"
                                [showValue]="false"
                                styleClass="h-2rem centered-label">
                     <ng-template #content let-value>
                         <span>{{selectedItems.length}}/{{checklist.length}}</span>
                     </ng-template>
                 </p-progressbar>
+                }
             </div>
         </div>
 
