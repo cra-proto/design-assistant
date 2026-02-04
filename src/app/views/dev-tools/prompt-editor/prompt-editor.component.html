@@ -1,0 +1,13 @@
+<p-breadcrumb [model]="breadcrumbs">
+    <ng-template pTemplate="item" let-item>
+        <a [routerLink]="item.route" *ngIf="item.route" class="p-menuitem-link">
+            {{ item.label | translate }}
+        </a>
+        <span *ngIf="!item.route" class="p-menuitem-text">
+            {{ item.label | translate }}
+        </span>
+    </ng-template>
+</p-breadcrumb>
+
+<h1 id="wb-cont">{{ 'example.prompt._title' | translate}}</h1>
+<p>{{ 'example.prompt.description' | translate}} {{ 'example.prompt.description2' | translate}}</p>

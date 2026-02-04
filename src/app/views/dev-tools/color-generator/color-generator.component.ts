@@ -19,7 +19,7 @@ import { ThemeService } from '../../../services/theme.service';
 import { updatePreset } from '@primeng/themes';
 
 @Component({
-  selector: 'aida-color-test',
+  selector: 'aida-color-generator',
   standalone: true,
   imports: [
     CommonModule, FormsModule, TranslateModule, RouterLink,
@@ -27,10 +27,10 @@ import { updatePreset } from '@primeng/themes';
     DividerModule,
     UserSettingsComponent, ColorPickerComponent, CopyPresetComponent
   ],
-  templateUrl: './color-test.component.html',
+  templateUrl: './color-generator.component.html',
   styles: ``
 })
-export class ColorTestComponent {
+export class ColorGeneratorComponent {
   theme = inject(ThemeService);
   customShades: Record<string, Record<number, string>> = {};
 

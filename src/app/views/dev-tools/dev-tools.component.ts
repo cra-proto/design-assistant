@@ -8,7 +8,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { ButtonModule } from 'primeng/button';
 
 @Component({
-  selector: 'aida-example',
+  selector: 'aida-dev-tools',
   imports: [TranslateModule, CommonModule, FormsModule, CheckboxModule, RouterLink, ButtonModule],
   template: `
     <h1 id="wb-cont">{{ 'example._title' | translate}}</h1>
@@ -22,6 +22,10 @@ import { ButtonModule } from 'primeng/button';
   <div class="text-center">
     <a routerLink="/patterns" class="text-xl font-semibold">{{'example.patterns._title' | translate}}</a>
     <p class="text-color-secondary mt-2">{{'example.patterns.description' | translate}}</p>
+  </div>
+  <div class="text-center">
+    <a routerLink="/prompt-editor" class="text-xl font-semibold">{{'example.prompt._title' | translate}}</a>
+    <p class="text-color-secondary mt-2">{{'example.prompt.description' | translate}}</p>
   </div>
 </div>
     
@@ -83,7 +87,7 @@ import { ButtonModule } from 'primeng/button';
   `,
   styles: ``
 })
-export class ExampleComponent {
+export class DevToolsComponent {
   /**
   * Translation markers for visual separators in translation files.
   * These keys (feature._) create visual breaks between feature sections.
