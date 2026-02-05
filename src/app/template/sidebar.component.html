@@ -125,7 +125,8 @@
             <span class="material-icons">web_asset</span>
             <span class="nav_link_text">{{ 'about._nav' | translate }}</span>
           </a>
-          <a [href]="'feedback.email' | translate" class="nav_link flex hover:bg-primary-600 border-round">
+          <a (click)="openMailto(getFeedbackMailto())" (keydown.enter)="openMailto(getFeedbackMailto())" tabindex="0"
+             class="nav_link flex hover:bg-primary-600 border-round cursor-pointer">
             <span class="material-icons">feedback</span>
             <span class="nav_link_text">{{ 'feedback._nav' | translate }}</span>
           </a>
