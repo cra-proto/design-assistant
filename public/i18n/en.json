@@ -314,5 +314,8 @@
 	"switch._": "------------------------------SWITCH PROJECT------------------------------",
 	"switch._nav": "All Projects",
 	"switch._title": "Saved Projects",
-	"switch.description": "Manage your saved projects. You can start a new project or load an existing one. Projects are saved locally in your browser if you aren't connected to GitHub."
+	"switch.description": "Manage your saved projects. You can start a new project or load an existing one. Projects are saved locally in your browser if you aren't connected to GitHub.",
+	"feedback.email.subject": "AIDA Feedback - {{projectName}}",
+	"feedback.email.bodyEN": "\n\n--- Please share your feedback above this line ---\n\nProject: {{projectName}}\nUser: {{user}}\nStorage: {{projectStorage}}\nLast Saved: {{projectSaved}}\nVersion: {{projectVersion}}\nRepo: {{projectRepo}}\nBrowser: {{browser}}\nDate: {{date}}",
+	"feedback.email.bodyFR": "\n\n--- Veuillez partager vos commentaires au-dessus de cette ligne ---\n\nProjet : {{projectName}}\nUtilisateur : {{user}}\nStockage : {{projectStorage}}\nDernière sauvegarde : {{projectSaved}}\nVersion : {{projectVersion}}\nDépôt : {{projectRepo}}\nNavigateur : {{browser}}\nDate : {{date}}"
 }

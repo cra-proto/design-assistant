@@ -117,7 +117,7 @@ export class ProjectStorageService {
                 this.setActiveProject(newKey, storageType);
                 // Remove key from deleted project list (in case we are restoring a project from the deleted list)
                 const deletedProjects = JSON.parse(this.localStorage.getData(this.DELETED_PROJECTS_KEY) || '[]');
-                const updatedDeletedProjects = deletedProjects.filter((p: any) => p.key !== newKey && p.key !== oldKey);
+                const updatedDeletedProjects = deletedProjects.filter((p: ProjectMetadata) => p.key !== newKey && p.key !== oldKey);
                 this.localStorage.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
             }
 
@@ -185,6 +185,7 @@ export class ProjectStorageService {
     // Remove circular TreeNode references from TreeNodes
     private removeParents(nodes: TreeNode[]): TreeNode[] {
         return nodes.map(node => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { parent, ...rest } = node;
             return {
                 ...rest,
@@ -196,7 +197,7 @@ export class ProjectStorageService {
     // Update list of local projects in localStorage
     public updateLocalProjectList(key: string, project: Project): void {
         const savedProjects = JSON.parse(this.localStorage.getData(this.SAVED_PROJECTS_KEY) || '[]');
-        const existingIndex = savedProjects.findIndex((p: any) => p.key === key);
+        const existingIndex = savedProjects.findIndex((p: ProjectMetadata) => p.key === key);
 
         const projectEntry: ProjectMetadata = {
             id: project.id,
@@ -217,7 +218,7 @@ export class ProjectStorageService {
         }
 
         // Sort by most recent
-        savedProjects.sort((a: any, b: any) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
+        savedProjects.sort((a: ProjectMetadata, b: ProjectMetadata) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
 
         this.localStorage.saveData(this.SAVED_PROJECTS_KEY, JSON.stringify(savedProjects));
 
@@ -372,13 +373,13 @@ export class ProjectStorageService {
         const savedProjects = JSON.parse(this.localStorage.getData(this.SAVED_PROJECTS_KEY) || '[]');
         const deletedProjects = JSON.parse(this.localStorage.getData(this.DELETED_PROJECTS_KEY) || '[]');
 
-        const savedProject = savedProjects.find((p: any) => p.key === key); // ProjectMetadata or undefined
-        const inDeleted = deletedProjects.some((p: any) => p.key === key); // true or false
+        const savedProject = savedProjects.find((p: ProjectMetadata) => p.key === key); // ProjectMetadata or undefined
+        const inDeleted = deletedProjects.some((p: ProjectMetadata) => p.key === key); // true or false
 
         //Process saved projects first in case same key is in both somehow. Prevents accidental permenent delete.
         if (savedProject) {
             // Remove from saved project list and add to deleted project list
-            const updatedSavedProjects = savedProjects.filter((p: any) => p.key !== key);
+            const updatedSavedProjects = savedProjects.filter((p: ProjectMetadata) => p.key !== key);
             this.localStorage.saveData(this.SAVED_PROJECTS_KEY, JSON.stringify(updatedSavedProjects));
             const deletedProject = {
                 ...savedProject,
@@ -393,7 +394,7 @@ export class ProjectStorageService {
         else if (inDeleted) {
             // Delete and remove from deleted project list
             this.localStorage.removeData(key);
-            const updatedDeletedProjects = deletedProjects.filter((p: any) => p.key !== key);
+            const updatedDeletedProjects = deletedProjects.filter((p: ProjectMetadata) => p.key !== key);
             this.localStorage.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
             console.log(`Deleted project "${key}" deleted`);
             this.projectListVersion.update(v => v + 1);

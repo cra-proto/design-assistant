@@ -31,7 +31,7 @@ export class UserSettingsComponent {
     }
 
     // Language
-    langOptions: MenuItem[] = [{ label: 'lang.eng', value: 'en' }, { label: 'lang.fra', value: 'fr' }];
+    langOptions: MenuItem[] = [{ label: 'common.language.english', value: 'en' }, { label: 'common.language.french', value: 'fr' }];
 
     get selectedLang(): string {
         return this.themeService.currentLang();

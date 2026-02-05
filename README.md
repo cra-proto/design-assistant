@@ -290,7 +290,41 @@ Review the changes to ensure no dynamically generated keys were accidentally rem
 
 ### Avoid translate.instant()
 
-translate.instant() does not update when a user toggles languages. 
+translate.instant() does not update when a user toggles languages. Let the template handle translations where possible and make sure to test the toggle experience for any translations in your .ts file.
+
+## Save Flow Architecture
+```mermaid
+graph TD
+    A[User Actions] --> B[Header Save Button]
+    A --> C[Upload to Cloud Button]
+    
+    B --> D[project-state.servicesaveProject]
+    D --> |Sets status: saving/saved/errorUpdates lastSaved| E[project-storage.servicesaveProject]
+    
+    C --> |Loads projectChanges storageType| E
+    
+    E --> |Routes based onstorageType| F{Storage Type?}
+    
+    F --> |local| G[saveToLocallocalStorage]
+    F --> |cloud| H[saveToCloudPrepares payload]
+    
+    H --> I[cloud-storage.servicesaveProject]
+    I --> |HTTP PUT/POST| J[AWS Lambda API]
+    
+    G --> K[Returns success]
+    I --> |Returns id or null| K
+    K --> L[UI Feedback]
+    
+    style D fill:#e1f5ff
+    style E fill:#fff4e1
+    style I fill:#ffe1e1
+```
+
+**Key Paths:**
+- **Active Project Save** (Header button): User → project-state → project-storage → cloud-storage/local
+- **Upload to Cloud** (Switch project view): User → project-storage → cloud-storage
+
+---
 
 ## VS Code Setup
 
