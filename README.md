@@ -205,6 +205,51 @@ src/
 - Language toggle updates all text and maintains state across sessions
 - Translation files located in `public/i18n/`
 
+### Save Flow Architecture
+```mermaid
+flowchart TB
+    AUTO(["**Automatic Actions**"])
+    USER(["**User Actions**"])
+    HEADER["**Header**<br>Save button<br>save()"]
+    SWITCH["**Switch project**<br>Upload to cloud button<br>uploadToCloud()"]
+    STATE["**project-state.service**<br>saveProject()<br>sets save status for UI from returned boolean"]
+    STORAGE["**project-storage.service**<br>saveProject()<br>returns true/false"]
+    TYPE{"Storage Type?"}
+    STORAGEL[["**project-storage.service**<br>saveToLocal()<br>returns void"]]
+    STORAGEC[["**project-storage.service**<br>saveToCloud()<br>returns true/false"]]
+    CLOUD["**cloud-storage.service**<br>saveProject()<br>returns id or null"]
+    LAMBDA[("**backend/functions/projects**<br>returns id or null")]
+
+    AUTO -- detects unsaved changes<br>triggers save after delay--> STATE
+    USER --> HEADER & SWITCH
+    HEADER --cancels autosave timer--> STATE
+    STATE --updates lastSaved--> STORAGE
+    SWITCH --changes storageType<br>to cloud--> STORAGE
+    STORAGE --routes based on storageType--> TYPE
+    TYPE --local--> STORAGEL
+    TYPE --cloud--> STORAGEC
+    STORAGEC --prepares payload--> CLOUD
+    CLOUD --HTTP PUT/POST to AWS LAMBDA--> LAMBDA
+    
+    HEADER@{ shape: card}
+    SWITCH@{ shape: card}
+    style AUTO fill:#d3d3d3
+    style USER fill:#d3d3d3
+    style HEADER fill:#c09adf
+    style SWITCH fill:#c09adf
+    style STATE fill:#eafaf2
+    style STORAGE fill:#b0edce
+    style TYPE fill:#89cef1
+    style STORAGEL fill:#b0edce
+    style STORAGEC fill:#b0edce
+    style CLOUD fill:#75e0aa
+    style LAMBDA fill:#f486d4
+```
+
+**Key Paths:**
+- **Active Project Save** (Header button): User → project-state → project-storage → cloud-storage/local
+- **Upload to Cloud** (Switch project view): User → project-storage → cloud-storage
+
 ---
 
 **Note**: This section highlights key patterns. Detailed documentation will be added as features stabilize.
@@ -291,51 +336,6 @@ Review the changes to ensure no dynamically generated keys were accidentally rem
 ### Avoid translate.instant()
 
 translate.instant() does not update when a user toggles languages. Let the template handle translations where possible and make sure to test the toggle experience for any translations in your .ts file.
-
-## Save Flow Architecture
-```mermaid
-flowchart TB
-    AUTO(["**Automatic Actions**"])
-    USER(["**User Actions**"])
-    HEADER["**Header**<br>Save button<br>save()"]
-    SWITCH["**Switch project**<br>Upload to cloud button<br>uploadToCloud()"]
-    STATE["**project-state.service**<br>saveProject()<br>sets save status for UI from returned boolean"]
-    STORAGE["**project-storage.service**<br>saveProject()<br>returns true/false"]
-    TYPE{"Storage Type?"}
-    STORAGEL[["**project-storage.service**<br>saveToLocal()<br>returns void"]]
-    STORAGEC[["**project-storage.service**<br>saveToCloud()<br>returns true/false"]]
-    CLOUD["**cloud-storage.service**<br>saveProject()<br>returns id or null"]
-    LAMBDA[("**backend/functions/projects**<br>returns id or null")]
-
-    AUTO -- detects unsaved changes<br>triggers save after delay--> STATE
-    USER --> HEADER & SWITCH
-    HEADER --cancels autosave timer--> STATE
-    STATE --updates lastSaved--> STORAGE
-    SWITCH --changes storageType<br>to cloud--> STORAGE
-    STORAGE --routes based on storageType--> TYPE
-    TYPE --local--> STORAGEL
-    TYPE --cloud--> STORAGEC
-    STORAGEC --prepares payload--> CLOUD
-    CLOUD --HTTP PUT/POST to AWS LAMBDA--> LAMBDA
-    
-    HEADER@{ shape: card}
-    SWITCH@{ shape: card}
-    style AUTO fill:#d3d3d3
-    style USER fill:#d3d3d3
-    style HEADER fill:#c09adf
-    style SWITCH fill:#c09adf
-    style STATE fill:#eafaf2
-    style STORAGE fill:#b0edce
-    style TYPE fill:#89cef1
-    style STORAGEL fill:#b0edce
-    style STORAGEC fill:#b0edce
-    style CLOUD fill:#75e0aa
-    style LAMBDA fill:#f486d4
-```
-
-**Key Paths:**
-- **Active Project Save** (Header button): User → project-state → project-storage → cloud-storage/local
-- **Upload to Cloud** (Switch project view): User → project-storage → cloud-storage
 
 ---
 
