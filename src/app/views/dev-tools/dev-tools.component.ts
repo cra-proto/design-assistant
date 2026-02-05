@@ -15,15 +15,15 @@ import { ButtonModule } from 'primeng/button';
     <p>{{ 'example.description' | translate}}</p>
 
     <div class="flex justify-content-evenly my-4">
-  <div class="text-center">
+  <div>
     <a routerLink="/dev/color-generator" class="text-xl font-semibold">{{'example.colors._title' | translate}}</a>
     <p class="text-color-secondary mt-2">{{'example.colors.description' | translate}}</p>
   </div>
-  <div class="text-center">
+  <div>
     <a routerLink="/dev/design-patterns" class="text-xl font-semibold">{{'example.patterns._title' | translate}}</a>
     <p class="text-color-secondary mt-2">{{'example.patterns.description' | translate}}</p>
   </div>
-  <div class="text-center">
+  <div>
     <a routerLink="/dev/prompt-editor" class="text-xl font-semibold">{{'example.prompt._title' | translate}}</a>
     <p class="text-color-secondary mt-2">{{'example.prompt.description' | translate}}</p>
   </div>
@@ -128,7 +128,7 @@ export class DevToolsComponent {
       "translations": true,
       "reactivity": false,
       "unusedFunctions": false,
-      "lint": true,
+      "lint": false,
       "help": true,
       "consoleLogs": true,
       "responsive": true,
@@ -194,7 +194,7 @@ export class DevToolsComponent {
       "translations": false,
       "reactivity": false,
       "unusedFunctions": false,
-      "lint": false,
+      "lint": true,
       "help": false,
       "consoleLogs": false,
       "responsive": false,
@@ -250,14 +250,14 @@ export class DevToolsComponent {
     },
     {
       "name": "Header",
-      "translations": false,
-      "reactivity": false,
-      "unusedFunctions": false,
-      "lint": false,
-      "help": false,
-      "consoleLogs": false,
-      "responsive": false,
-      "aria": false
+      "translations": true,
+      "reactivity": true,
+      "unusedFunctions": true,
+      "lint": true,
+      "help": true,
+      "consoleLogs": true,
+      "responsive": true,
+      "aria": true
     },
     {
       "name": "Sidebar",
@@ -272,21 +272,21 @@ export class DevToolsComponent {
     },
     {
       "name": "Footer",
-      "translations": false,
-      "reactivity": false,
-      "unusedFunctions": false,
-      "lint": false,
-      "help": false,
-      "consoleLogs": false,
-      "responsive": false,
-      "aria": false
+      "translations": true,
+      "reactivity": true,
+      "unusedFunctions": true,
+      "lint": true,
+      "help": true,
+      "consoleLogs": true,
+      "responsive": true,
+      "aria": true
     },
     {
       "name": "App",
-      "translations": false,
+      "translations": true,
       "reactivity": false,
       "unusedFunctions": false,
-      "lint": false,
+      "lint": true,
       "help": false,
       "consoleLogs": false,
       "responsive": false,
@@ -301,7 +301,7 @@ export class DevToolsComponent {
       "translations": false,
       "reactivity": false,
       "unusedFunctions": false,
-      "lint": false,
+      "lint": true,
       "help": false,
       "consoleLogs": false,
       "responsive": false,
@@ -312,7 +312,7 @@ export class DevToolsComponent {
       "translations": false,
       "reactivity": false,
       "unusedFunctions": false,
-      "lint": false,
+      "lint": true,
       "help": false,
       "consoleLogs": false,
       "responsive": false,
@@ -323,7 +323,7 @@ export class DevToolsComponent {
       "translations": false,
       "reactivity": false,
       "unusedFunctions": false,
-      "lint": false,
+      "lint": true,
       "help": false,
       "consoleLogs": false,
       "responsive": false,
@@ -415,7 +415,7 @@ export class DevToolsComponent {
       "translations": false,
       "reactivity": false,
       "unusedFunctions": false,
-      "lint": false,
+      "lint": true,
       "help": false,
       "consoleLogs": false,
       "responsive": false,
@@ -437,7 +437,7 @@ export class DevToolsComponent {
       "translations": false,
       "reactivity": false,
       "unusedFunctions": false,
-      "lint": true,
+      "lint": false,
       "help": false,
       "consoleLogs": false,
       "responsive": false,
