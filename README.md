@@ -233,17 +233,17 @@ flowchart TB
     
     HEADER@{ shape: card}
     SWITCH@{ shape: card}
-    style AUTO fill:#d3d3d3
-    style USER fill:#d3d3d3
-    style HEADER fill:#c09adf
-    style SWITCH fill:#c09adf
-    style STATE fill:#eafaf2
-    style STORAGE fill:#b0edce
-    style TYPE fill:#89cef1
-    style STORAGEL fill:#b0edce
-    style STORAGEC fill:#b0edce
-    style CLOUD fill:#75e0aa
-    style LAMBDA fill:#f486d4
+    style AUTO fill:#fac5a3,color:#000000
+    style USER fill:#fac5a3,color:#000000
+    style HEADER fill:#c09adf,color:#000000
+    style SWITCH fill:#c09adf,color:#000000
+    style STATE fill:#eafaf2,color:#000000
+    style STORAGE fill:#b0edce,color:#000000
+    style TYPE fill:#89cef1,color:#000000
+    style STORAGEL fill:#b0edce,color:#000000
+    style STORAGEC fill:#b0edce,color:#000000
+    style CLOUD fill:#75e0aa,color:#000000
+    style LAMBDA fill:#f486d4,color:#000000
 ```
 
 **Key Paths:**
