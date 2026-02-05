@@ -229,7 +229,7 @@ flowchart TB
     TYPE --local--> STORAGEL
     TYPE --cloud--> STORAGEC
     STORAGEC --prepares payload--> CLOUD
-    CLOUD --HTTP PUT/POST to AWS LAMBDA--> FUNCTION
+    CLOUD --HTTP PUT/POST<br>to AWS LAMBDA--> FUNCTION
     
     HEADER@{ shape: card}
     SWITCH@{ shape: card}
