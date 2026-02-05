@@ -218,7 +218,7 @@ flowchart TB
     STORAGEL[["**project-storage.service**<br>saveToLocal()<br>returns void"]]
     STORAGEC[["**project-storage.service**<br>saveToCloud()<br>returns true/false"]]
     CLOUD["**cloud-storage.service**<br>saveProject()<br>returns id or null"]
-    LAMBDA[("**backend/functions/projects**<br>returns id or null")]
+    FUNCTION[("**backend/functions/projects**<br>returns id or null")]
 
     AUTO -- detects unsaved changes<br>triggers save after delay--> STATE
     USER --> HEADER & SWITCH
@@ -229,7 +229,7 @@ flowchart TB
     TYPE --local--> STORAGEL
     TYPE --cloud--> STORAGEC
     STORAGEC --prepares payload--> CLOUD
-    CLOUD --HTTP PUT/POST to AWS LAMBDA--> LAMBDA
+    CLOUD --HTTP PUT/POST to AWS LAMBDA--> FUNCTION
     
     HEADER@{ shape: card}
     SWITCH@{ shape: card}
@@ -243,7 +243,7 @@ flowchart TB
     style STORAGEL fill:#b0edce,color:#000000
     style STORAGEC fill:#b0edce,color:#000000
     style CLOUD fill:#75e0aa,color:#000000
-    style LAMBDA fill:#f486d4,color:#000000
+    style FUNCTION fill:#f486d4,color:#000000
 ```
 
 **Key Paths:**
