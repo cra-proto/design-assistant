@@ -1,6 +1,8 @@
 import { Injectable, signal, effect, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { updatePreset, updatePrimaryPalette } from '@primeng/themes';
+import { Router } from '@angular/router';
+import { Title } from '@angular/platform-browser';
+import { updatePreset } from '@primeng/themes';
 import MyPreset from '../common/theme-presets/preset';
 import DeutanPreset from '../common/theme-presets/preset-deutan';
 import ProtanPreset from '../common/theme-presets/preset-protan';
@@ -14,6 +16,8 @@ export type ColorScheme = 'default' | 'deutan' | 'protan' | 'tritan' | 'custom';
 })
 export class ThemeService {
   private translate = inject(TranslateService);
+  private router = inject(Router);
+  private title = inject(Title);
 
   // Language
   public currentLang = signal<string>('en');
@@ -56,6 +60,13 @@ export class ThemeService {
   toggleLanguage() {
     const newLang = this.currentLang() === 'en' ? 'fr' : 'en';
     this.setLanguage(newLang);
+    //Update title on language change
+    const titleKey = this.router.routerState.snapshot.root.firstChild?.title;
+    if (titleKey) {
+      this.translate.get(titleKey).subscribe((translated: string) => {
+        this.title.setTitle(translated);
+      });
+    }
   }
 
   // Dark & Light

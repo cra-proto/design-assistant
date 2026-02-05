@@ -40,10 +40,6 @@ main.container {
   max-height: 75vh;
 }
 
-footer {
-  margin-top: auto;
-}
-
 @media screen and (min-width: 768px) {
   div.container {
     padding-left: calc(var(--nav-width) + 6rem);

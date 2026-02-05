@@ -8,13 +8,9 @@ import { environment } from '../../environments/environment';
   imports: [TranslateModule],
   template: `
 <footer>
-    <div class="flex flex-row justify-content-between align-items-end mt-2">
-      <p class="white-space-nowrap text-color-secondary text-sm">{{'_app.version'|translate}} {{version}}</p>
-      <img
-          class="opacity-70"
-          [src]="logoSrc"
-          [alt]="'common.goc' | translate"
-        />
+    <div class="flex flex-row justify-content-between align-items-end mt-auto pt-2">
+      <p class="white-space-nowrap text-color-secondary text-sm mb-0">{{'_app.version' | translate}} {{version}}</p>
+      <img [src]="logoSrc" [alt]="'common.goc' | translate" class="opacity-70" />
     </div>
 </footer>
 `,
