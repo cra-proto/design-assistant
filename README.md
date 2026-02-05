@@ -294,30 +294,43 @@ translate.instant() does not update when a user toggles languages. Let the templ
 
 ## Save Flow Architecture
 ```mermaid
-graph TD
-    A[User Actions] --> B[Header Save Button]
-    A --> C[Upload to Cloud Button]
+flowchart TB
+    AUTO(["**Automatic Actions**"])
+    USER(["**User Actions**"])
+    HEADER["**Header**<br>Save button<br>save()"]
+    SWITCH["**Switch project**<br>Upload to cloud button<br>uploadToCloud()"]
+    STATE["**project-state.service**<br>saveProject()<br>sets save status for UI from returned boolean"]
+    STORAGE["**project-storage.service**<br>saveProject()<br>returns true/false"]
+    TYPE{"Storage Type?"}
+    STORAGEL[["**project-storage.service**<br>saveToLocal()<br>returns void"]]
+    STORAGEC[["**project-storage.service**<br>saveToCloud()<br>returns true/false"]]
+    CLOUD["**cloud-storage.service**<br>saveProject()<br>returns id or null"]
+    LAMBDA[("**backend/functions/projects**<br>returns id or null")]
+
+    AUTO -- detects unsaved changes<br>triggers save after delay--> STATE
+    USER --> HEADER & SWITCH
+    HEADER --cancels autosave timer--> STATE
+    STATE --updates lastSaved--> STORAGE
+    SWITCH --changes storageType<br>to cloud--> STORAGE
+    STORAGE --routes based on storageType--> TYPE
+    TYPE --local--> STORAGEL
+    TYPE --cloud--> STORAGEC
+    STORAGEC --prepares payload--> CLOUD
+    CLOUD --HTTP PUT/POST to AWS LAMBDA--> LAMBDA
     
-    B --> D[project-state.servicesaveProject]
-    D --> |Sets status: saving/saved/errorUpdates lastSaved| E[project-storage.servicesaveProject]
-    
-    C --> |Loads projectChanges storageType| E
-    
-    E --> |Routes based onstorageType| F{Storage Type?}
-    
-    F --> |local| G[saveToLocallocalStorage]
-    F --> |cloud| H[saveToCloudPrepares payload]
-    
-    H --> I[cloud-storage.servicesaveProject]
-    I --> |HTTP PUT/POST| J[AWS Lambda API]
-    
-    G --> K[Returns success]
-    I --> |Returns id or null| K
-    K --> L[UI Feedback]
-    
-    style D fill:#e1f5ff
-    style E fill:#fff4e1
-    style I fill:#ffe1e1
+    HEADER@{ shape: card}
+    SWITCH@{ shape: card}
+    style AUTO fill:#d3d3d3
+    style USER fill:#d3d3d3
+    style HEADER fill:#c09adf
+    style SWITCH fill:#c09adf
+    style STATE fill:#eafaf2
+    style STORAGE fill:#b0edce
+    style TYPE fill:#89cef1
+    style STORAGEL fill:#b0edce
+    style STORAGEC fill:#b0edce
+    style CLOUD fill:#75e0aa
+    style LAMBDA fill:#f486d4
 ```
 
 **Key Paths:**
