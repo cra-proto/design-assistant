@@ -212,7 +212,7 @@ flowchart TB
     USER(["**User Actions**"])
     HEADER["**Header**<br>Save button<br>save()"]
     SWITCH["**Switch project**<br>Upload to cloud button<br>uploadToCloud()"]
-    STATE["**project-state.service**<br>saveProject()<br>sets save status for UI from returned boolean"]
+    STATE["**project-state.service**<br>saveProject()<br>sets save status for UI<br>from returned boolean"]
     STORAGE["**project-storage.service**<br>saveProject()<br>returns true/false"]
     TYPE{"Storage Type?"}
     STORAGEL[["**project-storage.service**<br>saveToLocal()<br>returns void"]]
