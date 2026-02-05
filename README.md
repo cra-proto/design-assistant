@@ -205,7 +205,13 @@ src/
 - Language toggle updates all text and maintains state across sessions
 - Translation files located in `public/i18n/`
 
-### Save Flow Architecture
+---
+
+## Save Flow Architecture
+- The autosave effect handles saving updated project files to the browsers local storage or to DynamoDB
+- ProjectMetadata has a lastSaved and lastModified variable to trigger the effect when there are unsaved changes
+- setProjectTree updates the lastModified date when data is merged into the TreeNode structure
+
 ```mermaid
 flowchart TB
     AUTO(["**Automatic Actions**"])
@@ -255,7 +261,11 @@ flowchart TB
 
 ---
 
+## Additional Notes
+
 **Note**: This section highlights key patterns. Detailed documentation will be added as features stabilize.
+
+---
 
 ## Common Development Tasks
 
