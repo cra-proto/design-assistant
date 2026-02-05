@@ -215,10 +215,11 @@ flowchart TB
     STATE["**project-state.service**<br>saveProject()<br>sets save status for UI<br>from returned boolean"]
     STORAGE["**project-storage.service**<br>saveProject()<br>returns true/false"]
     TYPE{"Storage Type?"}
-    STORAGEL[["**project-storage.service**<br>saveToLocal()<br>returns void"]]
-    STORAGEC[["**project-storage.service**<br>saveToCloud()<br>returns true/false"]]
+    STORAGELOCAL[["**project-storage.service**<br>saveToLocal()<br>returns void"]]
+    STORAGECLOUD[["**project-storage.service**<br>saveToCloud()<br>returns true/false"]]
     CLOUD["**cloud-storage.service**<br>saveProject()<br>returns id or null"]
-    FUNCTION[("**backend/functions/projects**<br>returns id or null")]
+    CLOUDSAVE[("**backend/functions/projects**<br>returns id or null")]
+    LOCALSAVE[("**localStorage**")]
 
     AUTO -- detects unsaved changes<br>triggers save after delay--> STATE
     USER --> HEADER & SWITCH
@@ -226,10 +227,11 @@ flowchart TB
     STATE --updates lastSaved--> STORAGE
     SWITCH --changes storageType<br>to cloud--> STORAGE
     STORAGE --routes based on storageType--> TYPE
-    TYPE --local--> STORAGEL
-    TYPE --cloud--> STORAGEC
-    STORAGEC --prepares payload--> CLOUD
-    CLOUD --HTTP PUT/POST<br>to AWS LAMBDA--> FUNCTION
+    TYPE --local--> STORAGELOCAL
+    TYPE --cloud--> STORAGECLOUD
+    STORAGECLOUD --prepares payload--> CLOUD
+    CLOUD --HTTP PUT/POST<br>to AWS LAMBDA--> CLOUDSAVE
+    STORAGELOCAL --> LOCALSAVE
     
     HEADER@{ shape: card}
     SWITCH@{ shape: card}
