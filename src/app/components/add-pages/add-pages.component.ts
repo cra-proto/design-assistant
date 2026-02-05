@@ -49,11 +49,7 @@ import { environment } from '../../../environments/environment';
         PopoverModule, AutoCompleteModule, TagModule,
     ],
     templateUrl: './add-pages.component.html',
-    styles: `
-    ::ng-deep .p-stepper .p-stepper-panel {
-    flex: 0 0 auto !important;
-}
-`
+    styles: ``
 })
 export class AddPagesComponent {
     // Services    
@@ -247,12 +243,12 @@ export class AddPagesComponent {
             defaultFocus: 'accept',
             closeOnEscape: true,
             rejectButtonProps: {
-                label: this.translate.instant('addPages.duplicate.message.reject'),
+                label: this.translate.instant('common.cancel'),
                 severity: 'secondary',
                 outlined: true
             },
             acceptButtonProps: {
-                label: this.translate.instant('addPages.duplicate.message.accept'),
+                label: this.translate.instant('common.yes'),
                 severity: 'danger'
             },
             accept: () => {
@@ -342,7 +338,7 @@ export class AddPagesComponent {
             //Step 5: Emit completion
             this.addPagesState.setBreadcrumbState({
                 progress: 100,
-                currentStep: this.translate.instant('addPages.breadcrumb.step5'),
+                currentStep: this.translate.instant('common.complete'),
                 isValidating: false,
                 isValidated: true,
             });
@@ -353,7 +349,7 @@ export class AddPagesComponent {
             console.error('Error validating breadcrumbs:', error);
             this.addPagesState.setBreadcrumbState({
                 isValidating: false,
-                currentStep: this.translate.instant('addPages.breadcrumb.error'),
+                currentStep: this.translate.instant('common.error'),
             });
         }
     }

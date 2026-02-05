@@ -1,0 +1,25 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
+import { RouterLink } from '@angular/router';
+
+import { BreadcrumbModule } from 'primeng/breadcrumb';
+
+@Component({
+    selector: 'aida-prompt-editor',
+    standalone: true,
+    imports: [
+        CommonModule, FormsModule, TranslateModule, RouterLink,
+        BreadcrumbModule,
+    ],
+    templateUrl: './prompt-editor.component.html',
+    styles: ``
+})
+export class PromptEditorComponent {
+
+
+    breadcrumbs = [{ label: 'example._title', route: '/dev' }, { label: 'example.prompt._title' }]
+
+
+}

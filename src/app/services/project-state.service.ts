@@ -3,8 +3,11 @@ import { Project, ProjectMetadata, ProjectPhase, CurrentPhase, PageMeta, PageSta
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../environments/environment';
 import { FileUploadHandlerEvent } from 'primeng/fileupload';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { ProjectStorageService } from '../services/storage/project-storage.service';
+import { ExportGitHubService } from './github/export-github.service';
+import { CollaboratorService } from './collaborator.service';
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
 
@@ -25,6 +28,7 @@ NO persistence logic (that goes to ProjectStorageService)*/
 })
 export class ProjectStateService {
     private projectStorage = inject(ProjectStorageService);
+    private collaboratorService = inject(CollaboratorService);
 
     // Main project state
     private project = signal<Project>({
@@ -38,7 +42,7 @@ export class ProjectStateService {
         lastSaved: new Date(),
         lastExported: new Date(),
         storageType: 'local',
-        collaborators: [],
+        collaborators: this.collaboratorService.getInitialCollaborators(),
         baselinePages: 0,
         inScopePages: 0,
         github: {
@@ -67,6 +71,11 @@ export class ProjectStateService {
             const currentProject = this.project();
             const hasChanges = currentProject.lastModified > currentProject.lastSaved;
             if (hasChanges) {
+                // Check if user has permission to save
+                if (currentProject.storageType === 'cloud' && !this.collaboratorService.canEditProject(currentProject)) {
+                    console.log("Converting cloud project to local...");
+                    this.setStorageType('local');
+                }
                 this.saveStatus.set('unsaved');
                 // Calculate time since last save and save if exceeding the limit
                 const timeSinceLastSave = currentProject.lastModified.getTime() - currentProject.lastSaved.getTime();
@@ -90,6 +99,7 @@ export class ProjectStateService {
     private generateId(): string {
         return `project_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     }
+
     // Set entire project
     setProject(project: Project) {
         console.log('Setting project:', project.projectName);
@@ -110,6 +120,11 @@ export class ProjectStateService {
             projectName: name,
             lastModified: new Date()
         }));
+        // Sync name to repo if not set
+        if (name && !this.project().github.repo) {
+            const repo = name.replace(/[:']/g, '').replace(/\s+/g, '-').toLowerCase();
+            this.setGitHubRepo({ repo });
+        }
     }
 
     setProjectPhase(phase: ProjectPhase) {
@@ -126,6 +141,11 @@ export class ProjectStateService {
             github: { ...curr.github, ...gitHubData },
             lastModified: new Date()
         }));
+        // Sync repo to name if not set
+        if (this.project().github.repo && !this.project().projectName) {
+            const name = this.project().github.repo.replace(/-/g, ' ').replace(/^./, char => char.toUpperCase());
+            this.setProjectName(name);
+        }
     }
 
     setCollaborators(collaborators: GitHubUser[]) {
@@ -136,10 +156,10 @@ export class ProjectStateService {
         }));
     }
 
-    setStorageLocation(location: 'local' | 'cloud') {
+    setStorageType(type: 'local' | 'cloud') {
         this.project.update(curr => ({
             ...curr,
-            storageLocation: location,
+            storageType: type,
             lastModified: new Date()
         }));
     }
@@ -467,7 +487,7 @@ export class ProjectStateService {
 
 
     // Reset project
-    resetProject() {
+    async resetProject() {
         // Save current project if needed before resetting
         this.saveIfNeeded();
 
@@ -482,7 +502,7 @@ export class ProjectStateService {
             lastSaved: new Date(),
             lastExported: new Date(),
             storageType: 'local',
-            collaborators: [],
+            collaborators: this.collaboratorService.getInitialCollaborators(),
             baselinePages: 0,
             inScopePages: 0,
             github: {
@@ -494,7 +514,7 @@ export class ProjectStateService {
             projectData: []
         });
 
-        this.saveStatus.set('saved');
+        await this.saveProject();
         console.log('Project reset');
     }
 
@@ -526,7 +546,7 @@ export class ProjectStateService {
                     //Data
                     template: data.metadata?.template || '',
                     task: data.metadata?.task || [],
-                    visits: data.metadata?.visits || 0,
+                    visits: data.metadata?.visits ?? undefined,
                     //Owner
                     owner: data.metadata?.owner || '',
                     email: data.metadata?.email || '',
@@ -546,6 +566,29 @@ export class ProjectStateService {
         return flatNodes;
     }
 
+    markForTranslation() {
+        marker('inventory.header.h1');
+        marker('inventory.header.url');
+        marker('inventory.header.oppTitle');
+        marker('inventory.header.oppUrl');
+        marker('inventory.header.prototypeUrl');
+        marker('inventory.header.inScope');
+        marker('inventory.header.isOrphan');
+        marker('inventory.header.isNew');
+        marker('inventory.header.isMoved');
+        marker('inventory.header.isROT');
+        marker('inventory.header.archiveStatus');
+        marker('inventory.header.owner');
+        marker('inventory.header.email');
+        marker('inventory.header.template');
+        marker('inventory.header.task');
+        marker('inventory.header.visits');
+        marker('inventory.header.title');
+        marker('inventory.header.description');
+        marker('inventory.header.keywords');
+    }
+
+    // NOTE: Add new translation keys to the markForTranslation() method above
     getTreeTableColumns(): TableColumn[] {
         return [
             //Current Language
@@ -685,7 +728,7 @@ export class ProjectStateService {
         }
     }
 
-    deleteNode(selectedPages: FlattenedTreeNode[], canDeleteRoot: boolean = false) {
+    deleteNode(selectedPages: FlattenedTreeNode[], canDeleteRoot = false) {
         const projectTree = this.getProjectTree();
 
         for (const page of selectedPages) {

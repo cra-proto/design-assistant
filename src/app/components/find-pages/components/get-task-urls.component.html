@@ -26,8 +26,7 @@
                 <p-tag
                        [value]="option.urlCount.toString()"
                        [severity]="option.urlCount === 0 ? 'danger' : 'success'"
-                       [rounded]="true">
-                </p-tag>
+                       [rounded]="true" />
                 <span>{{ option.label }}</span>
             </div>
         </ng-template>
@@ -40,7 +39,7 @@
 <div class="mt-2 flex align-items-center gap-2">
     <p-progressSpinner
                        styleClass="w-2rem h-2rem"
-                       strokeWidth="4"></p-progressSpinner>
+                       strokeWidth="4" />
     <span>{{ 'findPages.task.loadingTasks' | translate }}</span>
 </div>
 }
@@ -59,7 +58,7 @@
                     [(ngModel)]="taskUrls()[i].selected"
                     [inputId]="'url-' + i"
                     [binary]="true"
-                    size="large"></p-checkbox>
+                    size="large" />
         <label [for]="'url-' + i" class="break-all">{{item.url}}</label>
     </div>
     }

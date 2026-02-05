@@ -1,31 +1,17 @@
-import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 //PrimeNG Modules
 import { TableModule } from 'primeng/table';
-import { IftaLabelModule } from 'primeng/iftalabel';
-import { InputTextModule } from 'primeng/inputtext';
-import { AutoCompleteModule } from 'primeng/autocomplete';
-import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
-import { AutoCompleteCompleteEvent } from 'primeng/autocomplete';
-import { FilterService, SelectItemGroup, TreeNode } from 'primeng/api';
-import { KeyFilterModule } from 'primeng/keyfilter';
+import { TreeNode } from 'primeng/api';
 import { MessageModule } from 'primeng/message';
-import { FieldsetModule } from 'primeng/fieldset';
 import { ChipModule } from 'primeng/chip';
 import { TooltipModule } from 'primeng/tooltip';
-import { PopoverModule } from 'primeng/popover';
-import { CardModule } from 'primeng/card';
-import { DialogModule } from 'primeng/dialog';
+import { PopoverModule, Popover } from 'primeng/popover';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { InputGroupModule } from 'primeng/inputgroup';
-import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
-import { TabsModule } from 'primeng/tabs';
-import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 
 //Services
@@ -38,6 +24,7 @@ import { environment } from '../../../environments/environment';
 
 //Components
 import { SetupRepoComponent } from '../../components/setup-repo/setup-repo.component';
+import { PatComponent } from "../../components/sign-in/pat.component";
 
 export interface PageData {
   url: string;
@@ -69,10 +56,9 @@ interface ExportMessage {
 @Component({
   selector: 'aida-export-github',
   imports: [CommonModule, FormsModule, TranslateModule,
-    SetupRepoComponent,
-    TableModule, IftaLabelModule, InputTextModule, KeyFilterModule, AutoCompleteModule, PasswordModule, ButtonModule, MessageModule, FieldsetModule, ChipModule, TooltipModule,
-    PopoverModule, CardModule, DialogModule, SelectButtonModule,
-    InputGroupModule, InputGroupAddonModule, TabsModule, TagModule, DividerModule],
+    MessageModule, ButtonModule, TooltipModule, PopoverModule, SelectButtonModule, DividerModule,
+    TableModule, ChipModule,
+    SetupRepoComponent, PatComponent],
   templateUrl: './export-github.component.html',
   styles: ``
 })
@@ -106,12 +92,12 @@ export class ExportGithubComponent implements OnInit {
       const token = this.exportGitHubService.token();
       const owner = this.projectData().github.owner;
       const repo = this.projectData().github.repo;
-      const isAuthenticated = this.authService.isAuthenticated();
-      console.log("Effect triggered: token or repo changed.", { token, owner, repo, isAuthenticated });
+      console.log("Effect triggered: token or repo changed.", { token, owner, repo });
       // Only run precheck if we have a token and repo configured
       if (token && owner && repo) {
         await this.validateConnection();
-      } else if (!token && !this.authService.isAuthenticated()) {
+        console.warn("Running validation again!")
+      } else if (!token) {
         // No authentication method available
         this.connectionStatus.set('missing');
       }
@@ -144,7 +130,7 @@ export class ExportGithubComponent implements OnInit {
       console.warn(`Cannot create repo in ${owner}`);
     } else {
       this.connectionStatus.set('connected');
-      this.showDisclaimer.set(result.showDisclaimer || false);
+      this.showDisclaimer.set(result.showDisclaimer ?? false);
       if (result.showDisclaimer) {
         console.warn('Connected to GitHub but PAT scope cannot be verified. Please ensure PAT has appropriate scopes.');
       }
@@ -155,6 +141,7 @@ export class ExportGithubComponent implements OnInit {
   //Manage PAT
   savePAT(): void {
     this.exportGitHubService.pat = this.pat();
+    this.exportGitHubService.validatePAT()
   }
   onPastePAT() {
     setTimeout(() => this.savePAT(), 0);
@@ -243,10 +230,18 @@ export class ExportGithubComponent implements OnInit {
     await this.validateConnection();
   }
 
+  // Show repo settings as secondary task button & overlay (if data exists or overlay is open)
+  // Otherwise, show as primary task card in place of data card
+  @ViewChild('settingsOverlay') settingsOverlay!: Popover;
+  showSettingsButton(): boolean {
+    const hasGithubData = !!(this.projectData().github.owner && this.projectData().github.repo && this.projectData().github.branch);
+    return hasGithubData || this.settingsOverlay?.overlayVisible;
+  }
+
   //Get in-scope URLs and page content
   private async getUrlandContent(node: TreeNode): Promise<PageData[]> {
     const pages: PageData[] = [];
-    if (node.data.status.inScope && node.data.url) {
+    if (node?.data?.status.inScope && node?.data?.url && !this.gitHubData().repo) {
       try {
         const doc = await this.fetchService.fetchContent(node.data.url, "prod");
         const jekyllFormatted = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, this.gitHubData().repo);
@@ -256,7 +251,7 @@ export class ExportGithubComponent implements OnInit {
       }
     }
     // recurse into children
-    if (node.children) {
+    if (node?.children) {
       for (const child of node.children) {
         const childPages = await this.getUrlandContent(child);
         pages.push(...childPages);

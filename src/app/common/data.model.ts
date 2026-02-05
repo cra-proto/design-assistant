@@ -9,15 +9,19 @@ import { TreeNode } from "primeng/api";
 
 //Project phase
 export enum ProjectPhase {
-    Draft = 'phase.draft',
-    Discover = 'phase.discover',
-    Assess = 'phase.assess',
-    Design = 'phase.design',
-    Approve = 'phase.approve',
-    Complete = 'phase.complete'
+    Draft = 'project.phase.draft',
+    Discover = 'project.phase.discover',
+    Assess = 'project.phase.assess',
+    Design = 'project.phase.design',
+    Approve = 'project.phase.approve',
+    Complete = 'project.phase.complete'
 }
 
-export type PhaseStatus = 'status.complete' | 'status.current' | 'status.pending';
+export enum PhaseStatus {
+    Complete = 'project.phase.status.complete',
+    Current = 'project.phase.status.current',
+    Pending = 'project.phase.status.pending'
+}
 
 export interface CurrentPhase {
     name: ProjectPhase;
@@ -31,7 +35,6 @@ export interface GitHubUser {
     avatar_url: string;
     name: string | null;
     email: string | null;
-    bio: string | null;
 }
 
 export interface GitHubRepo {
@@ -109,7 +112,7 @@ export interface FlattenedTreeNode {
     //Data
     template: string;
     task: string[];
-    visits: number;
+    visits: number | undefined;
     //Metadata
     title: string;
     description: string;
@@ -141,6 +144,7 @@ export interface Project extends ProjectMetadata {
     created: Date;
     lastSaved: Date;
     lastExported: Date;
+    baselinePages: number;
     projectData: TreeNode[];  // Full tree structure
 }
 
@@ -152,9 +156,7 @@ export interface ProjectMetadata {
     lastModified: Date;
     phase: ProjectPhase;
     inScopePages: number;
-    baselinePages: number;
     collaborators: GitHubUser[];
     github: GitHubRepo;
     storageType: 'local' | 'cloud';
-    canEdit?: boolean;  // computed based on auth status for cloud projects
 }

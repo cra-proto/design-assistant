@@ -1,9 +1,9 @@
-<h2 class="text-2xl my-1">Project</h2>
+<h2 class="text-2xl my-1">{{'project.setup._title' | translate}}</h2>
 <div class="flex flex-column gap-2">
     <!--Name-->
     <p-iftalabel>
-        <input type="text" id="name" pInputText [(ngModel)]="projectName" pSize="small" fluid (blur)="updateName(); syncName()" [pKeyFilter]="nameFilter" />
-        <label for="branch">Name</label>
+        <input type="text" id="name" pInputText [(ngModel)]="projectName" pSize="small" fluid (blur)="updateName()" [pKeyFilter]="nameFilter" />
+        <label for="name">{{'project.setup.label.name' | translate}}</label>
     </p-iftalabel>
     <!--Phase-->
     <p-iftalabel>
@@ -15,7 +15,7 @@
                 {{ item.name | translate }}
             </ng-template>
         </p-select>
-        <label for="phase">Phase</label>
+        <label for="phase">{{'project.setup.label.phase' | translate}}</label>
     </p-iftalabel>
     <!--Storage-->
     <p-selectbutton [options]="storageOptions" optionValue="value" [(ngModel)]="projectStorage" styleClass="w-full">
@@ -24,10 +24,7 @@
             <span class="ml-1">{{ item.name | translate }}</span>
         </ng-template>
     </p-selectbutton>
-    <div class="flex flex-row align-items-center gap-1">
-        <i class="pi pi-info-circle text-blue-500"></i>
-        <span class="text-xs text-color-secondary">{{ projectStorage === 'local' ?
-            ('storage.browserWarning' | translate) :
-            ('storage.cloudInfo' | translate) }}</span>
-    </div>
+    <p-message severity="info" variant="simple" size="small" icon="pi pi-info-circle">{{ projectStorage === 'local' ?
+        ('project.setup.storage.localWarning' | translate) :
+        ('project.setup.storage.cloudInfo' | translate) }}</p-message>
 </div>

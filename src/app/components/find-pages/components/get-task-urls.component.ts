@@ -49,7 +49,7 @@ export class GetTaskUrlsComponent implements OnInit {
   filteredTasks = signal<TaskOption[]>([]);
   selectedTaskId = signal<number | null>(null);
   selectedTask = signal<TaskOption | null>(null);
-  taskUrls = signal<Array<{ url: string; selected: boolean }>>([]);
+  taskUrls = signal<{ url: string; selected: boolean }[]>([]);
 
   // Computed: Transform Airtable data to TaskOptions based on current language
   taskOptions = computed(() => {
@@ -90,9 +90,7 @@ export class GetTaskUrlsComponent implements OnInit {
   }
 
   ngOnInit() {
-    // EAGER LOADING (like your find-pages component)
-    // Data loads immediately when component initializes
-    //this.airtableService.fetchTasks();
+    this.onAutocompleteInteraction(); //disable this if we want to wait for user interaction before loading data
   }
 
   async onAutocompleteInteraction() {

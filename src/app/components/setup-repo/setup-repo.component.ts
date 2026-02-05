@@ -1,37 +1,26 @@
-import { Component, inject, OnInit, computed } from '@angular/core';
+import { Component, inject, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { RouterLink } from '@angular/router';
 
 //PrimeNG modules
-import { InputTextModule } from 'primeng/inputtext';
-import { TextareaModule } from 'primeng/textarea';
-import { SelectModule } from 'primeng/select';
 import { IftaLabelModule } from 'primeng/iftalabel';
+import { InputTextModule } from 'primeng/inputtext';
+import { AutoCompleteModule, AutoCompleteCompleteEvent, AutoCompleteSelectEvent } from 'primeng/autocomplete';
 import { CheckboxModule } from 'primeng/checkbox';
-import { AutoCompleteModule, AutoCompleteCompleteEvent } from 'primeng/autocomplete';
 import { KeyFilterModule } from 'primeng/keyfilter';
 import { MessageModule } from 'primeng/message';
-import { ButtonModule } from 'primeng/button';
-import { DrawerModule } from 'primeng/drawer';
-import { OrganizationChartModule } from 'primeng/organizationchart';
-import { TreeNode } from 'primeng/api';
-import { TooltipModule } from 'primeng/tooltip';
 
 //Custom components and services
 import { ProjectStateService } from '../../services/project-state.service';
 import { ExportGitHubService } from '../../services/github/export-github.service';
-import { GitHubAuthService } from '../../services/github/github-auth.service';
 import { environment } from '../../../environments/environment';
-
 
 @Component({
   selector: 'aida-setup-repo',
   imports: [
     CommonModule, FormsModule, TranslateModule,
-    InputTextModule, TextareaModule, SelectModule, IftaLabelModule, CheckboxModule, AutoCompleteModule, KeyFilterModule, MessageModule,
-    DrawerModule, ButtonModule, OrganizationChartModule, TooltipModule
+    InputTextModule, IftaLabelModule, CheckboxModule, AutoCompleteModule, KeyFilterModule, MessageModule,
   ],
   templateUrl: './setup-repo.component.html',
   styles: ``
@@ -39,13 +28,15 @@ import { environment } from '../../../environments/environment';
 export class SetupRepoComponent implements OnInit {
   projectState = inject(ProjectStateService);
   exportGitHubService = inject(ExportGitHubService);
-  authService = inject(GitHubAuthService);
   defaultOrg = environment.defaultOrg
 
-  //Check if project is loaded
-  get projectLoaded(): boolean {
-    const name = this.projectState.getProject().projectName;
-    return !!name;
+  constructor() {
+    // Refresh gitHubRepo when there are changes to project name (for initial sync fxn)
+    effect(() => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const stateName = this.projectData.projectName; // waching for changes to project name
+      this.gitHubRepo = this.projectData.github.repo;
+    });
   }
 
   async ngOnInit(): Promise<void> {
@@ -58,26 +49,9 @@ export class SetupRepoComponent implements OnInit {
   }
 
   //Text inputs
-  //projectName = this.projectData.projectName;
   gitHubOwner = this.projectData.github.owner;
-  //gitHubRepo = this.projectData.github.repo;
+  gitHubRepo = this.projectData.github.repo;
   gitHubBranch = this.projectData.github.branch;
-
-  //Project name
-  get projectName(): string {
-    return this.projectData.projectName;
-  }
-  set projectName(value: string) {
-    this.projectState.setProjectName(value);
-  }
-
-  //GitHub repo
-  get gitHubRepo(): string {
-    return this.projectData.github.repo;
-  }
-  set gitHubRepo(value: string) {
-    this.projectState.setGitHubRepo({ repo: value });
-  }
 
   //Baseline checkbox
   get gitHubBaseline(): boolean {
@@ -87,15 +61,9 @@ export class SetupRepoComponent implements OnInit {
     this.projectState.setGitHubRepo({ hasBaselineRepo: value });
   }
 
-  nameFilter = /^[a-zA-Z0-9-._ :']*$/;
   ownerFilter = /^[a-zA-Z0-9-]*$/;
   repoFilter = /^[a-zA-Z0-9-._]*$/;
   branchFilter = /^[a-zA-Z0-9-./]*$/;
-
-  updateName() {
-    this.projectName = this.projectName.trim().replace(/^[-._ :']+|[-._ :']+$/g, '').replace(/[-]{2,}/g, '-').replace(/[.]{2,}/g, '.').replace(/[_]{2,}/g, '_').replace(/\s+/g, ' ').replace(/[:]{2,}/g, ':').replace(/[']{2,}/g, '\'');
-    this.projectState.setProjectName(this.projectName);
-  }
 
   updateOwner() {
     this.gitHubOwner = this.gitHubOwner.trim().toLowerCase().replace(/^[-]+|[-]+$/g, '').replace(/[-]{2,}/g, '-');
@@ -103,8 +71,23 @@ export class SetupRepoComponent implements OnInit {
     this.projectState.setGitHubRepo({ owner: this.gitHubOwner });
   }
 
-  updateRepo() {
+  onRepoInput() {
     this.gitHubRepo = this.gitHubRepo.trim().replace(/^[-._]+|[-._]+$/g, '').replace(/(\/|\.)lock$/, '').replace(/[-]{2,}/g, '-').replace(/[.]{2,}/g, '.').replace(/[_]{2,}/g, '_');
+  }
+
+  private blurTimeout: ReturnType<typeof setTimeout> | undefined;
+  onRepoBlur() {
+    this.blurTimeout = setTimeout(() => {
+      this.updateRepo();
+    }, 200);
+  }
+
+  onRepoSelect(event: AutoCompleteSelectEvent) {
+    this.gitHubRepo = event.value;
+    this.updateRepo();
+  }
+
+  updateRepo() {
     this.projectState.setGitHubRepo({ repo: this.gitHubRepo });
   }
 
@@ -114,17 +97,11 @@ export class SetupRepoComponent implements OnInit {
     this.projectState.setGitHubRepo({ branch: this.gitHubBranch });
   }
 
-  //Autocompletes project or repo name based on the other if one is empty
-  syncName() {
-    if (!this.projectName && this.gitHubRepo) { this.projectName = this.gitHubRepo.replace(/-/g, ' ').replace(/^./, char => char.toUpperCase()); this.updateName(); }
-    if (this.projectName && !this.gitHubRepo) { this.gitHubRepo = this.projectName.replace(/[:']/g, '').replace(/\s+/g, '-').toLowerCase(); this.updateRepo(); }
-  }
-
   //Loads repo list for filtering
   repos: string[] = [];
-  ownerError = '';
+  ownerError: { key: string, params?: { owner: string } } | null = null;
   async updateRepoList() {
-    this.ownerError = '';
+    this.ownerError = null;
     this.repos = [];
 
     try {
@@ -133,14 +110,14 @@ export class SetupRepoComponent implements OnInit {
     }
     catch (error) {
       if ((error as Error).message?.includes('404')) {
-        this.ownerError = `GitHub owner "${this.gitHubOwner}" not found.`;
+        this.ownerError = { key: 'project.github.error.ownerNotFound', params: { owner: this.gitHubOwner } };
       } else {
-        this.ownerError = `Failed to load repositories for "${this.gitHubOwner}".`;
+        this.ownerError = { key: 'project.github.error.loadFailed', params: { owner: this.gitHubOwner } };
       }
     }
   }
 
-  //Filters repo list for autocomplete
+  //Filters repo list for autocomplete (starts with, then includes)
   filteredRepos: string[] = [];
   filterRepos(event: AutoCompleteCompleteEvent) {
     const query = event.query?.trim().toLowerCase() || '';

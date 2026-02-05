@@ -42,7 +42,7 @@ export class FindPagesComponent implements OnInit {
     filteredTasks = signal<TaskOption[]>([]);
     selectedTaskId = signal<number | null>(null);
     selectedTask = signal<TaskOption | null>(null);
-    taskUrls = signal<Array<{ url: string; selected: boolean }>>([]);
+    taskUrls = signal<{ url: string; selected: boolean }[]>([]);
 
     constructor() {
         effect(() => {

@@ -1,9 +1,10 @@
 export const environment = {
     production: true,
-    version: '0.1.0', //major.minor.patch
+    sandbox: false,
+    version: '0.2.0', //major.minor.patch
     apiGateway: 'https://k5x2fnpa93.execute-api.ca-central-1.amazonaws.com/production',
     dynamodbFunctionUrl: 'https://jorsotuenahud6d5dlloupex440spkyh.lambda-url.ca-central-1.on.aws/',
     airtableFunctionUrl: 'https://xohirz6dqj47ub3jrayhjv52ja0qmyfu.lambda-url.ca-central-1.on.aws/',
-    defaultOrg: 'proto-cra',
+    defaultOrg: 'cra-proto',
     templateOrg: 'proto-cra', //for accessing core-prototype
 };

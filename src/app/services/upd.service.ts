@@ -108,7 +108,7 @@ export class UpdService {
     /**
      * Get top N pages by visits
      */
-    getTopPagesByVisits(limit: number = 10): UpdPageData[] {
+    getTopPagesByVisits(limit = 10): UpdPageData[] {
         return [...this.pageData()]
             .sort((a, b) => b.visits - a.visits)
             .slice(0, limit);

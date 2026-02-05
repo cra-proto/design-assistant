@@ -27,6 +27,10 @@ export class CloudStorageService {
     private error = signal<string | null>(null);
     public errorMessage = computed(() => this.error());
 
+    constructor() {
+        this.loadProjects(); // Load projects on service initialization
+    }
+
     /**
      * Get headers with optional auth token
      */
@@ -52,8 +56,11 @@ export class CloudStorageService {
         this.error.set(null);
 
         try {
+            const org = localStorage.getItem('myOrg') || 'DEFAULT';
+            const url = `${this.API_URL}?org=${encodeURIComponent(org)}`;
+
             const projects = await firstValueFrom(
-                this.http.get<ProjectMetadata[]>(`${this.API_URL}`, {
+                this.http.get<ProjectMetadata[]>(url, {
                     headers: this.getHeaders()
                 }).pipe(
                     catchError(error => {
@@ -141,6 +148,9 @@ export class CloudStorageService {
             return null;
         }
 
+        // Get org
+        const org = localStorage.getItem('myOrg') || 'DEFAULT';
+
         this.loading.set(true);
         this.error.set(null);
 
@@ -148,29 +158,24 @@ export class CloudStorageService {
             // Prepare the payload
             // Convert Date objects to timestamps for JSON serialization
             const payload = {
-                id: project.id,
+                ...project,
+                org: org,
                 key: this.generateKeyFromName(project.projectName),
-                projectName: project.projectName,
-                version: project.version,
-                phase: project.phase,
+                storageType: 'cloud' as const,
                 created: project.created instanceof Date ? project.created.getTime() : project.created,
                 lastModified: project.lastModified instanceof Date ? project.lastModified.getTime() : project.lastModified,
                 lastSaved: project.lastSaved instanceof Date ? project.lastSaved.getTime() : project.lastSaved,
                 lastExported: project.lastExported instanceof Date ? project.lastExported.getTime() : project.lastExported,
-                storageType: 'cloud' as const,
                 collaborators: project.collaborators?.map(c => ({
-                    githubId: c.id.toString(),
+                    id: c.id,
                     login: c.login,
                     name: c.name || c.login,
-                    avatarUrl: c.avatar_url
+                    avatar_url: c.avatar_url,
+                    email: c.email || null
                 })),
-                baselinePages: project.baselinePages,
-                inScopePages: project.inScopePages,
-                github: project.github,
-                projectData: project.projectData // Full tree structure
             };
 
-            console.log('Saving project to cloud:', payload.key);
+            console.log('Saving project to cloud:', payload.key, 'with org:', org);
 
             const url = projectId ? `${this.API_URL}/${projectId}` : this.API_URL;
             const method = projectId ? 'PUT' : 'POST';
@@ -241,18 +246,6 @@ export class CloudStorageService {
         } finally {
             this.loading.set(false);
         }
-    }
-
-    /**
-     * Check if user can edit a project
-     */
-    canEdit(project: ProjectMetadata): boolean {
-        if (!this.authService.isAuthenticated()) return false;
-
-        const user = this.authService.user();
-        if (!user) return false;
-
-        return project.collaborators.some(c => c.id === user.id);
     }
 
 }

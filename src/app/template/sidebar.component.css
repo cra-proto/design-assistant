@@ -52,7 +52,7 @@
 }
 
 .nav_link.active-hide {
-    background-color: var(--p-primary-color);
+  background-color: var(--p-primary-color);
   border-radius: .25rem;
   padding-bottom: .5rem;
   width: 2.8rem
@@ -79,6 +79,7 @@
 .show-n {
   left: 0
 }
+
 .section {
   padding: .1rem;
 }
@@ -139,18 +140,18 @@
   max-width: 100%
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
 
   .section,
   .nav_section-body,
   .nav_section_text {
-      overflow: hidden;
-      text-overflow: ellipsis;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 100%;
     min-width: 0;
     display: block
-    }
+  }
 
   .nav_header,
   .nav_link_text {
@@ -161,11 +162,11 @@
     margin-left: 0;
     margin-top: 0.5rem;
     align-self: flex-end
-    }
+  }
 
-    .logo_text {
-      display: none
-}
+  .logo_text {
+    display: none
+  }
 }
 
 .nav_logo a {
@@ -190,7 +191,7 @@
   align-self: flex-start;
 }
 
-@media screen and (min-width: 600px) {
+@media screen and (min-width: 768px) {
   .l-navbar {
     left: 0;
     padding: 1rem 1rem 0

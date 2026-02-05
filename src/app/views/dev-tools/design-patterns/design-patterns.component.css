@@ -1,0 +1,13 @@
+pre {
+    background-color: var(--surface-ground);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+pre code {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}

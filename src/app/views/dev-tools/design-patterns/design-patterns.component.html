@@ -1,0 +1,209 @@
+<p-breadcrumb [model]="breadcrumbs">
+    <ng-template pTemplate="item" let-item>
+        @if(item.route){
+        <a [routerLink]="item.route" class="p-menuitem-link">{{ item.label | translate }}</a>
+        }
+        @else{
+        <span class="p-menuitem-text">{{ item.label | translate }}</span>
+        }
+    </ng-template>
+</p-breadcrumb>
+
+<div class="p-4">
+    <h1>{{ 'example.patterns._title' | translate }}</h1>
+    <p class="text-color-secondary mb-4">{{ 'example.patterns.description' | translate }}</p>
+
+    <p-tabs value="0">
+        <p-tablist>
+            <p-tab value="0">{{'example.patterns.tab.messages' | translate}}</p-tab>
+            <p-tab value="1">{{'example.patterns.tab.buttons' | translate}}</p-tab>
+            <p-tab value="2">{{'example.patterns.tab.cards' | translate}}</p-tab>
+            <p-tab value="3">{{'example.patterns.tab.inputs' | translate}}</p-tab>
+        </p-tablist>
+        <!-- Messages Tab -->
+        <p-tabpanel value="0">
+            <div class="flex flex-column gap-4">
+                @for (example of messageExamples; track example.label; let i = $index) {
+                <div class="surface-section border-1 surface-border border-round p-4">
+                    <h3 class="mt-0">{{ example.label }}</h3>
+                    @if (example.description) {
+                    <p class="text-color-secondary mt-0">{{ example.description | translate }}</p>
+                    }
+
+                    <!-- Live Preview (config-driven) -->
+                    <div class="mb-3">
+                        @if (example.previewConfig) {
+                        <p-message
+                                   [severity]="example.previewConfig.severity"
+                                   [icon]="example.previewConfig.icon"
+                                   [text]="example.previewConfig.text | translate"
+                                   [variant]="example.previewConfig.variant"
+                                   [size]="example.previewConfig.size" />
+                        }
+                    </div>
+
+                    <!-- Code Block -->
+                    <div class="relative">
+                        <p-button
+                                  [icon]="copiedIndex() === 'message-' + i ? 'pi pi-check' : 'pi pi-copy'"
+                                  (onClick)="copyCode(example.code, 'message-' + i)"
+                                  [rounded]="true"
+                                  size="small"
+                                  severity="secondary"
+                                  styleClass="absolute top-0 right-0 mt-2 mr-2 secondary-outline"
+                                  [ariaLabel]="'common.copyCode' | translate" />
+                        <pre class="m-0" #codeContainer [attr.data-code]="example.code"><code class="language-html"></code></pre>
+                    </div>
+                </div>
+                }
+            </div>
+        </p-tabpanel>
+
+        <!-- Buttons Tab -->
+        <p-tabpanel value="1">
+            <div class="flex flex-column gap-4">
+                @for (example of buttonExamples; track example.label; let i = $index) {
+                <div class="surface-section border-1 surface-border border-round p-4">
+                    <h3 class="mt-0">{{ example.label }}</h3>
+                    @if (example.description) {
+                    <p class="text-color-secondary mt-0">{{ example.description | translate }}</p>
+                    }
+
+                    <!-- Live Preview (config-driven) -->
+                    <div class="mb-3">
+                        @if (example.previewConfig) {
+                        <div class="flex gap-2">
+                            @for (btn of example.previewConfig.buttons; track $index) {
+                            <p-button
+                                      [label]="btn.label ? (btn.label | translate) : undefined"
+                                      [icon]="btn.icon"
+                                      [severity]="btn.severity"
+                                      [outlined]="btn.outlined"
+                                      [text]="btn.text"
+                                      [rounded]="btn.rounded"
+                                      [styleClass]="btn.styleClass"
+                                      [pTooltip]="btn.tooltip ? (btn.tooltip | translate) : undefined"
+                                      tooltipPosition="top" />
+                            }
+                        </div>
+                        }
+                    </div>
+
+                    <!-- Code Block -->
+                    <div class="relative">
+                        <p-button
+                                  [icon]="copiedIndex() === 'button-' + i ? 'pi pi-check' : 'pi pi-copy'"
+                                  (onClick)="copyCode(example.code, 'button-' + i)"
+                                  [rounded]="true"
+                                  size="small"
+                                  severity="secondary"
+                                  styleClass="absolute top-0 right-0 mt-2 mr-2 secondary-outline"
+                                  [ariaLabel]="'common.copyCode' | translate" />
+                        <pre class="m-0" #codeContainer [attr.data-code]="example.code"><code class="language-html"></code></pre>
+                    </div>
+                </div>
+                }
+            </div>
+        </p-tabpanel>
+
+        <!-- Card Styles Tab -->
+        <p-tabpanel value="2">
+            <div class="flex flex-column gap-4">
+                @for (example of cardExamples; track example.label; let i = $index) {
+                <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+                    <h3 class="mt-0">{{ example.label }}</h3>
+                    @if (example.description) {
+                    <p class="text-color-secondary mt-0">{{ example.description | translate }}</p>
+                    }
+
+                    <!-- Live Preview (config-driven) -->
+                    <div class="mb-3">
+                        @if (example.previewConfig) {
+                        @if (example.previewConfig.type === 'standard') {
+                        <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+                            {{ example.previewConfig.content }}
+                        </div>
+                        }
+                        @if (example.previewConfig.type === 'hover') {
+                        <div class="surface-card border-round-lg shadow-1 hover:shadow-3 p-4 w-full min-w-min">
+                            {{ example.previewConfig.content }}
+                        </div>
+                        }
+                        }
+                    </div>
+
+                    <!-- Code Block -->
+                    <div class="relative">
+                        <p-button
+                                  [icon]="copiedIndex() === 'card-' + i ? 'pi pi-check' : 'pi pi-copy'"
+                                  (onClick)="copyCode(example.code, 'card-' + i)"
+                                  [rounded]="true"
+                                  size="small"
+                                  severity="secondary"
+                                  styleClass="absolute top-0 right-0 mt-2 mr-2 secondary-outline"
+                                  [ariaLabel]="'common.copyCode' | translate" />
+                        <pre class="m-0" #codeContainer [attr.data-code]="example.code"><code class="language-html"></code></pre>
+                    </div>
+                </div>
+                }
+            </div>
+        </p-tabpanel>
+
+        <!-- Input Fields Tab -->
+        <p-tabpanel value="3">
+            <div class="flex flex-column gap-4">
+                @for (example of inputExamples; track example.label; let i = $index) {
+                <div class="surface-section border-1 surface-border border-round p-4">
+                    <h3 class="mt-0">{{ example.label }}</h3>
+                    @if (example.description) {
+                    <p class="text-color-secondary mt-0">{{ example.description | translate }}</p>
+                    }
+
+                    <!-- Live Preview (config-driven) -->
+                    <div class="mb-3">
+                        @if (example.previewConfig) {
+                        @if (example.previewConfig.type === 'text') {
+                        <p-iftaLabel>
+                            <input pInputText [id]="example.previewConfig.id" [(ngModel)]="exampleValue" fluid />
+                            <label [for]="example.previewConfig.id">{{ example.previewConfig.label | translate }}</label>
+                        </p-iftaLabel>
+                        }
+                        @if (example.previewConfig.type === 'textarea') {
+                        <p-iftaLabel>
+                            <textarea pInputTextarea [id]="example.previewConfig.id" [(ngModel)]="exampleTextarea" [rows]="example.previewConfig.rows" fluid></textarea>
+                            <label [for]="example.previewConfig.id">{{ example.previewConfig.label | translate }}</label>
+                        </p-iftaLabel>
+                        }
+                        @if (example.previewConfig.type === 'select') {
+                        <p-iftaLabel>
+                            <p-select
+                                      [inputId]="example.previewConfig.id"
+                                      [options]="exampleOptions"
+                                      [(ngModel)]="selectedOption"
+                                      optionLabel="label"
+                                      optionValue="value"
+                                      fluid />
+                            <label [for]="example.previewConfig.id">{{ example.previewConfig.label | translate }}</label>
+                        </p-iftaLabel>
+                        }
+                        }
+                    </div>
+
+                    <!-- Code Block -->
+                    <div class="relative">
+                        <p-button
+                                  [icon]="copiedIndex() === 'input-' + i ? 'pi pi-check' : 'pi pi-copy'"
+                                  (onClick)="copyCode(example.code, 'input-' + i)"
+                                  [rounded]="true"
+                                  size="small"
+                                  severity="secondary"
+                                  styleClass="absolute top-0 right-0 mt-2 mr-2 secondary-outline"
+                                  [ariaLabel]="'common.copyCode' | translate" />
+                        <pre class="m-0" #codeContainer [attr.data-code]="example.code"><code class="language-html"></code></pre>
+                    </div>
+                </div>
+                }
+            </div>
+        </p-tabpanel>
+    </p-tabs>
+</div>

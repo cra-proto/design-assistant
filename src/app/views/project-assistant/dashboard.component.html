@@ -1,301 +1,257 @@
-<h1 id="wb-cont">{{ 'title.dashboard' | translate}}</h1>
+<h1 id="wb-cont">{{ 'dashboard._title' | translate}}</h1>
 
-<!-- Active Project Card -->
-<div class="surface-card border-round-lg shadow-2 p-4 mb-3">
-    <div class="flex flex-column lg:flex-row justify-content-between align-items-start">
-        <div class="flex flex-column">
-            <h2 class="text-2xl my-1 flex align-items-center">
-                {{ projectData.projectName || "New project" }}
-                <p-tag
-                       [value]="projectData.phase | translate"
-                       severity="primary"
-                       [rounded]="true"
-                       styleClass="ml-2 capitalize">
-                </p-tag>
-            </h2>
-        </div>
-        <div class="mt-3 lg:mt-0 flex flex-row lg:flex-column gap-2">
-            <p-button
-                      label="Switch Project"
-                      icon="pi pi-arrow-right-arrow-left"
-                      outlined
-                      size="small"
-                      styleClass="secondary-outline w-full"
-                      routerLink="/switch-project">
-            </p-button>
-            <aida-export-project></aida-export-project>
-        </div>
-    </div>
+<!--Content-->
+<div class="flex flex-column gap-3">
 
-    <!-- Project Properties -->
-    <div class="grid mt-0 lg:-mt-7">
+    <!-- Active Project Card -->
+    <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
 
-        <div class="col-12 md:col-6 lg:col-3">
-            <div class="flex flex-row align-content-center gap-2">
-                <i class="pi pi-copy text-primary text-2xl mt-5"></i>
-                <div class="flex flex-column mt-0">
-                    <p class="text-sm text-600 mb-1">Pages</p>
-                    <p class="text-xl font-bold mt-0">{{ projectData.inScopePages }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 md:col-6 lg:col-3">
-            <div class="flex flex-row align-content-center gap-2">
-                <i class="pi pi-clock text-primary text-2xl mt-5"></i>
-                <div class="flex flex-column mt-0">
-                    <p class="text-sm text-600 mb-1">Last Modified</p>
-                    <p class="text-md mt-0">{{ projectData.lastModified| date:'short' }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 md:col-6">
-            <div class="flex flex-row align-content-center gap-2">
-                <i class="pi pi-users text-primary text-2xl mt-5"></i>
-                <div class="flex flex-column mt-0">
-                    <p class="text-sm text-600 mb-1">Collaborators</p>
-                    <div class="flex gap-2 align-items-center">
-                        <p-avatar
-                                  *ngFor="let collaborator of collaborators.slice(0, 3)"
-                                  [label]="collaborator.initials"
-                                  [style]="{'background-color': collaborator.color, 'color': '#ffffff'}"
-                                  shape="circle"
-                                  size="normal"
-                                  [pTooltip]="collaborator.name">
-                        </p-avatar>
-                        <span *ngIf="collaborators.length > 3" class="text-600 text-sm ml-1">
-                            +{{ collaborators.length - 3 }} more
-                        </span>
+        <div class="flex flex-column lg:flex-row justify-content-between align-items-start gap-2">
+            <div class="flex flex-column gap-2 w-full">
+                <h2 class="text-2xl my-1 flex align-items-center gap-2">
+                    {{ projectData.projectName || "project._nav.new" | translate }}
+                    <p-tag
+                           [value]="projectData.phase | translate"
+                           severity="primary" [rounded]="true" styleClass="capitalize" />
+                </h2>
+                <div class="flex flex-row justify-content-start gap-2">
+                    <!--Pages-->
+                    <div class="flex flex-row gap-2 flex-1">
+                        <i class="pi pi-copy text-primary text-3xl align-self-center"></i>
+                        <div class="flex flex-column align-self-start">
+                            <p class="text-sm text-600 my-1">Pages</p>
+                            <p class="text-xl font-bold my-0">{{ projectData.inScopePages }}</p>
+                        </div>
+                    </div>
+                    <!--Last modified-->
+                    <div class="flex flex-row gap-2 flex-1">
+                        <i class="pi pi-clock text-primary text-3xl align-self-center"></i>
+                        <div class="flex flex-column align-self-start">
+                            <p class="text-sm text-600 my-1">Last Modified</p>
+                            <p class="text-md my-0 white-space-nowrap">{{ projectData.lastModified| date:'short' }}</p>
+                        </div>
+                    </div>
+                    <!--Collaborators-->
+                    <div class="flex flex-row gap-2 flex-1">
+                        <i class="pi pi-users text-primary text-3xl align-self-center"></i>
+                        <div class="flex flex-column align-self-start">
+                            <p class="text-sm text-600 my-1">Collaborators</p>
+                            <aida-add-collaborators mode="dashboard" />
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="flex flex-row lg:flex-column lg:mt-0 gap-2">
+                <p-button label="Switch Project" icon="pi pi-arrow-right-arrow-left"
+                          outlined size="small" styleClass="secondary-outline white-space-nowrap w-full"
+                          routerLink="/switch-project" />
+                <aida-export-project />
+            </div>
         </div>
 
-    </div>
+        <p-divider />
 
-    <!-- Project Phase Progress -->
-    <div class="border-top-1 surface-border">
-        <h3 class="mb-2">{{ 'phase' | translate }}</h3>
-        <div class="flex flex-column md:flex-row md:flex-wrap gap-2">
-
-            <div *ngFor="let phase of projectPhases; let i = index" class="flex flex-1 align-items-center">
-
-                <!-- Phase Item -->
-                <div class="flex align-items-center flex-1 cursor-pointer"
-                     (click)="togglePhaseStatus(phase)"
-                     (keydown.enter)="togglePhaseStatus(phase)"
-                     (keydown.space)="togglePhaseStatus(phase)"
-                     tabindex="0"
-                     role="button"
-                     [attr.aria-label]="'Toggle ' + (phase.name | translate) + ' phase status'">
-                    <div class="border-circle w-3rem h-3rem flex align-items-center justify-content-center font-bold"
-                         [ngClass]="{
-                      'bg-primary text-0': phase.status === 'status.complete',
-                      'bg-primary-50 text-primary border-2 border-primary': phase.status === 'status.current',
-                      'surface-200 text-600': phase.status === 'status.pending'
-                    }">
-                        <i *ngIf="phase.status === 'status.complete'" class="pi pi-check"></i>
-                        <span *ngIf="phase.status !== 'status.complete'">{{ i + 1 }}</span>
-                    </div>
-                    <div class="ml-3">
-                        <p class="font-semibold text-900 mb-1">{{ phase.name | translate }}</p>
-                        <p class="text-sm text-600 m-0">{{ phase.status | translate }}</p>
-                    </div>
+        <!-- Phase Progress -->
+        <h3 class="mb-2">{{ 'project.phase._title' | translate }}</h3>
+        <div class="flex flex-column md:flex-row md:flex-wrap justify-content-start lg:justify-content-around gap-2">
+            @for(phase of projectPhases; track phase.name; let i = $index) {
+            <!-- Phase Item -->
+            <div class="flex align-items-center cursor-pointer gap-3 p-1"
+                 (click)="togglePhaseStatus(phase)" (keydown.enter)="togglePhaseStatus(phase)" (keydown.space)="togglePhaseStatus(phase)" tabindex="0" role="button"
+                 [attr.aria-label]="'Toggle ' + (phase.name | translate) + ' phase status'">
+                <div class="border-circle w-3rem h-3rem flex justify-content-center align-items-center font-bold"
+                     [ngClass]="{'bg-primary text-0': phase.status === PhaseStatus.Complete,
+                                'bg-primary-50 text-primary border-2 border-primary': phase.status === PhaseStatus.Current,
+                                'surface-200 text-600': phase.status === PhaseStatus.Pending
+                                 }">
+                    @if(phase.status === PhaseStatus.Complete){
+                    <i class="pi pi-check"></i>
+                    } @else {{{ i + 1 }}}
                 </div>
-
-                <!-- Connector -->
-                <div *ngIf="i < projectPhases.length - 1"
-                     class="hidden xl:block flex-grow-0 w-4rem mx-3">
-                    <i class="text-primary pi"
-                       [class.pi-arrow-right-arrow-left]="phase.name === ProjectPhase.Assess"
-                       [class.pi-arrow-right]="phase.name !== ProjectPhase.Assess"></i>
+                <div>
+                    <p class="font-semibold text-900 my-1">{{ phase.name | translate }}</p>
+                    <p class="text-sm text-600 m-0">{{ phase.status | translate }}</p>
                 </div>
             </div>
-
+            <!-- Phase Connector -->
+            @if(i < projectPhases.length - 1){
+              <div class="hidden xl:block align-self-center mx-3">
+                <i class="text-primary text-2xl pi"
+                   [class.pi-arrow-right-arrow-left]="phase.name === ProjectPhase.Assess"
+                   [class.pi-arrow-right]="phase.name !== ProjectPhase.Assess"></i>
         </div>
+        }
+        }
     </div>
 </div>
-<!-- Phase Cards Grid -->
-<div class="grid">
-    <!-- Baseline Header -->
-    <div class="col-12 lg:col-6">
-        <div (click)="openRepo(projectData.github,'baseline')" class="mx-0 mb-0 p-2 surface-card text-primary border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center align-items-center gap-2" *ngIf="projectData.github.hasBaselineRepo">
-            <i class="pi pi-github"></i>
-            <h3 class="my-0">View baseline repository</h3>
+
+<!-- Phase cards -->
+<div class="flex flex-column lg:flex-row gap-3 w-full">
+
+    <div class="flex flex-column gap-3 w-full">
+
+        <!-- Baseline -->
+        <div class="surface-card border-round-lg shadow-2 p-0 w-full min-w-min flex justify-content-center h-3rem">
+            @if(projectData.github.hasBaselineRepo){
+            <p-button icon="pi pi-github" label="View baseline repository" text size="large" class="w-full h-full" fluid
+                      (onClick)="openRepo(projectData.github,'baseline')" />
+            } @else {
+            <h3 class="my-1 align-self-center">Baseline</h3>
+            }
         </div>
-        <div class="mx-0 mb-0 p-2 surface-card border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center align-items-center gap-2" *ngIf="!projectData.github.hasBaselineRepo">
-            <h3 class="my-0">Baseline</h3>
-        </div>
-    </div>
 
-    <!-- Prototype Header (desktop only) -->
-    <div class="hidden lg:block lg:col-6">
-        <div (click)="openRepo(projectData.github,'prototype')" class="mx-0 mb-0 p-2 surface-card text-primary border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center align-items-center gap-2" *ngIf="projectData.github.repo">
-            <i class="pi pi-github"></i>
-            <h3 class="my-0">View prototype repository</h3>
-        </div>
-        <div class="mx-0 mb-0 p-2 surface-card border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center align-items-center gap-2" *ngIf="!projectData.github.repo">
-            <h3 class="my-0">Prototype</h3>
-        </div>
-    </div>
-
-
-
-
-    <!-- Discover Card -->
-    <div class="col-12 md:col-6 lg:col-3">
-        <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
-             routerLink="/inventory"
-             [ngClass]="{'border-2 border-primary': projectData.phase === 'phase.discover'}">
-            <div class="flex-1">
-                <div class="flex align-items-center mb-3">
-                    <i class="pi pi-search text-orange-500 text-xl"></i>
-                    <h3 class="text-lg font-semibold text-900 ml-2 m-0">Discover</h3>
+        <div class="flex flex-column md:flex-row gap-3 flex-1">
+            <!-- Discover -->
+            <div class="surface-card border-round-lg shadow-2 p-4 w-full md:w-6 min-w-min flex flex-column justify-content-between cursor-pointer"
+                 [ngClass]="{'border-2 border-primary': projectData.phase === ProjectPhase.Discover}"
+                 routerLink="/inventory">
+                <div class="flex-1">
+                    <div class="flex align-items-center mb-3">
+                        <i class="pi pi-search text-orange-500 text-xl"></i>
+                        <h3 class="text-lg font-semibold text-900 ml-2 m-0">Discover</h3>
+                    </div>
+                    <p class="text-600 text-sm mb-3 min-h-2rem">Build your content inventory and identify tasks.</p>
+                    <div class="border-top-1 surface-border pt-3">
+                        <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
+                            <li><span class="text-sm text-700">Identify scope</span></li>
+                            <li><span class="text-sm text-700">Identify tasks</span></li>
+                            <li><span class="text-sm text-700">Review Guidance</span></li>
+                            <li><span class="text-sm text-700">Export baseline pages to GitHub</span></li>
+                        </ul>
+                    </div>
                 </div>
-                <p class="text-600 text-sm mb-3 min-h-2rem">Build your content inventory and identify tasks.</p>
-                <div class="border-top-1 surface-border pt-3">
-                    <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
-                        <li><span class="text-sm text-700">Identify scope</span></li>
-                        <li><span class="text-sm text-700">Identify tasks</span></li>
-                        <li><span class="text-sm text-700">Review Guidance</span></li>
-                        <li><span class="text-sm text-700">Export baseline pages to GitHub</span></li>
-                    </ul>
+
+                <div class="flex flex-row justify-content-center align-content-center gap-2">
+                    <span class="material-icons text-primary text-7xl mt-5">library_books</span>
+                    <div class="flex flex-column mt-0">
+                        <p class="text-3xl text-600 mb-0">{{ projectData.inScopePages }}</p>
+                        <p class="text-xl font-bold mt-0">pages</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex flex-row justify-content-center align-content-center gap-2">
-                <span class="material-icons text-primary text-7xl mt-5">library_books</span>
-                <div class="flex flex-column mt-0">
-                    <p class="text-3xl text-600 mb-0">{{ projectData.inScopePages }}</p>
-                    <p class="text-xl font-bold mt-0">pages</p>
+            <!-- Assess -->
+            <div class="surface-card border-round-lg shadow-2 p-4 w-full md:w-6 min-w-min flex flex-column justify-content-between"
+                 [ngClass]="{'border-2 border-primary': projectData.phase === ProjectPhase.Assess}">
+                <div class="flex-1">
+                    <div class="flex align-items-center mb-3">
+                        <i class="pi pi-chart-line text-blue-500 text-xl"></i>
+                        <h3 class="text-lg font-semibold text-900 ml-2 m-0">Assess</h3>
+                    </div>
+                    <p class="text-600 text-sm mb-3 min-h-2rem">Compare prototypes with baseline pages and evaluate content quality.</p>
+                    <div class="border-top-1 surface-border pt-3">
+                        <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
+                            <li><span class="text-sm text-700">Review changes</span></li>
+                            <li><span class="text-sm text-700">Compare pain points</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="flex flex-row justify-content-center align-content-center gap-2">
+                    <span class="material-icons text-primary text-7xl mt-5">troubleshoot</span>
+                    <div class="flex flex-column mt-0">
+                        <p class="text-3xl text-600 mb-0">{{ assessmentStats.issuesFound }}</p>
+                        <p class="text-xl font-bold mt-0">Problems</p>
+                    </div>
                 </div>
             </div>
         </div>
+
     </div>
+    <div class="flex flex-column gap-3 w-full">
+        <!-- Prototype -->
+        <div class="surface-card border-round-lg shadow-2 p-0 w-full min-w-min flex justify-content-center h-3rem">
+            @if(projectData.github.repo){
+            <p-button icon="pi pi-github" label="View prototype repository" text size="large" class="w-full h-full" fluid
+                      (onClick)="openRepo(projectData.github,'prototype')" />
+            } @else {
+            <h3 class="my-1 align-self-center">Prototype</h3>
+            }
+        </div>
 
-    <!-- Assess Card -->
-    <div class="col-12 md:col-6 lg:col-3">
-        <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
-
-             [ngClass]="{'border-2 border-primary': projectData.phase === 'phase.assess'}">
-            <div class="flex-1">
-                <div class="flex align-items-center mb-3">
-                    <i class="pi pi-chart-line text-blue-500 text-xl"></i>
-                    <h3 class="text-lg font-semibold text-900 ml-2 m-0">Assess</h3>
+        <div class="flex flex-column md:flex-row gap-3 flex-1">
+            <!-- Design -->
+            <div class="surface-card border-round-lg shadow-2 p-4 w-full md:w-6 min-w-min flex flex-column justify-content-between"
+                 [ngClass]="{'border-2 border-primary': projectData.phase === ProjectPhase.Design}">
+                <div class="flex-1">
+                    <div class="flex align-items-center mb-3">
+                        <i class="pi pi-pencil text-purple-500 text-xl"></i>
+                        <h3 class="text-lg font-semibold text-900 ml-2 m-0">Design</h3>
+                    </div>
+                    <p class="text-600 text-sm mb-3 min-h-2rem">Redesign content and export prototypes to GitHub.</p>
+                    <div class="border-top-1 surface-border pt-3">
+                        <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
+                            <li><span class="text-sm text-700">Edit IA diagram</span></li>
+                            <li><span class="text-sm text-700">Get AI recomendations</span></li>
+                            <li><span class="text-sm text-700">Generate metadata</span></li>
+                            <li><span class="text-sm text-700">Create alt text for images</span></li>
+                            <li><span class="text-sm text-700">Export prototypes to GitHub</span></li>
+                            <li><span class="text-sm text-700">Reassess problems</span></li>
+                        </ul>
+                    </div>
                 </div>
-                <p class="text-600 text-sm mb-3 min-h-2rem">Compare prototypes with baseline pages and evaluate content quality.</p>
-                <div class="border-top-1 surface-border pt-3">
-                    <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
-                        <li><span class="text-sm text-700">Review changes</span></li>
-                        <li><span class="text-sm text-700">Compare pain points</span></li>
-                    </ul>
+                <div class="flex flex-column gap-2">
+                    @if(projectData.inScopePages > 0){
+                    <p-progressbar [value]="pageProgress/projectData.inScopePages * 100"
+                                   [showValue]="false"
+                                   styleClass="h-2rem centered-label">
+                        <ng-template #content let-value>
+                            <span>{{pageProgress}}/{{projectData.inScopePages}}&nbsp;pages&nbsp;edited</span>
+                        </ng-template>
+                    </p-progressbar>
+                    }
+                    @if(assessmentStats.issuesFound > 0){
+                    <p-progressbar [value]="problemProgress/assessmentStats.issuesFound * 100"
+                                   [showValue]="false"
+                                   styleClass="h-2rem centered-label">
+                        <ng-template #content let-value>
+                            <span>{{problemProgress}}/{{assessmentStats.issuesFound}} issues fixed</span>
+                        </ng-template>
+                    </p-progressbar>
+                    }
                 </div>
             </div>
-            <div class="flex flex-row justify-content-center align-content-center gap-2">
-                <span class="material-icons text-primary text-7xl mt-5">troubleshoot</span>
-                <div class="flex flex-column mt-0">
-                    <p class="text-3xl text-600 mb-0">{{ assessmentStats.issuesFound }}</p>
-                    <p class="text-xl font-bold mt-0">Problems</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Prototype Header (mobile/tablet only) -->
-    <div class="col-12 lg:hidden">
-        <div (click)="openRepo(projectData.github,'prototype')" class="mx-0 mb-0 p-2 surface-card text-primary border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center align-items-center gap-2" *ngIf="projectData.github.repo">
-            <i class="pi pi-github"></i>
-            <h3 class="my-0">View prototype repository</h3>
-        </div>
-        <div class="mx-0 mb-0 p-2 surface-card border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex justify-content-center align-items-center gap-2" *ngIf="!projectData.github.repo">
-            <h3 class="my-0">Prototype</h3>
-        </div>
-    </div>
-
-    <!-- Design Card -->
-    <div class="col-12 md:col-6 lg:col-3">
-        <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
-
-             [ngClass]="{'border-2 border-primary': projectData.phase === 'phase.design'}">
-            <div class="flex-1">
-                <div class="flex align-items-center mb-3">
-                    <i class="pi pi-pencil text-purple-500 text-xl"></i>
-                    <h3 class="text-lg font-semibold text-900 ml-2 m-0">Design</h3>
-                </div>
-                <p class="text-600 text-sm mb-3 min-h-2rem">Redesign content and export prototypes to GitHub.</p>
-                <div class="border-top-1 surface-border pt-3">
-                    <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
-                        <li><span class="text-sm text-700">Edit IA diagram</span></li>
-                        <li><span class="text-sm text-700">Get AI recomendations</span></li>
-                        <li><span class="text-sm text-700">Generate metadata</span></li>
-                        <li><span class="text-sm text-700">Create alt text for images</span></li>
-                        <li><span class="text-sm text-700">Export prototypes to GitHub</span></li>
-                        <li><span class="text-sm text-700">Reassess problems</span></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="flex flex-column gap-2">
-                <p-progressbar *ngIf="projectData.inScopePages > 0"
-                               [value]="pageProgress/projectData.inScopePages * 100"
-                               [showValue]="false"
-                               styleClass="h-2rem centered-label">
-                    <ng-template #content let-value>
-                        <span>{{pageProgress}}/{{projectData.inScopePages}}&nbsp;pages&nbsp;edited</span>
-                    </ng-template>
-                </p-progressbar>
-                <p-progressbar *ngIf="assessmentStats.issuesFound > 0"
-                               [value]="problemProgress/assessmentStats.issuesFound * 100"
-                               [showValue]="false"
-                               styleClass="h-2rem centered-label">
-                    <ng-template #content let-value>
-                        <span>{{problemProgress}}/{{assessmentStats.issuesFound}} issues fixed</span>
-                    </ng-template>
-                </p-progressbar>
-            </div>
-        </div>
-    </div>
-
-
-
-    <!-- Approve Card -->
-    <div class="col-12 md:col-6 lg:col-3">
-        <div class="surface-card h-full p-4 border-round-lg shadow-1 hover:shadow-3 transition-all transition-duration-200 cursor-pointer flex flex-column"
-             [ngClass]="{'border-2 border-primary': projectData.phase === 'phase.approve'}">
-            <div class="flex-1">
-                <div class="flex align-items-center mb-3">
-                    <i class="pi pi-check-circle text-xl" [ngClass]="{'text-green-500': selectedItems.length/checklist.length * 100 === 100,
-                        'text-red-500': selectedItems.length/checklist.length * 100 !== 100}"></i>
-                    <h3 class="text-lg font-semibold text-900 ml-2 m-0">Approve</h3>
-                </div>
-                <p class="text-600 text-sm mb-3 min-h-2rem">Review changes and get approvals.</p>
-                <div class="border-top-1 surface-border pt-3">
-                    <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
-                        <li><span class="text-sm text-700">Change summary</span></li>
-                        <li><span class="text-sm text-700">Problem summary</span></li>
-                        <li><span class="text-sm text-700">Design Checklist</span>
-                            <div class="flex flex-column gap-1 mt-1">
-                                <div *ngFor="let item of checklist" class="flex items-center">
-                                    <p-checkbox [inputId]="item.key" name="group" [value]="item" [(ngModel)]="selectedItems" />
-                                    <label [for]="item.key" class="ml-2"> {{ item.name }} </label>
+            <!-- Approve -->
+            <div class="surface-card border-round-lg shadow-2 p-4 w-full md:w-6 min-w-min flex flex-column justify-content-between"
+                 [ngClass]="{'border-2 border-primary': projectData.phase === ProjectPhase.Approve}">
+                <div class="flex-1">
+                    <div class="flex align-items-center mb-3">
+                        <i class="pi pi-check-circle text-xl" [ngClass]="{'text-green-500': selectedItems.length/checklist.length * 100 === 100,
+                                        'text-red-500': selectedItems.length/checklist.length * 100 !== 100}"></i>
+                        <h3 class="text-lg font-semibold text-900 ml-2 m-0">Approve</h3>
+                    </div>
+                    <p class="text-600 text-sm mb-3 min-h-2rem">Review changes and get approvals.</p>
+                    <div class="border-top-1 surface-border pt-3">
+                        <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
+                            <li><span class="text-sm text-700">Change summary</span></li>
+                            <li><span class="text-sm text-700">Problem summary</span></li>
+                            <li><span class="text-sm text-700">Design Checklist</span>
+                                <div class="flex flex-column gap-1 mt-1">
+                                    @for(item of checklist; track item.key){
+                                    <div class="flex flex-row gap-2">
+                                        <p-checkbox [inputId]="item.key" name="group" [value]="item" [(ngModel)]="selectedItems" />
+                                        <label [for]="item.key">{{ item.key | translate }}</label>
+                                    </div>
+                                    }
                                 </div>
-                            </div>
-                        </li>
-                    </ul>
+                            </li>
+                        </ul>
 
 
+                    </div>
                 </div>
+                @if(assessmentStats.issuesFound > 0){
+                <p-progressbar [value]="selectedItems.length/checklist.length * 100"
+                               [showValue]="false"
+                               styleClass="h-2rem centered-label">
+                    <ng-template #content let-value>
+                        <span>{{selectedItems.length}}/{{checklist.length}}</span>
+                    </ng-template>
+                </p-progressbar>
+                }
             </div>
-
-            <p-progressbar *ngIf="assessmentStats.issuesFound > 0"
-                           [value]="selectedItems.length/checklist.length * 100"
-                           [showValue]="false"
-                           styleClass="h-2rem centered-label">
-                <ng-template #content let-value>
-                    <span>{{selectedItems.length}}/{{checklist.length}}</span>
-                </ng-template>
-            </p-progressbar>
-
         </div>
+
     </div>
+</div>
 </div>

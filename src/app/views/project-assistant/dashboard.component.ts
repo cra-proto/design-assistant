@@ -8,25 +8,30 @@ import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { AvatarModule } from 'primeng/avatar';
+import { AvatarGroupModule } from 'primeng/avatargroup';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { CheckboxModule } from 'primeng/checkbox';
+import { DividerModule } from 'primeng/divider';
 
 //Custom services and data interfaces
 import { ProjectStateService } from '../../services/project-state.service';
 import { ProjectPhase, PhaseStatus, CurrentPhase, GitHubRepo } from '../../common/data.model';
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
+import { CollaboratorService } from '../../services/collaborator.service';
+import { AddCollaboratorsComponent } from '../../components/add-collaborators/add-collaborators.component';
 
 @Component({
   selector: 'aida-dashboard',
   imports: [CommonModule, FormsModule, TranslateModule, RouterLink,
-    ExportProjectComponent,
-    ButtonModule, TagModule, AvatarModule, TooltipModule, ProgressBarModule, CheckboxModule],
+    ExportProjectComponent, AddCollaboratorsComponent,
+    ButtonModule, TagModule, AvatarModule, AvatarGroupModule, TooltipModule, ProgressBarModule, CheckboxModule, DividerModule],
   templateUrl: './dashboard.component.html',
   styles: ``
 })
 export class DashboardComponent {
   projectState = inject(ProjectStateService);
+  collaboratorService = inject(CollaboratorService);
 
   get projectData() {
     return this.projectState.getProject();
@@ -41,6 +46,10 @@ export class DashboardComponent {
     ProjectPhase.Approve
   ];
 
+  //Project status
+  PhaseStatus = PhaseStatus;
+
+  //Compute project phases with status for display
   get projectPhases(): CurrentPhase[] {
     const currentPhase = this.projectData.phase;
 
@@ -48,7 +57,7 @@ export class DashboardComponent {
     if (currentPhase === ProjectPhase.Draft) {
       return this.displayedPhases.map(phase => ({
         name: phase,
-        status: 'status.pending' as PhaseStatus
+        status: PhaseStatus.Pending
       }));
     }
 
@@ -56,7 +65,7 @@ export class DashboardComponent {
     if (currentPhase === ProjectPhase.Complete) {
       return this.displayedPhases.map(phase => ({
         name: phase,
-        status: 'status.complete' as PhaseStatus
+        status: PhaseStatus.Complete
       }));
     }
 
@@ -66,22 +75,21 @@ export class DashboardComponent {
     return this.displayedPhases.map((phase, index) => ({
       name: phase,
       status:
-        index < currentIndex ? 'status.complete' as PhaseStatus :
-          index === currentIndex ? 'status.current' as PhaseStatus :
-            'status.pending' as PhaseStatus
+        index < currentIndex ? PhaseStatus.Complete :
+          index === currentIndex ? PhaseStatus.Current :
+            PhaseStatus.Pending
     }));
   }
 
   togglePhaseStatus(phase: CurrentPhase) {
     const clickedIndex = this.displayedPhases.indexOf(phase.name);
-    const currentPhase = this.projectData.phase;
     //Set clicked phase to current if NOT current
-    if (phase.status !== 'status.current') {
+    if (phase.status !== PhaseStatus.Current) {
       this.projectState.setProjectPhase(phase.name);
       return;
     }
     //Advance to next phase if clicked phase was current
-    if (phase.status === 'status.current') {
+    if (phase.status === PhaseStatus.Current) {
       if (clickedIndex === this.displayedPhases.length - 1) {
         this.projectState.setProjectPhase(ProjectPhase.Complete); // Last phase (not in displayedPhases)
       } else {
@@ -97,22 +105,22 @@ export class DashboardComponent {
     window.open(url, '_blank');
   }
 
-  //Mock data for now
-  selectedItems: any[] = [];
+  openRepoOnEnter(event: KeyboardEvent, github: GitHubRepo, type: 'prototype' | 'baseline' = 'prototype') {
+    if (event.key === 'Enter' || event.key === ' ') {
+      this.openRepo(github, type);
+    }
+  }
 
-  checklist: any[] = [
-    { name: 'Metadata', value: 'meta' },
-    { name: 'Translations', value: 'translate' },
-    { name: 'Validation', value: 'valid' },
-    { name: 'Approval', value: 'approve' },
+  //Mock data for now
+  selectedItems: { key: string, value: string }[] = [];
+
+  checklist: { key: string, value: string }[] = [
+    { key: 'Metadata', value: 'meta' },
+    { key: 'Translations', value: 'translate' },
+    { key: 'Validation', value: 'valid' },
+    { key: 'Approval', value: 'approve' },
   ];
 
-  collaborators = [
-    { name: 'Amber', initials: 'AL', color: '#2196F3' },
-    { name: 'Miguel', initials: 'MB', color: '#4CAF50' },
-    { name: 'Parissa', initials: 'PN', color: '#FF9800' },
-    { name: 'Naomi', initials: 'NH', color: '#9C27B0' }
-  ]
   assessmentStats = { issuesFound: 23 };
   approvalProgress = 2;
   problemProgress = 15;

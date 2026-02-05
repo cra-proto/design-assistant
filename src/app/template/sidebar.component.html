@@ -5,14 +5,14 @@
         <!-- App Title -->
         <div class="nav_logo">
           <a [routerLink]="['/']">
-            <span class="material-icons text-primary-200">{{ production ? 'design_services' : 'construction' }}</span>
-            <span class="logo_text px-0">{{ (production ? 'title.landing' : 'title.landing.dev') | translate }}</span>
+            <span class="material-icons text-primary-200">{{ production ? 'design_services' : sandbox ? 'handyman' : 'construction' }}</span>
+            <span class="logo_text px-0">{{ (production ? '_app._title' : sandbox ? '_app._title.sandbox' : '_app._title.dev') | translate }}</span>
           </a>
         </div>
         <!-- Project Tools -->
         <div class="section">
           <div class="nav_header text-primary-200 hover:text-primary-400 hover:font-bold" (click)="toggleSection('project')" (keydown)="toggleOnEnter($event, 'project')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.project" aria-controls="project">
-            <span id="menu-project" class="nav_section_text">{{ 'menu.project' | translate }}</span>
+            <span id="menu-project" class="nav_section_text">{{ 'nav.project' | translate }}</span>
             <span class="material-icons toggle-icon">{{ isExpanded.project ? 'expand_less' : 'expand_more' }}</span>
           </div>
           <div class="nav_section_body" id="project" role="region" aria-labelledby="menu-project" [class.hidden]="!isExpanded.project">
@@ -20,30 +20,30 @@
             <a [routerLink]="['/dashboard']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons">view_quilt</span>
-              <span class="nav_link_text">{{ 'menu.dashboard' | translate }}</span>
+              <span class="nav_link_text">{{ 'dashboard._nav' | translate }}</span>
             </a>
             <a [routerLink]="['/edit-project']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons">edit</span>
-              <span class="nav_link_text">{{ 'menu.edit' | translate }}</span>
+              <span class="nav_link_text">{{ 'project._nav.edit' | translate }}</span>
             </a>
             } @else {
             <a [routerLink]="['/new-project']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons">add</span>
-              <span class="nav_link_text">{{ 'menu.new' | translate }}</span>
+              <span class="nav_link_text">{{ 'project._nav.new' | translate }}</span>
             </a>
             }
             <a [routerLink]="['/switch-project']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons">folder_open</span>
-              <span class="nav_link_text">{{ 'menu.saved' | translate }}</span>
+              <span class="nav_link_text">{{ 'switch._nav' | translate }}</span>
             </a>
           </div>
         </div>
         <div class="section">
           <div class="nav_header text-primary-200 hover:text-primary-400" (click)="toggleSection('main')" (keydown)="toggleOnEnter($event, 'main')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.main" aria-controls="main">
-            <span id="menu-content" class="nav_section_text">{{ 'menu.tools' | translate }}</span>
+            <span id="menu-content" class="nav_section_text">{{ 'nav.tasks' | translate }}</span>
             <span class="material-icons toggle-icon">{{ isExpanded.main ? 'expand_less' : 'expand_more' }}</span>
           </div>
           <div class="nav_section_body" id="main" role="region" aria-labelledby="menu-content" [class.hidden]="!isExpanded.main">
@@ -61,7 +61,7 @@
             <a [routerLink]="['/inventory']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round">
               <span class="material-icons">checklist_rtl</span>
-              <span class="nav_link_text">{{ 'menu.inventory' | translate }}</span>
+              <span class="nav_link_text">{{ 'inventory._nav' | translate }}</span>
             </a>
             <!--a [routerLink]="['/page-assistant']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round ">
@@ -81,7 +81,7 @@
             <a [routerLink]="['/export-github']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round ">
               <span class="material-icons-outlined">drive_folder_upload</span>
-              <span class="nav_link_text">{{ 'menu.github' | translate }}</span>
+              <span class="nav_link_text">{{ 'github._nav' | translate }}</span>
             </a>
             <!--a [routerLink]="['/search']" routerLinkActive="active"
                class="nav_link flex hover:bg-primary-600 border-round ">
@@ -123,11 +123,12 @@
         <div class="nav_section_body" [class.hidden]="!isExpanded.info">
           <a [routerLink]="['/about-us']" routerLinkActive="active" class="nav_link flex hover:bg-primary-600 border-round">
             <span class="material-icons">web_asset</span>
-            <span class="nav_link_text">{{ 'menu.about' | translate }}</span>
+            <span class="nav_link_text">{{ 'about._nav' | translate }}</span>
           </a>
-          <a [href]="'feedback.email' | translate" class="nav_link flex hover:bg-primary-600 border-round">
+          <a (click)="openMailto(getFeedbackMailto())" (keydown.enter)="openMailto(getFeedbackMailto())" tabindex="0"
+             class="nav_link flex hover:bg-primary-600 border-round cursor-pointer">
             <span class="material-icons">feedback</span>
-            <span class="nav_link_text">{{ 'menu.feedback' | translate }}</span>
+            <span class="nav_link_text">{{ 'feedback._nav' | translate }}</span>
           </a>
         </div>
       </div>

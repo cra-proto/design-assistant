@@ -1,87 +1,105 @@
 import { Routes, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { environment } from '../environments/environment';
-// Project files
+
+// Project views
 import { DashboardComponent } from './views/project-assistant/dashboard.component';
 import { SwitchProjectComponent } from './views/project-assistant/switch-project.component';
 import { EditProjectComponent } from './views/project-assistant/edit-project.component';
-// Authentication
-import { GithubConnectComponent } from './components/sign-in/github-connect.component';
-import { AuthCallbackComponent } from './components/sign-in/auth-callback.component';
-//Export & Share
-import { ExportGithubComponent } from './views/github-assistant/export-github.component';
-//import { ShareComponent } from './views/page-assistant/components/share.component';
-//Add & Find Pages
-//import { AddPagesComponent } from './components/add-pages/add-pages.component';
-//import { FindPagesComponent } from './views/find-pages/find-pages.component';
-// Tools
-//import { PageUploadComponent } from './views/page-assistant/components/upload.component';
-//import { UploadStateService } from './views/page-assistant/services/upload-state.service';
-//import { ImageAssistantComponent } from './views/standalone/image-assistant/image-assistant.component';
-//import { TranslationAssistantComponent } from './views/standalone/translation-assistant/translation-assistant.component';
-import { InventoryComponent } from './views/inventory-assistant/inventory.component';
-//import { MetadataAssistantComponent } from './views/metadata-assistant/metadata-assistant.component';
-//import { LlmEvaluationComponent } from './views/standalone/llm-evaluation/llm-evaluation.component';
-//import { IaAssistantComponent } from './views/ia-assistant/ia-assistant.component';
+
+// Task Views
 import { IaDiagramComponent } from './components/ia-diagram/ia-diagram.component';
+import { InventoryComponent } from './views/inventory-assistant/inventory.component';
+import { ExportGithubComponent } from './views/github-assistant/export-github.component';
+
 // Static pages
 import { NotFoundComponent } from './views/404/not-found.component';
 import { AboutComponent } from './views/about-us/about.component';
-//import { ExampleComponent } from './views/examples/example.component';
-import { GetTaskUrlsComponent } from './components/find-pages/components/get-task-urls.component';
+
+// Authentication
+import { GithubConnectComponent } from './components/sign-in/github-connect.component';
+import { AuthCallbackComponent } from './components/sign-in/auth-callback.component';
+
+// Dev tools - LAZY LOAD THESE!
+
+// Project Storage (for route guards)
+import { ProjectStorageService } from './services/storage/project-storage.service';
+import { ProjectStateService } from './services/project-state.service';
+
+//Route guards
+export const landingGuard = () => {
+    const router = inject(Router);
+    const projectStorage = inject(ProjectStorageService);
+    if (projectStorage.hasActiveProject()) {
+        return router.createUrlTree(['/dashboard']);
+    } else {
+        return router.createUrlTree(['/new-project']);
+    }
+};
+
+export const editProjectGuard = () => {
+    const router = inject(Router);
+    const projectState = inject(ProjectStateService);
+    const name = projectState.getProject().projectName
+    if (!name) {
+        return router.createUrlTree(['/new-project']);
+    }
+    return true;
+};
 
 export const routes: Routes = [
     {
         path: '',
-        component: DashboardComponent,
-        title: (environment.production ? 'title.landing' : 'title.landing.dev'),
+        canActivate: [landingGuard],
+        children: []
     },
     {
         path: 'dashboard',
         component: DashboardComponent,
-        title: 'title.dashboard',
+        title: (environment.production ? '_app._title' : environment.sandbox ? '_app._title.sandbox' : '_app._title.dev'),
     },
     {
         path: 'switch-project',
         component: SwitchProjectComponent,
-        title: 'title.saved',
+        title: 'switch._title',
     },
     {
         path: 'new-project',
         component: EditProjectComponent,
-        title: 'title.new-project',
+        title: 'newProject._title',
     },
     {
         path: 'edit-project',
         component: EditProjectComponent,
-        title: 'title.edit-project',
+        canActivate: [editProjectGuard],
+        title: 'editProject._title',
     },
     {
         path: 'auth/login',
         component: GithubConnectComponent,
-        title: 'title.ia',
+        title: 'app._title',
     },
     {
         path: 'auth/callback',
         component: AuthCallbackComponent,
-        title: 'title.ia',
+        title: 'app._title',
     },
     {
         path: 'export-github',
         component: ExportGithubComponent,
-        title: 'title.ia',
+        title: 'exportGithub._title',
     },
-    /* {
-         path: 'page-assistant/share',
-         component: ShareComponent,
-         title: 'title.page',
-     },
-     {
-         path: 'export-github',
-         component: ExportGithubComponent,
-         title: 'title.ia',
-     },
-     {
+    {
+        path: 'inventory',
+        component: InventoryComponent,
+        title: 'inventory._title',
+    },
+    {
+        path: 'ia-diagram',
+        component: IaDiagramComponent,
+        title: 'iaDiagram._title',
+    },
+    /*{
          path: 'page-assistant/compare',
          title: 'title.page',
          canActivate: [() => {
@@ -98,66 +116,36 @@ export const routes: Routes = [
          loadComponent: () => import('./views/page-assistant/page-assistant.component')
              .then(m => m.PageAssistantCompareComponent)
  
-     },
-     {
-         path: 'page-assistant',
-         component: PageUploadComponent,
-         title: 'title.page',
-     },
-     {
-         path: 'add-pages',
-         component: AddPagesComponent,
-         title: 'menu.add-pages',
-     },
-     {
-         path: 'find-pages',
-         component: IaAssistantComponent,
-         title: 'menu.find-pages',
-     },
-     {
-         path: 'image-assistant',
-         component: ImageAssistantComponent,
-         title: 'title.image',
-     },
-     {
-         path: 'translation-assistant',
-         component: TranslationAssistantComponent,
-         title: 'title.translation',
-     },*/
-    {
-        path: 'inventory',
-        component: InventoryComponent,
-        title: 'title.inventory',
-    },
-    {
-        path: 'airtable',
-        component: GetTaskUrlsComponent,
-        title: 'title.inventory',
-    },/*
-     {
-         path: 'metadata-assistant',
-         component: MetadataAssistantComponent,
-         title: 'title.metadata',
-     },
-     {
-         path: 'llm-evaluation',
-         component: LlmEvaluationComponent,
-         title: 'title.llmEvaluation',
      },*/
     {
         path: 'about-us',
         component: AboutComponent,
-        title: 'title.about',
+        title: 'about._title',
     },
     {
-        path: 'ia-diagram',
-        component: IaDiagramComponent,
-        title: 'title.ia',
+        path: 'dev',
+        loadComponent: () => import('./views/dev-tools/dev-tools.component').then(m => m.DevToolsComponent),
+        title: 'example._title',
+    },
+    {
+        path: 'dev/color-generator',
+        loadComponent: () => import('./views/dev-tools/color-generator/color-generator.component').then(m => m.ColorGeneratorComponent),
+        title: 'example.colors._title',
+    },
+    {
+        path: 'dev/design-patterns',
+        loadComponent: () => import('./views/dev-tools/design-patterns/design-patterns.component').then(m => m.DesignPatternsComponent),
+        title: 'example.patterns._title',
+    },
+    {
+        path: 'dev/prompt-editor',
+        loadComponent: () => import('./views/dev-tools/prompt-editor/prompt-editor.component').then(m => m.PromptEditorComponent),
+        title: 'example.patterns._title',
     },
     {
         path: '**',
         component: NotFoundComponent,
-        title: 'title.404',
+        title: 'notFound._title',
     },
 ];
 export default routes;
