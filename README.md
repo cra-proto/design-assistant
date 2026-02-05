@@ -210,8 +210,8 @@ src/
 flowchart TB
     AUTO(["**Automatic Actions**"])
     USER(["**User Actions**"])
-    HEADER["**Header**<br>Save button<br>save()"]
-    SWITCH["**Switch project**<br>Upload to cloud button<br>uploadToCloud()"]
+    HEADER["**Header**<br>Unsaved changes button<br>save()"]
+    SWITCH["**Switch project**<br>Upload to cloud icon button<br>uploadToCloud()"]
     STATE["**project-state.service**<br>saveProject()<br>sets save status for UI<br>from returned boolean"]
     STORAGE["**project-storage.service**<br>saveProject()<br>returns true/false"]
     TYPE{"Storage Type?"}
@@ -224,7 +224,7 @@ flowchart TB
     AUTO -- detects unsaved changes<br>triggers save after delay--> STATE
     USER --> HEADER & SWITCH
     HEADER --cancels autosave timer--> STATE
-    STATE --updates lastSaved--> STORAGE
+    STATE --updates UI status--> STORAGE
     SWITCH --changes storageType<br>to cloud--> STORAGE
     STORAGE --routes based on storageType--> TYPE
     TYPE --local--> STORAGELOCAL
