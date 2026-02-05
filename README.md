@@ -218,7 +218,7 @@ flowchart TB
     STORAGELOCAL[["**project-storage.service**<br>saveToLocal()<br>returns void"]]
     STORAGECLOUD[["**project-storage.service**<br>saveToCloud()<br>returns true/false"]]
     CLOUD["**cloud-storage.service**<br>saveProject()<br>returns id or null"]
-    CLOUDSAVE[("**backend/functions/projects**<br>returns id or null")]
+    CLOUDSAVE[("**DynamoDB**<br>backend/functions/projects<br>returns id or null")]
     LOCALSAVE[("**localStorage**")]
 
     AUTO -- detects unsaved changes<br>triggers save after delay--> STATE
@@ -231,7 +231,7 @@ flowchart TB
     TYPE --cloud--> STORAGECLOUD
     STORAGECLOUD --prepares payload--> CLOUD
     CLOUD --HTTP PUT/POST<br>to AWS LAMBDA--> CLOUDSAVE
-    STORAGELOCAL --> LOCALSAVE
+    STORAGELOCAL --saves--> LOCALSAVE
     
     HEADER@{ shape: card}
     SWITCH@{ shape: card}
@@ -242,10 +242,11 @@ flowchart TB
     style STATE fill:#eafaf2,color:#000000
     style STORAGE fill:#b0edce,color:#000000
     style TYPE fill:#89cef1,color:#000000
-    style STORAGEL fill:#b0edce,color:#000000
-    style STORAGEC fill:#b0edce,color:#000000
+    style STORAGELOCAL fill:#b0edce,color:#000000
+    style STORAGECLOUD fill:#b0edce,color:#000000
     style CLOUD fill:#75e0aa,color:#000000
-    style FUNCTION fill:#f486d4,color:#000000
+    style CLOUDSAVE fill:#f486d4,color:#000000
+    style LOCALSAVE fill:#f486d4,color:#000000
 ```
 
 **Key Paths:**
