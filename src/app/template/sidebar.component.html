@@ -1,138 +1,88 @@
-<div class="l-navbar show-n" id="nav-bar">
-  <nav class="nav">
-    <div class="flex flex-column justify-content-between min-h-full">
-      <div>
-        <!-- App Title -->
-        <div class="nav_logo">
-          <a [routerLink]="['/']">
-            <span class="material-icons text-primary-200">{{ production ? 'design_services' : sandbox ? 'handyman' : 'construction' }}</span>
-            <span class="logo_text px-0">{{ (production ? '_app._title' : sandbox ? '_app._title.sandbox' : '_app._title.dev') | translate }}</span>
-          </a>
-        </div>
-        <!-- Project Tools -->
-        <div class="section">
-          <div class="nav_header text-primary-200 hover:text-primary-400 hover:font-bold" (click)="toggleSection('project')" (keydown)="toggleOnEnter($event, 'project')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.project" aria-controls="project">
-            <span id="menu-project" class="nav_section_text">{{ 'nav.project' | translate }}</span>
-            <span class="material-icons toggle-icon">{{ isExpanded.project ? 'expand_less' : 'expand_more' }}</span>
-          </div>
-          <div class="nav_section_body" id="project" role="region" aria-labelledby="menu-project" [class.hidden]="!isExpanded.project">
-            @if (projectLoaded) {
-            <a [routerLink]="['/dashboard']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons">view_quilt</span>
-              <span class="nav_link_text">{{ 'dashboard._nav' | translate }}</span>
-            </a>
-            <a [routerLink]="['/edit-project']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons">edit</span>
-              <span class="nav_link_text">{{ 'project._nav.edit' | translate }}</span>
-            </a>
-            } @else {
-            <a [routerLink]="['/new-project']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons">add</span>
-              <span class="nav_link_text">{{ 'project._nav.new' | translate }}</span>
-            </a>
-            }
-            <a [routerLink]="['/switch-project']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons">folder_open</span>
-              <span class="nav_link_text">{{ 'switch._nav' | translate }}</span>
-            </a>
-          </div>
-        </div>
-        <div class="section">
-          <div class="nav_header text-primary-200 hover:text-primary-400" (click)="toggleSection('main')" (keydown)="toggleOnEnter($event, 'main')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.main" aria-controls="main">
-            <span id="menu-content" class="nav_section_text">{{ 'nav.tasks' | translate }}</span>
-            <span class="material-icons toggle-icon">{{ isExpanded.main ? 'expand_less' : 'expand_more' }}</span>
-          </div>
-          <div class="nav_section_body" id="main" role="region" aria-labelledby="menu-content" [class.hidden]="!isExpanded.main">
-
-            <!--a [routerLink]="['/add-pages']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons-outlined">inventory</span>
-              <span class="nav_link_text">{{ 'menu.add-pages' | translate }}</span>
-            </a>
-            <a [routerLink]="['/find-pages']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons-outlined">lan</span>
-              <span class="nav_link_text">{{ 'menu.find-pages' | translate }}</span>
-            </a-->
-            <a [routerLink]="['/inventory']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons">checklist_rtl</span>
-              <span class="nav_link_text">{{ 'inventory._nav' | translate }}</span>
-            </a>
-            <!--a [routerLink]="['/page-assistant']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round ">
-              <span class="material-icons">library_books</span>
-              <span class="nav_link_text">{{ 'menu.page' | translate }}</span>
-            </a>
-            <a [routerLink]="['/pain-points']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round ">
-              <span class="material-icons">troubleshoot</span>
-              <span class="nav_link_text">{{ 'menu.problem' | translate }}</span>
-            </a>
-            <a [routerLink]="['/metadata-assistant']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons">description</span>
-              <span class="nav_link_text">{{ 'menu.metadata' | translate }}</span>
-            </a-->
-            <a [routerLink]="['/export-github']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round ">
-              <span class="material-icons-outlined">drive_folder_upload</span>
-              <span class="nav_link_text">{{ 'github._nav' | translate }}</span>
-            </a>
-            <!--a [routerLink]="['/search']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round ">
-              <span class="material-icons-outlined">manage_search</span>
-              <span class="nav_link_text">{{ 'menu.search' | translate }}</span>
-            </a-->
-          </div>
-        </div>
-        <!-- Standalone Tools -->
-        <!--div class="section">
-          <div class="nav_header text-primary-200 hover:text-primary-400" (click)="toggleSection('utilities')" (keydown)="toggleOnEnter($event, 'utilities')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.utilities" aria-controls="utilities">
-            <span id="menu-content" class="nav_section_text">{{ 'menu.standalone' | translate }}</span>
-            <span class="material-icons toggle-icon">{{ isExpanded.utilities ? 'expand_less' : 'expand_more' }}</span>
-          </div>
-          <div class="nav_section_body" id="main" role="region" aria-labelledby="menu-content" [class.hidden]="!isExpanded.utilities">
-            <a [routerLink]="['/image-assistant']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons">photo</span>
-              <span class="nav_link_text">{{ 'menu.image' | translate }}</span>
-            </a>
-            <a [routerLink]="['/translation-assistant']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons">language</span>
-              <span class="nav_link_text">{{ 'menu.translation' | translate }}</span>
-            </a>
-            <a [routerLink]="['/llm-evaluation']" routerLinkActive="active"
-               class="nav_link flex hover:bg-primary-600 border-round">
-              <span class="material-icons">assessment</span>
-              <span class="nav_link_text">{{ 'menu.llmEvaluation' | translate }}</span>
-            </a>
-
-          </div>
-        </div-->
-
+<div class="l-navbar p-3" id="nav-bar">
+  <nav class="flex flex-column justify-content-between h-full">
+    <div>
+      <!-- App Title -->
+      <div class="mb-4">
+        <a [routerLink]="['/']" class="flex align-items-center gap-2 p-0 no-underline">
+          <span class="material-icons text-5xl text-primary-300">{{ production ? 'design_services' : sandbox ? 'handyman' : 'construction' }}</span>
+          <span class="hidden md:inline text-lg font-semibold px-0">{{ (production ? '_app._title' : sandbox ? '_app._title.sandbox' : '_app._title.dev') | translate }}</span>
+        </a>
       </div>
 
-      <!-- App Info -->
-      <div class="section">
-        <div class="nav_section_body" [class.hidden]="!isExpanded.info">
-          <a [routerLink]="['/about-us']" routerLinkActive="active" class="nav_link flex hover:bg-primary-600 border-round">
-            <span class="material-icons">web_asset</span>
-            <span class="nav_link_text">{{ 'about._nav' | translate }}</span>
+      <!-- Project Views -->
+      <div class="mb-0 md:mb-4">
+        <div class="hidden md:flex justify-content-between align-items-center text-lg text-primary-200 hover:text-primary-400 hover:font-bold cursor-pointer"
+             (click)="toggleSection('project')" (keydown)="toggleOnEnter($event, 'project')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.project" aria-controls="project">
+          <span id="menu-project">{{ 'nav.project' | translate }}</span>
+          <span class="material-icons">{{ isExpanded.project ? 'expand_less' : 'expand_more' }}</span>
+        </div>
+        <div id="project" role="region" aria-labelledby="menu-project" [class.md:hidden]="!isExpanded.project">
+          @if (projectLoaded) {
+          <a [routerLink]="['/dashboard']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
+             class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
+            <span class="material-icons text-2xl">view_quilt</span>
+            <span class="hidden md:inline text-md">{{ 'dashboard._nav' | translate }}</span>
           </a>
-          <a (click)="openMailto(getFeedbackMailto())" (keydown.enter)="openMailto(getFeedbackMailto())" tabindex="0"
-             class="nav_link flex hover:bg-primary-600 border-round cursor-pointer">
-            <span class="material-icons">feedback</span>
-            <span class="nav_link_text">{{ 'feedback._nav' | translate }}</span>
+          <a [routerLink]="['/edit-project']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
+             class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
+            <span class="material-icons text-2xl">edit</span>
+            <span class="hidden md:inline text-md">{{ 'project._nav.edit' | translate }}</span>
+          </a>
+          } @else {
+          <a [routerLink]="['/new-project']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
+             class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
+            <span class="material-icons text-2xl">add</span>
+            <span class="hidden md:inline text-md">{{ 'project._nav.new' | translate }}</span>
+          </a>
+          }
+          <a [routerLink]="['/switch-project']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
+             class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
+            <span class="material-icons text-2xl">folder_open</span>
+            <span class="hidden md:inline text-md">{{ 'switch._nav' | translate }}</span>
           </a>
         </div>
       </div>
 
+      <!-- Task Views -->
+      <div class="mb-0 md:mb-4">
+        <div class="hidden md:flex justify-content-between align-items-center text-lg text-primary-200 hover:text-primary-400 hover:font-bold cursor-pointer"
+             (click)="toggleSection('tasks')" (keydown)="toggleOnEnter($event, 'tasks')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.tasks" aria-controls="tasks">
+          <span id="menu-tasks">{{ 'nav.tasks' | translate }}</span>
+          <span class="material-icons">{{ isExpanded.tasks ? 'expand_less' : 'expand_more' }}</span>
+        </div>
+        <div id="tasks" role="region" aria-labelledby="menu-tasks" [class.md:hidden]="!isExpanded.tasks">
+          <a [routerLink]="['/inventory']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
+             class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
+            <span class="material-icons text-2xl">checklist_rtl</span>
+            <span class="hidden md:inline text-md">{{ 'inventory._nav' | translate }}</span>
+          </a>
+          <a [routerLink]="['/export-github']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
+             class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
+            <span class="material-icons-outlined text-2xl">drive_folder_upload</span>
+            <span class="hidden md:inline text-md">{{ 'github._nav' | translate }}</span>
+          </a>
+        </div>
+        <!--Icons for upcoming task nav
+          <span class="material-icons text-2xl">library_books</span>
+          <span class="material-icons text-2xl">troubleshoot</span>
+          <span class="material-icons-outlined text-2xl">manage_search</span>
+          -->
+      </div>
     </div>
+
+    <!-- App Info -->
+    <div>
+      <a [routerLink]="['/about-us']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
+         class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
+        <span class="material-icons text-2xl">web_asset</span>
+        <span class="hidden md:inline text-md">{{ 'about._nav' | translate }}</span>
+      </a>
+      <a (click)="mailtoService.openMailto(mailtoService.generateFeedbackMailto())" (keydown.enter)="mailtoService.openMailto(mailtoService.generateFeedbackMailto())" tabindex="0"
+         class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
+        <span class="material-icons text-2xl">feedback</span>
+        <span class="hidden md:inline text-md">{{ 'feedback._nav' | translate }}</span>
+      </a>
+    </div>
+
   </nav>
 </div>
