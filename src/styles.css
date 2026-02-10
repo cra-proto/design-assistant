@@ -45,12 +45,12 @@ main.container {
   height: 100vh;
   transition: width 0.3s ease;
   z-index: var(--z-fixed);
-  background-color: var(--p-slate-700);
-  color: var(--p-slate-50);
+  background-color: var(--p-zinc-900);
+  color: var(--p-zinc-50);
 }
 
 .l-navbar a {
-  color: var(--p-slate-50);
+  color: var(--p-zinc-50);
 }
 
 /* ========== Desktop Layout ========== */
