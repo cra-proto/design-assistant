@@ -51,7 +51,6 @@ export class MailtoService {
             storageUsed: `${Math.round(JSON.stringify(localStorage).length / 1024)}KB`,
             date: new Date().toISOString(),
         };
-
     }
 
     private getBrowserInfo(): string {
