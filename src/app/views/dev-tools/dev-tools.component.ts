@@ -12,7 +12,7 @@ import { ButtonModule } from 'primeng/button';
   imports: [TranslateModule, CommonModule, FormsModule, CheckboxModule, RouterLink, ButtonModule],
   template: `
     <h1 id="wb-cont">{{ 'example._title' | translate}}</h1>
-    <p>{{ 'example.description' | translate}}</p>
+    <p [innerHTML]="'example.description' | translate"></p>
 
     <div class="flex justify-content-evenly my-4">
   <div>
@@ -116,6 +116,9 @@ export class DevToolsComponent {
     marker('project.setup._');
     marker('project.phase._');
     marker('project.phase._');
+    //Other
+    marker('dev._');
+    marker('standalone._');
   }
 
   private initialChecklist = [
