@@ -142,7 +142,7 @@
                             }
                         </div>
                         @if(showDisclaimer()) {
-                        <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="clearPAT()" styleClass="secondary-outline white-space-nowrap" />
+                        <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="exportGitHubService.clearPAT()" styleClass="secondary-outline white-space-nowrap" />
                         }
                     </div>
                     }
@@ -153,7 +153,7 @@
                             <p class="text-sm text-color-secondary my-0">{{ 'github.connect.warning.details' | translate }}</p>
                         </div>
                         @if (!authService.isAuthenticated()) {
-                        <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="clearPAT()" styleClass="secondary-outline white-space-nowrap" />
+                        <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="exportGitHubService.clearPAT()" styleClass="secondary-outline white-space-nowrap" />
                         }
                     </div>
                     }
@@ -164,7 +164,7 @@
                             <p class="text-sm text-color-secondary my-0">{{ 'github.connect.error.details' | translate }}</p>
                         </div>
                         @if (!authService.isAuthenticated()) {
-                        <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="clearPAT()" styleClass="secondary-outline white-space-nowrap" />
+                        <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="exportGitHubService.clearPAT()" styleClass="secondary-outline white-space-nowrap" />
                         }
                     </div>
                     }
