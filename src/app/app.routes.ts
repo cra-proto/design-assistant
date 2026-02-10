@@ -20,7 +20,7 @@ import { AboutComponent } from './views/about-us/about.component';
 import { GithubConnectComponent } from './components/sign-in/github-connect.component';
 import { AuthCallbackComponent } from './components/sign-in/auth-callback.component';
 
-// Dev tools - LAZY LOAD THESE!
+// Dev tools & standalone - LAZY LOAD THESE!
 
 // Project Storage (for route guards)
 import { ProjectStorageService } from './services/storage/project-storage.service';
@@ -141,6 +141,11 @@ export const routes: Routes = [
         path: 'dev/prompt-editor',
         loadComponent: () => import('./views/dev-tools/prompt-editor/prompt-editor.component').then(m => m.PromptEditorComponent),
         title: 'example.patterns._title',
+    },
+    {
+        path: 'standalone',
+        loadComponent: () => import('./views/standalone/standalone.component').then(m => m.StandaloneComponent),
+        title: 'standalone._title',
     },
     {
         path: '**',
