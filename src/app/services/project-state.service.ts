@@ -542,6 +542,7 @@ export class ProjectStateService {
                     isNew: data.status.isNew,
                     isMoved: data.status.isMoved,
                     isROT: data.status.isROT,
+                    linksToPortal: data.status.linksToPortal,
                     archiveStatus: data.status.archiveStatus,
                     //Data
                     template: data.metadata?.template || '',
@@ -577,6 +578,7 @@ export class ProjectStateService {
         marker('inventory.header.isNew');
         marker('inventory.header.isMoved');
         marker('inventory.header.isROT');
+        marker('inventory.header.linksToPortal');
         marker('inventory.header.archiveStatus');
         marker('inventory.header.owner');
         marker('inventory.header.email');
@@ -605,6 +607,7 @@ export class ProjectStateService {
             { field: 'isNew', translationKey: 'inventory.header.isNew', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'isMoved', translationKey: 'inventory.header.isMoved', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'isROT', translationKey: 'inventory.header.isROT', type: 'boolean', group: 'status', visibleByDefault: true },
+            { field: 'linksToPortal', translationKey: 'inventory.header.linksToPortal', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'archiveStatus', translationKey: 'inventory.header.archiveStatus', type: 'archive', group: 'status', visibleByDefault: true },
             //Owner
             { field: 'owner', translationKey: 'inventory.header.owner', type: 'text', group: 'owner', visibleByDefault: true },

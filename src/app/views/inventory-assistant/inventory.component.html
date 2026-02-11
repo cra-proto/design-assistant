@@ -1,15 +1,20 @@
-<h1 id="wb-cont">{{ 'inventory.title' | translate }}</h1>
-<p>{{ 'inventory.pages.description' | translate }}</p>
-
-@if (!production){
-<p-button
-          label="Reset Column Settings"
-          icon="pi pi-refresh"
-          severity="secondary"
-          size="small"
-          styleClass="mb-2"
-          (onClick)="resetColumnSettings()" />
-}
+<div class="flex flex-row flex-wrap justify-content-between">
+    <div>
+        <h1 id="wb-cont">{{ 'inventory.title' | translate }}</h1>
+        <p>{{ 'inventory.pages.description' | translate }}</p>
+    </div>
+    <!-- Secondary task buttons -->
+    <div class="mt-0 lg:mt-5 mb-2 flex flex-row lg:flex-column gap-2">
+        <p-button
+                  label="View IA diagram"
+                  icon="pi pi-sitemap"
+                  outlined
+                  size="small"
+                  styleClass="secondary-outline w-full min-w-max"
+                  (click)="iaDiagram.openDiagram()" />
+        <aida-export-project />
+    </div>
+</div>
 
 <div class="surface-card border-round-lg shadow-2 p-4 mb-3">
 
@@ -19,16 +24,131 @@
             <h2 class="text-2xl my-1">{{ 'inventory.pages' | translate }}</h2>
             <!--Put a description/instructions here if needed-->
         </div>
-        <div class="mt-3 lg:mt-0 flex flex-row lg:flex-column gap-2">
+    </div>
+
+    <!-- Top toolbar -->
+    <div class="flex flex-row justify-content-between gap-2">
+
+        <!-- Top toolbar - View options -->
+        <div>
+            <label class="mb-1 font-semibold block" for="views'">View:</label>
+            <div class="flex flex-wrap gap-3" role="radiogroup" id="views">
+                <div *ngFor="let view of views" class="field-radiobutton">
+                    <p-radioButton
+                                   [inputId]="view.value"
+                                   [name]="view.key"
+                                   [value]="view.value"
+                                   [(ngModel)]="selectedView"
+                                   (ngModelChange)="changeView()">
+                    </p-radioButton>
+                    <label [for]="view.value">
+                        <i [class]="view.icon"></i>
+                        {{ view.key | translate }}
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top toolbar - Column settings -->
+        <div class="hidden lg:flex flex-column text-color-secondary hover:text-primary max-w-max">
+            <span class="text-xs my-1">{{ 'inventory.columnVis.label' | translate }}</span>
+            <div class="flex flex-row align-content-center gap-2">
+
+                <!-- Top toolbar - Column settings - Group dropdown -->
+                <p-iftalabel>
+                    <p-multiSelect
+                                   [options]="groups"
+                                   [(ngModel)]="selectedGroups"
+                                   optionLabel="label"
+                                   optionValue="value"
+                                   placeholder="Show/Hide Columns"
+                                   class="w-full"
+                                   (onChange)="onGroupSelectionChange()"
+                                   [showHeader]="true"
+                                   inputId="columns">
+                        <ng-template pTemplate="header">
+                            <div class="px-3 py-2">
+                                <span class="font-semibold">Select Groups</span>
+                            </div>
+                        </ng-template>
+                    </p-multiSelect>
+                    <label for="columns">Visible column groups</label>
+                </p-iftalabel>
+
+                <!-- Top toolbar - Column settings - Column dropdown -->
+                <p-iftalabel>
+                    <p-multiSelect
+                                   [options]="groupedColumns"
+                                   [(ngModel)]="selectedColumnFields"
+                                   optionLabel="label"
+                                   optionValue="value"
+                                   optionGroupLabel="label"
+                                   optionGroupChildren="items"
+                                   [group]="true"
+                                   placeholder="Show/Hide Columns"
+                                   class="w-full"
+                                   (onChange)="onColumnSelectionChange()"
+                                   [showHeader]="true"
+                                   inputId="columns">
+                        <ng-template pTemplate="header">
+                            <div class="px-3 py-2">
+                                <span class="font-semibold">Select Columns</span>
+                            </div>
+                        </ng-template>
+                    </p-multiSelect>
+                    <label for="columns">Visible columns</label>
+                </p-iftalabel>
+
+                <!-- Top toolbar - Column settings - Reset button -->
+                <p-button
+                          label="Reset"
+                          icon="pi pi-refresh"
+                          severity="secondary"
+                          size="small"
+                          styleClass="mb-2 h-full"
+                          (onClick)="resetColumnSettings()" />
+            </div>
+        </div>
+        <p-button severity="secondary" icon="pi pi-cog" label="Column settings" class="flex lg:hidden" />
+
+    </div>
+    <!-- Bulk actions toolbar -->
+    <div class="h-3rem">
+        @if(selectedNodes.length > 0){
+        <div class="flex flex-row justify-content-between align-content-center border-1 border-dashed secondary-outline">
+
+            <!-- Bulk actions toolbar - # selected pages -->
+            <p>{{selectedNodes.length}} pages selected.</p>
+
+            <!-- Bulk actions toolbar - Toggle page statuses -->
+            <p-button label="Update status"></p-button>
+
+            <!-- Bulk actions toolbar - Conditional actions - Expand metadata -->
+            @if(hasVisibleMetadata()){
             <p-button
-                      label="View IA diagram"
-                      icon="pi pi-sitemap"
+                      [disabled]="!hasVisibleMetadata()"
+                      [label]="expandAllMetadata ? ('inventory.collapseAllMetadata' | translate) : ('inventory.expandAllMetadata' | translate)"
+                      [icon]="expandAllMetadata ? 'pi pi-minus' : 'pi pi-plus'"
+                      [outlined]="true"
+                      size="small"
+                      (click)="toggleExpandAllMetadata()" />
+            }
+
+            <!-- Bulk actions toolbar - Delete pages -->
+            <p-button
+                      label="Delete selected pages and their children"
+                      icon="pi pi-trash"
+                      severity="danger"
                       outlined
                       size="small"
-                      styleClass="secondary-outline w-full min-w-max"
-                      (click)="iaDiagram.openDiagram()" />
-            <aida-export-project />
+                      styleClass="secondary-outline"
+                      (click)="onDeleteSelected()"
+                      [disabled]="selectedNodes.length === 0" />
+
+
         </div>
+        <p-confirmDialog />
+        }
     </div>
 
     <!-- Table toolbar -->
@@ -51,51 +171,7 @@
                     </span-->
                 </div>
 
-                <!-- Group dropdown -->
-                <p-iftalabel>
-                    <p-multiSelect
-                                   [options]="groups"
-                                   [(ngModel)]="selectedGroups"
-                                   optionLabel="label"
-                                   optionValue="value"
-                                   placeholder="Show/Hide Columns"
-                                   class="w-full"
-                                   (onChange)="onGroupSelectionChange()"
-                                   [showHeader]="true"
-                                   inputId="columns">
-                        <ng-template pTemplate="header">
-                            <div class="px-3 py-2">
-                                <span class="font-semibold">Select Groups</span>
-                            </div>
-                        </ng-template>
-                    </p-multiSelect>
-                    <label for="columns">Visible groups</label>
-                </p-iftalabel>
 
-                <!-- Column dropdown -->
-                <p-iftalabel>
-                    <p-multiSelect
-                                   [options]="groupedColumns"
-                                   [(ngModel)]="selectedColumnFields"
-                                   optionLabel="label"
-                                   optionValue="value"
-                                   optionGroupLabel="label"
-                                   optionGroupChildren="items"
-                                   [group]="true"
-                                   placeholder="Show/Hide Columns"
-                                   class="w-full"
-                                   (onChange)="onColumnSelectionChange()"
-                                   [showHeader]="true"
-                                   inputId="columns">
-                        <ng-template pTemplate="header">
-                            <div class="px-3 py-2">
-                                <span class="font-semibold">Select Columns</span>
-                            </div>
-                        </ng-template>
-                    </p-multiSelect>
-
-                    <label for="columns">Visible columns</label>
-                </p-iftalabel>
             </div>
             <!--div>
                 <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
@@ -114,28 +190,14 @@
             </div-->
         </ng-template>
         <ng-template #center>
-            <p-button
-                      [disabled]="!hasVisibleMetadata()"
-                      [label]="expandAllMetadata ? ('inventory.collapseAllMetadata' | translate) : ('inventory.expandAllMetadata' | translate)"
-                      [icon]="expandAllMetadata ? 'pi pi-minus' : 'pi pi-plus'"
-                      [outlined]="true"
-                      size="small"
-                      (click)="toggleExpandAllMetadata()" />
+
         </ng-template>
         <ng-template #end>
-            <p-button
-                      label="Delete selected pages and their children"
-                      icon="pi pi-trash"
-                      severity="danger"
-                      outlined
-                      size="small"
-                      styleClass="secondary-outline"
-                      (click)="onDeleteSelected()"
-                      [disabled]="selectedNodes.length === 0" />
-            <p-confirmDialog />
+
         </ng-template>
     </p-toolbar>
 
+    @if(selectedView === "table"){
     <p-table
              [value]="tableData()"
              [(selection)]="selectedNodes" dataKey="url" selectionMode="multiple"
@@ -226,6 +288,10 @@
             </tr>
         </ng-template>
     </p-table>
+    }
+    @else if(selectedView === "tree"){
+    TREE
+    }
 </div>
 
 

@@ -17,6 +17,7 @@ import { TagModule } from 'primeng/tag';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
+import { RadioButtonModule } from 'primeng/radiobutton';
 
 //Components and models
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
@@ -30,12 +31,19 @@ import { FindPagesComponent } from "../../components/find-pages/find-pages.compo
 
 import { environment } from '../../../environments/environment';
 
+interface ViewOption {
+    key: string;
+    value: string;
+    icon: string;
+}
+
 @Component({
     selector: 'aida-inventory',
     imports: [CommonModule, FormsModule, TranslateModule,
         TableModule, ButtonModule, PopoverModule, TooltipModule,
         ToolbarModule, IftaLabelModule, MultiSelectModule, SelectButtonModule,
         TagModule, ToggleButtonModule, ConfirmDialogModule,
+        RadioButtonModule,
         ExportProjectComponent, AddPagesComponent, FindPagesComponent],
     templateUrl: './inventory.component.html',
     styles: ``
@@ -100,6 +108,8 @@ export class InventoryComponent implements OnInit {
         marker('inventory.columnGroups.owner');
         marker('inventory.columnGroups.pageData');
         marker('inventory.columnGroups.metadata');
+        marker('inventory.view.table');
+        marker('inventory.view.tree');
     }
 
     // Multiselect - column groups
@@ -266,6 +276,7 @@ export class InventoryComponent implements OnInit {
             isNew: { true: 'pi-plus text-blue-500', false: 'pi-minus text-gray-400' },
             isMoved: { true: 'pi-arrow-right text-orange-500', false: 'pi-minus text-gray-400' },
             isROT: { true: 'pi-trash text-red-500', false: 'pi-minus text-gray-400' },
+            linksToPortal: { true: 'pi-external-link text-blue-500', false: 'pi-minus text-gray-400' },
         };
 
         const fieldIcons = iconMap[field];
@@ -459,4 +470,15 @@ export class InventoryComponent implements OnInit {
         console.log('Column settings reset to defaults');
     }
 
+
+    //View settings
+    views: ViewOption[] = [
+        { key: 'inventory.view.table', value: 'table', icon: '' },
+        { key: 'inventory.view.tree', value: 'tree', icon: '' },
+    ];
+    selectedView = 'table'
+
+    changeView() {
+        console.log(this.selectedView)
+    }
 }
