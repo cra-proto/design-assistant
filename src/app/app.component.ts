@@ -51,7 +51,7 @@ export class AppComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.primeng.ripple.set(true);
 
-    //Update settings from url parameter (if present) then remove the param
+    // Update settings from url parameter (if present) then remove the param
     this.route.queryParams.subscribe(params => {
       const allParams = { ...params }
 
@@ -70,7 +70,7 @@ export class AppComponent implements OnInit {
       }
 
       // Remove processed parameters
-      if (params['org'] !== undefined || params['toolbox'] !== undefined) {
+      if (Object.keys(params).length !== Object.keys(allParams).length) {
         this.router.navigate([], {
           queryParams: allParams,
           replaceUrl: true,
