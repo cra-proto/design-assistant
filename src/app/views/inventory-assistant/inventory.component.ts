@@ -60,7 +60,9 @@ export class InventoryComponent implements OnInit {
     test() { console.log("Button click") }
 
     // Signals
-    showInScopeOnly = signal<boolean>(true);
+    columnFilters = signal<Record<string, boolean>>({
+        inScope: true  // Default filter applied
+    });
 
     // All table columns
     allColumns = this.projectState.getTreeTableColumns();
@@ -252,16 +254,16 @@ export class InventoryComponent implements OnInit {
     // Table - get current data
     tableData = computed<FlattenedTreeNode[]>(() => {
         const allNodes = this.projectState.flattenTree();
-        const inScopeOnly = this.showInScopeOnly();
-        return inScopeOnly
-            ? allNodes.filter(node => node.inScope === true)
-            : allNodes;
+        const filters = this.columnFilters();
+        return allNodes.filter(node => {
+            // Check each active filter - all must pass (AND logic)
+            return Object.entries(filters).every(([field, filterValue]) => {
+                // If filter is active (true), only include nodes where field === true
+                // If filter is inactive (false), include all nodes
+                return !filterValue || node[field as keyof FlattenedTreeNode] === true;
+            });
+        });
     });
-
-    // Table - toggle visible rows based on scope
-    toggleInScopeFilter(): void {
-        this.showInScopeOnly.update(current => !current);
-    }
 
     // Table - returns the value of a cell (used by getBooleanIcon)
     getCellValue(node: FlattenedTreeNode, col: TableColumn): boolean {
@@ -480,5 +482,78 @@ export class InventoryComponent implements OnInit {
 
     changeView() {
         console.log(this.selectedView)
+    }
+
+    // Get column group headings (includes frozen)
+    get groupedHeaders() {
+        const allGroups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
+        const groups = allGroups.filter(g => {
+            const hasFrozenColumns = this.allColumns.some(col => col.group === g && col.frozen);
+            return this.selectedGroups.includes(g) || hasFrozenColumns;
+        });
+
+        return groups.map(groupKey => ({
+            label: this.translate.instant(`inventory.columnGroups.${groupKey}`),
+            value: groupKey,
+            // Include ALL columns (frozen + non-frozen) for header span calculation
+            items: this.allColumns
+                .filter(col => col.group === groupKey)
+                .map(col => ({
+                    label: this.translate.instant(col.translationKey),
+                    value: col.field
+                }))
+        }));
+    }
+
+    // Count visible columns in group (including frozen)
+    getVisibleColumnCount(group: any): number {
+        return group.items.filter((item: any) => {
+            const col = this.allColumns.find(c => c.field === item.value);
+            return col?.frozen || this.selectedColumnFields.includes(item.value);
+        }).length;
+    }
+
+    // For column borders
+    isLastInGroup(field: string): boolean {
+        // Find which group this column belongs to
+        const group = this.groupedHeaders.find(g =>
+            g.items.some((item: any) => item.value === field)
+        );
+
+        if (!group) return false;
+
+        // Get visible columns in this group
+        const visibleInGroup = group.items
+            .filter((item: any) => {
+                const col = this.allColumns.find(c => c.field === item.value);
+                return col?.frozen || this.selectedColumnFields.includes(item.value);
+            })
+            .map((item: any) => item.value);
+
+        // Check if this is the last visible column
+        const isLast = visibleInGroup[visibleInGroup.length - 1] === field;
+
+        // Don't add border after the very last group
+        const isLastGroup = this.groupedHeaders[this.groupedHeaders.length - 1].value === group.value;
+
+        return isLast && !isLastGroup;
+    }
+
+    // Track which boolean columns are filtered
+
+    isColumnFiltered(field: string): boolean {
+        return this.columnFilters()[field] || false;
+    }
+
+    toggleColumnFilter(field: string): void {
+        this.columnFilters.update(current => ({
+            ...current,
+            [field]: !current[field]
+        }));
+    }
+
+    applyFilters(): void {
+        // Apply all active column filters to your table data
+        // This will depend on how your table filtering works
     }
 }

@@ -235,6 +235,11 @@ html.dark-mode .secondary-outline {
   border-color: var(--p-zinc-600) !important;
 }
 
+/*Allow buttons to be bold*/
+.p-button.font-bold .p-button-label {
+  font-weight: 700;
+}
+
 /*Add option to center text in chips and inherit text color*/
 .center-chip {
   display: flex;
