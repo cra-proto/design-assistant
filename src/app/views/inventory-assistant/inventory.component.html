@@ -87,7 +87,7 @@
                                    optionGroupChildren="items"
                                    [group]="true"
                                    placeholder="Show/Hide Columns"
-                                   class="w-full"
+                                   class="w-full capitalize"
                                    (onChange)="onColumnSelectionChange()"
                                    [showHeader]="true"
                                    inputId="columns">
@@ -199,12 +199,21 @@
                 @for(col of scrollableColumns; track col.field){
                 <th [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border':''">
                     @if(col.type === 'boolean'){
-                    <p-button [label]="col.translationKey | translate" styleClass="font-bold"
+                    <p-button [label]="col.translationKey | translate" styleClass="font-bold capitalize"
                               [icon]="isColumnFiltered(col.field) ? 'pi pi-filter' : 'pi pi-filter-slash'" iconPos="right"
                               [severity]="isColumnFiltered(col.field) ? 'primary' : 'secondary'"
                               text rounded tooltipPosition="top"
                               (onClick)="toggleColumnFilter(col.field)"
-                              [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.clear' | translate) : ('inventory.filter.apply' | translate)" />
+                              [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showTrue' | translate: {column: (col.translationKey | translate)})" />
+                    }
+                    @else if(col.type === 'archive'){
+                    <p-button
+                              [label]="col.translationKey | translate" styleClass="font-bold capitalize"
+                              [icon]="isColumnFiltered(col.field) ? 'pi pi-filter' : 'pi pi-filter-slash'" iconPos="right"
+                              [severity]="isColumnFiltered(col.field) ? 'primary' : 'secondary'"
+                              text rounded tooltipPosition="top"
+                              (onClick)="toggleColumnFilter(col.field)"
+                              [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showSome' | translate)" />
                     }
                     @else{{{ col.translationKey | translate }}}
                 </th>

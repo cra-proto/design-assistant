@@ -256,11 +256,10 @@ export class InventoryComponent implements OnInit {
         const allNodes = this.projectState.flattenTree();
         const filters = this.columnFilters();
         return allNodes.filter(node => {
-            // Check each active filter - all must pass (AND logic)
             return Object.entries(filters).every(([field, filterValue]) => {
-                // If filter is active (true), only include nodes where field === true
-                // If filter is inactive (false), include all nodes
-                return !filterValue || node[field as keyof FlattenedTreeNode] === true;
+                if (!filterValue) return true; // Filter inactive
+                if (field === 'archiveStatus') { return node[field] !== 'current'; } // Special handling for archive field                
+                return node[field as keyof FlattenedTreeNode] === true; // Boolean filters - show only true values
             });
         });
     });
@@ -293,10 +292,12 @@ export class InventoryComponent implements OnInit {
         switch (status) {
             case 'current':
                 return 'pi pi-minus text-gray-400';
-            case 'archived':
-                return 'pi pi-exclamation-triangle text-orange-500';
             case 'to-archive':
                 return 'pi pi-exclamation-circle text-blue-500';
+            case 'archived':
+                return 'pi pi-exclamation-triangle text-orange-500';
+            case 'unarchive':
+                return 'pi pi-plus-circle text-green-500';
             default:
                 return 'pi pi-minus text-gray-400'; // fallback
         }
