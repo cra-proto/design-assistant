@@ -5,18 +5,14 @@
     </div>
     <!-- Secondary task buttons -->
     <div class="mt-0 lg:mt-5 mb-2 flex flex-row lg:flex-column gap-2">
-        <p-button
-                  label="View IA diagram"
-                  icon="pi pi-sitemap"
-                  outlined
-                  size="small"
-                  styleClass="secondary-outline w-full min-w-max"
+        <p-button label="View IA diagram" icon="pi pi-sitemap"
+                  outlined size="small" styleClass="secondary-outline w-full min-w-max"
                   (click)="iaDiagram.openDiagram()" />
         <aida-export-project />
     </div>
 </div>
 
-<div class="surface-card border-round-lg shadow-2 p-4 mb-3">
+<div class="surface-card border-round-lg shadow-2 p-4 mb-3 min-w-min">
 
     <!--Header & Settings-->
     <div class="flex flex-column lg:flex-row justify-content-between align-items-start">
@@ -26,136 +22,126 @@
         </div>
     </div>
 
-    <!-- Top toolbar -->
-    <div class="flex flex-row justify-content-between gap-2">
+    <div class="sticky-toolbar">
+        <!-- Top toolbar -->
+        <div class="flex flex-row justify-content-between gap-2 h-6rem surface-card">
 
-        <!-- Top toolbar - View options -->
-        <div>
-            <label class="mb-1 font-semibold block" for="views'">View:</label>
-            <div role="radiogroup" id="views">
-                <div *ngFor="let view of views" class="field-radiobutton">
-                    <p-radioButton
-                                   [inputId]="view.value"
-                                   [name]="view.key"
-                                   [value]="view.value"
-                                   [(ngModel)]="selectedView"
-                                   (ngModelChange)="changeView()">
-                    </p-radioButton>
-                    <label [for]="view.value">
-                        <i [class]="view.icon"></i>
-                        {{ view.key | translate }}
-                    </label>
+            <!-- Top toolbar - View options -->
+            <div>
+                <label class="mb-1 font-semibold block" for="views'">View:</label>
+                <div role="radiogroup" id="views">
+                    <div *ngFor="let view of views" class="field-radiobutton">
+                        <p-radioButton
+                                       [inputId]="view.value"
+                                       [name]="view.key"
+                                       [value]="view.value"
+                                       [(ngModel)]="selectedView"
+                                       (ngModelChange)="changeView()">
+                        </p-radioButton>
+                        <label [for]="view.value">
+                            <i [class]="view.icon"></i>
+                            {{ view.key | translate }}
+                        </label>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Top toolbar - Column settings -->
-        @if(selectedView === "table"){
-        <div class="hidden lg:flex flex-column text-color-secondary hover:text-primary max-w-max">
-            <span class="text-xs my-1">{{ 'inventory.columnVis.label' | translate }}</span>
-            <div class="flex flex-row align-content-center gap-2">
+            <!-- Top toolbar - Column settings -->
+            @if(selectedView === "table"){
+            <div class="hidden lg:flex flex-column text-color-secondary hover:text-primary max-w-max">
+                <span class="text-xs my-1">{{ 'inventory.columnVis.label' | translate }}</span>
+                <div class="flex flex-row align-content-center gap-2">
 
-                <!-- Top toolbar - Column settings - Group dropdown -->
-                <p-iftalabel>
-                    <p-multiSelect
-                                   [options]="groups"
-                                   [(ngModel)]="selectedGroups"
-                                   optionLabel="label"
-                                   optionValue="value"
-                                   placeholder="Show/Hide Columns"
-                                   class="w-full"
-                                   (onChange)="onGroupSelectionChange()"
-                                   [showHeader]="true"
-                                   inputId="columns">
-                        <ng-template pTemplate="header">
-                            <div class="px-3 py-2">
-                                <span class="font-semibold">Select Groups</span>
-                            </div>
-                        </ng-template>
-                    </p-multiSelect>
-                    <label for="columns">Visible column groups</label>
-                </p-iftalabel>
+                    <!-- Top toolbar - Column settings - Group dropdown -->
+                    <p-iftalabel>
+                        <p-multiSelect inputId="groups" [options]="groups" [(ngModel)]="selectedGroups"
+                                       optionLabel="label" optionValue="value" [showHeader]="true" [maxSelectedLabels]="1"
+                                       placeholder="Show/hide groups" class="w-13rem"
+                                       (onChange)="onGroupSelectionChange()">
+                            <ng-template pTemplate="header">
+                                <div class="px-3 pt-2">
+                                    <span class="font-semibold">Select groups</span>
+                                </div>
+                            </ng-template>
+                        </p-multiSelect>
+                        <label for="columns">Visible column groups</label>
+                    </p-iftalabel>
 
-                <!-- Top toolbar - Column settings - Column dropdown -->
-                <p-iftalabel>
-                    <p-multiSelect
-                                   [options]="groupedColumns"
-                                   [(ngModel)]="selectedColumnFields"
-                                   optionLabel="label"
-                                   optionValue="value"
-                                   optionGroupLabel="label"
-                                   optionGroupChildren="items"
-                                   [group]="true"
-                                   placeholder="Show/Hide Columns"
-                                   class="w-full capitalize"
-                                   (onChange)="onColumnSelectionChange()"
-                                   [showHeader]="true"
-                                   inputId="columns">
-                        <ng-template pTemplate="header">
-                            <div class="px-3 py-2">
-                                <span class="font-semibold">Select Columns</span>
-                            </div>
-                        </ng-template>
-                    </p-multiSelect>
-                    <label for="columns">Visible columns</label>
-                </p-iftalabel>
+                    <!-- Top toolbar - Column settings - Column dropdown -->
+                    <p-iftalabel>
+                        <p-multiSelect inputId="columns" [options]="groupedColumns" [(ngModel)]="selectedColumnFields"
+                                       optionLabel="label" optionValue="value" optionGroupLabel="label" optionGroupChildren="items" [group]="true" [showHeader]="true" [maxSelectedLabels]="1"
+                                       placeholder="Show/hide columns" class="w-13rem capitalize"
+                                       (onChange)="onColumnSelectionChange()">
+                            <ng-template pTemplate="header">
+                                <div class="px-3 pt-2">
+                                    <span class="font-semibold">Select columns</span>
+                                </div>
+                            </ng-template>
+                        </p-multiSelect>
+                        <label for="columns">Visible columns</label>
+                    </p-iftalabel>
 
-                <!-- Top toolbar - Column settings - Reset button -->
-                <p-button
-                          label="Reset"
-                          icon="pi pi-refresh"
-                          severity="secondary"
-                          size="small"
-                          styleClass="mb-2 h-full"
-                          (onClick)="resetColumnSettings()" />
+                    <!-- Top toolbar - Column settings - Reset button -->
+                    <p-button label="Reset columns" icon="pi pi-refresh"
+                              severity="secondary" size="small" styleClass="h-full"
+                              (onClick)="resetColumnSettings()" />
+                </div>
             </div>
-        </div>
-        <p-button severity="secondary" icon="pi pi-cog" label="Column settings" class="flex lg:hidden" />
-        }
-
-    </div>
-    <!-- Bulk actions toolbar -->
-    @if(selectedView === "table"){
-    <div class="h-3rem">
-        @if(selectedNodes.length > 0){
-        <div class="flex flex-row justify-content-between align-content-center border-1 border-dashed secondary-outline">
-
-            <!-- Bulk actions toolbar - # selected pages -->
-            <p>{{selectedNodes.length}} pages selected.</p>
-
-            <!-- Bulk actions toolbar - Toggle page statuses -->
-            <p-button label="Update status"></p-button>
-
-            <!-- Bulk actions toolbar - Conditional actions - Expand metadata -->
-            @if(hasVisibleMetadata()){
-            <p-button
-                      [disabled]="!hasVisibleMetadata()"
-                      [label]="expandAllMetadata ? ('inventory.collapseAllMetadata' | translate) : ('inventory.expandAllMetadata' | translate)"
-                      [icon]="expandAllMetadata ? 'pi pi-minus' : 'pi pi-plus'"
-                      [outlined]="true"
-                      size="small"
-                      (click)="toggleExpandAllMetadata()" />
+            <p-button severity="secondary" icon="pi pi-cog" label="Column settings" class="flex lg:hidden" />
             }
-
-            <!-- Bulk actions toolbar - Delete pages -->
-            <p-button
-                      label="Delete selected pages and their children"
-                      icon="pi pi-trash"
-                      severity="danger"
-                      outlined
-                      size="small"
-                      styleClass="secondary-outline"
-                      (click)="onDeleteSelected()"
-                      [disabled]="selectedNodes.length === 0" />
-
-
         </div>
-        <p-confirmDialog />
+        <!-- Bulk actions toolbar -->
+        @if(selectedView === "table"){
+        <div class="h-3rem mb-2">
+            @if(selectedNodes.length > 0 || hasActiveFilters()){
+            <div class="flex flex-row justify-content-between align-items-center border-1 border-dashed secondary-outline surface-card">
+
+                <!-- Bulk actions toolbar - # selected pages -->
+                <p>{{selectedNodes.length}} pages selected</p>
+
+                <!-- Bulk actions toolbar - Toggle page statuses -->
+                <p-button label="Update status"></p-button>
+
+                <!-- Bulk actions toolbar - Reset page statuses filters -->
+                <p-button
+                          label="{{ 'inventory.filter.reset' | translate }}"
+                          icon="pi pi-filter-slash"
+                          severity="secondary"
+                          [outlined]="true"
+                          size="small"
+                          (onClick)="resetFilters()"
+                          [disabled]="!hasActiveFilters()" />
+
+                <!-- Bulk actions toolbar - Conditional actions - Expand metadata -->
+                @if(hasVisibleMetadata()){
+                <p-button
+                          [disabled]="!hasVisibleMetadata()"
+                          [label]="expandAllMetadata ? ('inventory.collapseAllMetadata' | translate) : ('inventory.expandAllMetadata' | translate)"
+                          [icon]="expandAllMetadata ? 'pi pi-minus' : 'pi pi-plus'"
+                          [outlined]="true"
+                          size="small"
+                          (click)="toggleExpandAllMetadata()" />
+                }
+
+                <!-- Bulk actions toolbar - Delete pages -->
+                <p-button
+                          label="Delete selected pages and their children"
+                          icon="pi pi-trash"
+                          severity="danger"
+                          outlined
+                          size="small"
+                          styleClass="secondary-outline"
+                          (click)="onDeleteSelected()"
+                          [disabled]="selectedNodes.length === 0" />
+
+
+            </div>
+            <p-confirmDialog />
+            }
+        </div>
         }
     </div>
-    }
-
-
     <!--div>
                 <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
                     <span class="text-xs  my-1">Visible groups</span>
@@ -201,7 +187,7 @@
                     @if(col.type === 'boolean'){
                     <p-button [label]="col.translationKey | translate" styleClass="font-bold capitalize"
                               [icon]="isColumnFiltered(col.field) ? 'pi pi-filter' : 'pi pi-filter-slash'" iconPos="right"
-                              [severity]="isColumnFiltered(col.field) ? 'primary' : 'secondary'"
+                              [severity]="isColumnFiltered(col.field) ? 'primary' : 'contrast'"
                               text rounded tooltipPosition="top"
                               (onClick)="toggleColumnFilter(col.field)"
                               [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showTrue' | translate: {column: (col.translationKey | translate)})" />
@@ -210,7 +196,7 @@
                     <p-button
                               [label]="col.translationKey | translate" styleClass="font-bold capitalize"
                               [icon]="isColumnFiltered(col.field) ? 'pi pi-filter' : 'pi pi-filter-slash'" iconPos="right"
-                              [severity]="isColumnFiltered(col.field) ? 'primary' : 'secondary'"
+                              [severity]="isColumnFiltered(col.field) ? 'primary' : 'contrast'"
                               text rounded tooltipPosition="top"
                               (onClick)="toggleColumnFilter(col.field)"
                               [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showSome' | translate)" />
@@ -263,7 +249,8 @@
                     }
                     <!-- Boolean fields -->
                     @if(col.type === 'boolean'){
-                    <i [class]="getBooleanIcon(getCellValue(node, col), col.field)" class="flex justify-content-center"></i>
+                    <i [class]="getBooleanIcon(getCellValue(node, col), col.field)" class="flex justify-content-center"
+                       [pTooltip]="getBooleanTooltip(node[col.field], col.field) | translate" tooltipPosition="top"></i>
                     }
                     <!-- Number fields -->
                     @if(col.type === 'number'){
@@ -275,7 +262,8 @@
                     }
                     <!-- Archive field -->
                     @if(col.type === 'archive'){
-                    <i [class]="getArchiveStatusIcon(node, col)"></i>
+                    <i [class]="getArchiveStatusIcon(node, col)" class="flex justify-content-center"
+                       [pTooltip]="getArchiveStatusTooltip(node, col) | translate" tooltipPosition="top"></i>
                     }
                 </td>
                 }

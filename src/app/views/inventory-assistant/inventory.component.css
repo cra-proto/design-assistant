@@ -1,0 +1,20 @@
+.sticky-toolbar {
+    position: sticky;
+    left: calc(var(--nav-width));
+    top: 0;
+    z-index: 10;
+    width: calc(100vw - var(--nav-width) - 2rem);
+    margin-left: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 0rem;
+    box-sizing: border-box;
+}
+
+/* Desktop adjustments */
+@media screen and (min-width: 768px) {
+    .sticky-toolbar {
+        left: calc(var(--nav-width) + 7rem);
+        width: calc(100vw - var(--nav-width) - 7rem - 5rem);
+        padding-right: 5rem;
+    }
+}
