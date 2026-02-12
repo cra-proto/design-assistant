@@ -1,20 +1,20 @@
-<div class="fullscreen-overlay">
-    <div class="header">
-        <h2>IA Diagram</h2>
-        <p-button
-                  icon="pi pi-times"
-                  text rounded
-                  (click)="iaDiagram.closeDiagram()" />
+<div class="fullscreen-overlay surface-card">
+    <div class="flex flex-row justify-content-between align-items-center pl-2 mx-3 border-bottom-1 border-200">
+        <h1 class="mb-2">IA Diagram</h1>
+        <p-button icon="pi pi-times" text rounded (onClick)="iaDiagram.closeDiagram()" [attr.aria-label]="'common.close' | translate" />
     </div>
     <div class="overflow-auto">
-        <p-organization-chart [value]="projectTree()">
+        <p-organization-chart [value]="projectTree()" styleClass="mt-2">
             <ng-template let-node pTemplate="default">
                 <!--ORPHAN STATUS-->
-                <div class="flex justify-content-center -mt-6 mb-6" *ngIf="node.data.status.isOrphan">
-                    <i class="pi pi-times text-red-500" pTooltip="No link from parent" tooltipPosition="top"></i>
+                @if(node.data.status.isOrphan){
+                <div class="-mt-6 mb-6">
+                    <i class="pi pi-times text-red-500" [pTooltip]="'iaDiagram.tooltip.orphan' | translate" tooltipPosition="top" tooltipStyleClass="z-200"></i>
                 </div>
+                }
                 <!--PAGE-->
-                <p><a [href]="node.data.url" target="_blank" [innerHTML]="node.label" class="ia-label"></a></p>
+                <p><a [href]="node.data.url" target="_blank" [innerHTML]="node.label"></a></p>
             </ng-template>
         </p-organization-chart>
     </div>
+</div>

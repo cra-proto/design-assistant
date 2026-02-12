@@ -4,15 +4,11 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: white;
-    z-index: 9999;
+    z-index: 200;
     display: flex;
     flex-direction: column;
 }
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    padding: 1rem;
-    border-bottom: 1px solid var(--surface-border);
+.z-200 {
+    z-index: 200 !important;
 }
