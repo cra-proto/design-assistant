@@ -17,6 +17,7 @@ import { TagModule } from 'primeng/tag';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
+import { RadioButtonModule } from 'primeng/radiobutton';
 
 //Components and models
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
@@ -30,12 +31,19 @@ import { FindPagesComponent } from "../../components/find-pages/find-pages.compo
 
 import { environment } from '../../../environments/environment';
 
+interface ViewOption {
+    key: string;
+    value: string;
+    icon: string;
+}
+
 @Component({
     selector: 'aida-inventory',
     imports: [CommonModule, FormsModule, TranslateModule,
         TableModule, ButtonModule, PopoverModule, TooltipModule,
         ToolbarModule, IftaLabelModule, MultiSelectModule, SelectButtonModule,
         TagModule, ToggleButtonModule, ConfirmDialogModule,
+        RadioButtonModule,
         ExportProjectComponent, AddPagesComponent, FindPagesComponent],
     templateUrl: './inventory.component.html',
     styles: ``
@@ -52,7 +60,9 @@ export class InventoryComponent implements OnInit {
     test() { console.log("Button click") }
 
     // Signals
-    showInScopeOnly = signal<boolean>(true);
+    columnFilters = signal<Record<string, boolean>>({
+        inScope: true  // Default filter applied
+    });
 
     // All table columns
     allColumns = this.projectState.getTreeTableColumns();
@@ -100,6 +110,8 @@ export class InventoryComponent implements OnInit {
         marker('inventory.columnGroups.owner');
         marker('inventory.columnGroups.pageData');
         marker('inventory.columnGroups.metadata');
+        marker('inventory.view.table');
+        marker('inventory.view.tree');
     }
 
     // Multiselect - column groups
@@ -242,16 +254,15 @@ export class InventoryComponent implements OnInit {
     // Table - get current data
     tableData = computed<FlattenedTreeNode[]>(() => {
         const allNodes = this.projectState.flattenTree();
-        const inScopeOnly = this.showInScopeOnly();
-        return inScopeOnly
-            ? allNodes.filter(node => node.inScope === true)
-            : allNodes;
+        const filters = this.columnFilters();
+        return allNodes.filter(node => {
+            return Object.entries(filters).every(([field, filterValue]) => {
+                if (!filterValue) return true; // Filter inactive
+                if (field === 'archiveStatus') { return node[field] !== 'current'; } // Special handling for archive field                
+                return node[field as keyof FlattenedTreeNode] === true; // Boolean filters - show only true values
+            });
+        });
     });
-
-    // Table - toggle visible rows based on scope
-    toggleInScopeFilter(): void {
-        this.showInScopeOnly.update(current => !current);
-    }
 
     // Table - returns the value of a cell (used by getBooleanIcon)
     getCellValue(node: FlattenedTreeNode, col: TableColumn): boolean {
@@ -266,6 +277,7 @@ export class InventoryComponent implements OnInit {
             isNew: { true: 'pi-plus text-blue-500', false: 'pi-minus text-gray-400' },
             isMoved: { true: 'pi-arrow-right text-orange-500', false: 'pi-minus text-gray-400' },
             isROT: { true: 'pi-trash text-red-500', false: 'pi-minus text-gray-400' },
+            linksToPortal: { true: 'pi-external-link text-blue-500', false: 'pi-minus text-gray-400' },
         };
 
         const fieldIcons = iconMap[field];
@@ -280,10 +292,12 @@ export class InventoryComponent implements OnInit {
         switch (status) {
             case 'current':
                 return 'pi pi-minus text-gray-400';
-            case 'archived':
-                return 'pi pi-exclamation-triangle text-orange-500';
             case 'to-archive':
                 return 'pi pi-exclamation-circle text-blue-500';
+            case 'archived':
+                return 'pi pi-exclamation-triangle text-orange-500';
+            case 'unarchive':
+                return 'pi pi-plus-circle text-green-500';
             default:
                 return 'pi pi-minus text-gray-400'; // fallback
         }
@@ -459,4 +473,88 @@ export class InventoryComponent implements OnInit {
         console.log('Column settings reset to defaults');
     }
 
+
+    //View settings
+    views: ViewOption[] = [
+        { key: 'inventory.view.table', value: 'table', icon: '' },
+        { key: 'inventory.view.tree', value: 'tree', icon: '' },
+    ];
+    selectedView = 'table'
+
+    changeView() {
+        console.log(this.selectedView)
+    }
+
+    // Get column group headings (includes frozen)
+    get groupedHeaders() {
+        const allGroups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
+        const groups = allGroups.filter(g => {
+            const hasFrozenColumns = this.allColumns.some(col => col.group === g && col.frozen);
+            return this.selectedGroups.includes(g) || hasFrozenColumns;
+        });
+
+        return groups.map(groupKey => ({
+            label: this.translate.instant(`inventory.columnGroups.${groupKey}`),
+            value: groupKey,
+            // Include ALL columns (frozen + non-frozen) for header span calculation
+            items: this.allColumns
+                .filter(col => col.group === groupKey)
+                .map(col => ({
+                    label: this.translate.instant(col.translationKey),
+                    value: col.field
+                }))
+        }));
+    }
+
+    // Count visible columns in group (including frozen)
+    getVisibleColumnCount(group: any): number {
+        return group.items.filter((item: any) => {
+            const col = this.allColumns.find(c => c.field === item.value);
+            return col?.frozen || this.selectedColumnFields.includes(item.value);
+        }).length;
+    }
+
+    // For column borders
+    isLastInGroup(field: string): boolean {
+        // Find which group this column belongs to
+        const group = this.groupedHeaders.find(g =>
+            g.items.some((item: any) => item.value === field)
+        );
+
+        if (!group) return false;
+
+        // Get visible columns in this group
+        const visibleInGroup = group.items
+            .filter((item: any) => {
+                const col = this.allColumns.find(c => c.field === item.value);
+                return col?.frozen || this.selectedColumnFields.includes(item.value);
+            })
+            .map((item: any) => item.value);
+
+        // Check if this is the last visible column
+        const isLast = visibleInGroup[visibleInGroup.length - 1] === field;
+
+        // Don't add border after the very last group
+        const isLastGroup = this.groupedHeaders[this.groupedHeaders.length - 1].value === group.value;
+
+        return isLast && !isLastGroup;
+    }
+
+    // Track which boolean columns are filtered
+
+    isColumnFiltered(field: string): boolean {
+        return this.columnFilters()[field] || false;
+    }
+
+    toggleColumnFilter(field: string): void {
+        this.columnFilters.update(current => ({
+            ...current,
+            [field]: !current[field]
+        }));
+    }
+
+    applyFilters(): void {
+        // Apply all active column filters to your table data
+        // This will depend on how your table filtering works
+    }
 }

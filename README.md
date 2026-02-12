@@ -14,8 +14,8 @@ AIDA is an internal web application for Government of Canada departments to mana
 
 If using nvm:
 ```bash
-nvm install 22.22.0
-nvm use 22.22.0
+nvm install 22.16.0
+nvm use 22.16.0
 ```
 
 ### 2. Install Angular CLI
@@ -205,6 +205,8 @@ src/
 - Language toggle updates all text and maintains state across sessions
 - Translation files located in `public/i18n/`
 
+**Note**: This section highlights key patterns. Detailed documentation will be added as features stabilize.
+
 ---
 
 ## Save Flow Architecture
@@ -258,12 +260,6 @@ flowchart TB
 **Key Paths:**
 - **Active Project Save** (Header button): User → project-state → project-storage → cloud-storage/local
 - **Upload to Cloud** (Switch project view): User → project-storage → cloud-storage
-
----
-
-## Additional Notes
-
-**Note**: This section highlights key patterns. Detailed documentation will be added as features stabilize.
 
 ---
 

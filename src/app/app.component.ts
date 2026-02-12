@@ -14,6 +14,7 @@ import { ProjectStateService } from './services/project-state.service';
 import { ExportGitHubService } from './services/github/export-github.service';
 import { CollaboratorService } from './services/collaborator.service';
 import { CloudStorageService } from './services/storage/cloud-storage.service';
+import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'aida-root',
@@ -33,6 +34,7 @@ export class AppComponent implements OnInit {
   projectState = inject(ProjectStateService);
   private exportGitHubService = inject(ExportGitHubService);
   private collaboratorService = inject(CollaboratorService);
+  private themeService = inject(ThemeService);
 
   constructor() {
     // Auto-add current user as collaborator when they sign in
@@ -49,27 +51,44 @@ export class AppComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.primeng.ripple.set(true);
 
-    //Set org from url parameter (if present) then remove the param
+    // Update settings from url parameter (if present) then remove the param
     this.route.queryParams.subscribe(params => {
-      const orgKey = params['org'];
-      if (orgKey !== undefined) {
-        if (orgKey === '' || orgKey.trim() === '') { //remove key if param is blank
-          localStorage.removeItem('myOrg');
-        }
-        else { //otherwise save it
-          const cleanOrgKey = orgKey.replace(/^["']|["']$/g, '').toUpperCase();
-          localStorage.setItem('myOrg', cleanOrgKey);
-        }
-        const allParams = { ...params };
-        delete allParams['org']; //only removes org from the url params
+      const allParams = { ...params }
+
+      // Handle org parameter
+      if (params['org'] !== undefined) {
+        this.handleStorageParam('myOrg', params['org']);
+        delete allParams['org']
+        this.cloudStorage.loadProjects();
+      }
+
+      // Handle toolbox parameter
+      if (params['toolbox'] !== undefined) {
+        this.handleStorageParam('myToolbox', params['toolbox']);
+        delete allParams['toolbox']
+        this.themeService.toolbox.set(localStorage.getItem('myToolbox'));
+      }
+
+      // Remove processed parameters
+      if (Object.keys(params).length !== Object.keys(allParams).length) {
         this.router.navigate([], {
           queryParams: allParams,
-          replaceUrl: true, // replaces the current history entry
+          replaceUrl: true,
         });
-        this.cloudStorage.loadProjects() //refresh project list
       }
     });
-    await this.loadProject();
+
+    await this.loadProject(); // Loads previously active project
+  }
+
+  // Saves/Removes param from local storage
+  private handleStorageParam(key: string, value: string): void {
+    if (value === '' || value.trim() === '') {
+      localStorage.removeItem(key);
+    } else {
+      const cleanValue = value.replace(/^["']|["']$/g, '').toUpperCase();
+      localStorage.setItem(key, cleanValue);
+    }
   }
 
   // Load previously active project

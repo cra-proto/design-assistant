@@ -138,21 +138,6 @@ export class ExportGithubComponent implements OnInit {
     this.precheckInProgress.set(false);
   }
 
-  //Manage PAT
-  savePAT(): void {
-    this.exportGitHubService.pat = this.pat();
-    this.exportGitHubService.validatePAT()
-  }
-  onPastePAT() {
-    setTimeout(() => this.savePAT(), 0);
-  }
-  clearPAT(): void {
-    this.pat.set('');
-    this.exportGitHubService.pat = '';
-    sessionStorage.removeItem('github_pat');
-  }
-
-
   // Computed signals
   gitHubData = computed(() => this.projectData().github);
   inScopePageCount = computed(() => this.projectData().inScopePages);
@@ -347,9 +332,11 @@ export class ExportGithubComponent implements OnInit {
   async compareFiles(owner: string, repo: string, branch: string, token?: string) {
     console.log("Compare!")
 
-    const nodes = this.projectState.getProjectTree();
-    const pageData: PageData[] = await this.getUrlandContent(nodes[0]);
-    const inScopePages = new Map<string, string>(pageData.map(page => [page.url.replace("https://www.canada.ca/", ""), page.content]));
+    const scope = this.selectedExportTarget === 'prototype' ? "inScope" : "all"
+    const pages = this.projectState.getAllUrls(scope);
+    console.log(pages);
+
+    const projectPaths = [...pages].map(url => url.replace("https://www.canada.ca/", ""));
 
     const githubPages: Map<string, string> = await this.exportGitHubService.getRepoTree(owner, repo, branch, token);
 
@@ -390,12 +377,12 @@ export class ExportGithubComponent implements OnInit {
 
     // Add all Jekyll files to export list
     [...jekyllUpdateFiles, ...jekyllSkipFiles].forEach(file => {
-      inScopePages.set(file.path, file.content);
+      projectPaths.join(file.path);
     });
 
     //De-dupe paths
     const allPaths = new Set<string>([
-      ...inScopePages.keys(),
+      ...projectPaths,
       ...filteredGithubPages.keys(),
     ]);
 
@@ -404,7 +391,7 @@ export class ExportGithubComponent implements OnInit {
     //Table data
     const table: FileCompareRow[] = [];
     for (const path of allPaths) {
-      const inExport = inScopePages.has(path);
+      const inExport = projectPaths.some(url => url === path);
       const inGitHub = filteredGithubPages.has(path);
       const isAutoUpdateFile = jekyllUpdateFiles.some(f => f.path === path);
       const isAlwaysSkipFile = jekyllSkipFiles.some(f => f.path === path);

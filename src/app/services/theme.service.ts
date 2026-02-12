@@ -117,4 +117,7 @@ export class ThemeService {
     updatePreset(preset);
   }
 
+  // Toolbox visibility (used by sidebar, undecided if we should surface in user settings)
+  toolbox = signal<string | null>(localStorage.getItem('myToolbox'));
+
 }

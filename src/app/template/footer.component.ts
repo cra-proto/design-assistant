@@ -10,7 +10,7 @@ import { environment } from '../../environments/environment';
 <footer>
     <div class="flex flex-row justify-content-between align-items-end mt-auto pt-2">
       <p class="white-space-nowrap text-color-secondary text-sm mb-0">{{'_app.version' | translate}} {{version}}</p>
-      <img [src]="logoSrc" [alt]="'common.goc' | translate" class="opacity-70" />
+      <img [src]="logoSrc" [alt]="'common.goc' | translate" class="opacity-70 h-2rem md:h-3rem" />
     </div>
 </footer>
 `,
@@ -21,6 +21,6 @@ export class FooterComponent {
   version = environment.version
 
   get logoSrc() {
-    return this.theme.darkMode() ? 'canada-logo-dark.png' : 'canada-logo.png';
+    return this.theme.darkMode() ? 'wmms-wht.svg' : 'wmms-blk.svg';
   }
 }

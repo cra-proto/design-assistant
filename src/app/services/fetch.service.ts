@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { PageMetadata } from '../components/add-pages/add-pages.model';
+import { isPortalDomain } from '../common/portal-domains.config';
 
 @Injectable({
   providedIn: 'root'
@@ -177,6 +178,9 @@ export class FetchService {
     const isArchived = doc.querySelector('.gc-archv') !== null;
     console.log('Is archived?' + isArchived)
 
+    // Get portal link status
+    const linksToPortal = Array.from(doc.querySelectorAll('a')).some(link => isPortalDomain(link.href));
+
     // Get template
     const hasSubway = doc.querySelector('.gc-subway') !== null;
     const hasOldSubway = doc.querySelector('.gc-navseq') !== null;
@@ -289,8 +293,6 @@ export class FetchService {
       template = 'enforcement notice';
     }
 
-    //TODO:  DETECT FREESTYLE TEMPLATE (from json data)
-
     //Opposite language url
     const htmlLang = doc.documentElement.getAttribute('lang');
     const metaLang = doc.querySelector('meta[name="dcterms.language"]')?.getAttribute('content');
@@ -300,7 +302,7 @@ export class FetchService {
     const oppLang = currentLang === 'en' ? 'fr' : 'en';
     const oppUrl = doc.querySelector(`link[rel="alternate"][hreflang="${oppLang}"]`)?.getAttribute('href') || '';
 
-    return { h1, title, description, keywords, template, oppUrl, isArchived };
+    return { h1, title, description, keywords, template, oppUrl, isArchived, linksToPortal };
   }
 
 }

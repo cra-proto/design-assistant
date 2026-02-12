@@ -23,18 +23,10 @@ import { environment } from '../../environments/environment';
   ],
   template: `
 <header>
-  <div class="flex flex-row justify-content-end py-2 border-bottom-1 surface-border">
-    <img class="opacity-70 w-22rem h-2rem hidden lg:flex mr-auto"
+  <div class="flex flex-row gap-2 justify-content-end py-2 border-bottom-1 surface-border">
+    <img class="opacity-70 h-1rem md:h-2rem flex mr-auto"
         [src]="logoSrc"
-        [alt]="'common.cra' | translate"
-      />
-      <img class="opacity-70 w-13rem h-2rem hidden md:flex lg:hidden mr-auto"
-        [src]="medLogoSrc"
-        [alt]="'common.flag' | translate"
-      />
-    <img class="opacity-70 w-4rem h-2rem hidden sm:flex md:hidden mr-auto"
-        [src]="smallLogoSrc"
-        [alt]="'common.flag' | translate"
+        [alt]="'common.goc' | translate"
       />
     <div class="flex flex-row align-items-center gap-2 lg:gap-3">
         @if(showSaveButton()){
@@ -47,7 +39,7 @@ import { environment } from '../../environments/environment';
         <p-button (onClick)="theme.toggle()" rounded outlined size="small" severity="secondary" [icon]="theme.icon()" styleClass="darkmode-toggle secondary-outline" ariaLabel="Toggle between dark and light mode" />
         <p-button (onClick)="theme.toggleLanguage();" rounded text styleClass="underline text-blue-500 hover:text-blue-400 nohover -ml-2" severity="secondary" [ariaLabel]="'_app.oppLang' | translate" >
           <span class="hidden sm:inline w-3rem">{{ '_app.oppLang' | translate }}</span>
-          <span class="inline sm:hidden uppercase w-1rem">{{ ('_app.oppLang' | translate | slice:0:2) }}</span>
+          <span class="inline sm:hidden w-1rem uppercase font-bold">{{ ('_app.oppLang' | translate | slice:0:2) }}</span>
         </p-button>
       </div>
     </div>
@@ -136,15 +128,7 @@ export class HeaderComponent {
 
   // Dark/Light logos for different breakpoints
   get logoSrc() {
-    return this.theme.darkMode() ? 'cra-logo-dark.png' : 'cra-logo.png';
-  }
-
-  get medLogoSrc() {
-    return this.theme.darkMode() ? 'cra-logo-short-dark.png' : 'cra-logo-short.png';
-  }
-
-  get smallLogoSrc() {
-    return this.theme.darkMode() ? 'flag-logo-dark.png' : 'flag-logo.png';
+    return this.theme.darkMode() ? 'sig-wht-en.svg' : 'sig-blk-en.svg';
   }
 
 }

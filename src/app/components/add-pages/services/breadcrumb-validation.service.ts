@@ -285,7 +285,8 @@ export class BreadcrumbValidationService {
                 description: '',
                 keywords: '',
                 template: '404',
-                oppUrl: ''
+                oppUrl: '',
+                linksToPortal: false
               };
             }
           } else {
@@ -296,7 +297,8 @@ export class BreadcrumbValidationService {
               description: '',
               keywords: '',
               template: '404',
-              oppUrl: ''
+              oppUrl: '',
+              linksToPortal: false
             };
           }
         }
@@ -324,6 +326,7 @@ export class BreadcrumbValidationService {
                 isNew: false,
                 isMoved: false,
                 isROT: false,
+                linksToPortal: metadata.linksToPortal,
                 archiveStatus: metadata.isArchived ? 'archived' : 'current',
                 isContainer: false,
               },

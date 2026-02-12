@@ -4,8 +4,6 @@
 :root {
   --header-height: 3rem;
   --nav-width: 4.8rem;
-  --first-color: #1b1c1e;
-  --first-color-light: #efefef;
   --body-font: "Noto Sans", sans-serif;
   --z-fixed: 100;
 }
@@ -25,24 +23,44 @@ body {
   transition: .3s;
 }
 
+/* ========== Layout ========== */
+
 div.container {
   min-height: 98vh;
   display: flex;
   flex-direction: column;
-  padding-left: 4rem;
+  padding-left: var(--nav-width);
 }
 
 main.container {
   flex: 1 0 auto;
 }
 
-.max-h-75vh {
-  max-height: 75vh;
+/* ========== Navigation ========== */
+.l-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--nav-width);
+  height: 100vh;
+  transition: width 0.3s ease;
+  z-index: var(--z-fixed);
+  background-color: var(--p-zinc-900);
+  color: var(--p-zinc-50);
 }
 
+.l-navbar a {
+  color: var(--p-zinc-50);
+}
+
+/* ========== Desktop Layout ========== */
 @media screen and (min-width: 768px) {
+  .l-navbar {
+    width: calc(var(--nav-width) + 7rem);
+  }
+
   div.container {
-    padding-left: calc(var(--nav-width) + 6rem);
+    padding-left: calc(var(--nav-width) + 7rem);
   }
 }
 
@@ -217,6 +235,11 @@ html.dark-mode .secondary-outline {
   border-color: var(--p-zinc-600) !important;
 }
 
+/*Allow buttons to be bold*/
+.p-button.font-bold .p-button-label {
+  font-weight: 700;
+}
+
 /*Add option to center text in chips and inherit text color*/
 .center-chip {
   display: flex;
@@ -340,4 +363,8 @@ html.dark-mode .secondary-outline {
   list-style: none;
   padding-left: 0;
   margin-left: 0;
+}
+
+.max-h-75vh {
+  max-height: 75vh;
 }

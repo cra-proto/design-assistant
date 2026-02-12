@@ -23,6 +23,7 @@ export interface PageMetadata {
     template: string;             // autodetected template
     oppUrl?: string               // opposite language url
     isArchived?: boolean          // archive status
+    linksToPortal?: boolean       // true if page links to a secure portal
 }
 
 export interface JsonMetadata {

@@ -12,22 +12,22 @@ import { ButtonModule } from 'primeng/button';
   imports: [TranslateModule, CommonModule, FormsModule, CheckboxModule, RouterLink, ButtonModule],
   template: `
     <h1 id="wb-cont">{{ 'example._title' | translate}}</h1>
-    <p>{{ 'example.description' | translate}}</p>
-
-    <div class="flex justify-content-evenly my-4">
-  <div>
-    <a routerLink="/dev/color-generator" class="text-xl font-semibold">{{'example.colors._title' | translate}}</a>
-    <p class="text-color-secondary mt-2">{{'example.colors.description' | translate}}</p>
+    <p [innerHTML]="'example.description' | translate"></p>
+   
+    <div class="grid py-2 px-4 lg:px-6">      
+        <div class="col-12 md:col-6 lg:col-4">
+          <a routerLink="/dev/color-generator" class="text-xl font-semibold">{{'example.colors._title' | translate}}</a>
+          <p class="text-color-secondary mt-2">{{'example.colors.description' | translate}}</p>
+        </div>
+        <div class="col-12 md:col-6 lg:col-4">
+          <a routerLink="/dev/design-patterns" class="text-xl font-semibold">{{'example.patterns._title' | translate}}</a>
+          <p class="text-color-secondary mt-2">{{'example.patterns.description' | translate}}</p>
+        </div>
+        <div class="col-12 md:col-6 lg:col-4">
+          <a routerLink="/dev/prompt-editor" class="text-xl font-semibold">{{'example.prompt._title' | translate}}</a>
+          <p class="text-color-secondary mt-2">{{'example.prompt.description' | translate}}</p>
+        </div>
   </div>
-  <div>
-    <a routerLink="/dev/design-patterns" class="text-xl font-semibold">{{'example.patterns._title' | translate}}</a>
-    <p class="text-color-secondary mt-2">{{'example.patterns.description' | translate}}</p>
-  </div>
-  <div>
-    <a routerLink="/dev/prompt-editor" class="text-xl font-semibold">{{'example.prompt._title' | translate}}</a>
-    <p class="text-color-secondary mt-2">{{'example.prompt.description' | translate}}</p>
-  </div>
-</div>
     
 <div class="card">
   <h2>Temporary component QA checklist for release 0.4</h2>
@@ -116,6 +116,9 @@ export class DevToolsComponent {
     marker('project.setup._');
     marker('project.phase._');
     marker('project.phase._');
+    //Other
+    marker('dev._');
+    marker('standalone._');
   }
 
   private initialChecklist = [
