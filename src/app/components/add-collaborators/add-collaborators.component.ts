@@ -98,7 +98,6 @@ export class AddCollaboratorsComponent implements OnInit {
 
     // Filter collaborators (show all if empty, else filter by startsWith and then includes, else try to fetch user)
     async filterCollaborators(event: AutoCompleteCompleteEvent) {
-        const owner = this.projectData().github.owner;
         const query = event.query?.trim().toLowerCase().replace(/^-+|-+$/g, '').replace(/-{2,}/g, '-').substring(0, 39) || '';
 
         // If query is empty, return all org members
@@ -108,6 +107,7 @@ export class AddCollaboratorsComponent implements OnInit {
         }
 
         // Filter existing org members
+        // Note: we're not filtering out existing collaborators since this form can be used to update their user info
         const startsWith = this.orgMembers.filter(user =>
             user.login.toLowerCase().startsWith(query)
         );
