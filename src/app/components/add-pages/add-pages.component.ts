@@ -15,7 +15,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { TooltipModule } from 'primeng/tooltip';
-import { ConfirmationService, MenuItem } from 'primeng/api';
+import { ConfirmationService } from 'primeng/api';
 import { MessageModule } from 'primeng/message';
 import { PopoverModule } from 'primeng/popover';
 import { AutoCompleteModule, AutoCompleteCompleteEvent, AutoCompleteSelectEvent } from 'primeng/autocomplete';
@@ -31,11 +31,8 @@ import { ProjectStateService } from '../../services/project-state.service';
 import { FetchService } from '../../services/fetch.service';
 import { TreeNodeStyleService } from '../../services/treenode-style.service';
 
-//Components
-import { IaDiagramComponent } from '../ia-diagram/ia-diagram.component';
-
 // Models
-import { UrlItem, BreadcrumbNode } from './add-pages.model';
+import { UrlItem } from './add-pages.model';
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../../environments/environment';
 

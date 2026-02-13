@@ -22,7 +22,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 //Components and models
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
 import { AddPagesComponent } from '../../components/add-pages/add-pages.component';
-import { FlattenedTreeNode, TableColumn, ColumnGroup } from '../../common/data.model';
+import { FlattenedTreeNode, TableColumn } from '../../common/data.model';
 
 //Services
 import { ProjectStateService } from '../../services/project-state.service';

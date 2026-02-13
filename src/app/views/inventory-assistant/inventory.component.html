@@ -184,7 +184,8 @@
                                   [severity]="isColumnFiltered(col.field) ? 'primary' : 'contrast'"
                                   text rounded tooltipPosition="top"
                                   (onClick)="toggleColumnFilter(col.field)"
-                                  [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showTrue' | translate: {column: (col.translationKey | translate)})" />
+                                  [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showTrue' | translate: {column: (col.translationKey | translate)})"
+                                  appendTo="body" showDelay="300" hideDelay="0" />
                         }
                         @else if(col.type === 'archive'){
                         <p-button
@@ -193,7 +194,8 @@
                                   [severity]="isColumnFiltered(col.field) ? 'primary' : 'contrast'"
                                   text rounded tooltipPosition="top"
                                   (onClick)="toggleColumnFilter(col.field)"
-                                  [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showSome' | translate)" />
+                                  [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showSome' | translate)"
+                                  appendTo="body" showDelay="300" hideDelay="0" />
                         }
                         @else{{{ col.translationKey | translate }}}
                     </th>
@@ -218,33 +220,36 @@
                         }
                         <!-- Array fields -->
                         @if(col.type === 'array'){
-                        <span [class.line-clamp-1]="!expandAllTasks" [pTooltip]="expandAllTasks ? null : node[col.field]" tooltipPosition="top">{{ node[col.field].join(', ') }}</span>
+                        <span [class.line-clamp-1]="!expandAllTasks" [pTooltip]="expandAllTasks ? null : node[col.field]" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0">{{ node[col.field].join(', ') }}</span>
                         }
                         <!-- Long text fields (metadata, may need to refactor when we add the notes column) -->
                         @if(col.type === 'longText'){
                         <div class="flex align-items-start gap-2">
                             <div [class.line-clamp-3]="!isMetadataExpanded(rowIndex, col.field)">
-                                <p-tag pTooltip="character count" [severity]="node[col.field].length >= 10 && node[col.field].length <= 160 ? 'success' : 'danger'">{{node[col.field].length}}</p-tag>
+                                <p-tag pTooltip="character count" [severity]="node[col.field].length >= 10 && node[col.field].length <= 160 ? 'success' : 'danger'"
+                                       appendTo="body" showDelay="300" hideDelay="0">{{node[col.field].length}}</p-tag>
                                 {{ node[col.field] }}
                             </div>
                             @if(!expandAllMetadata){
                             <p-button [icon]="isMetadataExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                                       text rounded size="small"
                                       (click)="toggleMetadataCell(rowIndex, col.field)"
-                                      [pTooltip]="isMetadataExpanded(rowIndex, col.field) ? ('inventory.collapse' | translate) : ('inventory.expand' | translate)" />
+                                      [pTooltip]="isMetadataExpanded(rowIndex, col.field) ? ('inventory.collapse' | translate) : ('inventory.expand' | translate)"
+                                      appendTo="body" showDelay="300" hideDelay="0" />
                             }
                         </div>
                         }
                         <!-- URL fields -->
                         @if(col.type === 'url'){
                         <div class="max-w-30rem">
-                            <a [href]="node[col.field]" target="_blank" rel="noopener" [pTooltip]="expandAllUrls ? null : node[col.field]" [class.line-clamp-2]="!expandAllUrls" tooltipPosition="top">{{ node[col.field] }}</a>
+                            <a [href]="node[col.field]" target="_blank" rel="noopener" [pTooltip]="expandAllUrls ? null : node[col.field]" [class.line-clamp-2]="!expandAllUrls" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0">{{ node[col.field] }}</a>
                         </div>
                         }
                         <!-- Boolean fields -->
                         @if(col.type === 'boolean'){
-                        <i [class]="getBooleanIcon(getCellValue(node, col), col.field)" class="flex justify-content-center"
-                           [pTooltip]="getBooleanTooltip(node[col.field], col.field) | translate" tooltipPosition="top"></i>
+                        <i [class]="getBooleanIcon(getCellValue(node, col), col.field)" class="flex justify-content-center p-2"
+                           [pTooltip]="getBooleanTooltip(node[col.field], col.field) | translate" tooltipPosition="top"
+                           appendTo="body" showDelay="300" hideDelay="0"></i>
                         }
                         <!-- Number fields -->
                         @if(col.type === 'number'){
@@ -256,8 +261,9 @@
                         }
                         <!-- Archive field -->
                         @if(col.type === 'archive'){
-                        <i [class]="getArchiveStatusIcon(node, col)" class="flex justify-content-center"
-                           [pTooltip]="getArchiveStatusTooltip(node, col) | translate" tooltipPosition="top"></i>
+                        <i [class]="getArchiveStatusIcon(node, col)" class="flex justify-content-center p-2"
+                           [pTooltip]="getArchiveStatusTooltip(node, col) | translate" tooltipPosition="top"
+                           appendTo="body" showDelay="300" hideDelay="0"></i>
                         }
                     </td>
                     }

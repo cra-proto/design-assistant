@@ -45,9 +45,9 @@ export class ExportProjectComponent {
             label: 'CSV (tree testing)',
             icon: 'pi pi-align-right',
             command: () => {
-
+                this.projectState.exportAsTreeCsv()
             },
-            disabled: true,
+            disabled: false,
         },
         {
             separator: true,
