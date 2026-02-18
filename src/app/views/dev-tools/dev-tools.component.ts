@@ -11,21 +11,21 @@ import { ButtonModule } from 'primeng/button';
   selector: 'aida-dev-tools',
   imports: [TranslateModule, CommonModule, FormsModule, CheckboxModule, RouterLink, ButtonModule],
   template: `
-    <h1 id="wb-cont">{{ 'example._title' | translate}}</h1>
-    <p [innerHTML]="'example.description' | translate"></p>
+    <h1 id="wb-cont">{{ 'dev._title' | translate}}</h1>
+    <p [innerHTML]="'dev.description' | translate"></p>
    
     <div class="grid py-2 px-4 lg:px-6">      
         <div class="col-12 md:col-6 lg:col-4">
-          <a routerLink="/dev/color-generator" class="text-xl font-semibold">{{'example.colors._title' | translate}}</a>
-          <p class="text-color-secondary mt-2">{{'example.colors.description' | translate}}</p>
+          <a routerLink="/dev/color-generator" class="text-xl font-semibold">{{'dev.colors._title' | translate}}</a>
+          <p class="text-color-secondary mt-2">{{'dev.colors.description' | translate}}</p>
         </div>
         <div class="col-12 md:col-6 lg:col-4">
-          <a routerLink="/dev/design-patterns" class="text-xl font-semibold">{{'example.patterns._title' | translate}}</a>
-          <p class="text-color-secondary mt-2">{{'example.patterns.description' | translate}}</p>
+          <a routerLink="/dev/design-patterns" class="text-xl font-semibold">{{'dev.patterns._title' | translate}}</a>
+          <p class="text-color-secondary mt-2">{{'dev.patterns.description' | translate}}</p>
         </div>
         <div class="col-12 md:col-6 lg:col-4">
-          <a routerLink="/dev/prompt-editor" class="text-xl font-semibold">{{'example.prompt._title' | translate}}</a>
-          <p class="text-color-secondary mt-2">{{'example.prompt.description' | translate}}</p>
+          <a routerLink="/dev/prompt-editor" class="text-xl font-semibold">{{'dev.prompts._title' | translate}}</a>
+          <p class="text-color-secondary mt-2">{{'dev.prompts.description' | translate}}</p>
         </div>
   </div>
     
@@ -120,6 +120,10 @@ export class DevToolsComponent {
     //Other
     marker('dev._');
     marker('standalone._');
+    marker('common._');
+    marker('common.no');
+    marker('common.save');
+    marker('common.delete');
   }
 
   private initialChecklist = [

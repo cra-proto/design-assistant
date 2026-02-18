@@ -34,7 +34,7 @@ export class ColorGeneratorComponent {
   theme = inject(ThemeService);
   customShades: Record<string, Record<number, string>> = {};
 
-  breadcrumbs = [{ label: 'example._title', route: '/dev' }, { label: 'example.colors._title' }]
+  breadcrumbs = [{ label: 'dev._title', route: '/dev' }, { label: 'dev.colors._title' }]
 
   onColorChange(event: { hex: string; shades: Record<number, string> }, color: 'primary' | 'red' | 'green' | 'purple') {
     this.customShades[color] = event.shades;

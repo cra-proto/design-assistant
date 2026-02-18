@@ -54,7 +54,7 @@ export class PromptEditorComponent {
     themeService = inject(ThemeService);
 
     // Breadcrumbs
-    breadcrumbs = [{ label: 'example._title', route: '/dev' }, { label: 'example.prompt._title' }]
+    breadcrumbs = [{ label: 'dev._title', route: '/dev' }, { label: 'dev.prompts._title' }]
 
     constructor() {
         effect(() => {

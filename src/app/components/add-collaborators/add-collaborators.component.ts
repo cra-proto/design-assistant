@@ -163,12 +163,6 @@ export class AddCollaboratorsComponent implements OnInit {
         this.selectedCollaborators = []; // Reset on close
     }
 
-    private markForTranslation() {
-        marker('collaborators.email.requestAccess.subject');
-        marker('collaborators.email.requestAccess.bodyEN');
-        marker('collaborators.email.requestAccess.bodyFR');
-    }
-
     // Request access button
     getRequestAccessMailto(): string {
         const emails = this.collaboratorService.getCollaboratorEmails(this.collaborators());
