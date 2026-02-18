@@ -2,10 +2,11 @@
 <p-iftalabel>
     <p-autoComplete
                     id="task-autocomplete"
-                    [(ngModel)]="selectedTask"
+                    [(ngModel)]="selectedTasks"
                     [suggestions]="filteredTasks()"
                     (completeMethod)="filterTasks($event)"
                     (onSelect)="onTaskSelect($event)"
+                    (onUnselect)="onTaskUnselect($event)"
                     (onFocus)="onAutocompleteInteraction()"
                     [dropdown]="airtableService.hasData()"
                     [virtualScroll]=true
@@ -18,16 +19,18 @@
                     [disabled]="airtableService.isLoading()"
                     [showEmptyMessage]=true
                     [emptyMessage]="'findPages.task.noTasksFound' | translate"
-                    fluid>
-        <ng-template let-option pTemplate="item">
+                    fluid
+                    [multiple]="true">
+        <ng-template let-task #item>
             <div class="flex align-items-center gap-2">
                 <p-tag
-                       [value]="option.urlCount.toString()"
-                       [severity]="option.urlCount === 0 ? 'danger' : 'success'"
+                       [value]="task.urlCount.toString()"
+                       [severity]="task.urlCount === 0 ? 'danger' : 'success'"
                        [rounded]="true" />
-                <span>{{ option.label }}</span>
+                <span>{{ task.label }}</span>
             </div>
         </ng-template>
+        <ng-template let-selected #selectedItem>{{selected.label}}</ng-template>
     </p-autoComplete>
     <label for="task-autocomplete">{{ 'findPages.task.selectTask' | translate }}</label>
 </p-iftalabel>
@@ -66,4 +69,4 @@
     }
 </div>
 }
-@else if(selectedTaskId() !== null) { <p>{{ 'findPages.task.noUrls' | translate }}</p> }
+@else if(selectedTaskIds().length > 0) { <p>{{ 'findPages.task.noUrls' | translate }}</p> }
