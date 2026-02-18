@@ -99,6 +99,7 @@ export class DevToolsComponent {
     marker('project._');
     marker('switch._');
     marker('inventory._');
+    marker('iaDiagram._');
     marker('github._');
     marker('about._');
     // Components
