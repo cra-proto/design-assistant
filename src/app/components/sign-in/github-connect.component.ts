@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { timeout, catchError, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { ButtonModule } from 'primeng/button';
 import { AvatarModule } from 'primeng/avatar';
@@ -59,12 +60,20 @@ export class GithubConnectComponent implements OnInit {
     this.exportGitHubService.validatePAT();
   }
 
+  markForTranslation() {
+    marker('common.new');
+    marker('common.search');
+    marker('common.signout');
+    marker('settings._nav');
+    marker('common.projects');
+    marker('common.profile');
+  }
   items: MenuItem[] = [
     {
-      label: 'Projects',
+      label: 'common.projects',
       items: [
         {
-          label: 'New',
+          label: 'common.new',
           icon: 'pi pi-plus',
           command: () => {
             this.projectStorage.clearActiveProject();
@@ -73,24 +82,24 @@ export class GithubConnectComponent implements OnInit {
           }
         },
         {
-          label: 'Search',
+          label: 'common.search',
           icon: 'pi pi-search',
           routerLink: '/switch-project'
         }
       ]
     },
     {
-      label: 'Profile',
+      label: 'common.profile',
       items: [
         {
-          label: 'Settings',
+          label: 'settings._nav',
           icon: 'pi pi-cog',
           command: () => {
             this.showSettings = true;
           }
         },
         {
-          label: 'Sign out',
+          label: 'common.signout',
           icon: 'pi pi-sign-out',
           command: () => {
             this.authService.logout();

@@ -6,6 +6,7 @@ import { environment } from '../environments/environment';
 import { DashboardComponent } from './views/project-assistant/dashboard.component';
 import { SwitchProjectComponent } from './views/project-assistant/switch-project.component';
 import { EditProjectComponent } from './views/project-assistant/edit-project.component';
+import { ImportPageComponent } from './views/project-assistant/import-page.component';
 
 // Task Views
 import { IaDiagramComponent } from './components/ia-diagram/ia-diagram.component';
@@ -73,6 +74,11 @@ export const routes: Routes = [
         component: EditProjectComponent,
         canActivate: [editProjectGuard],
         title: 'editProject._title',
+    },
+    {
+        path: 'import-page',
+        component: ImportPageComponent,
+        title: 'importPage._title',
     },
     {
         path: 'auth/login',

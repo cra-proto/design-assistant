@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 //PrimeNG modules
 import { ButtonModule } from 'primeng/button';
@@ -24,9 +25,15 @@ export class ExportProjectComponent {
     projectState = inject(ProjectStateService);
     projectStorage = inject(ProjectStorageService);
 
+    markForTranslation() {
+        marker('export.github');
+        marker('export.csv.inventory');
+        marker('export.csv.tree');
+        marker('export.json');
+    }
     exportItems: MenuItem[] = [
         {
-            label: 'GitHub',
+            label: 'export.github',
             icon: 'pi pi-github',
             routerLink: '/export-github'
         },
@@ -34,7 +41,7 @@ export class ExportProjectComponent {
             separator: true,
         },
         {
-            label: 'CSV (content inventory)',
+            label: 'export.csv.inventory',
             icon: 'pi pi-list-check',
             command: () => {
                 this.projectState.exportTreeAsCsv();
@@ -42,7 +49,7 @@ export class ExportProjectComponent {
             disabled: false,
         },
         {
-            label: 'CSV (tree testing)',
+            label: 'export.csv.tree',
             icon: 'pi pi-align-right',
             command: () => {
                 this.projectState.exportAsTreeCsv()
@@ -53,7 +60,7 @@ export class ExportProjectComponent {
             separator: true,
         },
         {
-            label: 'JSON file',
+            label: 'export.json',
             icon: 'pi pi-code',
             command: () => {
                 this.projectState.exportProjectAsJson();

@@ -63,6 +63,5 @@ export class UserSettingsComponent {
 
     changeScheme() {
         this.themeService.setColorScheme(this.selectedScheme);
-        console.log(`Tried to set: `)
     }
 }

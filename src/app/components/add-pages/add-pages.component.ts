@@ -1,7 +1,8 @@
-import { Component, inject, Output, EventEmitter } from '@angular/core';
+import { Component, inject, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 // PrimeNG modules
 import { TextareaModule } from 'primeng/textarea';
@@ -48,7 +49,7 @@ import { environment } from '../../../environments/environment';
     templateUrl: './add-pages.component.html',
     styles: ``
 })
-export class AddPagesComponent {
+export class AddPagesComponent implements OnInit {
     // Services    
     projectState = inject(ProjectStateService);
     addPagesState = inject(AddPagesStateService);
@@ -82,6 +83,38 @@ export class AddPagesComponent {
     get urlsBlocked() { return this.addPagesState.urlsBlocked; }
     get urlsRedirected() { return this.addPagesState.urlsRedirected; }
 
+    // Translations
+    markForTranslation() {
+        marker('addPages.duplicatesSkipped');
+        marker('addPages.duplicatesSkipped.plural');
+        marker('addPages.validated');
+        marker('addPages.validated.plural');
+        marker('addPages.validating');
+        marker('addPages.validating.plural');
+        marker('addPages.valid.heading');
+        marker('addPages.valid.heading.plural');
+        marker('addPages.valid.description');
+        marker('addPages.valid.description.plural');
+        marker('addPages.broken.heading');
+        marker('addPages.broken.heading.plural');
+        marker('addPages.broken.description');
+        marker('addPages.broken.description.plural');
+        marker('addPages.redirect.heading');
+        marker('addPages.redirect.heading.plural');
+        marker('addPages.redirect.description');
+        marker('addPages.redirect.description.plural');
+        marker('addPages.blocked.heading');
+        marker('addPages.blocked.heading.plural');
+        marker('addPages.blocked.description');
+        marker('addPages.blocked.description.plural');
+        marker('addPages.duplicate.heading');
+        marker('addPages.duplicate.heading.plural');
+        marker('addPages.duplicate.description');
+        marker('addPages.duplicate.description.plural');
+        marker('addPages.addPagesButton');
+        marker('addPages.addPagesButton.plural');
+    }
+
     // Parse URLs from textarea
     parseUrls(): void {
         const rawUrls = this.validationState.rawUrls;
@@ -96,8 +129,8 @@ export class AddPagesComponent {
             isValidated: false,
             isValidating: false,
         });
-        console.log('Parsed URLs for validation:', parsedUrls);
-        console.log('Duplicates skipped:', duplicates);
+        //console.log('Parsed URLs for validation:', parsedUrls);
+        //console.log('Duplicates skipped:', duplicates);
     }
     onPasteUrls() {
         setTimeout(() => this.parseUrls(), 0);
@@ -120,22 +153,22 @@ export class AddPagesComponent {
             isValidating: true,
             isValidated: false,
         });
-        console.log('Starting URL validation...');
+        //console.log('Starting URL validation...');
         this.urlValidation.validateUrls(this.validationState.urls, (checked, total) => {
             const percent = Math.round((checked / total) * 100);
             this.addPagesState.setValidationState({
                 urlChecked: checked,
                 urlPercent: percent,
             });
-            console.log(`Validated ${checked} of ${total} URLs (${percent}%)`);
+            //console.log(`Validated ${checked} of ${total} URLs (${percent}%)`);
         }).then(() => {
             this.addPagesState.setValidationState({
                 isValidating: false,
                 isValidated: true,
                 isOk: this.validationState.urls.every(u => u.status === 'ok')
             });
-            console.log('URL validation complete.');
-            if (this.validationState.isOk) { console.log("Start breadcrumb validation"); this.validateBreadcrumbs(); }
+            //console.log('URL validation complete.');
+            if (this.validationState.isOk) { this.validateBreadcrumbs(); }
         }
         );
     }
@@ -263,8 +296,8 @@ export class AddPagesComponent {
         if (!this.validationState.isOk) {
             this.confirmationService.confirm({
                 target: event.target as EventTarget,
-                message: 'Some urls are not valid. Do you want to proceed without them?',
-                header: 'Invalid urls',
+                message: this.translate.instant('addPages.proceedAnyway.message'),
+                header: this.translate.instant('addPages.proceedAnyway.header'),
                 icon: 'pi pi-exclamation-triangle',
                 acceptButtonStyleClass: 'p-button-primary',
                 rejectButtonStyleClass: 'p-button-secondary',
@@ -492,5 +525,15 @@ export class AddPagesComponent {
         this.selectedBrokenUrl = null;
         this.selectedParentUrl = null;
         this.confirmParent = false;
+    }
+
+    //Highlight the component (for users coming from import-pages)
+    highlightAddPages = false;
+    ngOnInit() {
+        if (this.addPagesState.getHighlight()) {
+            this.highlightAddPages = true;
+            this.addPagesState.setHighlight(false); // Reset it
+            setTimeout(() => this.highlightAddPages = false, 3000);
+        }
     }
 }

@@ -7,9 +7,21 @@
 
 <p-message severity="error" size="small" variant="simple" styleClass="mb-2" *ngIf="duplicatesSkipped.length > 0" [text]="getDuplicateMessage()" />
 
-<div class="flex flex-row gap-2">
+<div class="flex flex-row align-items-center gap-2">
     <!--Validate URLs-->
-    <p-button [label]="'addPages.validateButton' | translate" icon="pi pi-check-square" [loading]="validationState.isValidating" (onClick)="validateUrls()" [disabled]="!validationState.rawUrls.trim() || validationState.isValidated" />
+    <p-button [label]="'addPages.validateButton' | translate" icon="pi pi-check-square" class="min-w-max"
+              [loading]="validationState.isValidating" [disabled]="!validationState.rawUrls.trim() || validationState.isValidated"
+              (onClick)="validateUrls()" />
+    <!--Arrow & screenreader annoucement for users coming from bookmarklet-->
+    @if(highlightAddPages){
+    <div class="sr-only" aria-live="polite" role="status">
+        {{ 'addPages.screenreader.pageReadyToAdd' | translate }}
+    </div>
+    <div class="flex flex-row align-items-center m-0 p-0 text-primary arrow-bounce">
+        <span class="material-icons text-5xl">keyboard_backspace</span>
+        <p class="font-bold text-lg m-0">Add your page</p>
+    </div>
+    }
     <!-- Undo Button -->
     <p-button [label]="'addPages.undoButton' | translate" icon="pi pi-undo" (onClick)="undoAddPages()" severity="secondary" *ngIf="addPagesState.getPreviousProjectData()" />
 </div>
@@ -183,7 +195,7 @@
                   [disabled]="!confirmParent"
                   severity="success" />
         <p-button
-                  [label]="'addPages.new.cancel' | translate"
+                  [label]="'common.cancel' | translate"
                   icon="pi pi-times"
                   (onClick)="np.hide()"
                   severity="secondary"

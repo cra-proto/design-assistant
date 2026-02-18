@@ -51,6 +51,19 @@ export class GetTaskUrlsComponent implements OnInit {
   selectedTask = signal<TaskOption | null>(null);
   taskUrls = signal<{ url: string; selected: boolean }[]>([]);
 
+  // Count selected task urls
+  selectedTaskUrlsCount = computed(() =>
+    this.taskUrls().filter(task => task.selected).length
+  );
+
+  toggleTaskUrl(index: number, selected: boolean) {
+    this.taskUrls.update(urls => {
+      const updated = [...urls];
+      updated[index] = { ...updated[index], selected };
+      return updated;
+    });
+  }
+
   // Computed: Transform Airtable data to TaskOptions based on current language
   taskOptions = computed(() => {
     const tasks = this.airtableService.data();

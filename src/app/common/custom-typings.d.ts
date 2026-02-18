@@ -15,3 +15,4 @@ declare module 'mammoth/mammoth.browser' {
 }
 
 declare module 'prismjs/components/prism-markup';
+declare module 'prismjs/components/prism-typescript';

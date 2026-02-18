@@ -1,7 +1,7 @@
 <div class="flex flex-column gap-2">
     @if(mode==="language" || mode==="all"){
     <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
-        <span class="text-xs my-1">Language</span>
+        <span class="text-xs my-1">{{ 'settings.language' | translate }}</span>
         <p-selectbutton [options]="langOptions" [(ngModel)]="selectedLang"
                         unselectable="true" optionLabel="label" optionValue="value" class="mb-0">
             <ng-template pTemplate="item" let-item>
@@ -24,7 +24,6 @@
 
             <p-select [options]="colorSchemes" [(ngModel)]="selectedScheme"
                       optionLabel="label" optionValue="value" class="mb-0" styleClass="flex-1" appendTo="body"
-                      placeholder="Select Colour Scheme"
                       (onChange)="changeScheme()">
                 <ng-template pTemplate="item" let-item>
                     {{ item.label | translate }}

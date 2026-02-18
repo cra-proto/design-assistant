@@ -105,7 +105,7 @@
     }
 }
 
-/* Add & Find pages container */
+/* Horizontal sticky */
 .sticky-horizontal {
     position: sticky;
     left: calc(var(--nav-width));
@@ -117,7 +117,7 @@
     box-sizing: border-box;
 }
 
-/* Add & Find pages container - desktop adjustments */
+/* Horizontal sticky - desktop adjustments */
 @media screen and (min-width: 768px) {
     .sticky-horizontal {
         left: calc(var(--nav-width) + 7rem);

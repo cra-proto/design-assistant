@@ -99,4 +99,13 @@ export class AddPagesStateService {
             breadcrumbs: this.breadcrumbState(),
         };
     }
+
+    // Highlight logic
+    private highlight = signal<boolean>(false);
+    setHighlight(value: boolean) {
+        this.highlight.set(value);
+    }
+    getHighlight() {
+        return this.highlight();
+    }
 }

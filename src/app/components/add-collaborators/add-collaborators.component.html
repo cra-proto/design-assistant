@@ -119,8 +119,7 @@
                       outlined
                       styleClass="secondary-outline"
                       (onClick)="closeShareDialog()" />
-            <p-button [label]="'common.add' | translate"
-                      icon="pi pi-plus"
+            <p-button [label]="'common.add' | translate" icon="pi pi-plus"
                       [disabled]="selectedCollaborators.length===0"
                       (onClick)="addSelectedCollaborators(); closeShareDialog()" />
         </div>
