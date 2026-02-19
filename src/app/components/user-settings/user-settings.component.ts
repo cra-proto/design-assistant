@@ -1,6 +1,7 @@
 import { Component, inject, Input, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from "@ngx-translate/core";
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { MenuItem } from 'primeng/api';
 import { SelectButtonModule } from 'primeng/selectbutton';
@@ -58,6 +59,18 @@ export class UserSettingsComponent {
         { label: 'settings.theme.tritan', value: 'tritan' as ColorScheme },
         { label: 'settings.theme.custom', value: 'custom' as ColorScheme }
     ];
+
+    markForTranslation() {
+        marker('common.language.english');
+        marker('common.language.french');
+        marker('settings.theme.light');
+        marker('settings.theme.dark');
+        marker('settings.theme.default');
+        marker('settings.theme.deutan');
+        marker('settings.theme.protan');
+        marker('settings.theme.tritan');
+        marker('settings.theme.custom');
+    }
 
     selectedScheme = this.themeService.colorScheme();
 

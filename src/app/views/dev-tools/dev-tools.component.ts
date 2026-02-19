@@ -102,10 +102,12 @@ export class DevToolsComponent {
     marker('iaDiagram._');
     marker('github._');
     marker('about._');
+    marker('notFound._');
+    marker('dev._');
+    marker('standalone._');
     // Components
     marker('nav._');
     marker('export._');
-    marker('signin._');
     marker('settings._');
     marker('collaborators._');
     marker('addPages._');
@@ -114,16 +116,14 @@ export class DevToolsComponent {
     marker('project.message._');
     marker('project.phase._');
     marker('project.setup._');
-    marker('project.phase._');
-    marker('project.phase._');
+    marker('save._');
+    marker('feedback._');
     //Other
-    marker('dev._');
-    marker('standalone._');
     marker('common._');
     marker('common.no');
     marker('common.save');
     marker('common.delete');
-    marker('save._');
+    marker('common.cra');
   }
 
   private initialChecklist = [

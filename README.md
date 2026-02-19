@@ -291,7 +291,10 @@ ng generate --help
 ### NPM Scripts
 
 - **`npm run i18n:extract`** - Extract and sort all translation keys
-- **`npm run i18n:clean`** - Remove unused keys and sort everything
+- **`npm run i18n:clean`** - Remove unused keys and sort everything in a separate file for comparison
+- **`npm run i18n:check`** - Runs i18n:extract and warns user if there are empty translations
+- **`npm run i18n:compare`** - Runs i18n:clean and warns user if there are different translation keys
+- **`npm run i18n:qa`** - **Run this before pushing!** Runs extract, clean, check, and compare to validate translations
 
 ### During Active Development
 
@@ -307,6 +310,22 @@ When adding new features with translation keys:
 3. Search for `": ""` to find keys that need translation
 
 4. Add translations and save
+
+### Before Pushing Changes
+
+**Always run the QA script before committing translation changes:**
+```bash
+npm run i18n:qa
+```
+
+This will:
+- Extract and sort all translation keys to the main translation files
+- Extract, sort, and removed unused keys in a separate file for comparison
+- Check for empty translations
+- Compare files to identify unused keys
+- Delete the separate comparison files if all the keys match
+
+Fix any issues reported before pushing your changes.
 
 ### Marking Dynamic Translation Keys
 
@@ -328,10 +347,10 @@ private markForTranslation() {
 
 To remove unused translation keys:
 ```bash
-npm run i18n:clean
+npm run i18n:qa
 ```
 
-Review the changes to ensure no dynamically generated keys were accidentally removed (if they were, they need `marker()` added).
+Review the log output and fix any issues. Dynamically generated keys may need `marker()` added and any unused keys should be manually removed from the main translation files or run the clean function on the main translation files if you are certain all dynamic keys are properly marked and there is nothing commented out that we will be adding back later.
 
 ### Translation Key Conventions
 
@@ -344,7 +363,7 @@ Review the changes to ensure no dynamically generated keys were accidentally rem
 
 ### Avoid translate.instant()
 
-translate.instant() does not update when a user toggles languages. Let the template handle translations where possible and make sure to test the toggle experience for any translations in your .ts file.
+translate.instant() does not update when a user toggles languages. Let the template handle translations where possible and make sure to test the toggle experience for any translations in your .ts file. This isn't an issue with toast messages or other temporary content.
 
 ---
 

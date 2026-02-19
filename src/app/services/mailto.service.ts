@@ -1,5 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
+
 import { ProjectStateService } from '../services/project-state.service';
 import { ExportGitHubService } from '../services/github/export-github.service';
 
@@ -27,6 +29,10 @@ export class MailtoService {
     private projectState = inject(ProjectStateService);
     private exportGitHub = inject(ExportGitHubService);
 
+    markForTranslation() {
+        marker('feedback.email.bodyEN');
+        marker('feedback.email.bodyFR');
+    }
 
     // App & browser context for bug reports
     private getProjectContext(): MailtoContext {

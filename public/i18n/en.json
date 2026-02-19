@@ -152,7 +152,7 @@
 	"dev.prompts._title": "Prompt editor",
 	"dev.prompts.button.openPR": "Open pull request",
 	"dev.prompts.description": "Edit prompts and open a pull request to merge the changes with AIDA",
-	"dev.prompts.description2": "",
+	"dev.prompts.description2": ". Use this tool when you need to modify the AI responses. All changes will go through a review process before being applied.",
 	"export._": "------------------------------EXPORT------------------------------",
 	"export._title": "Export project",
 	"export.csv.inventory": "CSV (content inventory)",
