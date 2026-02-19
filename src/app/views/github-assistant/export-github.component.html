@@ -1,4 +1,4 @@
-<h1 id="wb-cont">{{ 'github.title' | translate }}</h1>
+<h1 id="wb-cont">{{ 'github._title' | translate }}</h1>
 
 <!-- Authentication Banner -->
 @if (!exportGitHubService.token() && !authService.isAuthenticated()){
@@ -20,24 +20,19 @@
                 <!-- Repository Info Row -->
                 <div class="flex gap-5">
                     <div>
-                        <label for="owner" class="text-xs font-semibold">{{ 'github.owner' | translate }}</label>
+                        <label for="owner" class="text-xs font-semibold">{{ 'project.github.label.owner' | translate }}</label>
                         <p id="owner" class="text-color-secondary text-sm my-0">{{ projectData().github.owner }}</p>
                     </div>
                     <div>
-                        <label for="repo" class="text-xs font-semibold">{{ 'github.repo' | translate }}</label>
+                        <label for="repo" class="text-xs font-semibold">{{ 'project.github.label.repo' | translate }}</label>
                         <p id="repo" class="text-color-secondary text-sm my-0">{{ projectData().github.repo }}{{(selectedExportTarget === 'baseline')?'-baseline':''}}</p>
                     </div>
                     <div>
-                        <label for="branch" class="text-xs font-semibold">{{ 'github.branch' | translate }}</label>
+                        <label for="branch" class="text-xs font-semibold">{{ 'project.github.label.branch' | translate }}</label>
                         <p id="branch" class="text-color-secondary text-sm my-0">{{ projectData().github.branch }}</p>
                     </div>
                 </div>
 
-
-
-                <!--label class="text-xs font-semibold mt-1">{{ 'github.repo' | translate }}</label>
-                <p class="text-color-secondary text-sm my-0 white-space-nowrap">{{ projectData().github.owner }}/{{ projectData().github.repo }}{{(selectedExportTarget === 'baseline')?'-baseline':''}} ({{ projectData().github.branch }})</p>
--->
             </div>
             <div class="mt-3 lg:mt-0 flex flex-row lg:flex-column gap-2">
                 @if(showSettingsButton()){
@@ -231,13 +226,14 @@
 
 
 <div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0">
-    <h2 class="text-2xl my-1">Files to export</h2>
+    <h2 class="text-2xl my-1">{{'github.export._title' | translate}}</h2>
+    <p class="my-1">{{'github.export.description' | translate}}</p>
     <p-table [value]="filesTable()" size="small">
         <ng-template pTemplate="header" stripedRows>
             <tr>
-                <th>File</th>
+                <th>{{'github.export.table.header.url' | translate}}</th>
                 <th><span class="flex flex-row align-items-center gap-2">
-                        Status
+                        {{'github.export.table.header.status' | translate}}
                         <p-button icon="pi pi-angle-double-right" pTooltip="Skip all" tooltipPosition="top" size="small" severity="secondary" (onClick)="setAll('skip')" />
                         <p-button icon="pi pi-sync" pTooltip="Update all" tooltipPosition="top" size="small" severity="primary" (onClick)="setAll('update')" />
                     </span>

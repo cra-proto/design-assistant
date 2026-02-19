@@ -2,16 +2,16 @@
     <p-iftalabel class="w-full">
         <p-password feedback="false" toggleMask id="token" [(ngModel)]="pat" pSize="small" fluid styleClass="w-full"
                     (onBlur)="validateOnBlur && exportGitHubService.validatePAT()" />
-        <label for="token">{{ 'github.connect.option2.token' | translate }}</label>
+        <label for="token">{{ 'github.connect.pat.token' | translate }}</label>
     </p-iftalabel>
-    <p-button icon="pi pi-question-circle" [pTooltip]="'github.connect.option2.token.tooltip' | translate" tooltipPosition="top" severity="info" outlined size="large" styleClass="min-h-full surface-ground secondary-outline" (click)="showHelp = true" />
+    <p-button icon="pi pi-question-circle" [pTooltip]="'github.connect.pat.token.tooltip' | translate" tooltipPosition="top" severity="info" outlined size="large" styleClass="min-h-full surface-ground secondary-outline" (click)="showHelp = true" />
 </div>
 <!--Token Help Dialog-->
 <p-dialog [appendTo]="'body'"
-          header="{{ 'github.connect.option2.token.helpHeader' | translate }}"
+          header="{{ 'github.connect.pat.token.helpHeader' | translate }}"
           [(visible)]="showHelp"
           [modal]="true"
           [style]="{width: '50vw'}"
           [breakpoints]="{'1199px': '75vw', '575': '90vw'}">
-    <div class="text-sm" [innerHTML]="('github.connect.option2.token.help'| translate: {defaultOrg: defaultOrg})"></div>
+    <div class="text-sm" [innerHTML]="('github.connect.pat.token.help'| translate: {defaultOrg: defaultOrg})"></div>
 </p-dialog>

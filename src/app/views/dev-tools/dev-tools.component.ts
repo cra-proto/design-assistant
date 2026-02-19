@@ -110,7 +110,6 @@ export class DevToolsComponent {
     marker('collaborators._');
     marker('addPages._');
     marker('findPages._');
-    marker('apiKey._');
     marker('project.github._');
     marker('project.message._');
     marker('project.phase._');
@@ -124,6 +123,7 @@ export class DevToolsComponent {
     marker('common.no');
     marker('common.save');
     marker('common.delete');
+    marker('save._');
   }
 
   private initialChecklist = [

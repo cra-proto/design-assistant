@@ -24,9 +24,9 @@ export class AuthCallbackComponent implements OnInit {
   error = signal<string | null>(null);
 
   private markForTranslation() {
-    marker('github.callback.invalidParams');
-    marker('github.callback.githubError');
-    marker('github.callback.serverError');
+    marker('github.callback.error.invalidParams');
+    marker('github.callback.error.githubError');
+    marker('github.callback.error.serverError');
   }
 
   ngOnInit() {
@@ -44,13 +44,13 @@ export class AuthCallbackComponent implements OnInit {
     // Handle OAuth error from GitHub
     if (error) {
       console.error('OAuth GitHub error:', error);
-      this.error.set('github.callback.githubError');
+      this.error.set('github.callback.error.githubError');
       return;
     }
 
     // Handle missing required parameters
     if (!code || !state) {
-      this.error.set('github.callback.invalidParams');
+      this.error.set('github.callback.error.invalidParams');
       return;
     }
 
@@ -65,7 +65,7 @@ export class AuthCallbackComponent implements OnInit {
       sessionStorage.removeItem('github_oauth_return_url');
       this.router.navigate([returnUrl], { replaceUrl: true });
     } catch (error) {
-      this.error.set('github.callback.serverError');
+      this.error.set('github.callback.error.serverError');
       console.error('OAuth AWS server error:', error);
     }
   }

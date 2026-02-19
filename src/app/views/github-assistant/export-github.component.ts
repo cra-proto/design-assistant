@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, computed, effect, ViewChild } from '
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 //PrimeNG Modules
 import { TableModule } from 'primeng/table';
@@ -85,6 +86,15 @@ export class ExportGithubComponent implements OnInit {
 
   pat = signal<string>(this.exportGitHubService.pat);
   precheckInProgress = signal<boolean>(false);
+
+  markForTranslation() {
+    marker('github.connect.export.description.prototype');
+    marker('github.connect.export.description.baseline');
+    marker('github.export.status.skip');
+    marker('github.export.status.update');
+    marker('github.export.status.aidaOnly');
+    marker('github.export.status.githubOnly');
+  }
 
   constructor() {
     // Watch for changes to token or repo settings and run validateConnection
@@ -409,6 +419,16 @@ export class ExportGithubComponent implements OnInit {
     }
 
     this.filesTable.set(table);
+  }
+
+  getTranslationKey(location: string) {
+    switch (location) {
+      case 'skip': return 'github.export.status.skip';
+      case 'update': return 'github.export.status.update';
+      case 'new page': return 'github.export.status.aidaOnly';
+      case 'github only': return 'github.export.status.githubOnly';
+      default: return '';
+    }
   }
 
   /*getIcon(location: string): string {

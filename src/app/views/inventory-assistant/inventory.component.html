@@ -1,7 +1,7 @@
 <div class="min-w-min">
     <div class="flex flex-row flex-wrap justify-content-between sticky-horizontal">
         <div>
-            <h1 id="wb-cont">{{ 'inventory.title' | translate }}</h1>
+            <h1 id="wb-cont">{{ 'inventory._title' | translate }}</h1>
             <p>{{ 'inventory.pages.description' | translate }}</p>
         </div>
         <!-- Secondary task buttons -->
@@ -17,7 +17,7 @@
         <!--Header & Settings-->
         <div class="flex flex-column lg:flex-row justify-content-between align-items-start sticky-horizontal">
             <div class="flex flex-column">
-                <h2 class="text-2xl my-1">{{ 'inventory.pages' | translate }}</h2>
+                <h2 class="text-2xl my-1">{{ 'inventory.pages._title' | translate }}</h2>
                 <!--Put a description/instructions here if needed-->
             </div>
         </div>
@@ -234,7 +234,7 @@
                             <p-button [icon]="isMetadataExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                                       text rounded size="small"
                                       (click)="toggleMetadataCell(rowIndex, col.field)"
-                                      [pTooltip]="isMetadataExpanded(rowIndex, col.field) ? ('inventory.collapse' | translate) : ('inventory.expand' | translate)"
+                                      [pTooltip]="isMetadataExpanded(rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
                                       appendTo="body" showDelay="300" hideDelay="0" />
                             }
                         </div>
