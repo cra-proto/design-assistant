@@ -444,7 +444,7 @@ export class AddPagesComponent implements OnInit {
         const suggestedParent = this.extractParentUrl(link.href);
         const matchingParent = this.allParentOptions.find(p => p.url === suggestedParent);
 
-        this.selectedParentUrl = matchingParent || {
+        this.selectedParentUrl = matchingParent ?? {
             label: suggestedParent,
             url: suggestedParent,
             inProject: false
@@ -462,7 +462,7 @@ export class AddPagesComponent implements OnInit {
     // Handle parent selection
     onParentSelect(event: AutoCompleteSelectEvent): void {
         console.log('Selected parent:', this.selectedParentUrl);
-        // We'll implement the merge logic later
+        // Todo: Implement the merge logic
     }
 
     confirmParent = false;
@@ -501,9 +501,7 @@ export class AddPagesComponent implements OnInit {
 
         if (parentNode) {
             // Happy path: parent exists in tree
-            if (!parentNode.children) {
-                parentNode.children = [];
-            }
+            parentNode.children ??= [];
             parentNode.children.push(newNode);
             parentNode.expanded = true;
 

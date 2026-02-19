@@ -2,7 +2,6 @@ import { Component, inject, computed, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
-import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
@@ -20,7 +19,6 @@ import { CollaboratorService } from '../../services/collaborator.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { ExportGitHubService } from '../../services/github/export-github.service';
 import { GitHubUser } from '../../common/data.model';
-
 
 export type CollaboratorMode = 'list' | 'dashboard' | 'switch';
 
