@@ -288,6 +288,8 @@ ng generate --help
 
 ## Translation Workflow
 
+Translation files are located in `public/i18n/`
+
 ### NPM Scripts
 
 - **`npm run i18n:extract`** - Extract and sort all translation keys
@@ -364,6 +366,34 @@ Review the log output and fix any issues. Dynamically generated keys may need `m
 ### Avoid translate.instant()
 
 translate.instant() does not update when a user toggles languages. Let the template handle translations where possible and make sure to test the toggle experience for any translations in your .ts file. This isn't an issue with toast messages or other temporary content.
+
+## Official translations
+
+Changes to translation files should be sent for official review before each release to ensure quality.
+
+### Tracking Translation Batches
+
+We use git tags to mark when translation files are sent for review, making it easy to compare what has changed since the last review.
+
+Make sure any changes to the files are commited before creating a tag.
+
+**Create a translation tag:**
+```bash
+git tag translation-mmmyyyy
+git push origin dev --tags
+```
+
+**Find all translation tags:**
+```bash
+git tag -l "translation-*"
+```
+
+**Compare current files to most recent tag:**
+```bash
+git diff -U0 translation-[use the most recent mmmyyyy] -- public/i18n/
+```
+
+If there are changes, make sure to get them reviewed before the release.
 
 ---
 
