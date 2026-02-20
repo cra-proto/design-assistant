@@ -105,6 +105,7 @@ export class DevToolsComponent {
     marker('notFound._');
     marker('dev._');
     marker('standalone._');
+    marker('aiPrompt._');
     // Components
     marker('nav._');
     marker('export._');

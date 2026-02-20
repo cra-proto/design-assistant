@@ -15,7 +15,7 @@
 <p-tabs [(value)]="selectedTab">
     <p-tablist>
         @for (tab of tabs; track tab.value) {
-        <p-tab [value]="tab.value" (click)="updateDiff()">{{ tab.title }}</p-tab>
+        <p-tab [value]="tab.value" (click)="updateDiff()">{{ tab.title | translate }}</p-tab>
         }
     </p-tablist>
     <p-tabpanels>

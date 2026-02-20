@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { RouterLink } from '@angular/router';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 // PrimeNG
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -92,6 +93,12 @@ export class PromptEditorComponent {
         { title: 'aiPrompt.pages._title', value: 1, prompts: this.pagePrompts, tool: "Page", original: this.rebuildPromptFile('Page', this.pagePrompts) },
         { title: 'aiPrompt.problems._title', value: 2, prompts: this.problemPrompts, tool: "Problem", original: this.rebuildPromptFile('Problem', this.problemPrompts) }
     ]
+
+    markForTranslation() {
+        marker('aiPrompt.inventory._title');
+        marker('aiPrompt.pages._title');
+        marker('aiPrompt.problems._title');
+    }
 
     // Rebuild prompt file
     rebuildPromptFile(tool: string, prompts: PromptEntry[]) {
