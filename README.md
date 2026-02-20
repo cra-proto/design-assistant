@@ -407,7 +407,7 @@ If there are changes, send them for translation. After all translations are upda
 
 **Create a completed translation tag:**
 ```bash
-git tag translation-mmmyyyy-completed
+git tag translation-mmmyyyy-complete
 git push origin dev --tags
 ```
 
