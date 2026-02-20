@@ -373,9 +373,21 @@ Changes to translation files should be sent for official review before each rele
 
 ### Tracking Translation Batches
 
-We use git tags to mark when translation files are sent for review, making it easy to compare what has changed since the last review.
+We use git tags to mark when translation files are sent for review and when they are updated with the official translation. This makes it easy to check if anything changed while the content was being translated or since the last translation. Make sure to commit any changes before creating a tag.
 
-Make sure any changes to the files are commited before creating a tag.
+**Find all translation tags:**
+```bash
+git tag -l "translation-*"
+```
+
+Find the latest completed tag in the list and run a diff to check for changes.
+
+**Compare current files to most recent completed tag:**
+```bash
+git --no-pager diff -U0 translation-[mmmyyyy]-completed -- public/i18n/
+```
+
+If there are changes, copy the keys to a word document to send for review and create a new tag with the date in mmmyyyy format (eg. Feb2026).
 
 **Create a translation tag:**
 ```bash
@@ -383,17 +395,21 @@ git tag translation-mmmyyyy
 git push origin dev --tags
 ```
 
-**Find all translation tags:**
+When you get the changes back, check for any changes since you sent the files for review.
+
+**Compare current files to the tag you created:**
 ```bash
 git tag -l "translation-*"
+git --no-pager diff -U0 translation-[mmmyyyy] -- public/i18n/
 ```
 
-**Compare current files to most recent tag:**
+If there are changes, send them for translation. After all translations are updated, commit the changes and create a completed tag.
+
+**Create a completed translation tag:**
 ```bash
-git diff -U0 translation-[use the most recent mmmyyyy] -- public/i18n/
+git tag translation-mmmyyyy-completed
+git push origin dev --tags
 ```
-
-If there are changes, make sure to get them reviewed before the release.
 
 ---
 
