@@ -20,6 +20,7 @@ import { ProjectPhase, PhaseStatus, CurrentPhase, GitHubRepo } from '../../commo
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
 import { CollaboratorService } from '../../services/collaborator.service';
 import { AddCollaboratorsComponent } from '../../components/add-collaborators/add-collaborators.component';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'aida-dashboard',
@@ -32,6 +33,7 @@ import { AddCollaboratorsComponent } from '../../components/add-collaborators/ad
 export class DashboardComponent {
   projectState = inject(ProjectStateService);
   collaboratorService = inject(CollaboratorService);
+  production = environment.production
 
   get projectData() {
     return this.projectState.getProject();
