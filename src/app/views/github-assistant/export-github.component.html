@@ -9,7 +9,7 @@
     </div>
 </p-message>
 }
-<div class="flex lg:flex-row flex-column gap-3">
+<div class="flex lg:flex-row flex-column gap-3 min-w-min">
     <!--Connect Card 4-->
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-8 w-full">
         <!--Header & Settings-->
@@ -51,6 +51,7 @@
                         <p-selectButton id="export-type"
                                         [options]="exportTargetOptions"
                                         [(ngModel)]="selectedExportTarget"
+                                        (onChange)="compareFiles()"
                                         allowEmpty="false"
                                         optionLabel="label"
                                         optionValue="value"
@@ -100,29 +101,17 @@
             </div>
             } @else {
             <!--Connection Status-->
-            <div [class]="statusClasses()">
-                @if (connectionStatus() === 'checking') {
-                <i class="pi pi-spin pi-spinner text-primary text-2xl"></i>
-                }
-                @if (connectionStatus() === 'connected') {
-                <i class="pi pi-check-circle text-green-500 text-2xl"></i>
-                }
-                @if (connectionStatus() === 'warning') {
-                <i class="pi pi-exclamation-triangle text-yellow-500 text-2xl"></i>
-                }
-                @if (connectionStatus() === 'error' || connectionStatus() === 'missing') {
-                <i class="pi pi-times-circle text-red-500 text-2xl"></i>
-                }
-
+            <div [class]="getBgClasses()">
+                <i [class]="getStatusIcons()"></i>
                 <div class="flex-1">
                     @if (connectionStatus() === 'checking') {
-                    <p [class]="titleClasses()" [innerHtml]="'github.connect.checking' | translate"></p>
+                    <p [class]="getTitleClasses()" [innerHtml]="'github.connect.checking' | translate"></p>
                     <p class="text-sm text-color-secondary my-0">{{ 'github.connect.checking.details' | translate }}</p>
                     }
                     @if (connectionStatus() === 'connected') {
                     <div class="flex flex-row gap-2 justify-content-between">
                         <div>
-                            <p [class]="titleClasses()">{{ 'github.connect.connected' | translate }}</p>
+                            <p [class]="getTitleClasses()">{{ 'github.connect.connected' | translate }}</p>
                             @if (authService.isAuthenticated()) {
                             <p class="text-sm text-color-secondary my-0">
                                 {{ 'github.connect.connected.oauth' | translate:{ User: username()} }}
@@ -144,7 +133,7 @@
                     @if (connectionStatus() === 'warning') {
                     <div class="flex flex-row gap-2 justify-content-between">
                         <div>
-                            <p [class]="titleClasses()">{{ 'github.connect.warning' | translate }}</p>
+                            <p [class]="getTitleClasses()">{{ 'github.connect.warning' | translate }}</p>
                             <p class="text-sm text-color-secondary my-0">{{ 'github.connect.warning.details' | translate }}</p>
                         </div>
                         @if (!authService.isAuthenticated()) {
@@ -155,7 +144,7 @@
                     @if (connectionStatus() === 'error' || connectionStatus() === 'missing') {
                     <div class="flex flex-row gap-2 justify-content-between">
                         <div>
-                            <p [class]="titleClasses()">{{ 'github.connect.error' | translate }}</p>
+                            <p [class]="getTitleClasses()">{{ 'github.connect.error' | translate }}</p>
                             <p class="text-sm text-color-secondary my-0">{{ 'github.connect.error.details' | translate }}</p>
                         </div>
                         @if (!authService.isAuthenticated()) {
@@ -171,7 +160,7 @@
     </div>
     <!--GitHub settings (only visible if not configured)-->
     @if(!showSettingsButton()){
-    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full min-w-min">
         <aida-setup-repo />
         @if (projectData().github.hasBaselineRepo) {
         <div class="flex flex-column align-items-stretch mt-3">
@@ -179,6 +168,7 @@
             <p-selectButton id="export-type"
                             [options]="exportTargetOptions"
                             [(ngModel)]="selectedExportTarget"
+                            (onChange)="compareFiles()"
                             allowEmpty="false"
                             optionLabel="label"
                             optionValue="value"
@@ -188,13 +178,18 @@
     </div>
     }
     @else{
-    <!--Stats Card 2-->
-    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full">
+    <!--Stats Card (only visible if GitHub repo is configured)-->
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full min-w-min">
         <h2 class="text-2xl my-1">{{ 'github.data' | translate }}</h2>
         <!-- Last Export Date -->
         <div class="p-3 mb-3 text-center">
             <div class="text-600 text-sm opacity-90">{{ 'github.data.lastExported' | translate }}</div>
-            <div class="text-primary text-xl font-semibold">{{ projectData().lastExported | date:'mediumDate' }}, {{ projectData().lastExported | date:'shortTime' }}</div>
+            <div class="text-primary text-xl font-semibold">
+                @if (projectData().lastExported) {
+                {{ projectData().lastExported | date:'mediumDate' }}, {{ projectData().lastExported | date:'shortTime' }}
+                }
+                @else{ {{ 'github.data.neverExported' | translate }} }
+            </div>
         </div>
         <p-divider />
 
@@ -211,7 +206,7 @@
                 </div>
                 <div>
                     <div class="text-5xl font-bold text-primary mb-1">
-                        {{ jekyllFileCount() }}
+                        {{ templateFileCount() }}
                     </div>
                     <div class="text-600 text-sm">
                         {{ 'github.data.jekyll' | translate }}
@@ -223,19 +218,20 @@
     }
 </div>
 
-
-
-<div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0">
+<!-- Export file table-->
+<div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0 min-w-min">
     <h2 class="text-2xl my-1">{{'github.export._title' | translate}}</h2>
     <p class="my-1">{{'github.export.description' | translate}}</p>
-    <p-table [value]="filesTable()" size="small">
+
+    <!--Project files-->
+    <p-table [value]="projectTable()" size="small">
         <ng-template pTemplate="header" stripedRows>
             <tr>
                 <th>{{'github.export.table.header.url' | translate}}</th>
                 <th><span class="flex flex-row align-items-center gap-2">
                         {{'github.export.table.header.status' | translate}}
-                        <p-button icon="pi pi-angle-double-right" pTooltip="Skip all" tooltipPosition="top" size="small" severity="secondary" (onClick)="setAll('skip')" />
-                        <p-button icon="pi pi-sync" pTooltip="Update all" tooltipPosition="top" size="small" severity="primary" (onClick)="setAll('update')" />
+                        <p-button icon="pi pi-angle-double-right" pTooltip="Skip all" tooltipPosition="top" size="small" severity="secondary" (onClick)="setAll('skip', 'project')" />
+                        <p-button icon="pi pi-sync" pTooltip="Update all" tooltipPosition="top" size="small" severity="primary" (onClick)="setAll('export', 'project')" />
                     </span>
                 </th>
             </tr>
@@ -244,22 +240,61 @@
             <tr>
                 <td>{{ file.path }}</td>
                 <td>
-                    <p-chip [label]="file.location"
-                            [icon]="getIcon(file.location)"
-                            [class]="'capitalize font-bold center-chip w-9rem p-1 ' + getBgAndText(file.location, 'alwaysDark')"
-                            [class.cursor-pointer]="file.location === 'skip' || file.location === 'update'"
-                            (click)="(file.location === 'skip' || file.location === 'update') && toggleUpdate(file)" />
+                    <p-chip [label]="file.status | translate"
+                            [icon]="getIcon(file.status)"
+                            [class]="'cursor-pointer font-bold center-chip w-10rem p-1 ' + getBgAndText(file.status)"
+                            (click)="file.status === ExportStatus.AddToProject ? addToProject(file) : toggleUpdate(file)" />
                 </td>
             </tr>
         </ng-template>
     </p-table>
-    <p-button styleClass="mt-3" icon="pi pi-github" label="Export to GitHub" severity="primary"
-              (onClick)="exportProjectToGitHub(gitHubData().owner,gitHubData().repo,gitHubData().branch,exportGitHubService.token(),true)"
-              [disabled]="projectData().inScopePages === 0 || !exportGitHubService.token() || !gitHubData().repo" />
+
+    <!--Template files-->
+    <p-panel [header]="'github.export.templateFiles.header' | translate:{count: templateFileCount()}"
+             [toggleable]="true" [collapsed]="true" styleClass="mt-4">
+        <p-table [value]="templateTable()" size="small">
+            <ng-template pTemplate="header" stripedRows>
+                <tr>
+                    <th>{{'github.export.table.header.url' | translate}}</th>
+                    <th><span class="flex flex-row align-items-center gap-2">
+                            {{'github.export.table.header.status' | translate}}
+                            <p-button icon="pi pi-angle-double-right" pTooltip="Skip all" tooltipPosition="top" size="small" severity="secondary" (onClick)="setAll('skip', 'template')" />
+                            <p-button icon="pi pi-sync" pTooltip="Update all" tooltipPosition="top" size="small" severity="primary" (onClick)="setAll('export', 'template')" />
+                        </span>
+                    </th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-file>
+                <tr>
+                    <td>{{ file.path }}</td>
+                    <td>
+                        <p-chip [label]="file.status | translate"
+                                [icon]="getIcon(file.status)"
+                                [class]="'cursor-pointer font-bold center-chip w-9rem p-1 ' + getBgAndText(file.status)"
+                                (click)="(file.status !== ExportStatus.AddToProject) && toggleUpdate(file)" />
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </p-panel>
+
+    <!--Export button-->
+    <p-button styleClass="my-3" icon="pi pi-github" label="Export to GitHub" severity="primary"
+              (onClick)="exportProjectToGitHub()"
+              [disabled]="projectFileCount() === 0 || !exportGitHubService.token() || !gitHubData().repo"
+              [loading]="exportProgress()" />
     @if (filesTable().length) {
     <span class="text-color-secondary">
         {{ newCount() }} new and {{ updatedCount() }} updated pages
     </span>
+    }
+    @if(exportProgress(); as progress) {
+    <!--Progress-->
+    <p-progressbar [value]="progress.progress" styleClass="h-2rem centered-label">
+        <ng-template #content>
+            <span class="text-white" [innerHTML]="progress.step | translate"></span>
+        </ng-template>
+    </p-progressbar>
     }
     @if (exportMessage()) {
     <p-message

@@ -38,7 +38,7 @@ export class ProjectStateService {
         created: new Date(),
         lastModified: new Date(),
         lastSaved: new Date(),
-        lastExported: new Date(),
+        lastExported: null,
         storageType: 'local',
         collaborators: this.collaboratorService.getInitialCollaborators(),
         baselinePages: 0,
@@ -159,6 +159,31 @@ export class ProjectStateService {
             ...curr,
             storageType: type,
             lastModified: new Date()
+        }));
+    }
+
+    setPageSha(url: string, sha: string, mode: 'prototype' | 'baseline' = 'prototype'): void {
+        const tree = this.getProjectTree();
+        const node = this.findNodeByUrl(tree, url);
+
+        if (node?.data) {
+            if (!node.data.sha) {
+                node.data.sha = {};
+            }
+            node.data.sha[mode] = sha;
+            this.project.update(p => ({
+                ...p,
+                lastModified: new Date(),
+                projectData: [...p.projectData]
+            }));
+        }
+    }
+
+    setExportDate(): void {
+        this.project.update(p => ({
+            ...p,
+            lastModified: new Date(),
+            lastExported: new Date()
         }));
     }
 
@@ -416,7 +441,7 @@ export class ProjectStateService {
             project.created = new Date(project.created);
             project.lastModified = new Date(project.lastModified);
             project.lastSaved = new Date(project.lastSaved);
-            project.lastExported = new Date(project.lastExported);
+            project.lastExported = project.lastExported ? new Date(project.lastExported) : null;
 
             this.project.set(project);
             this.saveStatus.set('saved'); // Just loaded, no changes yet
@@ -459,7 +484,7 @@ export class ProjectStateService {
             project.created = new Date(project.created);
             project.lastModified = new Date(project.lastModified);
             project.lastSaved = new Date(project.lastSaved);
-            project.lastExported = new Date(project.lastExported);
+            project.lastExported = project.lastExported ? new Date(project.lastExported) : null;
 
             this.project.set(project);
             this.saveProject(); // Auto-save imported project
@@ -498,7 +523,7 @@ export class ProjectStateService {
             created: new Date(),
             lastModified: new Date(),
             lastSaved: new Date(),
-            lastExported: new Date(),
+            lastExported: null,
             storageType: 'local',
             collaborators: this.collaboratorService.getInitialCollaborators(),
             baselinePages: 0,

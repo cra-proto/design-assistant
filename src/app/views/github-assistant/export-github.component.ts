@@ -1,8 +1,9 @@
-import { Component, OnInit, inject, signal, computed, effect, ViewChild } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect, ViewChild, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
+import { Router } from '@angular/router';
 
 //PrimeNG Modules
 import { TableModule } from 'primeng/table';
@@ -14,6 +15,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { PopoverModule, Popover } from 'primeng/popover';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { DividerModule } from 'primeng/divider';
+import { PanelModule } from 'primeng/panel';
+import { ProgressBarModule } from 'primeng/progressbar';
 
 //Services
 import { ExportGitHubService } from '../../services/github/export-github.service';
@@ -27,6 +30,35 @@ import { environment } from '../../../environments/environment';
 import { SetupRepoComponent } from '../../components/setup-repo/setup-repo.component';
 import { PatComponent } from "../../components/sign-in/pat.component";
 
+
+type ConnectionStatus = 'checking' | 'connected' | 'warning' | 'error' | 'missing';
+
+type ExportOption = 'prototype' | 'baseline'
+
+interface ExportTarget {
+  label: string;
+  value: ExportOption;
+}
+
+enum ExportStatus {
+  ExportNew = 'github.export.status.addToGitHub', // Export - New page
+  ExportOverwrite = 'github.export.status.overwrite', // Export - Existing page
+  SkipNew = 'github.export.status.skipNew', // Skip export - New page
+  SkipOverwrite = 'github.export.status.skipOverwrite', // Skip export - Existing page
+  AddToProject = 'github.export.status.addToProject' // Add GitHub only page to project
+}
+
+interface FileStatus {
+  path: string;
+  status: ExportStatus;
+}
+
+interface ExportProgress {
+  step: string;
+  progress: number; // 0-100
+}
+
+
 export interface PageData {
   url: string;
   content: string;
@@ -34,19 +66,12 @@ export interface PageData {
 
 interface FileCompareRow {
   path: string;
-  location: 'update' | 'skip' | 'new page' | 'github only';
-  newer?: 'export' | 'github' | 'same';
+  status: ExportStatus;
+  newer?: 'aida' | 'github' | 'same';
 }
 
-interface ExportTarget {
-  label: string;
-  value: 'prototype' | 'baseline';
-}
 
-interface FileStatus {
-  path: string;
-  location: 'update' | 'skip' | 'new page' | 'github only';
-}
+
 
 interface ExportMessage {
   severity: 'success' | 'info' | 'warn' | 'error';
@@ -58,7 +83,7 @@ interface ExportMessage {
   selector: 'aida-export-github',
   imports: [CommonModule, FormsModule, TranslateModule,
     MessageModule, ButtonModule, TooltipModule, PopoverModule, SelectButtonModule, DividerModule,
-    TableModule, ChipModule,
+    TableModule, ChipModule, PanelModule, ProgressBarModule,
     SetupRepoComponent, PatComponent],
   templateUrl: './export-github.component.html',
   styles: ``
@@ -70,15 +95,17 @@ export class ExportGithubComponent implements OnInit {
   private fetchService = inject(FetchService);
   public translate = inject(TranslateService);
   private themeService = inject(ThemeService);
+  private router = inject(Router)
 
   defaultOrg = environment.defaultOrg;
 
-  url = "test";
+  readonly ExportStatus = ExportStatus;
+
   username = computed(() => this.exportGitHubService.user()?.name || this.exportGitHubService.user()?.login || 'User');
 
   //Signals
   projectData = this.projectState.getProject;
-  connectionStatus = signal<'checking' | 'connected' | 'unverified' | 'warning' | 'error' | 'missing'>('checking');
+  connectionStatus = signal<ConnectionStatus>('checking');
   showDisclaimer = signal<boolean>(false);
 
   filesTable = signal<FileStatus[]>([]);
@@ -90,10 +117,19 @@ export class ExportGithubComponent implements OnInit {
   markForTranslation() {
     marker('github.connect.export.description.prototype');
     marker('github.connect.export.description.baseline');
-    marker('github.export.status.skip');
-    marker('github.export.status.update');
-    marker('github.export.status.aidaOnly');
-    marker('github.export.status.githubOnly');
+    marker('github.export.status.addToGitHub');
+    marker('github.export.status.addToProject');
+    marker('github.export.status.skipNew');
+    marker('github.export.status.skipOverwrite');
+    marker('github.export.status.overwrite');
+    marker('github.connect.export.toggle.prototype');
+    marker('github.connect.export.toggle.baseline');
+    marker('github.export.progress.step1');
+    marker('github.export.progress.step2');
+    marker('github.export.progress.step3');
+    marker('github.export.progress.step4');
+    marker('github.export.progress.step5');
+    marker('github.export.progress.step6');
   }
 
   constructor() {
@@ -102,11 +138,14 @@ export class ExportGithubComponent implements OnInit {
       const token = this.exportGitHubService.token();
       const owner = this.projectData().github.owner;
       const repo = this.projectData().github.repo;
-      console.log("Effect triggered: token or repo changed.", { token, owner, repo });
+      //Update table when owner or repo changes
+      if (owner && repo) {
+        untracked(() => this.compareFiles());
+      }
       // Only run precheck if we have a token and repo configured
       if (token && owner && repo) {
-        await this.validateConnection();
-        console.warn("Running validation again!")
+        untracked(() => this.validateConnection());
+        //console.warn("Running validation again!")
       } else if (!token) {
         // No authentication method available
         this.connectionStatus.set('missing');
@@ -131,39 +170,38 @@ export class ExportGithubComponent implements OnInit {
 
     if (!result.valid) {
       this.connectionStatus.set('error');
-      console.error('Token validation failed:', result.error);
+      //console.error('Token validation failed:', result.error);
     } else if (result.repoExists && !result.hasRepoAccess) {
       this.connectionStatus.set('warning');
-      console.warn(`No write access to ${owner}/${repo}`);
+      //console.warn(`No write access to ${owner}/${repo}`);
     } else if (!result.repoExists && !result.canCreateRepo) {
       this.connectionStatus.set('warning');
-      console.warn(`Cannot create repo in ${owner}`);
+      //console.warn(`Cannot create repo in ${owner}`);
     } else {
       this.connectionStatus.set('connected');
       this.showDisclaimer.set(result.showDisclaimer ?? false);
-      if (result.showDisclaimer) {
-        console.warn('Connected to GitHub but PAT scope cannot be verified. Please ensure PAT has appropriate scopes.');
-      }
+      //if (result.showDisclaimer) {
+      //  console.warn('Connected to GitHub but PAT scope cannot be verified. Please ensure PAT has appropriate scopes.');
+      //}
     }
     this.precheckInProgress.set(false);
   }
 
   // Computed signals
   gitHubData = computed(() => this.projectData().github);
+
+  projectTable = computed(() => this.filesTable().filter(f => f.path.startsWith('en') || f.path.startsWith('fr')));
+  templateTable = computed(() => this.filesTable().filter(f => !f.path.startsWith('en') && !f.path.startsWith('fr')));
+
   inScopePageCount = computed(() => this.projectData().inScopePages);
   baselinePageCount = computed(() => this.projectData().baselinePages);
-  jekyllFileCount = computed(() => this.filesTable().filter(f => !f.path.startsWith('en/') && !f.path.startsWith('fr/')).length);
-  newCount = computed(() => this.filesTable().filter(f => f.location === 'new page').length);
-  updatedCount = computed(() => this.filesTable().filter(f => f.location === 'update').length);
-  skippedCount = computed(() => this.filesTable().filter(f => f.location === 'skip').length);
-  githubOnlyCount = computed(() => this.filesTable().filter(f => f.location === 'github only').length);
+  projectFileCount = computed(() => this.projectTable().length);
+  templateFileCount = computed(() => this.templateTable().length);
 
-  //Check if project is loaded
-  get projectLoaded(): boolean {
-    const name = this.projectData().projectName;
-    return !!name;
-  }
+  newCount = computed(() => this.filesTable().filter(f => f.status === ExportStatus.ExportNew).length);
+  updatedCount = computed(() => this.filesTable().filter(f => f.status === ExportStatus.ExportOverwrite).length);
 
+  // Open targeted GitHub repo
   openRepo() {
     let modifier = '';
     if (this.selectedExportTarget === 'baseline') { modifier = '-baseline'; };
@@ -171,57 +209,67 @@ export class ExportGithubComponent implements OnInit {
     window.open(url, '_blank');
   }
 
-  statusClasses = computed(() => {
+  // Status message colors & icons
+  private getStatusTextColor(status: ConnectionStatus): string {
+    const isDark = this.themeService.darkMode();
+
+    const colorMap: Record<ConnectionStatus, string> = {
+      'connected': isDark ? 'text-green-400' : 'text-green-500',
+      'warning': isDark ? 'text-yellow-400' : 'text-yellow-500',
+      'error': isDark ? 'text-red-400' : 'text-red-500',
+      'missing': isDark ? 'text-red-400' : 'text-red-500',
+      'checking': isDark ? 'text-blue-400' : 'text-blue-500',
+    };
+
+    return colorMap[status] || '';
+  }
+
+  getStatusIcons = computed(() => {
+    const status = this.connectionStatus();
+    const iconMap: Record<ConnectionStatus, string> = {
+      'connected': 'pi-check-circle',
+      'warning': 'pi-exclamation-triangle',
+      'error': 'pi-times-circle',
+      'missing': 'pi-times-circle',
+      'checking': 'pi-spin pi-spinner'
+    };
+
+    return `pi ${iconMap[status]} ${this.getStatusTextColor(status)} text-2xl`;
+  });
+
+  getTitleClasses = computed(() => {
+    const status = this.connectionStatus();
+    return `font-semibold my-0 ${this.getStatusTextColor(status)}`;
+  });
+
+  getBgClasses = computed(() => {
     const status = this.connectionStatus();
     const isDark = this.themeService.darkMode();
 
     const baseClasses = 'flex align-items-center gap-2 p-3 border-round-md mb-3';
 
-    const bgMap = {
-      'connected': isDark ? 'bg-green-900' : 'bg-green-50',
-      'unverified': isDark ? 'bg-blue-900' : 'bg-blue-50',
-      'warning': isDark ? 'bg-yellow-900' : 'bg-yellow-50',
-      'error': isDark ? 'bg-red-900' : 'bg-red-50',
-      'missing': isDark ? 'bg-red-900' : 'bg-red-50',
-      'checking': isDark ? 'bg-blue-900' : 'bg-blue-50'
+    const bgMap: Record<ConnectionStatus, string> = {
+      'connected': isDark ? 'bg-green-950' : 'bg-green-50',
+      'warning': isDark ? 'bg-yellow-950' : 'bg-yellow-50',
+      'error': isDark ? 'bg-red-950' : 'bg-red-50',
+      'missing': isDark ? 'bg-red-950' : 'bg-red-50',
+      'checking': isDark ? 'bg-blue-950' : 'bg-blue-50'
     };
 
     return `${baseClasses} ${bgMap[status]}`;
   });
+  // End of status message colors & icons
 
-  titleClasses = computed(() => {
-    const status = this.connectionStatus();
-    const isDark = this.themeService.darkMode();
-
-    const colorMap = {
-      'connected': isDark ? 'text-green-300' : 'text-green-700',
-      'unverified': '',
-      'warning': isDark ? 'text-yellow-300' : 'text-yellow-700',
-      'error': isDark ? 'text-red-300' : 'text-red-700',
-      'missing': isDark ? 'text-red-300' : 'text-red-700',
-      'checking': ''
-    };
-
-    return `font-semibold my-0 ${colorMap[status]}`;
-  });
-
+  // Export options
   exportTargetOptions: ExportTarget[] = [
-    { label: 'Prototype', value: 'prototype' },
-    { label: 'Baseline', value: 'baseline' }
+    { label: 'github.connect.export.prototype', value: 'prototype' },
+    { label: 'github.connect.export.baseline', value: 'baseline' }
   ];
-  selectedExportTarget: 'prototype' | 'baseline' = 'prototype';
-  showTokenHelp = false;
+  selectedExportTarget: ExportOption = 'prototype';
 
-  repos: string[] = [];
-  filteredRepos: string[] = [];
-  ownerError = '';
-  showHelp = false;
-
+  // Initialize table and connection status
   async ngOnInit() {
-    //this.projectState.loadFromLocalStorage();
-    await this.compareFiles(this.gitHubData().owner, this.gitHubData().repo, this.gitHubData().branch, this.exportGitHubService.token());
-    //temp
-    this.projectData().lastExported = new Date();
+    await this.compareFiles();
     await this.validateConnection();
   }
 
@@ -233,13 +281,22 @@ export class ExportGithubComponent implements OnInit {
     return hasGithubData || this.settingsOverlay?.overlayVisible;
   }
 
-  //Get in-scope URLs and page content
+  //Get in-scope URLs and page content (used by export fxn)
   private async getUrlandContent(node: TreeNode): Promise<PageData[]> {
     const pages: PageData[] = [];
-    if (node?.data?.status.inScope && node?.data?.url && !this.gitHubData().repo) {
+
+    const scope = this.selectedExportTarget === 'prototype'
+      ? node?.data?.status.inScope && node?.data?.url
+      : node?.data?.url
+
+    const repo = this.selectedExportTarget === 'prototype'
+      ? this.gitHubData().repo
+      : `${this.gitHubData().repo}-baseline`;
+
+    if (scope && repo) {
       try {
         const doc = await this.fetchService.fetchContent(node.data.url, "prod");
-        const jekyllFormatted = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, this.gitHubData().repo);
+        const jekyllFormatted = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, repo);
         pages.push({ url: node.data.url, content: jekyllFormatted });
       } catch (error) {
         console.error(`Error fetching content for ${node.data.url}:`, error);
@@ -255,92 +312,85 @@ export class ExportGithubComponent implements OnInit {
     return pages;
   }
 
-  async exportProjectToGitHub(owner: string, repo: string, branch: string, token: string, overwrite = false) {
+  // Main export function (DO NOT REMOVE TIMEOUTS, THEY GIVE ENOUGH TIME FOR SHA TO UPDATE BETWEEN EXPORTS)
+  async exportProjectToGitHub() {
+    const owner = this.gitHubData().owner;
+    const repo = this.selectedExportTarget === 'prototype'
+      ? this.gitHubData().repo
+      : `${this.gitHubData().repo}-baseline`;
+    const branch = this.gitHubData().branch;
+    const token = this.exportGitHubService.token();
 
-    //Step 0: Save current GitHub data to state
-    this.projectState.setGitHubRepo({ owner, repo, branch });
-    this.projectState.saveProject();
-
-    // Step 1: Gather all in-scope URLs and their content
+    // Step 1: Gather all in-scope or baseline URLs and their content
+    this.exportProgress.set({ step: 'github.export.progress.step1', progress: 5, });
     const nodes = this.projectState.getProjectTree();
     const pages: PageData[] = await this.getUrlandContent(nodes[0]);
     console.log('Exporting pages to GitHub:', pages);
 
-    // Step 2: Find common path prefix
-    function getCommonPrefix(urls: string[]): string {
-      const paths = urls.map(url => new URL(url).pathname.split("/").filter(Boolean));
-      const first = paths[0];
-      const prefix: string[] = [];
-
-      for (let i = 0; i < first.length; i++) {
-        const segment = first[i];
-        if (paths.every(p => p[i] === segment)) {
-          prefix.push(segment);
-        } else {
-          break;
-        }
-      }
-      if (prefix.length) {
-        const last = prefix[prefix.length - 1];
-        if (/\.[a-z0-9]+$/i.test(last)) { // ends with file extension
-          prefix.pop();
-        }
-      }
-      return "/" + prefix.join("/");
-    }
-
-    const urls = pages.map(page => page.url);
-    const commonRoot = getCommonPrefix(urls);
-    console.log("Detected common root:", commonRoot);
-
-    // Step 3: Trim common root from urls for GitHub paths
-    const exportPages = pages.map(p => {
+    // Step 2: Add paths and filenames for GitHub and filter out any skipped pages
+    setTimeout(() => { this.exportProgress.set({ step: 'github.export.progress.step2', progress: 10 }); }, 1000);
+    const allPages = pages.map(p => {
       let path = new URL(p.url).pathname;
-      //comment out this if statement if we want paths to start at /en & /fr
-      //if (path.startsWith(commonRoot)) {
-      //  path = path.slice(commonRoot.length);
-      //}
       path = path.replace(/^\/+/, ""); // strip leading slashes
       const lastSegment = path.split("/").pop() || "index.html";
-      //console.log(`Mapping URL ${p.url} to path ${path}, filename ${lastSegment}`);
       return { url: p.url, path, content: p.content, filename: lastSegment };
+    });
+
+    const exportPages = allPages.filter(page => {
+      const fileRow = this.filesTable().find(f => f.path === page.path);
+      return fileRow?.status !== ExportStatus.SkipNew && fileRow?.status !== ExportStatus.SkipOverwrite;
     });
 
     console.log("Exporting pages to GitHub:", exportPages);
 
-    // Step 4: Check existing files in repo
+    // Step 3: Check for existing files in repo
+    setTimeout(() => { this.exportProgress.set({ step: 'github.export.progress.step3', progress: 15 }); }, 1000);
     const existingFiles = await this.exportGitHubService.getRepoTree(owner, repo, branch, token);
-    //console.warn("Existing files in repo:", existingFiles);
 
-    // Step 5: Set up repo (create it if it doesn't exist, add _config.yml and copy over core files)
+    // Step 4: Set up repo (create it if it doesn't exist, add _config.yml and copy over core files)
+    setTimeout(() => { this.exportProgress.set({ step: 'github.export.progress.step4', progress: 20 }); }, 1000);
     await this.exportGitHubService.setupRepo(owner, repo, branch, token, existingFiles, nodes);
 
     console.log("Repository setup complete.");
 
-
-    // Step 6: Export each page to GitHub
-    const redirects: { origin: string; destination: string }[] = [];
-    for (const page of exportPages) {
+    // Step 5: Export each page to GitHub
+    const progressPerFile = 60 / exportPages.length;
+    for (const [index, page] of exportPages.entries()) {
       try {
-        const result = await this.exportGitHubService.exportToGitHub(owner, repo, branch, page.path, page.filename, page.content, token, existingFiles, overwrite);
-        //console.log(`Successfully exported ${page.path}:`, result);
-        redirects.push({ origin: page.url, destination: `/${repo}/${page.path}` });
+        this.exportProgress.set({ step: 'github.export.progress.step5', progress: 30 + (index * progressPerFile), });
+        const result = await this.exportGitHubService.exportToGitHub(owner, repo, branch, page.path, page.filename, page.content, token, existingFiles, true);
+        //Store SHA with project data
+        if (result?.content?.sha) {
+          this.projectState.setPageSha(page.url, result.content.sha, this.selectedExportTarget)
+        }
       } catch (error) {
         console.error(`Error exporting ${page.path}:`, error);
       }
     }
-    // Step 5: Add redirect file
+    // Step 6: Add redirect file
+    setTimeout(() => { this.exportProgress.set({ step: 'github.export.progress.step6', progress: 90 }); }, 1000);
+    const redirects = allPages.map(page => ({
+      origin: page.url,
+      destination: `/${repo}/${page.path}`
+    }));
     const redirectsJson = JSON.stringify(redirects, null, 2);
-    await this.exportGitHubService.exportToGitHub(owner, repo, branch, "source/data/exclude-redirect-links.json", "exclude-redirect-links.json", redirectsJson, token, existingFiles, overwrite);
+    await this.exportGitHubService.exportToGitHub(owner, repo, branch, "source/data/exclude-redirect-links.json", "exclude-redirect-links.json", redirectsJson, token, existingFiles, true);
 
+    setTimeout(() => { this.exportProgress.set({ step: 'common.complete', progress: 100 }); }, 1000);
     console.log("Page export complete.");
+    this.projectState.setExportDate();
+    setTimeout(() => this.exportProgress.set(null), 5000);
+    this.compareFiles();
   }
 
   //Create file list
-
-
-  async compareFiles(owner: string, repo: string, branch: string, token?: string) {
-    console.log("Compare!")
+  async compareFiles() {
+    const owner = this.gitHubData().owner;
+    const repo = this.selectedExportTarget === 'prototype'
+      ? this.gitHubData().repo
+      : `${this.gitHubData().repo}-baseline`;
+    const branch = this.gitHubData().branch;
+    const token = this.exportGitHubService.token();
 
     const scope = this.selectedExportTarget === 'prototype' ? "inScope" : "all"
     const pages = this.projectState.getAllUrls(scope);
@@ -360,8 +410,8 @@ export class ExportGithubComponent implements OnInit {
       /^source\/exit-intent-e\.html$/,
       /^source\/exit-intent-f\.html$/,
       /^404\.html$/,
-      /^en\/.*/,   // anything under /en/
-      /^fr\/.*/,   // anything under /fr/
+      /^en\/?.*/,   // anything under /en/
+      /^fr\/?.*/,   // anything under /fr/
     ];
 
     const filteredGithubPages = new Map(
@@ -387,7 +437,7 @@ export class ExportGithubComponent implements OnInit {
 
     // Add all Jekyll files to export list
     [...jekyllUpdateFiles, ...jekyllSkipFiles].forEach(file => {
-      projectPaths.join(file.path);
+      projectPaths.push(file.path);
     });
 
     //De-dupe paths
@@ -396,7 +446,9 @@ export class ExportGithubComponent implements OnInit {
       ...filteredGithubPages.keys(),
     ]);
 
-    console.log(allPaths);
+    console.log('Project paths:', projectPaths);
+    console.log('Filtered GitHub pages:', [...filteredGithubPages.keys()]);
+    console.log('All paths (combined):', [...allPaths]);
 
     //Table data
     const table: FileCompareRow[] = [];
@@ -406,86 +458,122 @@ export class ExportGithubComponent implements OnInit {
       const isAutoUpdateFile = jekyllUpdateFiles.some(f => f.path === path);
       const isAlwaysSkipFile = jekyllSkipFiles.some(f => f.path === path);
 
-      let location: FileCompareRow['location'];
-      if (inExport && inGitHub) {
-        if (isAutoUpdateFile) location = 'update';
-        else if (isAlwaysSkipFile) location = 'skip';
-        else location = 'skip';
-      }
-      else if (inExport) location = 'new page';
-      else location = 'github only';
+      console.log(`Path: ${path}, inExport: ${inExport}, inGitHub: ${inGitHub}`);
 
-      table.push({ path, location });
+      let status: FileCompareRow['status'];
+      if (inExport && inGitHub) {
+        if (isAutoUpdateFile) status = ExportStatus.ExportOverwrite;
+        else if (isAlwaysSkipFile) status = ExportStatus.SkipOverwrite;
+        else {
+          const fullUrl = `https://www.canada.ca/${path}`;
+          const node = this.projectState.findNodeByUrl(this.projectState.getProjectTree(), fullUrl);
+          const storedSha = node?.data?.sha?.[this.selectedExportTarget];
+          const githubSha = filteredGithubPages.get(path);
+          status = storedSha && storedSha === githubSha
+            ? ExportStatus.ExportOverwrite  // SHA matches - refresh content
+            : ExportStatus.SkipOverwrite;   // No SHA or mismatch - skip by default
+        }
+      }
+      else if (inExport) status = ExportStatus.ExportNew;
+      else status = ExportStatus.AddToProject;
+
+      table.push({ path, status });
     }
 
     this.filesTable.set(table);
   }
 
-  getTranslationKey(location: string) {
-    switch (location) {
-      case 'skip': return 'github.export.status.skip';
-      case 'update': return 'github.export.status.update';
-      case 'new page': return 'github.export.status.aidaOnly';
-      case 'github only': return 'github.export.status.githubOnly';
-      default: return '';
+  colorConfig: Record<string, { icon: string, background: string, text: string }> = {
+    [ExportStatus.SkipNew]: {
+      icon: 'pi pi-angle-double-right',
+      background: 'bg-green-100 hover:bg-green-200',
+      text: 'text-green-900'
+    },
+    [ExportStatus.SkipOverwrite]: {
+      icon: 'pi pi-angle-double-right',
+      background: 'bg-blue-100 hover:bg-blue-200',
+      text: 'text-blue-900'
+    },
+    [ExportStatus.ExportOverwrite]: {
+      icon: 'pi pi-refresh',
+      background: 'bg-blue-500 hover:bg-blue-600',
+      text: 'text-blue-50'
+    },
+    [ExportStatus.ExportNew]: {
+      icon: 'pi pi-plus',
+      background: 'bg-green-500 hover:bg-green-600',
+      text: 'text-green-50'
+    },
+    [ExportStatus.AddToProject]: {
+      icon: 'pi pi-github',
+      background: 'bg-primary-500 hover:bg-primary-600',
+      text: 'text-primary-50'
     }
-  }
-
-  /*getIcon(location: string): string {
-    switch (location) {
-      case 'skip': return 'pi pi-angle-double-right';
-      case 'update': return 'pi pi-refresh';
-      case 'new page': return 'pi pi-file-plus';
-      case 'github only': return 'pi pi-github';
-      default: return '';
-    }
-  }
-*/
-  colorConfig: Record<string, { icon: string, darkBg: string, lightBg: string, darkText: string, lightText: string, inverseText: string, lightHover: string, darkHover: string }> = {
-    'skip': { icon: 'pi pi-angle-double-right', darkBg: 'bg-gray-200 hover:bg-gray-300', darkText: 'text-gray-900', lightBg: 'bg-gray-50 hover:bg-gray-100', lightText: 'text-gray-500', inverseText: 'text-black', lightHover: 'hover:bg-gray-50 border-round-lg', darkHover: 'hover:bg-gray-200 border-round-lg hover:text-black-alpha-90' },
-    'update': { icon: 'pi pi-refresh', darkBg: 'bg-primary-500 hover:bg-primary-600', darkText: 'text-primary-50', lightBg: 'bg-primary-50 hover:bg-primary-100', lightText: 'text-primary-500', inverseText: 'text-white', lightHover: 'hover:bg-primary-50 border-round-lg', darkHover: 'hover:bg-primary-500 border-round-lg' },
-    'new page': { icon: 'pi pi-file-plus', darkBg: 'bg-yellow-400 hover:bg-yellow-600', darkText: 'text-yellow-900', lightBg: 'bg-yellow-50 hover:bg-yellow-100', lightText: 'text-yellow-800', inverseText: 'text-black', lightHover: 'hover:bg-yellow-50 border-round-lg', darkHover: 'hover:bg-yellow-400 border-round-lg hover:text-black-alpha-90' },
-    'github only': { icon: 'pi pi-github', darkBg: 'bg-blue-400 hover:bg-blue-500', darkText: 'text-blue-50', lightBg: 'bg-blue-50 hover:bg-blue-100', lightText: 'text-blue-400', inverseText: 'text-white', lightHover: 'hover:bg-blue-50 border-round-lg', darkHover: 'hover:bg-blue-400 border-round-lg' },
   };
 
-  getIcon(location: string): string {
-    return this.colorConfig[location]?.icon || '';
+  getIcon(status: ExportStatus): string {
+    const config = this.colorConfig[status];
+    return `${config.icon} ${config.text}` || '';
   }
 
-  getBgAndText(location: string, mode: 'alwaysDark' | 'followTheme' | 'bgOnly' | 'textOnly' | 'hoverOnly' | 'inverseText'): string {
-    const config = this.colorConfig[location];
-    if (mode === 'alwaysDark') { return `${config.darkBg} ${config.inverseText}` } //chips are always dark mode
-    else if (mode === 'bgOnly') { return this.themeService.darkMode() ? config.darkBg : config.lightBg }
-    else if (mode === 'textOnly') { return this.themeService.darkMode() ? config.darkText : config.lightText }
-    else if (mode === 'hoverOnly') { return this.themeService.darkMode() ? config.darkHover : config.lightHover }
-    else if (mode === 'inverseText') { return this.themeService.darkMode() ? config.inverseText : 'text-black' }
-    else return this.themeService.darkMode() ? `${config?.darkBg} ${config?.darkText}` : `${config?.lightBg} ${config?.lightText}`
+  getBgAndText(status: ExportStatus): string {
+    const config = this.colorConfig[status];
+    return `${config.background} ${config.text}`;
   }
 
   toggleUpdate(file: FileCompareRow) {
-    if (file.location === 'skip') {
-      file.location = 'update';
-    } else if (file.location === 'update') {
-      file.location = 'skip';
+    switch (file.status) {
+      case ExportStatus.SkipNew:
+        file.status = ExportStatus.ExportNew;
+        break;
+      case ExportStatus.ExportNew:
+        file.status = ExportStatus.SkipNew;
+        break;
+      case ExportStatus.SkipOverwrite:
+        file.status = ExportStatus.ExportOverwrite;
+        break;
+      case ExportStatus.ExportOverwrite:
+        file.status = ExportStatus.SkipOverwrite;
+        break;
+      // AddToProject handled separately
     }
     this.filesTable.set([...this.filesTable()]); // triggers UI refresh
   }
 
-  setAll(target: 'skip' | 'update') {
+  setAll(mode: 'export' | 'skip', table: 'project' | 'template') {
+    const targetFiles = table === 'project' ? this.projectTable() : this.templateTable();
+    const targetPaths = new Set(targetFiles.map(f => f.path));
+
     const updated = this.filesTable().map(file => {
-      if (file.location === 'skip' || file.location === 'update') {
-        return { ...file, location: target };
+      // Skip files that are AddToProject or not in the table
+      if (file.status === ExportStatus.AddToProject || !targetPaths.has(file.path)) {
+        return file;
       }
+
+      // For new pages: set to either ExportNew or SkipNew
+      if (file.status === ExportStatus.SkipNew || file.status === ExportStatus.ExportNew) {
+        return { ...file, status: mode === 'export' ? ExportStatus.ExportNew : ExportStatus.SkipNew };
+      }
+
+      // For overwrite pages: set to either ExportOverwrite or SkipOverwrite
+      if (file.status === ExportStatus.SkipOverwrite || file.status === ExportStatus.ExportOverwrite) {
+        return { ...file, status: mode === 'export' ? ExportStatus.ExportOverwrite : ExportStatus.SkipOverwrite };
+      }
+
       return file;
     });
     this.filesTable.set(updated);
   }
 
-  //TESTING
+  //Progress
+  exportProgress = signal<ExportProgress | null>(null);
 
-
-
-  isExporting = signal(false);
-  //exportMessage = signal<{ severity: string; text: string } | null>(null);
+  //Add to project
+  addToProject(file: FileCompareRow) {
+    const url = `https://www.canada.ca/${file.path}`;
+    this.router.navigate(['/import-page'], {
+      queryParams: { url: url }
+    });
+  }
 
 }

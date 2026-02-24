@@ -371,6 +371,8 @@ translate.instant() does not update when a user toggles languages. Let the templ
 
 Changes to translation files should be sent for official review before each release to ensure quality.
 
+**Note: We intentially left the French acronym as AIDA since it sounds close to aide/help which is similar to the meaning conveyed in English.**
+
 ### Tracking Translation Batches
 
 We use git tags to mark when translation files are sent for review and when they are updated with the official translation. This makes it easy to check if anything changed while the content was being translated or since the last translation. Make sure to commit any changes before creating a tag.

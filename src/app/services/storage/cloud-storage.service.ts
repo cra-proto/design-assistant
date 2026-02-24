@@ -111,7 +111,7 @@ export class CloudStorageService {
                 created: new Date(project.created),
                 lastModified: new Date(project.lastModified),
                 lastSaved: new Date(project.lastSaved),
-                lastExported: new Date(project.lastExported),
+                lastExported: project.lastExported ? new Date(project.lastExported) : null,
                 storageType: 'cloud' as const
             };
 
