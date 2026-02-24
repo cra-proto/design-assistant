@@ -187,6 +187,13 @@ export class ProjectStateService {
         }));
     }
 
+    setModifiedDate(): void {
+        this.project.update(p => ({
+            ...p,
+            lastModified: new Date()
+        }));
+    }
+
     // Get project tree
     getProjectTree = computed(() => this.project().projectData);
 

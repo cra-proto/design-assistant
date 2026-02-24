@@ -23,6 +23,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
 import { AddPagesComponent } from '../../components/add-pages/add-pages.component';
 import { FlattenedTreeNode, TableColumn } from '../../common/data.model';
+import { IaTableComponent } from '../../components/ia-table/ia-table.component';
 
 //Services
 import { ProjectStateService } from '../../services/project-state.service';
@@ -44,7 +45,7 @@ interface ViewOption {
         ToolbarModule, IftaLabelModule, MultiSelectModule, SelectButtonModule,
         TagModule, ToggleButtonModule, ConfirmDialogModule,
         RadioButtonModule,
-        ExportProjectComponent, AddPagesComponent, FindPagesComponent],
+        ExportProjectComponent, AddPagesComponent, FindPagesComponent, IaTableComponent],
     templateUrl: './inventory.component.html',
     styleUrl: './inventory.component.css'
 })
