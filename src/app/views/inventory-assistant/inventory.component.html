@@ -1,4 +1,4 @@
-<div class="min-w-min">
+<div [class.min-w-min]="projectState.selectedInventoryView === 'table'">
     <div class="flex flex-row flex-wrap justify-content-between sticky-horizontal">
         <div>
             <h1 id="wb-cont">{{ 'inventory._title' | translate }}</h1>
@@ -13,7 +13,7 @@
         </div>
     </div>
 
-    <div class="surface-card border-round-lg shadow-2 p-4 mb-3 min-w-min">
+    <div class="surface-card border-round-lg shadow-2 p-4 mb-3 w-full" [class.min-w-min]="projectState.selectedInventoryView === 'table'">
         <!--Header & Settings-->
         <div class="flex flex-column lg:flex-row justify-content-between align-items-start sticky-horizontal">
             <div class="flex flex-column">
@@ -22,7 +22,7 @@
             </div>
         </div>
 
-        <div class="sticky-toolbar">
+        <div class="sticky-toolbar" [class.sticky-toolbar-table]="projectState.selectedInventoryView === 'table'">
             <!-- Top toolbar -->
             <div class="flex flex-row justify-content-between gap-2 h-6rem surface-card">
 
@@ -35,7 +35,7 @@
                                            [inputId]="view.value"
                                            [name]="view.key"
                                            [value]="view.value"
-                                           [(ngModel)]="selectedView"
+                                           [(ngModel)]="projectState.selectedInventoryView"
                                            (ngModelChange)="changeView()">
                             </p-radioButton>
                             <label [for]="view.value">
@@ -47,7 +47,7 @@
                 </div>
 
                 <!-- Top toolbar - Column settings -->
-                @if(selectedView === "table"){
+                @if(projectState.selectedInventoryView === "table"){
                 <div class="hidden lg:flex flex-column text-color-secondary hover:text-primary max-w-max">
                     <span class="text-xs my-1">{{ 'inventory.columnVis.label' | translate }}</span>
                     <div class="flex flex-row align-content-center gap-2">
@@ -92,7 +92,7 @@
                 }
             </div>
             <!-- Bulk actions toolbar -->
-            @if(selectedView === "table"){
+            @if(projectState.selectedInventoryView === "table"){
             <div class="h-3rm mb-2">
                 @if(selectedNodes.length > 0 || hasActiveFilters()){
                 <div class="flex flex-row justify-content-between align-items-center border-1 border-dashed secondary-outline surface-card">
@@ -159,7 +159,7 @@
             </div-->
 
 
-        @if(selectedView === "table"){
+        @if(projectState.selectedInventoryView === "table"){
         <p-table [value]="tableData()" [(selection)]="selectedNodes" dataKey="url" selectionMode="multiple" size="small" [scrollable]="false">
 
             <ng-template pTemplate="header">
@@ -279,12 +279,12 @@
             </ng-template>
         </p-table>
         }
-        @else if(selectedView === "tree"){
-        TREE
+        @else if(projectState.selectedInventoryView === "tree"){
+        <aida-ia-table></aida-ia-table>
         }
     </div>
 
-
+    <!--Add & Find pages-->
     <div class="flex md:flex-row flex-column gap-3 sticky-horizontal">
         <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-6 w-full">
             <aida-add-pages />

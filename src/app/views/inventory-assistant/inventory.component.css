@@ -4,19 +4,25 @@
     left: calc(var(--nav-width));
     top: 0;
     z-index: 20;
-    width: calc(100vw - var(--nav-width) - 2rem);
     margin-left: -1.5rem;
     padding-left: 1.5rem;
     padding-right: 0rem;
     box-sizing: border-box;
 }
 
+.sticky-toolbar-table {
+    width: calc(100vw - var(--nav-width) - 2rem);
+}
+
 /* Toolbar - desktop adjustments */
 @media screen and (min-width: 768px) {
     .sticky-toolbar {
         left: calc(var(--nav-width) + 7rem);
-        width: calc(100vw - var(--nav-width) - 7rem - 5rem);
         padding-right: 5rem;
+    }
+
+    .sticky-toolbar-table {
+        width: calc(100vw - var(--nav-width) - 7rem - 5rem);
     }
 }
 
@@ -121,7 +127,7 @@
 @media screen and (min-width: 768px) {
     .sticky-horizontal {
         left: calc(var(--nav-width) + 7rem);
-        width: calc(100vw - var(--nav-width) - 7rem - 5rem);
+        width: calc(100vw - var(--nav-width) - 7rem - 3.5rem);
         padding-right: 5rem;
     }
 }

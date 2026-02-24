@@ -1,0 +1,6 @@
+.ia-label {
+    white-space: pre-line;
+    display: inline-block;
+    color: var(--text-color) !important;
+    text-decoration: none !important;
+}

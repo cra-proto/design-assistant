@@ -187,6 +187,13 @@ export class ProjectStateService {
         }));
     }
 
+    setModifiedDate(): void {
+        this.project.update(p => ({
+            ...p,
+            lastModified: new Date()
+        }));
+    }
+
     // Get project tree
     getProjectTree = computed(() => this.project().projectData);
 
@@ -916,5 +923,8 @@ export class ProjectStateService {
         collect(node);
         return descendants;
     }
+
+    //Store settings for inventory table
+    selectedInventoryView: 'table' | 'tree' = 'table';
 
 }

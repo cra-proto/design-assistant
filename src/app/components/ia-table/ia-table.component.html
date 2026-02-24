@@ -1,0 +1,36 @@
+<p-contextMenu #cm [model]="options"></p-contextMenu>
+<h2>IA structure tree</h2>
+<p-tree [value]="projectTree()"
+        [selectionMode]="selectable ? 'multiple' : null" [(selection)]="selectedNode"
+        [draggableNodes]="draggable" [droppableNodes]="true" draggableScope="self" droppableScope="self" (onNodeDrop)="handleNodeDrop($event)" [validateDrop]="true"
+        [contextMenu]="cm" (onNodeContextMenuSelect)="onNodeContextMenu($event)">
+    <ng-template pTemplate="default" let-node class="w-full">
+        <div class="flex flex-row align-items-center gap-2 w-full">
+            @if(node.data.editing){
+            <!--Edit mode-->
+            <i class="pi pi-pencil text-color-secondary"></i>
+            @if(node.data.editing === 'label'){
+            <p-inputgroup>
+                <input type="text" pInputText [(ngModel)]="node.data.h1" pSize="small" class="ia-label" (keydown)="onInputKeydown($event)" />
+                <p-inputgroup-addon><p-button icon="pi pi-check" severity="secondary" size="small" (onClick)="saveNode()" /></p-inputgroup-addon>
+            </p-inputgroup>
+            } @else if(node.data.editing === 'link'){
+            <p-inputgroup>
+                <input type="text" pInputText [(ngModel)]="node.data.url" pSize="small" class="ia-label" (keydown)="onInputKeydown($event)" />
+                <p-inputgroup-addon><p-button icon="pi pi-check" severity="secondary" size="small" (onClick)="saveNode()" /></p-inputgroup-addon>
+            </p-inputgroup>
+            }
+            } @else {
+            <!-- Display mode -->
+            @if(draggable){
+            <i class="pi pi-arrows-alt cursor-move text-color-secondary"></i>
+            } @else if(node.children?.length > 0){
+            <i class="pi pi-folder"></i>
+            } @else{
+            <i class="pi pi-file"></i>
+            }
+            <a [href]="node.data.url" target="_blank" (click)="onNodeClick($event)" [innerHTML]="node.data.h1" class="ia-label"></a>
+            }
+        </div>
+    </ng-template>
+</p-tree>
