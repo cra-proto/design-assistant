@@ -1,6 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageModule } from 'primeng/message';
@@ -9,7 +11,8 @@ import { GitHubAuthService } from '../../services/github/github-auth.service';
 
 @Component({
   selector: 'aida-auth-callback',
-  imports: [CommonModule, ProgressSpinnerModule, MessageModule],
+  imports: [CommonModule, TranslateModule,
+    ProgressSpinnerModule, MessageModule],
   templateUrl: './auth-callback.component.html',
   styles: ``
 })
@@ -19,6 +22,12 @@ export class AuthCallbackComponent implements OnInit {
   private authService = inject(GitHubAuthService);
 
   error = signal<string | null>(null);
+
+  private markForTranslation() {
+    marker('github.callback.error.invalidParams');
+    marker('github.callback.error.githubError');
+    marker('github.callback.error.serverError');
+  }
 
   ngOnInit() {
     const params = this.route.snapshot.queryParams;
@@ -34,13 +43,14 @@ export class AuthCallbackComponent implements OnInit {
 
     // Handle OAuth error from GitHub
     if (error) {
-      this.error.set(`GitHub authentication failed: ${error}`);
+      console.error('OAuth GitHub error:', error);
+      this.error.set('github.callback.error.githubError');
       return;
     }
 
     // Handle missing required parameters
     if (!code || !state) {
-      this.error.set('Invalid callback parameters');
+      this.error.set('github.callback.error.invalidParams');
       return;
     }
 
@@ -55,8 +65,8 @@ export class AuthCallbackComponent implements OnInit {
       sessionStorage.removeItem('github_oauth_return_url');
       this.router.navigate([returnUrl], { replaceUrl: true });
     } catch (error) {
-      this.error.set('Failed to complete authentication');
-      console.error('Auth error:', error);
+      this.error.set('github.callback.error.serverError');
+      console.error('OAuth AWS server error:', error);
     }
   }
 }

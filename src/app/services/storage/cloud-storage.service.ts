@@ -4,7 +4,6 @@ import { firstValueFrom, of, catchError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { GitHubAuthService } from '../github/github-auth.service';
 import { Project, ProjectMetadata } from '../../common/data.model';
-import { TreeNode } from 'primeng/api';
 
 @Injectable({
     providedIn: 'root'
@@ -112,7 +111,7 @@ export class CloudStorageService {
                 created: new Date(project.created),
                 lastModified: new Date(project.lastModified),
                 lastSaved: new Date(project.lastSaved),
-                lastExported: new Date(project.lastExported),
+                lastExported: project.lastExported ? new Date(project.lastExported) : null,
                 storageType: 'cloud' as const
             };
 
@@ -208,6 +207,7 @@ export class CloudStorageService {
 
             return response.id;
         } catch (error) {
+            console.error(error);
             return null;
         } finally {
             this.loading.set(false);

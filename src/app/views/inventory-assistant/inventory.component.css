@@ -1,0 +1,127 @@
+/* Toolbar */
+.sticky-toolbar {
+    position: sticky;
+    left: calc(var(--nav-width));
+    top: 0;
+    z-index: 20;
+    width: calc(100vw - var(--nav-width) - 2rem);
+    margin-left: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 0rem;
+    box-sizing: border-box;
+}
+
+/* Toolbar - desktop adjustments */
+@media screen and (min-width: 768px) {
+    .sticky-toolbar {
+        left: calc(var(--nav-width) + 7rem);
+        width: calc(100vw - var(--nav-width) - 7rem - 5rem);
+        padding-right: 5rem;
+    }
+}
+
+/* Allows sticky table columns */
+::ng-deep .p-datatable-table-container {
+    overflow: visible !important;
+}
+
+/* Table column - H1 */
+.sticky-h {
+    position: sticky;
+    left: calc(var(--nav-width) + 2rem);
+    z-index: 11;
+    margin-left: -1.5rem;
+    padding-left: 1.5rem;
+}
+
+/* Table column - H1 - desktop adjustments */
+@media screen and (min-width: 768px) {
+    .sticky-h {
+        left: calc(var(--nav-width) + 9rem);
+    }
+}
+
+/* Table column - checkbox */
+.sticky-c {
+    position: sticky;
+    left: calc(var(--nav-width));
+    z-index: 11;
+    margin-left: -1.5rem;
+    padding-left: 1.5rem;
+}
+
+/* Table column - checkbox - desktop adjustments */
+@media screen and (min-width: 768px) {
+    .sticky-c {
+        left: calc(var(--nav-width) + 7rem);
+    }
+}
+
+/* Table row - headers */
+.sticky-r {
+    position: sticky;
+    top: 9rem;
+    z-index: 12;
+    margin-left: -1.5rem;
+    padding-left: 1.5rem;
+}
+
+/* Keeps column headers on top of row headers in stacking context */
+::ng-deep .p-datatable .p-datatable-thead {
+    z-index: 13 !important;
+}
+
+/* Table row & column - H1 */
+.sticky-rh {
+    position: sticky;
+    left: calc(var(--nav-width) + 2rem);
+    top: 9rem;
+    z-index: 14;
+    margin-left: -1.5rem;
+    padding-left: 1.5rem;
+}
+
+/* Table row & column - H1 - desktop adjustments */
+@media screen and (min-width: 768px) {
+    .sticky-rh {
+        left: calc(var(--nav-width) + 9rem);
+    }
+}
+
+/* Table row & column - checkbox */
+.sticky-rc {
+    position: sticky;
+    left: calc(var(--nav-width));
+    top: 9rem;
+    z-index: 14;
+    margin-left: -1.5rem;
+    padding-left: 1.5rem;
+}
+
+/* Table row & column - checkbox - desktop adjustments */
+@media screen and (min-width: 768px) {
+    .sticky-rc {
+        left: calc(var(--nav-width) + 7rem);
+    }
+}
+
+/* Horizontal sticky */
+.sticky-horizontal {
+    position: sticky;
+    left: calc(var(--nav-width));
+    z-index: 10;
+    width: calc(100vw - var(--nav-width) - 2rem);
+    margin-left: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 0rem;
+    box-sizing: border-box;
+}
+
+/* Horizontal sticky - desktop adjustments */
+@media screen and (min-width: 768px) {
+    .sticky-horizontal {
+        left: calc(var(--nav-width) + 7rem);
+        width: calc(100vw - var(--nav-width) - 7rem - 5rem);
+        padding-right: 5rem;
+    }
+}

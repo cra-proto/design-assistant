@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { RouterLink } from '@angular/router';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { TabsModule } from 'primeng/tabs';
@@ -40,67 +41,98 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
 
     @ViewChildren('codeContainer') codeContainers!: QueryList<ElementRef>;
 
-    breadcrumbs = [{ label: 'example._title', route: '/dev' }, { label: 'example.patterns._title' }];
+    breadcrumbs = [{ label: 'dev._title', route: '/dev' }, { label: 'dev.patterns._title' }];
 
     private darkModeEffect;
     private prismLoaded = false;
     public copiedIndex = signal<string | null>(null);
 
+    markForTranslation() {
+        //Messages
+        marker('dev.patterns.message.info');
+        marker('dev.patterns.message.success');
+        marker('dev.patterns.message.warn');
+        marker('dev.patterns.message.error');
+        marker('dev.patterns.message.info.desc');
+        marker('dev.patterns.message.success.desc');
+        marker('dev.patterns.message.warn.desc');
+        marker('dev.patterns.message.error.desc');
+        //Buttons
+        marker('dev.patterns.button.primary.desc');
+        marker('dev.patterns.button.danger.desc');
+        marker('dev.patterns.button.task.desc');
+        marker('dev.patterns.button.icon.desc');
+        marker('dev.patterns.button.tooltip');
+        marker('dev.patterns.button.taskLabel');
+        //Cards
+        marker('dev.patterns.card.desc');
+        marker('dev.patterns.cardHover.desc');
+        marker('dev.patterns.cardText');
+        //Inputs
+        marker('dev.patterns.input.text.label');
+        marker('dev.patterns.input.text.desc');
+        marker('dev.patterns.input.textarea.label');
+        marker('dev.patterns.input.textarea.desc');
+        marker('dev.patterns.input.select.label');
+        marker('dev.patterns.input.select.desc');
+
+    }
+
     public messageExamples: CodeExample[] = [
         {
             label: 'Info',
-            code: `<p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'example.message.info' | translate" />`,
-            description: 'example.pattern.message.info.desc',
+            code: `<p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'dev.patterns.message.info' | translate" />`,
+            description: 'dev.patterns.message.info.desc',
             previewType: 'message',
             previewConfig: {
                 severity: 'info',
                 icon: 'pi pi-info-circle font-bold',
-                text: 'example.message.info'
+                text: 'dev.patterns.message.info'
             }
         },
         {
             label: 'Success',
-            code: `<p-message severity="success" icon="pi pi-check-circle font-bold" [text]="'example.message.success' | translate" />`,
-            description: 'example.pattern.message.success.desc',
+            code: `<p-message severity="success" icon="pi pi-check-circle font-bold" [text]="'dev.patterns.message.success' | translate" />`,
+            description: 'dev.patterns.message.success.desc',
             previewType: 'message',
             previewConfig: {
                 severity: 'success',
                 icon: 'pi pi-check-circle font-bold',
-                text: 'example.message.success'
+                text: 'dev.patterns.message.success'
             }
         },
         {
             label: 'Warning',
-            code: `<p-message severity="warn" icon="pi pi-exclamation-triangle font-bold" [text]="'example.message.warn' | translate" />`,
-            description: 'example.pattern.message.warn.desc',
+            code: `<p-message severity="warn" icon="pi pi-exclamation-triangle font-bold" [text]="'dev.patterns.message.warn' | translate" />`,
+            description: 'dev.patterns.message.warn.desc',
             previewType: 'message',
             previewConfig: {
                 severity: 'warn',
                 icon: 'pi pi-exclamation-triangle font-bold',
-                text: 'example.message.warn'
+                text: 'dev.patterns.message.warn'
             }
         },
         {
             label: 'Error',
-            code: `<p-message severity="error" icon="pi pi-times-circle font-bold" [text]="'example.message.error' | translate" />`,
-            description: 'example.pattern.message.error.desc',
+            code: `<p-message severity="error" icon="pi pi-times-circle font-bold" [text]="'dev.patterns.message.error' | translate" />`,
+            description: 'dev.patterns.message.error.desc',
             previewType: 'message',
             previewConfig: {
                 severity: 'error',
                 icon: 'pi pi-times-circle font-bold',
-                text: 'example.message.error'
+                text: 'dev.patterns.message.error'
             }
         },
         {
             label: 'Text version',
-            code: `<p-message variant="simple" size="small" severity="error" [text]="'example.message.error' | translate" />`,
-            description: 'example.pattern.message.error.desc',
+            code: `<p-message variant="simple" size="small" severity="error" [text]="'dev.patterns.message.error' | translate" />`,
+            description: 'dev.patterns.message.error.desc',
             previewType: 'message',
             previewConfig: {
                 variant: 'simple',
                 size: 'small',
                 severity: 'error',
-                text: 'example.message.error'
+                text: 'dev.patterns.message.error'
             }
         }
     ];
@@ -109,62 +141,62 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
         {
             label: 'Primary & Secondary Outline',
             code: `<div class="flex gap-2">
-    <p-button [label]="'example.button.save' | translate" icon="pi pi-check" />
-    <p-button [label]="'example.button.cancel' | translate" icon="pi pi-times" severity="secondary" outlined styleClass='secondary-outline' />
+    <p-button [label]="'common.save' | translate" icon="pi pi-check" />
+    <p-button [label]="'common.cancel' | translate" icon="pi pi-times" severity="secondary" outlined styleClass='secondary-outline' />
 </div>`,
-            description: 'example.pattern.button.primary.desc',
+            description: 'dev.patterns.button.primary.desc',
             previewType: 'buttons',
             previewConfig: {
                 type: 'primary-secondary',
                 buttons: [
-                    { label: 'example.button.save', icon: 'pi pi-check' },
-                    { label: 'example.button.cancel', icon: 'pi pi-times', severity: 'secondary', outlined: true, styleClass: 'secondary-outline' }
+                    { label: 'common.save', icon: 'pi pi-check' },
+                    { label: 'common.cancel', icon: 'pi pi-times', severity: 'secondary', outlined: true, styleClass: 'secondary-outline' }
                 ]
             }
         },
         {
             label: 'Danger & Secondary Outline',
             code: `<div class="flex gap-2">
-    <p-button [label]="'example.button.delete' | translate" icon="pi pi-trash" severity="danger" />
-    <p-button [label]="'example.button.cancel' | translate" icon="pi pi-times" severity="secondary" outlined styleClass='secondary-outline' />
+    <p-button [label]="'common.delete' | translate" icon="pi pi-trash" severity="danger" />
+    <p-button [label]="'common.cancel' | translate" icon="pi pi-times" severity="secondary" outlined styleClass='secondary-outline' />
 </div>`,
-            description: 'example.pattern.button.danger.desc',
+            description: 'dev.patterns.button.danger.desc',
             previewType: 'buttons',
             previewConfig: {
                 type: 'danger-secondary',
                 buttons: [
-                    { label: 'example.button.delete', icon: 'pi pi-trash', severity: 'danger' },
-                    { label: 'example.button.cancel', icon: 'pi pi-times', severity: 'secondary', outlined: true, styleClass: 'secondary-outline' }
+                    { label: 'common.delete', icon: 'pi pi-trash', severity: 'danger' },
+                    { label: 'common.cancel', icon: 'pi pi-times', severity: 'secondary', outlined: true, styleClass: 'secondary-outline' }
                 ]
             }
         },
         {
             label: 'Secondary Task Button',
-            code: `<p-button [label]="'example.button.task' | translate" icon="pi pi-cog" outlined styleClass="secondary-outline" />`,
-            description: 'example.pattern.button.task.desc',
+            code: `<p-button [label]="'dev.patterns.button.taskLabel' | translate" icon="pi pi-cog" outlined styleClass="secondary-outline" />`,
+            description: 'dev.patterns.button.task.desc',
             previewType: 'buttons',
             previewConfig: {
                 type: 'task',
                 buttons: [
-                    { label: 'example.button.task', icon: 'pi pi-cog', outlined: true, styleClass: 'secondary-outline' }
+                    { label: 'dev.patterns.button.taskLabel', icon: 'pi pi-cog', outlined: true, styleClass: 'secondary-outline' }
                 ]
             }
         },
         {
             label: 'Icon Buttons',
             code: `<div class="flex gap-2">
-    <p-button icon="pi pi-trash" severity="danger" text rounded [pTooltip]="'example.button.icon' | translate" tooltipPosition="top" />
-    <p-button icon="pi pi-share-alt" severity="primary" text rounded [pTooltip]="'example.button.icon' | translate" tooltipPosition="top" />
-    <p-button icon="pi pi-sync" severity="primary" [pTooltip]="'example.button.icon' | translate" tooltipPosition="top" />
+    <p-button icon="pi pi-trash" severity="danger" text rounded [pTooltip]="'dev.patterns.button.tooltip' | translate" tooltipPosition="top" />
+    <p-button icon="pi pi-share-alt" severity="primary" text rounded [pTooltip]="'dev.patterns.button.tooltip' | translate" tooltipPosition="top" />
+    <p-button icon="pi pi-sync" severity="primary" [pTooltip]="'dev.patterns.button.tooltip' | translate" tooltipPosition="top" />
 </div>`,
-            description: 'example.pattern.button.icon.desc',
+            description: 'dev.patterns.button.icon.desc',
             previewType: 'buttons',
             previewConfig: {
                 type: 'icon',
                 buttons: [
-                    { icon: 'pi pi-trash', severity: 'danger', text: true, rounded: true, tooltip: 'example.button.icon' },
-                    { icon: 'pi pi-share-alt', severity: 'primary', text: true, rounded: true, tooltip: 'example.button.icon' },
-                    { icon: 'pi pi-sync', severity: 'primary', tooltip: 'example.button.icon' }
+                    { icon: 'pi pi-trash', severity: 'danger', text: true, rounded: true, tooltip: 'dev.patterns.button.tooltip' },
+                    { icon: 'pi pi-share-alt', severity: 'primary', text: true, rounded: true, tooltip: 'dev.patterns.button.tooltip' },
+                    { icon: 'pi pi-sync', severity: 'primary', tooltip: 'dev.patterns.button.tooltip' }
                 ]
             }
         }
@@ -176,7 +208,7 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
             code: `<div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
     <!-- Content here -->
 </div>`,
-            description: 'example.pattern.card.standard.desc',
+            description: 'dev.patterns.card.desc',
             previewType: 'card',
             previewConfig: {
                 type: 'standard',
@@ -188,7 +220,7 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
             code: `<div class="surface-card border-round-lg shadow-1 hover:shadow-3 p-4 w-full min-w-min">
     <!-- Content here -->
 </div>`,
-            description: 'example.pattern.card.hover.desc',
+            description: 'dev.patterns.cardHover.desc',
             previewType: 'card',
             previewConfig: {
                 type: 'hover',
@@ -202,14 +234,14 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
             label: 'Input Text with IFTA Label',
             code: `<p-iftaLabel>
     <input pInputText id="example-input" [(ngModel)]="value" fluid />
-    <label for="example-input">{{ 'example.input.label' | translate }}</label>
+    <label for="example-input">{{ 'dev.patterns.input.text.label' | translate }}</label>
 </p-iftaLabel>`,
-            description: 'example.pattern.input.text.desc',
+            description: 'dev.patterns.input.text.desc',
             previewType: 'input',
             previewConfig: {
                 type: 'text',
                 id: 'example-input',
-                label: 'example.input.label',
+                label: 'dev.patterns.input.text.label',
                 model: 'exampleValue'
             }
         },
@@ -217,14 +249,14 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
             label: 'Textarea with IFTA Label',
             code: `<p-iftaLabel>
     <textarea pInputTextarea id="example-textarea" [(ngModel)]="value" rows="3" fluid></textarea>
-    <label for="example-textarea">{{ 'example.input.textarea.label' | translate }}</label>
+    <label for="example-textarea">{{ 'dev.patterns.input.textarea.label' | translate }}</label>
 </p-iftaLabel>`,
-            description: 'example.pattern.input.textarea.desc',
+            description: 'dev.patterns.input.textarea.desc',
             previewType: 'input',
             previewConfig: {
                 type: 'textarea',
                 id: 'example-textarea',
-                label: 'example.input.textarea.label',
+                label: 'dev.patterns.input.textarea.label',
                 rows: 3,
                 model: 'exampleTextarea'
             }
@@ -238,14 +270,14 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
         optionLabel="label" optionValue="value"
         fluid
     />
-    <label for="example-select">{{ 'example.input.select.label' | translate }}</label>
+    <label for="example-select">{{ 'dev.patterns.input.select.label' | translate }}</label>
 </p-iftaLabel>`,
-            description: 'example.pattern.input.select.desc',
+            description: 'dev.patterns.input.select.desc',
             previewType: 'input',
             previewConfig: {
                 type: 'select',
                 id: 'example-select',
-                label: 'example.input.select.label',
+                label: 'dev.patterns.input.select.label',
                 model: 'selectedOption'
             }
         }

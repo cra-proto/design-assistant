@@ -2,7 +2,6 @@ import { Component, inject, computed, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
-import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
@@ -20,7 +19,6 @@ import { CollaboratorService } from '../../services/collaborator.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { ExportGitHubService } from '../../services/github/export-github.service';
 import { GitHubUser } from '../../common/data.model';
-
 
 export type CollaboratorMode = 'list' | 'dashboard' | 'switch';
 
@@ -98,7 +96,6 @@ export class AddCollaboratorsComponent implements OnInit {
 
     // Filter collaborators (show all if empty, else filter by startsWith and then includes, else try to fetch user)
     async filterCollaborators(event: AutoCompleteCompleteEvent) {
-        const owner = this.projectData().github.owner;
         const query = event.query?.trim().toLowerCase().replace(/^-+|-+$/g, '').replace(/-{2,}/g, '-').substring(0, 39) || '';
 
         // If query is empty, return all org members
@@ -108,6 +105,7 @@ export class AddCollaboratorsComponent implements OnInit {
         }
 
         // Filter existing org members
+        // Note: we're not filtering out existing collaborators since this form can be used to update their user info
         const startsWith = this.orgMembers.filter(user =>
             user.login.toLowerCase().startsWith(query)
         );
@@ -161,12 +159,6 @@ export class AddCollaboratorsComponent implements OnInit {
     closeShareDialog() {
         this.showShareDialog = false;
         this.selectedCollaborators = []; // Reset on close
-    }
-
-    private markForTranslation() {
-        marker('collaborators.email.requestAccess.subject');
-        marker('collaborators.email.requestAccess.bodyEN');
-        marker('collaborators.email.requestAccess.bodyFR');
     }
 
     // Request access button

@@ -6,6 +6,7 @@ import { environment } from '../environments/environment';
 import { DashboardComponent } from './views/project-assistant/dashboard.component';
 import { SwitchProjectComponent } from './views/project-assistant/switch-project.component';
 import { EditProjectComponent } from './views/project-assistant/edit-project.component';
+import { ImportPageComponent } from './views/project-assistant/import-page.component';
 
 // Task Views
 import { IaDiagramComponent } from './components/ia-diagram/ia-diagram.component';
@@ -75,6 +76,11 @@ export const routes: Routes = [
         title: 'editProject._title',
     },
     {
+        path: 'import-page',
+        component: ImportPageComponent,
+        title: 'importPage._title',
+    },
+    {
         path: 'auth/login',
         component: GithubConnectComponent,
         title: 'app._title',
@@ -125,22 +131,22 @@ export const routes: Routes = [
     {
         path: 'dev',
         loadComponent: () => import('./views/dev-tools/dev-tools.component').then(m => m.DevToolsComponent),
-        title: 'example._title',
+        title: 'dev._title',
     },
     {
         path: 'dev/color-generator',
         loadComponent: () => import('./views/dev-tools/color-generator/color-generator.component').then(m => m.ColorGeneratorComponent),
-        title: 'example.colors._title',
+        title: 'dev.colors._title',
     },
     {
         path: 'dev/design-patterns',
         loadComponent: () => import('./views/dev-tools/design-patterns/design-patterns.component').then(m => m.DesignPatternsComponent),
-        title: 'example.patterns._title',
+        title: 'dev.patterns._title',
     },
     {
         path: 'dev/prompt-editor',
         loadComponent: () => import('./views/dev-tools/prompt-editor/prompt-editor.component').then(m => m.PromptEditorComponent),
-        title: 'example.patterns._title',
+        title: 'dev.prompts._title',
     },
     {
         path: 'standalone',

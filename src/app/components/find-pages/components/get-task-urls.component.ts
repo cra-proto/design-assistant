@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 // PrimeNG modules
-import { AutoCompleteModule, AutoCompleteCompleteEvent, AutoCompleteSelectEvent } from 'primeng/autocomplete';
+import { AutoCompleteModule, AutoCompleteCompleteEvent, AutoCompleteSelectEvent, AutoCompleteUnselectEvent } from 'primeng/autocomplete';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -47,9 +47,22 @@ export class GetTaskUrlsComponent implements OnInit {
     this.translate.currentLang?.startsWith('fr') ? 'fr' : 'en'
   );
   filteredTasks = signal<TaskOption[]>([]);
-  selectedTaskId = signal<number | null>(null);
-  selectedTask = signal<TaskOption | null>(null);
+  selectedTaskIds = signal<number[]>([]);
+  selectedTasks = signal<TaskOption[]>([]);
   taskUrls = signal<{ url: string; selected: boolean }[]>([]);
+
+  // Count selected task urls
+  selectedTaskUrlsCount = computed(() =>
+    this.taskUrls().filter(task => task.selected).length
+  );
+
+  toggleTaskUrl(index: number, selected: boolean) {
+    this.taskUrls.update(urls => {
+      const updated = [...urls];
+      updated[index] = { ...updated[index], selected };
+      return updated;
+    });
+  }
 
   // Computed: Transform Airtable data to TaskOptions based on current language
   taskOptions = computed(() => {
@@ -79,12 +92,16 @@ export class GetTaskUrlsComponent implements OnInit {
 
     // React to task selection and language changes
     effect(() => {
-      const taskId = this.selectedTaskId();
+      const ids = this.selectedTaskIds();
       const options = this.taskOptions();
-      if (taskId !== null) {
-        const taskOption = options.find(opt => opt.id === taskId);
-        this.selectedTask.set(taskOption || null);
-        this.loadTaskUrls(taskId); // Reload URLs in the new language
+      const matched = ids
+        .map(id => options.find(opt => opt.id === id))
+        .filter((opt): opt is TaskOption => !!opt);
+
+      this.selectedTasks.set(matched);
+
+      if (ids.length > 0) {
+        this.loadTaskUrls();
       }
     });
   }
@@ -117,26 +134,31 @@ export class GetTaskUrlsComponent implements OnInit {
   onTaskSelect(event: AutoCompleteSelectEvent) {
     const taskOption = event.value as TaskOption;
     if (taskOption.id) {
-      this.selectedTaskId.set(taskOption.id);
-      this.loadTaskUrls(taskOption.id);
+      this.selectedTaskIds.update(ids => [...ids, taskOption.id]);
+      this.loadTaskUrls();
     }
   }
 
-  private loadTaskUrls(taskId: number) {
+  onTaskUnselect(event: AutoCompleteUnselectEvent) {
+    const taskOption = event.value as TaskOption;
+    this.selectedTaskIds.update(ids => ids.filter(id => id !== taskOption.id));
+    this.loadTaskUrls();
+  }
+
+  private loadTaskUrls() {
     const tasks = this.airtableService.data();
-    const task = tasks.find(t => t.id === taskId);
-
-    if (!task) {
-      this.taskUrls.set([]);
-      return;
-    }
-
     const lang = this.currentLanguage();
-    const urls = lang === 'en' ? task.urlsEN : task.urlsFR;
+    const ids = this.selectedTaskIds();
 
-    this.taskUrls.set(
-      urls.map(url => ({ url, selected: true }))
-    );
+    const allUrls = ids.flatMap(taskId => {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return [];
+      return lang === 'en' ? task.urlsEN : task.urlsFR;
+    });
+
+    const uniqueUrls = [...new Set(allUrls)];
+
+    this.taskUrls.set(uniqueUrls.map(url => ({ url, selected: true })));
   }
 
   addUrlsToProject() {
@@ -159,8 +181,8 @@ export class GetTaskUrlsComponent implements OnInit {
     });
 
     // Clear selection after adding
-    this.selectedTaskId.set(null);
-    this.selectedTask.set(null);
+    this.selectedTaskIds.set([]);
+    this.selectedTasks.set([]);
     this.taskUrls.set([]);
   }
 }

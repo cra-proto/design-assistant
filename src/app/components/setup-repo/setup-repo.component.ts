@@ -2,6 +2,7 @@ import { Component, inject, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 //PrimeNG modules
 import { IftaLabelModule } from 'primeng/iftalabel';
@@ -115,6 +116,11 @@ export class SetupRepoComponent implements OnInit {
         this.ownerError = { key: 'project.github.error.loadFailed', params: { owner: this.gitHubOwner } };
       }
     }
+  }
+
+  markForTranslation() {
+    marker('project.github.error.ownerNotFound');
+    marker('project.github.error.loadFailed');
   }
 
   //Filters repo list for autocomplete (starts with, then includes)

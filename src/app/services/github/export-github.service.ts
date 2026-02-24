@@ -914,5 +914,86 @@ ${mermaidChart}
       .trim();
   }
 
+  // Pull request method for prompt updates
+  async createPullRequestForPrompts(category: string, path: string, filename: string, content: string): Promise<{ prUrl: string; branchName: string }> {
+    const owner = this.templateOrg;
+    const repo = 'ai-design-assistant';
+    const baseBranch = 'dev';
+    const token = this.token();
+
+    if (!token) { throw new Error('GitHub token not found. Please configure your Personal Access Token.'); }
+
+    // 1. Generate branch name with timestamp
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const timeStr = now.toTimeString().slice(0, 5).replace(':', ''); // HHmm
+    const branchName = `prompts/update-${category}-${dateStr}-${timeStr}`;
+
+    // 2. Get the SHA of the base branch (dev)
+    const refResponse = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${baseBranch}`,
+      { headers: { Authorization: `token ${token}` } }
+    );
+
+    if (!refResponse.ok) { throw new Error(`Failed to get ${baseBranch} branch SHA: ${refResponse.status}`); }
+
+    const refData = await refResponse.json();
+    const baseSha = refData.object.sha;
+
+    // 3. Create the new branch
+    const createBranchResponse = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/git/refs`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `token ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ref: `refs/heads/${branchName}`,
+          sha: baseSha
+        })
+      }
+    );
+
+    if (!createBranchResponse.ok) {
+      const error = await createBranchResponse.json().catch(() => ({}));
+      throw new Error(`Failed to create branch: ${createBranchResponse.status} ${error.message || ''}`);
+    }
+
+    // 4. Push the file to the new branch
+    await this.exportToGitHub(owner, repo, branchName, path, filename, content, token, new Map(), true, false);
+
+    // 5. Create the pull request
+    const prResponse = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/pulls`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `token ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: `Update ${category} prompts`,
+          head: branchName,
+          base: baseBranch,
+          body: `Update  to ${category} prompts via Design Assistant.\n\n**File:** \`${path}\`\n**Branch:** \`${branchName}\`\n**UserID:** \`${this.user()?.id}\`\n**Username:** \`${this.user()?.login}\``
+        })
+      }
+    );
+
+    if (!prResponse.ok) {
+      const error = await prResponse.json().catch(() => ({}));
+      throw new Error(`Failed to create PR: ${prResponse.status} ${error.message || ''}`);
+    }
+
+    const prData = await prResponse.json();
+
+    return {
+      prUrl: prData.html_url,
+      branchName: branchName
+    };
+  }
+
 }
 

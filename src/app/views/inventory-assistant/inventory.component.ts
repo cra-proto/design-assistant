@@ -22,7 +22,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 //Components and models
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
 import { AddPagesComponent } from '../../components/add-pages/add-pages.component';
-import { FlattenedTreeNode, TableColumn, ColumnGroup } from '../../common/data.model';
+import { FlattenedTreeNode, TableColumn } from '../../common/data.model';
 
 //Services
 import { ProjectStateService } from '../../services/project-state.service';
@@ -46,7 +46,7 @@ interface ViewOption {
         RadioButtonModule,
         ExportProjectComponent, AddPagesComponent, FindPagesComponent],
     templateUrl: './inventory.component.html',
-    styles: ``
+    styleUrl: './inventory.component.css'
 })
 export class InventoryComponent implements OnInit {
     public projectState = inject(ProjectStateService);
@@ -63,6 +63,15 @@ export class InventoryComponent implements OnInit {
     columnFilters = signal<Record<string, boolean>>({
         inScope: true  // Default filter applied
     });
+    resetFilters(): void {
+        this.columnFilters.set({
+            inScope: true  // Reset to default state
+        });
+    }
+    hasActiveFilters(): boolean {
+        const filters = this.columnFilters();
+        return Object.keys(filters).length > 1 || !filters['inScope']; // Checks for filters other than inScope
+    }
 
     // All table columns
     allColumns = this.projectState.getTreeTableColumns();
@@ -112,6 +121,22 @@ export class InventoryComponent implements OnInit {
         marker('inventory.columnGroups.metadata');
         marker('inventory.view.table');
         marker('inventory.view.tree');
+        marker('inventory.tooltip.boolean.inScope.true');
+        marker('inventory.tooltip.boolean.inScope.false');
+        marker('inventory.tooltip.boolean.isOrphan.true');
+        marker('inventory.tooltip.boolean.isOrphan.false');
+        marker('inventory.tooltip.boolean.isNew.true');
+        marker('inventory.tooltip.boolean.isNew.false');
+        marker('inventory.tooltip.boolean.isMoved.true');
+        marker('inventory.tooltip.boolean.isMoved.false');
+        marker('inventory.tooltip.boolean.isROT.true');
+        marker('inventory.tooltip.boolean.isROT.false');
+        marker('inventory.tooltip.boolean.linksToPortal.true');
+        marker('inventory.tooltip.boolean.linksToPortal.false');
+        marker('inventory.tooltip.archive.current');
+        marker('inventory.tooltip.archive.to-archive');
+        marker('inventory.tooltip.archive.archived');
+        marker('inventory.tooltip.archive.unarchive');
     }
 
     // Multiselect - column groups
@@ -287,6 +312,10 @@ export class InventoryComponent implements OnInit {
         return 'pi pi-minus text-gray-400';
     }
 
+    getBooleanTooltip(value: boolean, field: string): string {
+        return `inventory.tooltip.boolean.${field}.${value}`;
+    }
+
     getArchiveStatusIcon(node: FlattenedTreeNode, col: TableColumn): string {
         const status = node[col.field];
         switch (status) {
@@ -301,6 +330,10 @@ export class InventoryComponent implements OnInit {
             default:
                 return 'pi pi-minus text-gray-400'; // fallback
         }
+    }
+
+    getArchiveStatusTooltip(node: FlattenedTreeNode, col: TableColumn): string {
+        return `inventory.tooltip.archive.${node[col.field]}`;
     }
 
     // Table - update visible columns & check if metadata should autoexpand

@@ -2,9 +2,9 @@
     <div class="text-center">
         @if (!error()) {
         <p-progressSpinner aria-labelledby="authenticating" />
-        <h2 id="authenticating" class="mt-3">Authenticating with GitHub<span class="loading-dots"></span></h2>
+        <h2 id="authenticating" class="mt-3">{{'github.callback.authenticating' | translate}}<span class="loading-dots"></span></h2>
         } @else {
-        <p-message severity="error" size="large" icon="pi pi-exclamation-triangle" [text]="error()!" />
+        <p-message severity="error" size="large" icon="pi pi-exclamation-triangle" [text]="error()! | translate" />
         }
     </div>
 </div>

@@ -145,7 +145,7 @@ export interface Project extends ProjectMetadata {
     version: string;
     created: Date;
     lastSaved: Date;
-    lastExported: Date;
+    lastExported: Date | null;
     baselinePages: number;
     projectData: TreeNode[];  // Full tree structure
 }

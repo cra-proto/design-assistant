@@ -1,12 +1,10 @@
 import { Injectable, signal, computed, inject, effect } from '@angular/core';
-import { Project, ProjectMetadata, ProjectPhase, CurrentPhase, PageMeta, PageStatus, GitHubRepo, GitHubUser, ProjectTreeNodeData, FlattenedTreeNode, TableColumn } from '../common/data.model';
+import { Project, ProjectMetadata, ProjectPhase, GitHubRepo, GitHubUser, ProjectTreeNodeData, FlattenedTreeNode, TableColumn } from '../common/data.model';
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../environments/environment';
-import { FileUploadHandlerEvent } from 'primeng/fileupload';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { ProjectStorageService } from '../services/storage/project-storage.service';
-import { ExportGitHubService } from './github/export-github.service';
 import { CollaboratorService } from './collaborator.service';
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
@@ -40,7 +38,7 @@ export class ProjectStateService {
         created: new Date(),
         lastModified: new Date(),
         lastSaved: new Date(),
-        lastExported: new Date(),
+        lastExported: null,
         storageType: 'local',
         collaborators: this.collaboratorService.getInitialCollaborators(),
         baselinePages: 0,
@@ -107,9 +105,9 @@ export class ProjectStateService {
         console.log('lastSaved:', project.lastSaved);
         console.log('Are they equal?', project.lastModified.getTime() === project.lastSaved.getTime());
         const diff = project.lastSaved.getTime() - project.lastModified.getTime();
-        console.log('Difference:', diff),
+        console.log('Difference:', diff);
 
-            this.project.set(project);
+        this.project.set(project);
         console.log('Project set successfully');
     }
 
@@ -161,6 +159,31 @@ export class ProjectStateService {
             ...curr,
             storageType: type,
             lastModified: new Date()
+        }));
+    }
+
+    setPageSha(url: string, sha: string, mode: 'prototype' | 'baseline' = 'prototype'): void {
+        const tree = this.getProjectTree();
+        const node = this.findNodeByUrl(tree, url);
+
+        if (node?.data) {
+            if (!node.data.sha) {
+                node.data.sha = {};
+            }
+            node.data.sha[mode] = sha;
+            this.project.update(p => ({
+                ...p,
+                lastModified: new Date(),
+                projectData: [...p.projectData]
+            }));
+        }
+    }
+
+    setExportDate(): void {
+        this.project.update(p => ({
+            ...p,
+            lastModified: new Date(),
+            lastExported: new Date()
         }));
     }
 
@@ -418,7 +441,7 @@ export class ProjectStateService {
             project.created = new Date(project.created);
             project.lastModified = new Date(project.lastModified);
             project.lastSaved = new Date(project.lastSaved);
-            project.lastExported = new Date(project.lastExported);
+            project.lastExported = project.lastExported ? new Date(project.lastExported) : null;
 
             this.project.set(project);
             this.saveStatus.set('saved'); // Just loaded, no changes yet
@@ -461,7 +484,7 @@ export class ProjectStateService {
             project.created = new Date(project.created);
             project.lastModified = new Date(project.lastModified);
             project.lastSaved = new Date(project.lastSaved);
-            project.lastExported = new Date(project.lastExported);
+            project.lastExported = project.lastExported ? new Date(project.lastExported) : null;
 
             this.project.set(project);
             this.saveProject(); // Auto-save imported project
@@ -500,7 +523,7 @@ export class ProjectStateService {
             created: new Date(),
             lastModified: new Date(),
             lastSaved: new Date(),
-            lastExported: new Date(),
+            lastExported: null,
             storageType: 'local',
             collaborators: this.collaboratorService.getInitialCollaborators(),
             baselinePages: 0,
@@ -643,6 +666,8 @@ export class ProjectStateService {
             'Is New',
             'Is Moved',
             'Is ROT',
+            'Portal link',
+            'Archived',
             //Owner
             'Owner',
             'Email',
@@ -678,6 +703,8 @@ export class ProjectStateService {
                     data.status.isNew ? 'Yes' : 'No',
                     data.status.isMoved ? 'Yes' : 'No',
                     data.status.isROT ? 'Yes' : 'No',
+                    data.status.linksToPortal ? 'Yes' : 'No',
+                    data.status.archiveStatus ?? '',
                     //Owner
                     data.metadata?.owner || '',
                     data.metadata?.email || '',
@@ -709,7 +736,73 @@ export class ProjectStateService {
         const filename = proj.github.repo || proj.projectName || proj.id;
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${filename}-tree.csv`;
+        a.download = `${filename}-content-inventory.csv`;
+        a.click();
+
+        URL.revokeObjectURL(url);
+    }
+
+    //For tree testing in Optimal Workshop or similar tools
+    exportAsTreeCsv() {
+        const tree = this.project().projectData;
+
+        // Calculate max depth
+        const getMaxDepth = (nodes: TreeNode<ProjectTreeNodeData>[], depth = 0): number => {
+            let maxDepth = depth;
+            for (const node of nodes) {
+                if (node.children?.length) {
+                    maxDepth = Math.max(maxDepth, getMaxDepth(node.children, depth + 1));
+                }
+            }
+            return maxDepth;
+        };
+
+        const maxDepth = getMaxDepth(tree);
+        const rows: string[] = [];
+
+        // Generate headers
+        const headers: string[] = [];
+        for (let i = 0; i <= maxDepth; i++) {
+            if (i === 0) {
+                headers.push('Top level');
+            } else if (i === 1) {
+                headers.push('2nd level');
+            } else if (i === 2) {
+                headers.push('3rd level');
+            } else {
+                headers.push(`${i + 1}th level`);
+            }
+        }
+        rows.push(headers.join(','));
+
+        // Walk tree and build rows
+        const walk = (nodes: TreeNode<ProjectTreeNodeData>[], depth: number) => {
+            for (const node of nodes) {
+                const data = node.data;
+                if (!data) continue;
+
+                // Create a row with empty cells up to current depth
+                const row: string[] = new Array(maxDepth + 1).fill('');
+                row[depth] = `"${data.h1 ?? ''}"`;
+
+                rows.push(row.join(','));
+
+                if (node.children?.length) {
+                    walk(node.children, depth + 1);
+                }
+            }
+        };
+
+        walk(tree, 0);
+
+        const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const proj = this.project();
+        const filename = proj.github.repo || proj.projectName || proj.id;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}-tree-testing.csv`;
         a.click();
 
         URL.revokeObjectURL(url);

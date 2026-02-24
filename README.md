@@ -288,10 +288,15 @@ ng generate --help
 
 ## Translation Workflow
 
+Translation files are located in `public/i18n/`
+
 ### NPM Scripts
 
 - **`npm run i18n:extract`** - Extract and sort all translation keys
-- **`npm run i18n:clean`** - Remove unused keys and sort everything
+- **`npm run i18n:clean`** - Remove unused keys and sort everything in a separate file for comparison
+- **`npm run i18n:check`** - Runs i18n:extract and warns user if there are empty translations
+- **`npm run i18n:compare`** - Runs i18n:clean and warns user if there are different translation keys
+- **`npm run i18n:qa`** - **Run this before pushing!** Runs extract, clean, check, and compare to validate translations
 
 ### During Active Development
 
@@ -307,6 +312,22 @@ When adding new features with translation keys:
 3. Search for `": ""` to find keys that need translation
 
 4. Add translations and save
+
+### Before Pushing Changes
+
+**Always run the QA script before committing translation changes:**
+```bash
+npm run i18n:qa
+```
+
+This will:
+- Extract and sort all translation keys to the main translation files
+- Extract, sort, and removed unused keys in a separate file for comparison
+- Check for empty translations
+- Compare files to identify unused keys
+- Delete the separate comparison files if all the keys match
+
+Fix any issues reported before pushing your changes.
 
 ### Marking Dynamic Translation Keys
 
@@ -328,10 +349,10 @@ private markForTranslation() {
 
 To remove unused translation keys:
 ```bash
-npm run i18n:clean
+npm run i18n:qa
 ```
 
-Review the changes to ensure no dynamically generated keys were accidentally removed (if they were, they need `marker()` added).
+Review the log output and fix any issues. Dynamically generated keys may need `marker()` added and any unused keys should be manually removed from the main translation files or run the clean function on the main translation files if you are certain all dynamic keys are properly marked and there is nothing commented out that we will be adding back later.
 
 ### Translation Key Conventions
 
@@ -344,7 +365,53 @@ Review the changes to ensure no dynamically generated keys were accidentally rem
 
 ### Avoid translate.instant()
 
-translate.instant() does not update when a user toggles languages. Let the template handle translations where possible and make sure to test the toggle experience for any translations in your .ts file.
+translate.instant() does not update when a user toggles languages. Let the template handle translations where possible and make sure to test the toggle experience for any translations in your .ts file. This isn't an issue with toast messages or other temporary content.
+
+## Official translations
+
+Changes to translation files should be sent for official review before each release to ensure quality.
+
+**Note: We intentially left the French acronym as AIDA since it sounds close to aide/help which is similar to the meaning conveyed in English.**
+
+### Tracking Translation Batches
+
+We use git tags to mark when translation files are sent for review and when they are updated with the official translation. This makes it easy to check if anything changed while the content was being translated or since the last translation. Make sure to commit any changes before creating a tag.
+
+**Find all translation tags:**
+```bash
+git tag -l "translation-*"
+```
+
+Find the latest completed tag in the list and run a diff to check for changes.
+
+**Compare current files to most recent completed tag:**
+```bash
+git --no-pager diff -U0 translation-[mmmyyyy]-completed -- public/i18n/
+```
+
+If there are changes, copy the keys to a word document to send for review and create a new tag with the date in mmmyyyy format (eg. Feb2026).
+
+**Create a translation tag:**
+```bash
+git tag translation-mmmyyyy
+git push origin dev --tags
+```
+
+When you get the changes back, check for any changes since you sent the files for review.
+
+**Compare current files to the tag you created:**
+```bash
+git tag -l "translation-*"
+git --no-pager diff -U0 translation-[mmmyyyy] -- public/i18n/
+```
+
+If there are changes, send them for translation. After all translations are updated, commit the changes and create a completed tag.
+
+**Create a completed translation tag:**
+```bash
+git tag translation-mmmyyyy-complete
+git push origin dev --tags
+```
 
 ---
 
