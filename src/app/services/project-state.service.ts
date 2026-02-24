@@ -924,4 +924,7 @@ export class ProjectStateService {
         return descendants;
     }
 
+    //Store settings for inventory table
+    selectedInventoryView: 'table' | 'tree' = 'table';
+
 }

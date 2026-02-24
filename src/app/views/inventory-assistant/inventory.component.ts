@@ -392,37 +392,6 @@ export class InventoryComponent implements OnInit {
         return this.scrollableColumns.some(col => col.group === 'metadata');
     }
 
-
-
-
-
-
-
-
-
-
-    /*
-    
-        isMetadataColumn(field: string): boolean {
-            return ['title', 'description', 'keywords'].includes(field);
-        }
-    
-    
-    
-    
-        
-        onColumnGroupToggle(group: ColumnGroup) {
-            // When toggling a group, set all its columns to match
-            group.columns.forEach(col => {
-                col.visibleByDefault = group.visible;
-            });
-            this.updateVisibleColumns();
-            this.saveColumnVisibility();
-        }
-    */
-
-
-
     onDeleteSelected() {
         if (!this.selectedNodes.length) return;
         const additionalDeletions = this.projectState.checkDeletionImpact(this.selectedNodes);
@@ -486,12 +455,7 @@ export class InventoryComponent implements OnInit {
         });
     }
 
-    onExportCsv() {
-        this.projectState.exportTreeAsCsv();
-    }
-
-
-    //ONLY NEEDED FOR TESTING UNLESS WE WANT A RESET TO DEFAULTS VIEW
+    //Reset to default view
     resetColumnSettings() {
         localStorage.removeItem('inventoryColumnVisibility');
         localStorage.removeItem('inventoryGroupVisibility');
@@ -513,10 +477,9 @@ export class InventoryComponent implements OnInit {
         { key: 'inventory.view.table', value: 'table', icon: '' },
         { key: 'inventory.view.tree', value: 'tree', icon: '' },
     ];
-    selectedView = 'table'
 
     changeView() {
-        console.log(this.selectedView)
+        console.log(this.projectState.selectedInventoryView)
     }
 
     // Get column group headings (includes frozen)
