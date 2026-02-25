@@ -399,6 +399,7 @@ export class InventoryComponent implements OnInit {
             this.showDeletionConfirmation(this.selectedNodes.length, additionalDeletions);
         } else {
             this.confirmationService.confirm({
+                key: 'inventory',
                 message: `Delete ${this.selectedNodes.length} page(s)?`,
                 header: 'Confirm Deletion',
                 icon: 'pi pi-exclamation-circle',
@@ -440,6 +441,7 @@ export class InventoryComponent implements OnInit {
     `.trim();
 
         this.confirmationService.confirm({
+            key: 'inventory',
             message,
             header: 'Confirm Deletion',
             icon: 'pi pi-exclamation-triangle',

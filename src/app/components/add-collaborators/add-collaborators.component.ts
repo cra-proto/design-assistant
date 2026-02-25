@@ -52,6 +52,7 @@ export class AddCollaboratorsComponent implements OnInit {
         const currentUser = this.exportGithub.user();
         if (currentUser && collab.id === currentUser.id) {
             this.confirmationService.confirm({
+                key: 'collab',
                 icon: 'pi pi-exclamation-triangle',
                 header: this.translate.instant('collaborators.confirm.removeSelf.header'),
                 message: this.translate.instant('collaborators.confirm.removeSelf.message'),

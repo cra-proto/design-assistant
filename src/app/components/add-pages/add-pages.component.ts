@@ -267,6 +267,7 @@ export class AddPagesComponent implements OnInit {
     // Popup message for revalidation of duplicate links
     confirmDuplicate(event: Event, link: UrlItem) {
         this.confirmationService.confirm({
+            key: "addPages",
             target: event.target as EventTarget,
             message: this.translate.instant('addPages.duplicate.message'),
             icon: 'pi pi-exclamation-triangle text-orange-500',
@@ -295,6 +296,7 @@ export class AddPagesComponent implements OnInit {
     onAddPages(event: Event) {
         if (!this.validationState.isOk) {
             this.confirmationService.confirm({
+                key: "addPages",
                 target: event.target as EventTarget,
                 message: this.translate.instant('addPages.proceedAnyway.message'),
                 header: this.translate.instant('addPages.proceedAnyway.header'),
