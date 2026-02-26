@@ -320,8 +320,12 @@ export class ExportGitHubService {
     let pageContent = "";
 
     // Custom styles and scripts
-    const styles = doc.querySelectorAll("style");
-    const scripts = doc.querySelectorAll("body script:not([src])");
+    Array.from(doc.querySelectorAll("style"))
+      .map(s => `<style>${s.textContent}</style>`)
+      .join('\n');
+    Array.from(doc.querySelectorAll("body script:not([src])"))
+      .map(s => `<script>${s.textContent}</script>`)
+      .join('\n');
 
     if (mainEl) {
       // Remove page details
