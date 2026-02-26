@@ -319,6 +319,14 @@ export class ExportGitHubService {
     const mainEl = doc.querySelector("main");
     let pageContent = "";
 
+    // Custom styles and scripts
+    const styles = Array.from(doc.querySelectorAll("style"))
+      .map(s => `<style>${s.textContent}</style>`)
+      .join('\r\n');
+    const scripts = Array.from(doc.querySelectorAll("body script:not([src])"))
+      .map(s => `<script>${s.textContent}</script>`)
+      .join('\r\n');
+
     if (mainEl) {
       // Remove page details
       mainEl.querySelectorAll("section.pagedetails").forEach(s => s.remove());
@@ -403,7 +411,7 @@ export class ExportGitHubService {
     pageContent = await this.formatHtmlWithPrettier(pageContent);
 
     // Content in jekyll format
-    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\n${auth}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || "  []"}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${pageContent}`;
+    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\n${auth}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || "  []"}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
 
     return frontMatter;
   }
