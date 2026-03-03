@@ -1,7 +1,8 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { FetchService } from '../fetch.service';
+
 import { GitHubAuthService } from './github-auth.service';
-import { GitHubUser, ProjectMetadata, Project } from '../../common/data.model';
+import { GitHubUser } from '../../common/data.model';
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../../environments/environment';
 
@@ -416,6 +417,31 @@ export class ExportGitHubService {
     return frontMatter;
   }
 
+  public formatNewPageAsJekyll(node: TreeNode, breadcrumbs: { title: string; link: string }[], owner: string, repo: string): string {
+    // Determine language from URL
+    const lang = node.data.url.includes('/fr/') ? 'fr' : 'en';
+
+    // Extract metadata from node
+    const title = node.data.h1 || "";
+    const description = node.data.metadata?.description || "";
+    const keywords = node.data.metadata?.keywords || "";
+    const dateModified = new Date().toISOString().split('T')[0];
+
+    const crumbsYaml = breadcrumbs.length > 0
+      ? breadcrumbs.map(crumb => `  - title: "${crumb.title}"\r\n    link: "${crumb.link}"`).join("\r\n")
+      : "  []";
+
+    // Sign in button based on language
+    const auth = lang === "en"
+      ? `auth:\r\n  type: "contextual"\r\n  label: "Sign in"\r\n  labelExtended: "CRA sign in"\r\n  link: "https://www.canada.ca/en/revenue-agency/services/e-services/cra-login-services.html"`
+      : `auth:\r\n  type: "contextual"\r\n  label: "Se connecter"\r\n  labelExtended: "Se connecter à l'ARC"\r\n  link: "https://www.canada.ca/fr/agence-revenu/services/services-electroniques/services-ouverture-session-arc.html"`;
+
+    // Build front matter
+    const frontMatter = `---\r\nlayout: default\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: ""\r\nkeywords: "${keywords}"\r\n${auth}\r\naltLangPage: ""\r\ndateModified: ${dateModified}\r\ndateIssued: ${dateModified}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${node.data.url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n<!-- Add your content here -->`;
+
+    return frontMatter;
+  }
+
   private async createConfigYaml(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>): Promise<void> {
     const content = `---
 # standard jekyll configuration
@@ -490,7 +516,7 @@ defaults:
         `
     try {
       console.log(`Creating _config.yml for ${repo}`);
-      await this.exportToGitHub(owner, repo, branch, "_config.yml", "_config.yml", content, token, existingFiles, false, false);
+      await this.exportToGitHub(owner, repo, branch, "_config.yml", "_config.yml", content, token, existingFiles, true, false);
     } catch (error) {
       console.error(`Failed to create _config.yml for ${repo}:`, error);
     }
@@ -514,7 +540,7 @@ noFooterCorporate: true
 noFooterMain: true
 ---
 
-<div class="mrgn-tp-md brdr-bttm">
+<div class="mrgn-tp-md">
     <div class="row">
         <ul class="toc lst-spcd col-md-12">
             <li class="col-md-4 col-sm-6"><a class="list-group-item active" data-exit="false" href="https://github.com/${owner}/${repo}/tree/main">GitHub repository</a></li>
@@ -524,15 +550,13 @@ noFooterMain: true
 <ul>
 {% assign sitePages = site.pages | sort: "url" %}
 {% for p in sitePages %}
-    {% include sitemaplink.html url = p.url title = p.title %}
-    {% assign page_url = p.url | slice: 1, p.url.size %}
-    {% assign folder_path = page_url | split: "/" %}
+    <li><a href="{{ site.baseurl }}{{ p.url }}">{{ p.title | default: p.url }}</a></li>
 {% endfor %}
 </ul>`
 
     try {
       console.log(`Creating sitemap for ${repo}`);
-      await this.exportToGitHub(owner, repo, branch, "index.html", "index.html", content, token, existingFiles, false, false);
+      await this.exportToGitHub(owner, repo, branch, "index.html", "index.html", content, token, existingFiles, true, false);
     } catch (error) {
       console.error(`Failed to create sitemap for ${repo}:`, error);
     }
@@ -604,11 +628,17 @@ ${mermaidChart}
     `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/404.html`,
   ];
 
-  private async copyCoreFiles(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>) {
+  private async copyCoreFiles(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>, templateFilesToExport: string[]) {
     for (const file of this.filesToCopy) {
       try {
         const urlParts = new URL(file).pathname.split("/");
         const destPath = urlParts.slice(4).join("/"); // everything after /main/
+
+        // Check if user wants to export this file
+        if (!templateFilesToExport.includes(destPath)) {
+          console.log(`Skipping ${destPath} - not in export list`);
+          continue;
+        }
 
         // Fetch file content from source repo   
         const response = await this.fetchService.fetchWithRetry(file, "GET");
@@ -716,23 +746,29 @@ ${mermaidChart}
     return response.json();
   }
 
-  public async setupRepo(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>, treeNodes?: TreeNode[]) {
+  public async setupRepo(owner: string, repo: string, branch: string, token: string, templateFilesToExport: string[], treeNodes?: TreeNode[]) {
     const exists = await this.repoExists(owner, repo);
 
     //Create repo
     if (!exists) {
       await this.createRepo(owner, repo, branch, token);
       await this.enablePages(owner, repo, branch, token);
-      const existingFiles = await this.getRepoTree(owner, repo, branch, token);
-      await this.createInitialReadme(owner, repo, branch, token, existingFiles, treeNodes);
     } else {
       console.log(`Repo ${owner}/${repo} already exists. Skipping creation.`);
     }
 
-    // Now push files
-    await this.copyCoreFiles(owner, repo, branch, token, existingFiles);
-    await this.createConfigYaml(owner, repo, branch, token, existingFiles);
-    //await this.createSitemap(owner, repo, branch, token, existingFiles);
+    // Add template files
+    const existingFiles = await this.getRepoTree(owner, repo, branch, token);
+    if (templateFilesToExport.includes('README.md')) {
+      await this.createInitialReadme(owner, repo, branch, token, existingFiles, treeNodes);
+    }
+    if (templateFilesToExport.includes('_config.yml')) {
+      await this.createConfigYaml(owner, repo, branch, token, existingFiles);
+    }
+    if (templateFilesToExport.includes('index.html')) {
+      await this.createSitemap(owner, repo, branch, token, existingFiles);
+    }
+    await this.copyCoreFiles(owner, repo, branch, token, existingFiles, templateFilesToExport);
   }
 
   //Check for existing files in a repo

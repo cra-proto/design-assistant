@@ -61,6 +61,8 @@ interface ExportProgress {
 
 export interface PageData {
   url: string;
+  path: string;
+  filename: string;
   content: string;
 }
 
@@ -295,9 +297,28 @@ export class ExportGithubComponent implements OnInit {
 
     if (scope && repo) {
       try {
-        const doc = await this.fetchService.fetchContent(node.data.url, "prod");
-        const jekyllFormatted = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, repo);
-        pages.push({ url: node.data.url, content: jekyllFormatted });
+        // Extract path and filename
+        const path = new URL(node.data.url).pathname.replace(/^\/+/, "");
+        const filename = path.split("/").pop() || "index.html";
+
+        // Check if skipped or new
+        const fileRow = this.filesTable().find(f => f.path === path);
+        const isSkipped = fileRow?.status === ExportStatus.SkipNew ||
+          fileRow?.status === ExportStatus.SkipOverwrite;
+        const isNew = node?.data?.status?.isNew === true;
+
+        // Set content
+        let content: string;
+        if (isSkipped) { content = '<!-- Skipped file -->'; }
+        else if (isNew) {
+          const breadcrumbs = this.projectState.getBreadcrumbChain(node.data.url);
+          content = this.exportGitHubService.formatNewPageAsJekyll(node, breadcrumbs.slice(1), this.gitHubData().owner, repo)
+        }
+        else {
+          const doc = await this.fetchService.fetchContent(node.data.url, "prod");
+          content = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, repo);
+        }
+        pages.push({ url: node.data.url, path, filename, content });
       } catch (error) {
         console.error(`Error fetching content for ${node.data.url}:`, error);
       }
@@ -343,17 +364,18 @@ export class ExportGithubComponent implements OnInit {
 
     console.log("Exporting pages to GitHub:", exportPages);
 
-    // Step 3: Check for existing files in repo
+    // Step 3: Check for templates files to include
     setTimeout(() => { this.exportProgress.set({ step: 'github.export.progress.step3', progress: 15 }); }, 1000);
-    const existingFiles = await this.exportGitHubService.getRepoTree(owner, repo, branch, token);
+    const templateFilesToExport = this.templateTable()
+      .filter(f => f.status === ExportStatus.ExportNew || f.status === ExportStatus.ExportOverwrite)
+      .map(f => f.path);
 
-    // Step 4: Set up repo (create it if it doesn't exist, add _config.yml and copy over core files)
+    // Step 4: Set up repo (create it if it doesn't exist, add template files)
     setTimeout(() => { this.exportProgress.set({ step: 'github.export.progress.step4', progress: 20 }); }, 1000);
-    await this.exportGitHubService.setupRepo(owner, repo, branch, token, existingFiles, nodes);
-
-    console.log("Repository setup complete.");
+    await this.exportGitHubService.setupRepo(owner, repo, branch, token, templateFilesToExport, nodes);
 
     // Step 5: Export each page to GitHub
+    const existingFiles = await this.exportGitHubService.getRepoTree(owner, repo, branch, token);
     const progressPerFile = 60 / exportPages.length;
     for (const [index, page] of exportPages.entries()) {
       try {
@@ -367,7 +389,7 @@ export class ExportGithubComponent implements OnInit {
         console.error(`Error exporting ${page.path}:`, error);
       }
     }
-    // Step 6: Add redirect file
+    // Step 6: Add redirect & index file
     setTimeout(() => { this.exportProgress.set({ step: 'github.export.progress.step6', progress: 90 }); }, 1000);
     const redirects = allPages.map(page => ({
       origin: page.url,
@@ -428,6 +450,7 @@ export class ExportGithubComponent implements OnInit {
       { path: "_includes/resources-inc/footer.html", content: "<!-- footer -->" }, //copied from core-prototype
       { path: "source/exit-intent-e.html", content: "<!-- exit intent - english -->" }, //copied from core-prototype
       { path: "source/data/exclude-redirect-links.json", content: "<!-- redirects -->" }, //generated for all pages in repo
+      { path: "index.html", content: "<!-- sitemap -->" }, //generated for all pages in repo
     ];
 
     const jekyllSkipFiles: { path: string; content: string }[] = [
