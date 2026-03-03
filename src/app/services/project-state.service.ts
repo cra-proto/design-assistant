@@ -927,4 +927,38 @@ export class ProjectStateService {
     //Store settings for inventory table
     selectedInventoryView: 'table' | 'tree' = 'table';
 
+    // Get breadcrumb chain by url
+    getBreadcrumbChain(url: string): { title: string; link: string }[] {
+        const breadcrumbs: { title: string; link: string }[] = [];
+
+        const findAndBuildChain = (
+            nodes: TreeNode<ProjectTreeNodeData>[],
+            targetUrl: string,
+            ancestors: TreeNode<ProjectTreeNodeData>[] = []
+        ): boolean => {
+            for (const node of nodes) {
+                // When URL is found, build breadcrumb from collected ancestors
+                if (node.data?.url === targetUrl) {
+                    for (const ancestor of ancestors) {
+                        if (ancestor.data?.url) {
+                            breadcrumbs.push({
+                                title: ancestor.data.h1 || ancestor.label || "",
+                                link: ancestor.data.url
+                            });
+                        }
+                    }
+                    return true;
+                }
+                // When URL not found, add current node to ancestors and recurse into children
+                else if (node.children?.length) {
+                    const found = findAndBuildChain(node.children, targetUrl, [...ancestors, node]);
+                    if (found) return true;
+                }
+            }
+            return false;
+        };
+
+        findAndBuildChain(this.project().projectData, url);
+        return breadcrumbs;
+    }
 }

@@ -417,6 +417,31 @@ export class ExportGitHubService {
     return frontMatter;
   }
 
+  public formatNewPageAsJekyll(node: TreeNode, breadcrumbs: { title: string; link: string }[], owner: string, repo: string): string {
+    // Determine language from URL
+    const lang = node.data.url.includes('/fr/') ? 'fr' : 'en';
+
+    // Extract metadata from node
+    const title = node.data.h1 || "";
+    const description = node.data.metadata?.description || "";
+    const keywords = node.data.metadata?.keywords || "";
+    const dateModified = new Date().toISOString().split('T')[0];
+
+    const crumbsYaml = breadcrumbs.length > 0
+      ? breadcrumbs.map(crumb => `  - title: "${crumb.title}"\r\n    link: "${crumb.link}"`).join("\r\n")
+      : "  []";
+
+    // Sign in button based on language
+    const auth = lang === "en"
+      ? `auth:\r\n  type: "contextual"\r\n  label: "Sign in"\r\n  labelExtended: "CRA sign in"\r\n  link: "https://www.canada.ca/en/revenue-agency/services/e-services/cra-login-services.html"`
+      : `auth:\r\n  type: "contextual"\r\n  label: "Se connecter"\r\n  labelExtended: "Se connecter à l'ARC"\r\n  link: "https://www.canada.ca/fr/agence-revenu/services/services-electroniques/services-ouverture-session-arc.html"`;
+
+    // Build front matter
+    const frontMatter = `---\r\nlayout: default\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: ""\r\nkeywords: "${keywords}"\r\n${auth}\r\naltLangPage: ""\r\ndateModified: ${dateModified}\r\ndateIssued: ${dateModified}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${node.data.url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n<!-- Add your content here -->`;
+
+    return frontMatter;
+  }
+
   private async createConfigYaml(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>): Promise<void> {
     const content = `---
 # standard jekyll configuration

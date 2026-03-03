@@ -61,6 +61,8 @@ interface ExportProgress {
 
 export interface PageData {
   url: string;
+  path: string;
+  filename: string;
   content: string;
 }
 
@@ -295,9 +297,28 @@ export class ExportGithubComponent implements OnInit {
 
     if (scope && repo) {
       try {
-        const doc = await this.fetchService.fetchContent(node.data.url, "prod");
-        const jekyllFormatted = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, repo);
-        pages.push({ url: node.data.url, content: jekyllFormatted });
+        // Extract path and filename
+        const path = new URL(node.data.url).pathname.replace(/^\/+/, "");
+        const filename = path.split("/").pop() || "index.html";
+
+        // Check if skipped or new
+        const fileRow = this.filesTable().find(f => f.path === path);
+        const isSkipped = fileRow?.status === ExportStatus.SkipNew ||
+          fileRow?.status === ExportStatus.SkipOverwrite;
+        const isNew = node?.data?.status?.isNew === true;
+
+        // Set content
+        let content: string;
+        if (isSkipped) { content = '<!-- Skipped file -->'; }
+        else if (isNew) {
+          const breadcrumbs = this.projectState.getBreadcrumbChain(node.data.url);
+          content = this.exportGitHubService.formatNewPageAsJekyll(node, breadcrumbs.slice(1), this.gitHubData().owner, repo)
+        }
+        else {
+          const doc = await this.fetchService.fetchContent(node.data.url, "prod");
+          content = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, repo);
+        }
+        pages.push({ url: node.data.url, path, filename, content });
       } catch (error) {
         console.error(`Error fetching content for ${node.data.url}:`, error);
       }
