@@ -396,3 +396,8 @@ html.dark-mode .secondary-outline {
     transform: translateX(-10px);
   }
 }
+
+/*Override width of tree node labels*/
+.p-tree .p-tree-node-label {
+  width: 100%;
+}
