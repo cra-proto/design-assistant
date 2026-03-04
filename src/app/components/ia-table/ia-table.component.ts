@@ -308,7 +308,9 @@ export class IaTableComponent {
         if (this.selectedNode) {
             this.selectedNode.data.editing = null;
         }
-        if (!this.selectedNode.data.url.endsWith('.html')) { this.editNode('link'); return; } // don't allow default URLs
+        if (!this.selectedNode.data.url.endsWith('.html')) {
+            this.selectedNode.data.url = this.selectedNode.data.url.replace(/\/$/, '') + '.html'; // add .html if missing
+        }
         this.draggable = true;
         this.selectable = false;
         this.projectState.setModifiedDate();

@@ -4,14 +4,14 @@
         [selectionMode]="selectable ? 'multiple' : null" [(selection)]="selectedNode"
         [draggableNodes]="draggable" [droppableNodes]="true" draggableScope="self" droppableScope="self" (onNodeDrop)="handleNodeDrop($event)" [validateDrop]="true"
         [contextMenu]="cm" (onNodeContextMenuSelect)="onNodeContextMenu($event)">
-    <ng-template pTemplate="default" let-node class="w-full">
-        <div class="flex flex-row align-items-center gap-2 w-full">
+    <ng-template pTemplate="default" let-node>
+        <div class="flex flex-row align-items-center gap-2">
             @if(node.data.editing){
             <!--Edit mode-->
             <i class="pi pi-pencil text-color-secondary"></i>
             @if(node.data.editing === 'label'){
             <p-inputgroup>
-                <input type="text" pInputText [(ngModel)]="node.data.h1" pSize="small" class="ia-label" (keydown)="onInputKeydown($event)" />
+                <input type="text" pInputText [(ngModel)]="node.data.h1" pSize="small" class="ia-label" (keydown)="onInputKeydown($event)" fluid />
                 <p-inputgroup-addon><p-button icon="pi pi-check" severity="secondary" size="small" (onClick)="saveNode()" /></p-inputgroup-addon>
             </p-inputgroup>
             } @else if(node.data.editing === 'link'){
