@@ -32,9 +32,9 @@ export interface AiRequestState {
 
 // Free models available on OpenRouter — update as needed
 export const OpenRouterModels = {
-    mistral: 'mistralai/mistral-7b-instruct:free',
-    llama: 'meta-llama/llama-3.2-3b-instruct:free',
-    gemma: 'google/gemma-3-4b-it:free',
+    first: 'qwen/qwen3-next-80b-a3b-instruct:free',
+    second: 'nvidia/nemotron-3-nano-30b-a3b:free',
+    third: 'stepfun/step-3.5-flash:free',
 } as const;
 
 export type ModelKey = keyof typeof OpenRouterModels;
@@ -48,9 +48,9 @@ export class OpenRouterService {
 
     // Default fallback chain — free models in preference order
     readonly defaultModels: string[] = [
-        OpenRouterModels.mistral,
-        OpenRouterModels.llama,
-        OpenRouterModels.gemma,
+        OpenRouterModels.first,
+        OpenRouterModels.second,
+        OpenRouterModels.third,
     ];
 
     readonly state = signal<AiRequestState>({
