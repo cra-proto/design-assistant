@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "build": "tsc && npm run package",
-        "package": "echo 'Packaging handled by GitHub Actions'",
+        "package": "cd dist && zip -r index.zip . && cd ..",
         "clean": "rm -rf dist"
     },
     "dependencies": {

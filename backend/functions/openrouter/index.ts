@@ -54,7 +54,7 @@ async function getOpenRouterKey(): Promise<string> {
     if (!response.SecretString) throw new Error('Secret not found');
 
     const secrets = JSON.parse(response.SecretString) as APIKeySecrets;
-    cachedApiKey = secrets.openrouter.free;
+    cachedApiKey = secrets.openrouter.paid;
     return cachedApiKey;
 }
 
@@ -66,11 +66,6 @@ const corsHeaders = {
 };
 
 export const handler = async (event: any): Promise<any> => {
-
-    // Preflight check
-    if (event.requestContext?.http?.method === 'OPTIONS') {
-        return { statusCode: 200, headers: corsHeaders, body: '' };
-    }
 
     // Parse & validate request body
     let body: OpenRouterRequest;
