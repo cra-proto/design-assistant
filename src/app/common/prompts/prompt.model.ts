@@ -14,7 +14,13 @@ function markForTranslation() {
     marker('aiPrompt.rubric.noCommentary');
     marker('aiPrompt.rubric.preserveHtmlStructure');
     marker('aiPrompt.rubric.characterLimit');
+    marker('aiPrompt.rubric.description');
+    marker('aiPrompt.rubric.descriptionEN');
+    marker('aiPrompt.rubric.descriptionFR');
+    marker('aiPrompt.rubric.keywords');
+    marker('aiPrompt.rubric.craTermTranslations');
 
+    marker('aiPrompt.inventory.metadata');
     marker('aiPrompt.inventory.description');
     marker('aiPrompt.inventory.keywords');
 
@@ -52,10 +58,16 @@ export enum RubricKey {
     NoCommentary = 'aiPrompt.rubric.noCommentary',
     PreserveHtmlStructure = 'aiPrompt.rubric.preserveHtmlStructure',
     CharacterLimit = 'aiPrompt.rubric.characterLimit',
+    Description = 'aiPrompt.rubric.description',
+    DescriptionEN = 'aiPrompt.rubric.descriptionEN',
+    DescriptionFR = 'aiPrompt.rubric.descriptionFR',
+    Keywords = 'aiPrompt.rubric.keywords',
+    CraTermTranslations = 'aiPrompt.rubric.craTermTranslations',
 }
 
 //Inventory task fragments
 export enum InventoryPromptKey {
+    Metadata = 'aiPrompt.inventory.metadata',
     Description = 'aiPrompt.inventory.description',
     Keywords = 'aiPrompt.inventory.keywords',
 }

@@ -29,6 +29,7 @@ import { PromptConfig, RoleKey, OutputKey, RubricKey, InventoryPromptKey, PagePr
 import { ExportGitHubService } from '../../../services/github/export-github.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
 import { OpenRouterService, OpenRouterResponse } from '../../../services/ai/openrouter.service';
+import { AiPromptService } from '../../../services/ai/prompt.service';
 
 //Diff
 import type { Diff2HtmlUIConfig } from 'diff2html/lib/ui/js/diff2html-ui-slim';
@@ -64,6 +65,7 @@ export class PromptEditorComponent {
     private exportGitHubService = inject(ExportGitHubService);
     private settingsService = inject(UserSettingsService);
     private openRouterService = inject(OpenRouterService);
+    private aiPromptService = inject(AiPromptService);
 
     // Breadcrumbs
     breadcrumbs = [{ label: 'dev._title', route: '/dev' }, { label: 'dev.prompts._title' }]
@@ -210,19 +212,20 @@ export class PromptEditorComponent {
 
     //For testing
     readonly aiState = this.openRouterService.state;
+    aiPrompt = this.aiPromptService.composePrompt(InventoryPrompts[InventoryPromptKey.Metadata]);
     description = "Official CRA information on Canadian taxes. File your return, manage payments, and explore credits and deductions for individuals and businesses."
     response: OpenRouterResponse | null = null;
     result = ""
 
     async testResponse() {
         this.response = await this.openRouterService.sendToAI(
-            InventoryPrompts[InventoryPromptKey.Description],
+            InventoryPrompts[InventoryPromptKey.Metadata],
             this.description
         );
     }
     async testResult() {
         this.result = await this.openRouterService.getTextFromAI(
-            InventoryPrompts[InventoryPromptKey.Description],
+            InventoryPrompts[InventoryPromptKey.Metadata],
             this.description
         );
     }

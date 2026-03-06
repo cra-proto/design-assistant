@@ -7,14 +7,14 @@ export class AiPromptService {
 
     composePrompt(config: PromptConfig): string {
         const parts = [
-            RoleFragment[config.role],
-            config.task,
+            config.role ? `### Role\n${RoleFragment[config.role]}` : null,
+            config.task ? `### Task\n${config.task}` : null,
             this.formatRubric(config.rubric),
-            OutputFragment[config.output],
+            config.output ? `### Output requirements\n${OutputFragment[config.output]}` : null,
         ].filter(p => p);
 
         if (config.output === OutputKey.Json && config.jsonSchema) {
-            parts.push(`\nRequired JSON schema:\n${config.jsonSchema}`);
+            parts.push(`### JSON schema\n${config.jsonSchema}`);
         }
 
         return parts.join('\n\n');
@@ -23,6 +23,6 @@ export class AiPromptService {
     private formatRubric(rubricKeys: RubricKey[]): string {
         if (!rubricKeys?.length) return '';
         const criteria = rubricKeys.map(key => RubricFragment[key]);
-        return `Quality criteria:\n${criteria.map((c, i) => `${i + 1}. ${c}`).join('\n')}`;
+        return `### Quality criteria\n${criteria.map((c, i) => `${i + 1}. ${c}`).join('\n')}`;
     }
 }
