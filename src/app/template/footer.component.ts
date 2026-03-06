@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { TranslateModule } from "@ngx-translate/core";
-import { ThemeService } from '../services/theme.service';
+import { UserSettingsService } from '../services/user-settings.service';
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -17,10 +17,10 @@ import { environment } from '../../environments/environment';
   styles: ``
 })
 export class FooterComponent {
-  private theme = inject(ThemeService);
+  private settingsService = inject(UserSettingsService);
   version = environment.version
 
   get logoSrc() {
-    return this.theme.darkMode() ? 'wmms-wht.svg' : 'wmms-blk.svg';
+    return this.settingsService.darkMode() ? 'wmms-wht.svg' : 'wmms-blk.svg';
   }
 }

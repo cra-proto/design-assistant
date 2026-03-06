@@ -21,9 +21,7 @@ interface MermaidNode {
   children: MermaidNode[];
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ExportGitHubService {
   private fetchService = inject(FetchService);
   private authService = inject(GitHubAuthService);

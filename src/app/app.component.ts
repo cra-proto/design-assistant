@@ -6,7 +6,6 @@ import { TranslateModule } from "@ngx-translate/core";
 import { HeaderComponent } from './template/header.component';
 import { SidebarComponent } from './template/sidebar.component';
 import { FooterComponent } from './template/footer.component';
-import { LocalStorageService } from './services/storage/local-storage.service';
 import { CustomTitleStrategy } from './common/custom-title-strategy';
 import { PrimeNG } from 'primeng/config';
 import { ProjectStorageService } from './services/storage/project-storage.service';
@@ -14,7 +13,7 @@ import { ProjectStateService } from './services/project-state.service';
 import { ExportGitHubService } from './services/github/export-github.service';
 import { CollaboratorService } from './services/collaborator.service';
 import { CloudStorageService } from './services/storage/cloud-storage.service';
-import { ThemeService } from './services/theme.service';
+import { UserSettingsService } from './services/user-settings.service';
 
 @Component({
   selector: 'aida-root',
@@ -25,16 +24,15 @@ import { ThemeService } from './services/theme.service';
 export class AppComponent implements OnInit {
   CustomTitle = inject(CustomTitleStrategy);
   titleService = inject(Title);
-  localStore = inject(LocalStorageService);
   private primeng = inject(PrimeNG);
   router = inject(Router);
   route = inject(ActivatedRoute);
-  projectStorage = inject(ProjectStorageService);
-  private cloudStorage = inject(CloudStorageService)
-  projectState = inject(ProjectStateService);
+  private projectStorageService = inject(ProjectStorageService);
+  private cloudStorageService = inject(CloudStorageService)
+  private projectState = inject(ProjectStateService);
   private exportGitHubService = inject(ExportGitHubService);
   private collaboratorService = inject(CollaboratorService);
-  private themeService = inject(ThemeService);
+  private settingsService = inject(UserSettingsService);
 
   constructor() {
     // Auto-add current user as collaborator when they sign in
@@ -59,14 +57,14 @@ export class AppComponent implements OnInit {
       if (params['org'] !== undefined) {
         this.handleStorageParam('myOrg', params['org']);
         delete allParams['org']
-        this.cloudStorage.loadProjects();
+        this.cloudStorageService.loadProjects();
       }
 
       // Handle toolbox parameter
       if (params['toolbox'] !== undefined) {
         this.handleStorageParam('myToolbox', params['toolbox']);
         delete allParams['toolbox']
-        this.themeService.toolbox.set(localStorage.getItem('myToolbox'));
+        this.settingsService.toolbox.set(localStorage.getItem('myToolbox'));
       }
 
       // Remove processed parameters
@@ -93,22 +91,22 @@ export class AppComponent implements OnInit {
 
   // Load previously active project
   async loadProject() {
-    const active = this.projectStorage.getActiveProject();
+    const active = this.projectStorageService.getActiveProject();
     if (!active) return;
     console.log(`Attempting to load active project: ${active.key} from ${active.storageType}`);
     try {
-      const project = await this.projectStorage.loadProject(active.key, active.storageType);
+      const project = await this.projectStorageService.loadProject(active.key, active.storageType);
       if (project) {
         this.projectState.setProject(project); // Update the project state
         console.log(`Project loaded successfully: ${active.key}`)
       } else {
         console.error(`Failed to load project: ${active.key}`); // Show error message
-        this.projectStorage.clearActiveProject();
+        this.projectStorageService.clearActiveProject();
       }
     }
     catch (error) {
       console.error(`Error loading active project: ${active.key}`, error)
-      this.projectStorage.clearActiveProject();
+      this.projectStorageService.clearActiveProject();
     }
   }
 }

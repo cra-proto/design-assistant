@@ -1,10 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { ThemeService } from './theme.service';
+import { UserSettingsService } from './user-settings.service';
 import { TreeNode } from 'primeng/api';
 
 @Injectable({ providedIn: 'root' })
 export class TreeNodeStyleService {
-    private theme = inject(ThemeService)
+    private theme = inject(UserSettingsService)
 
     //TreeNode styles
     public updateNodeStyles(nodes: TreeNode[] | null, level = 0): void {

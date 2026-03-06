@@ -9,7 +9,6 @@ import { MenuItem } from 'primeng/api';
 
 //Services
 import { ProjectStateService } from '../../services/project-state.service';
-import { ProjectStorageService } from '../../services/storage/project-storage.service';
 
 @Component({
     selector: 'aida-export-project',
@@ -21,9 +20,7 @@ import { ProjectStorageService } from '../../services/storage/project-storage.se
     styles: ``
 })
 export class ExportProjectComponent {
-
-    projectState = inject(ProjectStateService);
-    projectStorage = inject(ProjectStorageService);
+    private projectState = inject(ProjectStateService);
 
     markForTranslation() {
         marker('export.github');

@@ -28,8 +28,8 @@ import { ProjectPhase } from '../../common/data.model';
     styles: ``
 })
 export class SetupProjectComponent {
-    projectState = inject(ProjectStateService);
-    collaboratorService = inject(CollaboratorService);
+    private projectState = inject(ProjectStateService);
+    private collaboratorService = inject(CollaboratorService);
     router = inject(Router);
 
     constructor() {

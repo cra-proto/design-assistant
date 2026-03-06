@@ -28,7 +28,7 @@ import { FindPagesComponent } from '../../components/find-pages/find-pages.compo
   styles: ``
 })
 export class EditProjectComponent {
-  projectState = inject(ProjectStateService);
+  public projectState = inject(ProjectStateService);
   iaDiagram = inject(IaDiagramService);
 
   //Check if project is named and has repo

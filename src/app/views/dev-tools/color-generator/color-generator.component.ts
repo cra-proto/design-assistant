@@ -15,7 +15,7 @@ import { UserSettingsComponent } from '../../../components/user-settings/user-se
 import { ColorPickerComponent } from './color-picker.component';
 import { CopyPresetComponent } from './copy-preset.component';
 
-import { ThemeService } from '../../../services/theme.service';
+import { UserSettingsService } from '../../../services/user-settings.service';
 import { updatePreset } from '@primeng/themes';
 
 @Component({
@@ -31,7 +31,7 @@ import { updatePreset } from '@primeng/themes';
   styles: ``
 })
 export class ColorGeneratorComponent {
-  theme = inject(ThemeService);
+  public settingsService = inject(UserSettingsService);
   customShades: Record<string, Record<number, string>> = {};
 
   breadcrumbs = [{ label: 'dev._title', route: '/dev' }, { label: 'dev.colors._title' }]
@@ -52,7 +52,7 @@ export class ColorGeneratorComponent {
   }
 
   updateTheme() {
-    const scheme = this.theme.colorScheme();
+    const scheme = this.settingsService.colorScheme();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let presetPromise: Promise<{ default: any }>;

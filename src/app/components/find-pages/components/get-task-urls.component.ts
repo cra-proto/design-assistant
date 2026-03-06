@@ -36,8 +36,7 @@ export interface TaskOption {
 })
 export class GetTaskUrlsComponent implements OnInit {
   // Services    
-  projectState = inject(ProjectStateService);
-  airtableService = inject(AirtableService);
+  public airtableService = inject(AirtableService);
   translate = inject(TranslateService);
   addPagesState = inject(AddPagesStateService);
   urlValidation = inject(UrlValidationService);

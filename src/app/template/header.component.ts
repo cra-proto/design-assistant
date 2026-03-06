@@ -12,7 +12,7 @@ import { MessageService } from 'primeng/api'
 // Custom
 import { GithubConnectComponent } from "../components/sign-in/github-connect.component";
 import { ProjectStateService } from '../services/project-state.service';
-import { ThemeService } from '../services/theme.service';
+import { UserSettingsService } from '../services/user-settings.service';
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -36,8 +36,8 @@ import { environment } from '../../environments/environment';
         <p-divider layout="vertical" styleClass="mx-0" />
         }
         <aida-github-connect />
-        <p-button (onClick)="theme.toggle()" rounded outlined size="small" severity="secondary" [icon]="theme.icon()" styleClass="darkmode-toggle secondary-outline" ariaLabel="Toggle between dark and light mode" />
-        <p-button (onClick)="theme.toggleLanguage();" rounded text styleClass="underline text-blue-500 hover:text-blue-400 nohover -ml-2" severity="secondary" [ariaLabel]="'_app.oppLang' | translate" >
+        <p-button (onClick)="settingsService.toggle()" rounded outlined size="small" severity="secondary" [icon]="settingsService.icon()" styleClass="darkmode-toggle secondary-outline" ariaLabel="Toggle between dark and light mode" />
+        <p-button (onClick)="settingsService.toggleLanguage();" rounded text styleClass="underline text-blue-500 hover:text-blue-400 nohover -ml-2" severity="secondary" [ariaLabel]="'_app.oppLang' | translate" >
           <span class="hidden sm:inline w-3rem">{{ '_app.oppLang' | translate }}</span>
           <span class="inline sm:hidden w-1rem uppercase font-bold">{{ ('_app.oppLang' | translate | slice:0:2) }}</span>
         </p-button>
@@ -55,8 +55,8 @@ import { environment } from '../../environments/environment';
 })
 export class HeaderComponent {
   private translate = inject(TranslateService);
-  public theme = inject(ThemeService);
-  public projectState = inject(ProjectStateService);
+  public settingsService = inject(UserSettingsService);
+  private projectState = inject(ProjectStateService);
   public messageService = inject(MessageService);
   public production = environment.production;
   public sandbox = environment.sandbox;
@@ -128,7 +128,7 @@ export class HeaderComponent {
 
   // Dark/Light logos for different breakpoints
   get logoSrc() {
-    return this.theme.darkMode() ? 'sig-wht-en.svg' : 'sig-blk-en.svg';
+    return this.settingsService.darkMode() ? 'sig-wht-en.svg' : 'sig-blk-en.svg';
   }
 
 }

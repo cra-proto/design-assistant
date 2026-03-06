@@ -23,7 +23,7 @@ import { ExportGitHubService } from '../../services/github/export-github.service
 import { ProjectStateService } from '../../services/project-state.service';
 import { FetchService } from '../../services/fetch.service';
 import { GitHubAuthService } from '../../services/github/github-auth.service';
-import { ThemeService } from '../../services/theme.service';
+import { UserSettingsService } from '../../services/user-settings.service';
 import { environment } from '../../../environments/environment';
 
 //Components
@@ -96,7 +96,7 @@ export class ExportGithubComponent implements OnInit {
   public exportGitHubService = inject(ExportGitHubService);
   private fetchService = inject(FetchService);
   public translate = inject(TranslateService);
-  private themeService = inject(ThemeService);
+  private settingsService = inject(UserSettingsService);
   private router = inject(Router)
 
   defaultOrg = environment.defaultOrg;
@@ -213,7 +213,7 @@ export class ExportGithubComponent implements OnInit {
 
   // Status message colors & icons
   private getStatusTextColor(status: ConnectionStatus): string {
-    const isDark = this.themeService.darkMode();
+    const isDark = this.settingsService.darkMode();
 
     const colorMap: Record<ConnectionStatus, string> = {
       'connected': isDark ? 'text-green-400' : 'text-green-500',
@@ -246,7 +246,7 @@ export class ExportGithubComponent implements OnInit {
 
   getBgClasses = computed(() => {
     const status = this.connectionStatus();
-    const isDark = this.themeService.darkMode();
+    const isDark = this.settingsService.darkMode();
 
     const baseClasses = 'flex align-items-center gap-2 p-3 border-round-md mb-3';
 

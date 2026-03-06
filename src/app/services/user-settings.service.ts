@@ -11,10 +11,8 @@ import CustomPreset from '../common/theme-presets/preset-custom';
 
 export type ColorScheme = 'default' | 'deutan' | 'protan' | 'tritan' | 'custom';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class ThemeService {
+@Injectable({ providedIn: 'root' })
+export class UserSettingsService {
   private translate = inject(TranslateService);
   private router = inject(Router);
   private title = inject(Title);

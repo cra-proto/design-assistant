@@ -58,10 +58,10 @@ import { ProjectMetadata } from '../../common/data.model';
   styles: ``
 })
 export class SwitchProjectComponent implements OnInit {
-  public projectState = inject(ProjectStateService);
-  public projectStorage = inject(ProjectStorageService);
+  private projectState = inject(ProjectStateService);
+  public projectStorageService = inject(ProjectStorageService);
   public authService = inject(GitHubAuthService);
-  private cloudStorage = inject(CloudStorageService);
+  private cloudStorageService = inject(CloudStorageService);
   public collaboratorService = inject(CollaboratorService);
 
   public router = inject(Router);
@@ -76,7 +76,7 @@ export class SwitchProjectComponent implements OnInit {
   constructor() {
     // Watch for project list changes and reload
     effect(() => {
-      this.projectStorage.projectListChanged(); // Watch for changes
+      this.projectStorageService.projectListChanged(); // Watch for changes
       console.log('Project list changed, reloading...');
       this.loadProjects(this.currentMode()); // Load projects
     });
@@ -85,7 +85,7 @@ export class SwitchProjectComponent implements OnInit {
   async ngOnInit() {
 
     // Delete deleted projects after a period of time
-    const deletedCount = this.projectStorage.cleanupDeletedProjects();
+    const deletedCount = this.projectStorageService.cleanupDeletedProjects();
     if (deletedCount > 0) {
       this.message.add({
         severity: 'info',
@@ -157,8 +157,8 @@ export class SwitchProjectComponent implements OnInit {
   //Load all projects
   async loadProjects(mode: 'saved' | 'deleted' = 'saved') {
     const projects = mode === 'deleted'
-      ? this.projectStorage.getLocalProjectList('deleted')
-      : await this.projectStorage.getProjectList();
+      ? this.projectStorageService.getLocalProjectList('deleted')
+      : await this.projectStorageService.getProjectList();
     this.allProjects.set(projects);
   }
 
@@ -180,7 +180,7 @@ export class SwitchProjectComponent implements OnInit {
     await new Promise(resolve => setTimeout(resolve, 600));
 
     try {
-      const project = await this.projectStorage.loadProject(this.loadingKey, storageType);
+      const project = await this.projectStorageService.loadProject(this.loadingKey, storageType);
 
       if (project) {
         this.projectState.setProject(project); // Update the project state
@@ -195,7 +195,7 @@ export class SwitchProjectComponent implements OnInit {
 
 
   async newProject() {
-    this.projectStorage.clearActiveProject();
+    this.projectStorageService.clearActiveProject();
     await this.projectState.resetProject();
     this.router.navigate(['/new-project']);
   }
@@ -226,20 +226,20 @@ export class SwitchProjectComponent implements OnInit {
     let key = project.key;
     if (project.storageType === 'cloud') { key = project.id }
 
-    const success = await this.projectStorage.deleteProject(key, project.storageType);
+    const success = await this.projectStorageService.deleteProject(key, project.storageType);
 
     // Refresh project list
     if (success) {
       // Toggle mode first if no more deleted projects
       if (this.currentMode() === 'deleted') {
-        if (this.projectStorage.getLocalProjectList('deleted').length === 0) {
+        if (this.projectStorageService.getLocalProjectList('deleted').length === 0) {
           this.currentMode.set('saved');
         }
       }
       await this.loadProjects(this.currentMode());
 
       // Check if we deleted the active project
-      const active = this.projectStorage.getActiveProject();
+      const active = this.projectStorageService.getActiveProject();
       if (active?.key === key) {
         this.newProject();
       }
@@ -265,7 +265,7 @@ export class SwitchProjectComponent implements OnInit {
     if (!this.collaboratorService.canEditProject(project)) { return; }
 
     // Load the full project from local storage
-    const fullProject = await this.projectStorage.loadProject(project.key, 'local');
+    const fullProject = await this.projectStorageService.loadProject(project.key, 'local');
     if (!fullProject) {
       this.message.add({
         severity: 'error',
@@ -279,11 +279,11 @@ export class SwitchProjectComponent implements OnInit {
     fullProject.storageType = 'cloud';
 
     // Save to cloud
-    const success = await this.projectStorage.saveProject(fullProject);
+    const success = await this.projectStorageService.saveProject(fullProject);
 
     if (success) {
       // Delete from local storage
-      await this.projectStorage.deleteProject(project.key, 'local');
+      await this.projectStorageService.deleteProject(project.key, 'local');
 
       // Refresh project list
       await this.loadProjects();
@@ -336,7 +336,7 @@ export class SwitchProjectComponent implements OnInit {
 
 
   async loadCloudProject(cloudId: string) {
-    const project = await this.cloudStorage.getProject(cloudId);
+    const project = await this.cloudStorageService.getProject(cloudId);
     if (!project?.projectData) return;
 
     /* Parse the content and load it into the state
@@ -353,7 +353,7 @@ export class SwitchProjectComponent implements OnInit {
   }
 
   async deleteCloudProject(cloudId: string) {
-    const success = await this.cloudStorage.deleteProject(cloudId);
+    const success = await this.cloudStorageService.deleteProject(cloudId);
     if (success) {
       console.log('Cloud project deleted');
     }

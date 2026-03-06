@@ -42,7 +42,7 @@
                                     <div class="w-full h-3rem bg-primary-500 border-round align-content-center text-white">White text</div>
                                 </div>
                             </div>
-                            <aida-color-picker [key]="theme.colorScheme() + '-primary'" initialColor="bg-primary-500" [externalShades]="customShades['primary']"
+                            <aida-color-picker [key]="settingsService.colorScheme() + '-primary'" initialColor="bg-primary-500" [externalShades]="customShades['primary']"
                                                [contrastTests]="[
                     { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                     { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
@@ -66,7 +66,7 @@
                                 </div>
                                 <p-message severity="success" text="Success: message" />
                             </div>
-                            <aida-color-picker [key]="theme.colorScheme() + '-success'" initialColor="bg-green-500" [externalShades]="customShades['green']"
+                            <aida-color-picker [key]="settingsService.colorScheme() + '-success'" initialColor="bg-green-500" [externalShades]="customShades['green']"
                                                [contrastTests]="[
                     { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                     { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
@@ -100,7 +100,7 @@
                                 </div>
                                 <p-message severity="error" text="Error: message" />
                             </div>
-                            <aida-color-picker [key]="theme.colorScheme() + '-danger'" initialColor="bg-red-500" [externalShades]="customShades['red']"
+                            <aida-color-picker [key]="settingsService.colorScheme() + '-danger'" initialColor="bg-red-500" [externalShades]="customShades['red']"
                                                [contrastTests]="[
                     { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                     { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
@@ -124,7 +124,7 @@
                                 </div>
                                 <p-message severity="warn" text="Warning: message" />
                             </div>
-                            <aida-color-picker [key]="theme.colorScheme() + '-warn'" initialColor="bg-orange-500" [externalShades]="customShades['orange']"
+                            <aida-color-picker [key]="settingsService.colorScheme() + '-warn'" initialColor="bg-orange-500" [externalShades]="customShades['orange']"
                                                [contrastTests]="[
                                                 { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                 { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
@@ -158,7 +158,7 @@
                                 </div>
                                 <p-message severity="info" text="Info: message" />
                             </div>
-                            <aida-color-picker [key]="theme.colorScheme() + '-info'" initialColor="bg-blue-500" [externalShades]="customShades['blue']"
+                            <aida-color-picker [key]="settingsService.colorScheme() + '-info'" initialColor="bg-blue-500" [externalShades]="customShades['blue']"
                                                [contrastTests]="[
                                                 { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                 { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
@@ -180,7 +180,7 @@
                                     <div class="w-full h-3rem bg-purple-500 border-round align-content-center text-white">White text</div>
                                 </div>
                             </div>
-                            <aida-color-picker [key]="theme.colorScheme() + '-help'" initialColor="bg-purple-500" [externalShades]="customShades['purple']"
+                            <aida-color-picker [key]="settingsService.colorScheme() + '-help'" initialColor="bg-purple-500" [externalShades]="customShades['purple']"
                                                [contrastTests]="[
                                                                             { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                                             { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
@@ -224,7 +224,7 @@
                                     <p-tag value="Contrast tag" severity="contrast" />
                                     <p-badge value="8" severity="contrast" />
                                 </div>
-                                <div class="w-full h-3rem surface-900 border-round align-content-center" [class]="theme.darkMode() ? 'text-black-alpha-90' : 'text-white'">Contrast background</div>
+                                <div class="w-full h-3rem surface-900 border-round align-content-center" [class]="settingsService.darkMode() ? 'text-black-alpha-90' : 'text-white'">Contrast background</div>
                                 <p-message severity="contrast" text="Contrast: message" />
                             </div>
                             <p class="text-xs text-color-secondary">No customization available</p>
@@ -299,7 +299,7 @@
             <div class="flex-1 h-4rem bg-blue-500 border-round flex align-items-center justify-content-center text-white text-xs font-semibold">Info</div>
             <div class="flex-1 h-4rem bg-purple-500 border-round flex align-items-center justify-content-center text-white text-xs font-semibold">Help</div>
             <div class="flex-1 h-4rem surface-100 border-round flex align-items-center justify-content-center text-color text-xs font-semibold">Secondary</div>
-            <div class="flex-1 h-4rem surface-900 border-round flex align-items-center justify-content-center text-xs font-semibold" [class]="theme.darkMode() ? 'text-black-alpha-90' : 'text-white'">Contrast</div>
+            <div class="flex-1 h-4rem surface-900 border-round flex align-items-center justify-content-center text-xs font-semibold" [class]="settingsService.darkMode() ? 'text-black-alpha-90' : 'text-white'">Contrast</div>
         </div>
 
         <div class="flex flex-column gap-1 mb-2">
@@ -365,7 +365,7 @@
         <aida-user-settings mode="theme" />
         <div class="flex flex-row gap-2 mt-2">
             <div class="flex flex-column">Primary
-                <aida-color-picker [key]=" theme.colorScheme() + '-primary'" initialColor=" bg-primary-500" [externalShades]="customShades['primary']"
+                <aida-color-picker [key]=" settingsService.colorScheme() + '-primary'" initialColor=" bg-primary-500" [externalShades]="customShades['primary']"
                                    [contrastTests]="[
                             { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },                            
                             { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
@@ -373,7 +373,7 @@
                                    (colorChanged)="onColorChange($event, 'primary')" />
             </div>
             <div class="flex flex-column">Green (success)
-                <aida-color-picker [key]="theme.colorScheme() + '-success'" initialColor="bg-green-500" [externalShades]="customShades['green']"
+                <aida-color-picker [key]="settingsService.colorScheme() + '-success'" initialColor="bg-green-500" [externalShades]="customShades['green']"
                                    [contrastTests]="[
                                     { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                     { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
@@ -381,7 +381,7 @@
                                    (colorChanged)="onColorChange($event, 'green')" />
             </div>
             <div class="flex flex-column">Red (danger)
-                <aida-color-picker [key]="theme.colorScheme() + '-danger'" initialColor="bg-red-500" [externalShades]="customShades['red']"
+                <aida-color-picker [key]="settingsService.colorScheme() + '-danger'" initialColor="bg-red-500" [externalShades]="customShades['red']"
                                    [contrastTests]="[
                                                 { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                 { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
@@ -389,7 +389,7 @@
                                    (colorChanged)="onColorChange($event, 'red')" />
             </div>
             <div class="flex flex-column">Orange (warn)
-                <aida-color-picker [key]="theme.colorScheme() + '-warn'" initialColor="bg-orange-500" [externalShades]="customShades['orange']"
+                <aida-color-picker [key]="settingsService.colorScheme() + '-warn'" initialColor="bg-orange-500" [externalShades]="customShades['orange']"
                                    [contrastTests]="[
                                                 { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                 { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
@@ -397,7 +397,7 @@
                                    (colorChanged)="onWarnColorChange($event)" />
             </div>
             <div class="flex flex-column">Blue (info)
-                <aida-color-picker [key]="theme.colorScheme() + '-info'" initialColor="bg-blue-500" [externalShades]="customShades['blue']"
+                <aida-color-picker [key]="settingsService.colorScheme() + '-info'" initialColor="bg-blue-500" [externalShades]="customShades['blue']"
                                    [contrastTests]="[
                                                 { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                 { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }
@@ -405,7 +405,7 @@
                                    (colorChanged)="onInfoColorChange($event)" />
             </div>
             <div class="flex flex-column">Purple (help)
-                <aida-color-picker [key]="theme.colorScheme() + '-help'" initialColor="bg-purple-500" [externalShades]="customShades['purple']"
+                <aida-color-picker [key]="settingsService.colorScheme() + '-help'" initialColor="bg-purple-500" [externalShades]="customShades['purple']"
                                    [contrastTests]="[
                                                 { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
                                                 { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 }

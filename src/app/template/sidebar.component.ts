@@ -3,7 +3,7 @@ import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { ProjectStateService } from '../services/project-state.service';
 import { MailtoService } from '../services/mailto.service';
-import { ThemeService } from '../services/theme.service';
+import { UserSettingsService } from '../services/user-settings.service';
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -17,8 +17,8 @@ export class SidebarComponent {
   public production = environment.production;
   public sandbox = environment.sandbox;
   public mailtoService = inject(MailtoService);
-  public projectState = inject(ProjectStateService);
-  private themeService = inject(ThemeService);
+  private projectState = inject(ProjectStateService);
+  private settingsService = inject(UserSettingsService);
 
   get projectLoaded(): boolean {
     const name = this.projectState.getProject().projectName;
@@ -42,6 +42,6 @@ export class SidebarComponent {
   }
 
   // For group-specific tools
-  myToolbox = this.themeService.toolbox;
+  myToolbox = this.settingsService.toolbox;
 
 }

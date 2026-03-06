@@ -5,9 +5,7 @@ import { environment } from '../../../environments/environment';
 import { GitHubAuthService } from '../github/github-auth.service';
 import { Project, ProjectMetadata } from '../../common/data.model';
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class CloudStorageService {
     private http = inject(HttpClient);
     private authService = inject(GitHubAuthService);;

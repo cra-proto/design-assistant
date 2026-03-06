@@ -11,9 +11,7 @@ interface GitHubTokenResponse {
   token_type: string;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class GitHubAuthService {
   private http = inject(HttpClient);
   private router = inject(Router);

@@ -3,9 +3,7 @@ import { environment } from '../../environments/environment';
 import { PageMetadata } from '../components/add-pages/add-pages.model';
 import { isPortalDomain } from '../common/portal-domains.config';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class FetchService {
 
   //Block unknown hosts

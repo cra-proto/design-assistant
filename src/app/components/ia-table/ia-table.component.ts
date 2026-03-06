@@ -17,7 +17,7 @@ import { TooltipModule } from 'primeng/tooltip';
 // Services
 import { ProjectStateService } from '../../services/project-state.service';
 import { TreeNodeStyleService } from '../../services/treenode-style.service';
-import { ThemeService } from '../../services/theme.service';
+import { UserSettingsService } from '../../services/user-settings.service';
 
 @Component({
     selector: 'aida-ia-table',
@@ -31,15 +31,15 @@ import { ThemeService } from '../../services/theme.service';
     styleUrl: './ia-table.component.css'
 })
 export class IaTableComponent {
-    projectState = inject(ProjectStateService);
-    treeNodeStyleService = inject(TreeNodeStyleService);
-    theme = inject(ThemeService);
+    private projectState = inject(ProjectStateService);
+    private treeNodeStyleService = inject(TreeNodeStyleService);
+    private settingsService = inject(UserSettingsService);
     private locationStrategy = inject(LocationStrategy);
     projectTree = computed(() => this.projectState.getProject().projectData);
 
     constructor() {
         effect(() => {
-            this.theme.darkMode(); // track dark mode changes
+            this.settingsService.darkMode(); // track dark mode changes
             this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
         });
     }

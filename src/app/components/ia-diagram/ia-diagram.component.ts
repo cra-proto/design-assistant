@@ -19,7 +19,7 @@ import { IaDiagramService } from './ia-diagram.service';
   styleUrl: './ia-diagram.component.css'
 })
 export class IaDiagramComponent {
-  projectState = inject(ProjectStateService)
+  private projectState = inject(ProjectStateService)
   iaDiagram = inject(IaDiagramService);
   projectTree = computed(() => this.projectState.getProject().projectData);
 }

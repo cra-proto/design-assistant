@@ -21,11 +21,9 @@ Computed signals for stats (page counts, problem counts, etc.)
 Auto-save effect with debouncing
 NO persistence logic (that goes to ProjectStorageService)*/
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ProjectStateService {
-    private projectStorage = inject(ProjectStorageService);
+    private projectStorageService = inject(ProjectStorageService);
     private collaboratorService = inject(CollaboratorService);
 
     // Main project state
@@ -366,7 +364,7 @@ export class ProjectStateService {
             }));
 
             const project = this.project();
-            const success = await this.projectStorage.saveProject(project);
+            const success = await this.projectStorageService.saveProject(project);
 
             if (success) {
                 // Wait 2 seconds before showing "saved" status

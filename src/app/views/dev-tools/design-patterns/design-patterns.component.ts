@@ -15,7 +15,7 @@ import { SelectModule } from 'primeng/select';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { TooltipModule } from "primeng/tooltip";
 
-import { ThemeService } from '../../../services/theme.service';
+import { UserSettingsService } from '../../../services/user-settings.service';
 
 interface CodeExample {
     label: string;
@@ -37,7 +37,7 @@ interface CodeExample {
     styleUrl: './design-patterns.component.css'
 })
 export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
-    public themeService = inject(ThemeService);
+    private settingsService = inject(UserSettingsService);
 
     @ViewChildren('codeContainer') codeContainers!: QueryList<ElementRef>;
 
@@ -295,7 +295,7 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
     constructor() {
         // Watch for dark mode changes to update Prism theme
         this.darkModeEffect = effect(() => {
-            const isDarkMode = this.themeService.darkMode();
+            const isDarkMode = this.settingsService.darkMode();
             if (this.prismLoaded) {
                 this.loadPrismTheme(isDarkMode);
             }
@@ -326,7 +326,7 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
             await import('prismjs/components/prism-markup');
 
             this.prismLoaded = true;
-            this.loadPrismTheme(this.themeService.darkMode());
+            this.loadPrismTheme(this.settingsService.darkMode());
 
             this.codeContainers.forEach(container => {
                 const pre = container.nativeElement;

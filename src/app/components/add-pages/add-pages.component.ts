@@ -51,19 +51,19 @@ import { environment } from '../../../environments/environment';
 })
 export class AddPagesComponent implements OnInit {
     // Services    
-    projectState = inject(ProjectStateService);
+    private projectState = inject(ProjectStateService);
     addPagesState = inject(AddPagesStateService);
     urlValidation = inject(UrlValidationService);
     breadcrumbValidation = inject(BreadcrumbValidationService);
 
-    nodeStyles = inject(TreeNodeStyleService)
+    private treeNodeStyleService = inject(TreeNodeStyleService)
 
     translate = inject(TranslateService);
 
     //iaRelationship = inject(IaRelationshipService);
     //iaTree = inject(IaTreeService);
 
-    fetchService = inject(FetchService);
+    private fetchService = inject(FetchService);
     confirmationService = inject(ConfirmationService);
 
     // Output event
@@ -361,7 +361,7 @@ export class AddPagesComponent implements OnInit {
             const updatedTree = await this.breadcrumbValidation.setTreeContext(treeNodes, this.breadcrumbData);
             this.projectState.setProjectTree(updatedTree);
             this.projectState.setScope(this.duplicatesSkipped); //mark any urls we skipped as in-scope
-            this.nodeStyles.updateNodeStyles(updatedTree);
+            this.treeNodeStyleService.updateNodeStyles(updatedTree);
             this.projectState.saveProject();
             console.log("Page count")
             console.log(this.projectState.getProject().inScopePages)
@@ -509,7 +509,7 @@ export class AddPagesComponent implements OnInit {
 
             // Update the project
             this.projectState.saveProject();
-            this.nodeStyles.updateNodeStyles(this.projectState.getProjectTree());
+            this.treeNodeStyleService.updateNodeStyles(this.projectState.getProjectTree());
 
             // Remove from broken links list
             this.removeUrl(this.selectedBrokenUrl);

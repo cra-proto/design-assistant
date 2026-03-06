@@ -30,8 +30,8 @@ import { ProjectStateService } from './services/project-state.service';
 //Route guards
 export const landingGuard = () => {
     const router = inject(Router);
-    const projectStorage = inject(ProjectStorageService);
-    if (projectStorage.hasActiveProject()) {
+    const projectStorageService = inject(ProjectStorageService);
+    if (projectStorageService.hasActiveProject()) {
         return router.createUrlTree(['/dashboard']);
     } else {
         return router.createUrlTree(['/new-project']);

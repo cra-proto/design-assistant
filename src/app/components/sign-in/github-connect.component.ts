@@ -38,7 +38,7 @@ export class GithubConnectComponent implements OnInit {
   private router = inject(Router);
   private authService = inject(GitHubAuthService);
   public exportGitHubService = inject(ExportGitHubService);
-  private projectStorage = inject(ProjectStorageService);
+  private projectStorageService = inject(ProjectStorageService);
   private projectState = inject(ProjectStateService);
   private translate = inject(TranslateService);
 
@@ -76,7 +76,7 @@ export class GithubConnectComponent implements OnInit {
           label: 'common.new',
           icon: 'pi pi-plus',
           command: () => {
-            this.projectStorage.clearActiveProject();
+            this.projectStorageService.clearActiveProject();
             this.projectState.resetProject();
             this.router.navigate(['/new-project']);
           }

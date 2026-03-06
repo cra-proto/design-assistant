@@ -27,8 +27,8 @@ import { environment } from '../../../environments/environment';
   styles: ``
 })
 export class SetupRepoComponent implements OnInit {
-  projectState = inject(ProjectStateService);
-  exportGitHubService = inject(ExportGitHubService);
+  private projectState = inject(ProjectStateService);
+  private exportGitHubService = inject(ExportGitHubService);
   defaultOrg = environment.defaultOrg
 
   constructor() {
