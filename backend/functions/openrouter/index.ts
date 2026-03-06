@@ -58,13 +58,6 @@ async function getOpenRouterKey(): Promise<string> {
     return cachedApiKey;
 }
 
-const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-};
-
 export const handler = async (event: any): Promise<any> => {
 
     // Parse & validate request body
@@ -74,7 +67,6 @@ export const handler = async (event: any): Promise<any> => {
     } catch {
         return {
             statusCode: 400,
-            headers: corsHeaders,
             body: JSON.stringify({ error: 'Invalid JSON in request body' })
         };
     }
@@ -84,7 +76,6 @@ export const handler = async (event: any): Promise<any> => {
     if (!models?.length || !systemPrompt || content === undefined) {
         return {
             statusCode: 400,
-            headers: corsHeaders,
             body: JSON.stringify({ error: 'models, systemPrompt, and content are required' })
         };
     }
@@ -125,7 +116,6 @@ export const handler = async (event: any): Promise<any> => {
 
         return {
             statusCode: 200,
-            headers: corsHeaders,
             body: JSON.stringify(response.data)
         };
 
@@ -141,7 +131,6 @@ export const handler = async (event: any): Promise<any> => {
 
         return {
             statusCode: axiosError.response?.status || 500,
-            headers: corsHeaders,
             body: JSON.stringify({ error: 'OpenRouter request failed', detail: upstreamError })
         };
     }
