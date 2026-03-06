@@ -3,6 +3,7 @@ import { Project, ProjectMetadata, ProjectPhase, GitHubRepo, GitHubUser, Project
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../environments/environment';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
+import { version as appVersion } from '../../../package.json'
 
 import { ProjectStorageService } from '../services/storage/project-storage.service';
 import { CollaboratorService } from './collaborator.service';
@@ -30,7 +31,7 @@ export class ProjectStateService {
     private project = signal<Project>({
         id: this.generateId(),
         key: '',
-        version: environment.version,
+        version: appVersion,
         projectName: '',
         phase: ProjectPhase.Draft,
         created: new Date(),
@@ -437,8 +438,8 @@ export class ProjectStateService {
             const project: Project = JSON.parse(saved);
 
             // Version check
-            if (project.version !== environment.version) {
-                console.warn(`Project version (${project.version}) differs from app version (${environment.version}). Some features may not work correctly.`);
+            if (project.version !== appVersion) {
+                console.warn(`Project version (${project.version}) differs from app version (${appVersion}). Some features may not work correctly.`);
                 //return false;
             }
 
@@ -480,7 +481,7 @@ export class ProjectStateService {
         try {
             const project: Project = JSON.parse(jsonString);
 
-            if (project.version !== environment.version) {
+            if (project.version !== appVersion) {
                 console.warn('Incompatible project version. Import skipped.');
                 return false;
             }
@@ -522,7 +523,7 @@ export class ProjectStateService {
         this.project.set({
             id: this.generateId(),
             key: 'autosave',
-            version: environment.version,
+            version: appVersion,
             projectName: '',
             phase: ProjectPhase.Draft,
             created: new Date(),
