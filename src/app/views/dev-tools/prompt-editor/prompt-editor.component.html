@@ -21,26 +21,142 @@
     <p-tabpanels>
         @for (tab of tabs; track tab.value) {
         <p-tabpanel [value]="tab.value">
-            <div class="flex flex-column gap-3 mt-0">
+            <!--Checkboxes-->
+            <div class="flex flex-row flex-wrap gap-4 mt-0 mb-4">
+                @if(isFragmentsTab(tab)) {
+                @for(fragment of tab.fragments; track fragment.key){
+                <div class="flex flex-row align-items-center gap-2">
+                    <p-radioButton [inputId]="'show_' + fragment.key" [binary]="true"
+                                   [ngModel]="isFragmentVisible(fragment.key)"
+                                   (ngModelChange)="toggleFragment(fragment.key)">
+                    </p-radioButton>
+                    <label [for]="'show_' + fragment.key" class="cursor-pointer font-semibold">{{ fragment.label | translate }}</label>
+                </div>
+                }
+                }
+                @else{
                 @for(prompt of tab.prompts; track prompt.enumKey){
+                <div class="flex flex-row align-content-center gap-2">
+                    <p-checkbox [inputId]="'show_' + prompt.enumKey" [binary]="true"
+                                [ngModel]="isPromptVisible(prompt.enumKey)"
+                                (ngModelChange)="togglePrompt(prompt.enumKey)">
+                    </p-checkbox>
+                    <label [for]="'show_' + prompt.enumKey" class="cursor-pointer font-semibold">{{ prompt.translationKey | translate }}</label>
+                </div>
+                }}
+            </div>
+            <!--Inputs-->
+            <div class="flex flex-column gap-3 mt-0">
+                <!--Fragments-->
+                @if(isFragmentsTab(tab)) {
+                @for(fragment of tab.fragments; track fragment.key){
+                @if(isFragmentVisible(fragment.key)) {
+
+                <h2 class="my-0">{{ fragment.label | translate }}</h2>
+                @for(item of fragment.data; track item.enumKey){
+                <p-iftalabel>
+                    <textarea [id]="item.enumKey" autoResize="true" rows="2" pTextarea fluid
+                              [(ngModel)]="item.promptText" (ngModelChange)="updateDiff()"></textarea>
+                    <label [for]="item.enumKey">{{item.translationKey | translate}}</label>
+                </p-iftalabel>
+                }
+                }
+                }
+                }
+                <!--Full prompts-->
+                @if(!isFragmentsTab(tab)) {
+                @for(prompt of tab.prompts; track prompt.enumKey){
+                <!-- String editor -->
+                @if(isPromptString(prompt)){
                 <p-iftalabel>
                     <textarea [id]="prompt.enumKey" autoResize="true" rows="2" pTextarea fluid
                               [(ngModel)]="prompt.promptText" (ngModelChange)="updateDiff()"></textarea>
                     <label [for]="prompt.enumKey">{{prompt.translationKey| translate}}</label>
                 </p-iftalabel>
                 }
+                <!-- Config editor -->
+                @if(isPromptConfig(prompt) && isPromptVisible(prompt.enumKey)) {
+                <h2 class="my-0">{{ prompt.translationKey | translate }}</h2>
+                <!--Fragment dropdowns-->
+                <div class="flex flex-column lg:flex-row gap-2">
+                    <!-- Role dropdown -->
+                    <p-iftalabel class="flex-1">
+                        <p-select [id]="prompt.enumKey + '_role'" optionLabel="label" optionValue="value" fluid styleClass="h-full"
+                                  [options]="roleOptions" [(ngModel)]="prompt.promptText.role"
+                                  (onChange)="updateDiff()" appendTo="body">
+                            <ng-template let-option pTemplate="item">
+                                {{ option.label | translate }}
+                            </ng-template>
+                            <ng-template let-option pTemplate="selectedItem">
+                                {{ option.label | translate }}
+                            </ng-template>
+                        </p-select>
+                        <label [for]="prompt.enumKey + '_role'">{{ 'aiPrompt.component.role' | translate }}</label>
+                    </p-iftalabel>
+                    <!-- Output format dropdown -->
+                    <p-iftalabel class="flex-1">
+                        <p-select [id]="prompt.enumKey + '_output'" optionLabel="label" optionValue="value" fluid styleClass="h-full"
+                                  [options]="outputOptions" [(ngModel)]="prompt.promptText.output"
+                                  (onChange)="updateDiff()" appendTo="body">
+                            <ng-template let-option pTemplate="item">
+                                {{ option.label | translate }}
+                            </ng-template>
+                            <ng-template let-option pTemplate="selectedItem">
+                                {{ option.label | translate }}
+                            </ng-template>
+                        </p-select>
+                        <label [for]="prompt.enumKey + '_output'">{{ 'aiPrompt.component.output' | translate }}</label>
+                    </p-iftalabel>
+                    <!-- Rubric multi-select -->
+                    <p-iftalabel class="flex-1">
+                        <p-multiselect [id]="prompt.enumKey + '_rubric'" optionLabel="label" optionValue="value" fluid size="small"
+                                       [options]="rubricOptions" [(ngModel)]="prompt.promptText.rubric" placeholder="{{ 'common.none' | translate }}"
+                                       (onChange)="updateDiff()" appendTo="body">
+                            <ng-template let-option pTemplate="item">
+                                {{ option.label | translate }}
+                            </ng-template>
+                            <ng-template let-options pTemplate="selectedItems">
+                                @if (options?.length <= 2) {
+                                   @for(option of options; track option.value; let last=$last){
+                                   {{ option.label | translate }}{{ last ? '' : ', ' }}
+                                   }
+                                   } @else{ {{ options?.length }} {{ 'common.selected' | translate }}}
+                                   </ng-template>
+                        </p-multiselect>
+                        <label [for]="prompt.enumKey + '_rubric'">{{ 'aiPrompt.component.rubric' | translate }}</label>
+                    </p-iftalabel>
+                </div>
+                <!-- Task textarea -->
+                <p-iftalabel>
+                    <textarea [id]="prompt.enumKey + '_task'" autoResize="true" rows="2" pTextarea fluid
+                              [(ngModel)]="prompt.promptText.task" (ngModelChange)="updateDiff()"></textarea>
+                    <label [for]="prompt.enumKey + '_task'">{{ 'aiPrompt.component.task' | translate }}</label>
+                </p-iftalabel>
+
+
+                <!-- JSON schema -->
+                @if(prompt.promptText.output === OutputKey.Json) {
+                <p-iftalabel>
+                    <textarea [id]="prompt.enumKey + '_jsonSchema'" autoResize="true" rows="2" pTextarea fluid
+                              [(ngModel)]="prompt.promptText.jsonSchema" (ngModelChange)="updateDiff()"></textarea>
+                    <label [for]="prompt.enumKey + '_jsonSchema'">{{ 'aiPrompt.component.jsonSchema' | translate }}</label>
+                </p-iftalabel>
+                }
+                }
+                }
+                }
             </div>
         </p-tabpanel>
         }
     </p-tabpanels>
 </p-tabs>
-@if(hasChanges()){
-<!--Review-->
-<h2 class="my-1">Review changes</h2>
-<div id="diff-container"></div>
-<!--Export-->
-<p-fieldset legend="Full File Preview" [toggleable]="true" [collapsed]="true" styleClass="secondary-outline mb-3">
-    <pre #filePreview><code class="language-typescript">{{ rebuildPromptFile(tabs[selectedTab].tool, tabs[selectedTab].prompts) }}</code></pre>
-</p-fieldset>
-<p-button [label]="'dev.prompts.button.openPR' | translate" icon="pi pi-send" disabled />
-}
+
+<h2>Test description</h2>
+<p>{{ description }}</p>
+<p-button (click)="testResult()">Test result</p-button>
+<p>Result: {{ result }}</p>
+<p-button (click)="testResponse()">Test response</p-button>
+<pre>Response: {{ response | json }}</pre>
+<p-progressSpinner *ngIf="aiState().loading" />
+<p-message severity="error" *ngIf="aiState().error" [text]="aiState().error!" />
+<small *ngIf="aiState().respondingModel">Answered by: {{ aiState().respondingModel }}</small>

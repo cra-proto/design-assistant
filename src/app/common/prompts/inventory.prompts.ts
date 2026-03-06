@@ -1,4 +1,26 @@
-import { InventoryPromptKey } from './prompt.model'
+import { InventoryPromptKey, PromptConfig, RoleKey, OutputKey, RubricKey } from './prompt.model'
+
+export const InventoryPrompts: Record<InventoryPromptKey, PromptConfig> = {
+    [InventoryPromptKey.Description]: {
+        role: RoleKey.SeoExpert,
+        task: "Generate a concise meta description in English for the following web page content. The description must capture the main topic and use terminology found in the content.",
+        rubric: [RubricKey.CharacterLimit, RubricKey.NoCommentary],
+        output: OutputKey.Json,
+        jsonSchema: `{
+  "title": "string (max 60 chars)",
+  "description": "string (max 275 chars)",
+  "keywords": ["string", "string", ...]
+}`
+    },
+    [InventoryPromptKey.Keywords]: {
+        role: RoleKey.SeoExpert,
+        task: "Generate 10 meaningful, topic-specific meta keywords that are DIRECTLY EXTRACTED from or strongly implied by the content. Return only a comma separated list of keywords.",
+        rubric: [RubricKey.CharacterLimit, RubricKey.NoCommentary],
+        output: OutputKey.Text,
+    },
+}
+
+/*
 export const InventoryPrompts: Record<InventoryPromptKey, string> = {
     [InventoryPromptKey.Description]: "As a search engine optimization expert, analyze the following content carefully and provide a concise, complete summary suitable for a meta description in English. The summary MUST be highly relevant to the specific content provided and capture its main topic and purpose. Use topic-specific terms found in the content, write in full sentences, and ensure the summary ends concisely within 275 characters. IMPORTANT: Provide ONLY the meta description itself with NO additional commentary or explanations",
     [InventoryPromptKey.Keywords]: "As a search engine optimization expert, carefully analyze the following content and identify 10 meaningful, topic-specific meta keywords that are DIRECTLY EXTRACTED from or strongly implied by the content. IMPORTANT: Return ONLY a comma-separated list of keywords with absolutely NO additional notes or commentary. Exclude 'Canada Revenue Agency' from the keywords.",
@@ -17,4 +39,4 @@ export const InventoryPrompts: Record<InventoryPromptKey, string> = {
 
     IMPORTANT: Your response must contain ONLY the direct translation, with absolutely NO commentary, NO suggestions, NO explanations, and NO additional text of any kind.Return ONLY the translated text itself.`,
     [InventoryPromptKey.TranslateKeywords]: `Translate each of these English keywords to French. IMPORTANT: Return ONLY the translated keywords in a comma-separated list. Provide absolutely NO commentary, NO suggestions, NO explanations, and NO additional text of any kind. Return ONLY a comma-separated list of the translated keywords`
-}
+}*/
