@@ -104,6 +104,24 @@ jobs:
           name: airtable-lambda
           path: backend/functions/airtable/lambda.zip
           retention-days: 1
+
+      - name: Build Lambda OpenRouter function
+        working-directory: backend/functions/openrouter
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+       
+      - name: Upload OpenRouter Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openrouter-lambda
+          path: backend/functions/openrouter/lambda.zip
+          retention-days: 1
               
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
