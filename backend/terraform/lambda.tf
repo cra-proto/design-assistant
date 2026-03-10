@@ -363,7 +363,7 @@ resource "aws_lambda_function" "openrouter" {
   handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/../functions/openrouter/lambda.zip")
   runtime          = "nodejs22.x"
-  timeout          = 30
+  timeout          = 120
 
   environment {
     variables = {
