@@ -35,8 +35,7 @@
                                            [inputId]="view.value"
                                            [name]="view.key"
                                            [value]="view.value"
-                                           [(ngModel)]="projectState.selectedInventoryView"
-                                           (ngModelChange)="changeView()">
+                                           [(ngModel)]="projectState.selectedInventoryView">
                             </p-radioButton>
                             <label [for]="view.value">
                                 <i [class]="view.icon"></i>
@@ -102,6 +101,9 @@
 
                     <!-- Bulk actions toolbar - Toggle page statuses -->
                     <p-button label="Update status"></p-button>
+
+                    <!-- Bulk actions toolbar - Generate metadata -->
+                    <p-button label="Generate metadata" (onClick)="generateMetadata()" [loading]="openRouterService.state().loading"></p-button>
 
                     <!-- Bulk actions toolbar - Reset page statuses filters -->
                     <p-button
@@ -238,6 +240,42 @@
                                       appendTo="body" showDelay="300" hideDelay="0" />
                             }
                         </div>
+                        }
+                        <!-- AI text fields (metadata) -->
+                        @if(col.type === 'aiText'){
+                        @if(node[col.field]; as field){
+                        @if(field.status === 'rejected'){
+                        <div class="flex align-items-center gap-2">
+                            <p-tag severity="danger" [value]="'common.rejected' | translate" />
+                        </div>
+                        } @else {
+                        <div class="flex align-items-start gap-2">
+                            <div [class.line-clamp-3]="!isMetadataExpanded(rowIndex, col.field)">
+                                <p-tag [value]="field.status"
+                                       [severity]="field.status === 'edited' ? 'warn' : field.status === 'approved' ? 'success' : 'secondary'" />
+                                <p-tag [value]="field.status === 'edited' ? field.edited.length : field.ai.length" pTooltip="character count" appendTo="body" showDelay="300" hideDelay="0"
+                                       [severity]="field.length >= 10 && field.length <= 160 ? 'success' : 'danger'" class="mx-1" />
+                                {{ field.status === 'edited' ? field.edited : field.ai }}
+                            </div>
+                            <div class="flex flex-column gap-1">
+                                @if(!expandAllMetadata){
+                                <p-button [icon]="isMetadataExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                                          text rounded size="small"
+                                          (click)="toggleMetadataCell(rowIndex, col.field)"
+                                          [pTooltip]="isMetadataExpanded(rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
+                                          appendTo="body" showDelay="300" hideDelay="0" />
+                                }
+                            </div>
+                        </div>
+                        }
+                        } @else {
+                        <i class="pi pi-minus text-gray-400 flex justify-content-center p-2"
+                           [pTooltip]="'inventory.tooltip.ai.metadata' | translate" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0"></i>
+                        }
+                        }
+                        <!-- Date fields -->
+                        @if(col.type === 'date'){
+                        {{ node[col.field] | date:'yyyy-MM-dd' }}
                         }
                         <!-- URL fields -->
                         @if(col.type === 'url'){

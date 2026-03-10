@@ -60,6 +60,28 @@ export interface PageMeta {
     lastModified?: Date;            // jrc:content.json cq:lastModified
 }
 
+//AI metadata generation workflow
+export type MetadataReviewStatus = 'pending' | 'approved' | 'edited' | 'rejected';
+
+export interface MetadataField {
+    ai: string;           // What the AI suggested
+    edited?: string;      // What the user changed it to (only set if different from ai)
+    status: MetadataReviewStatus;
+}
+
+export interface MetadataReview {
+    generatedAt: Date;
+    model: string;       // Which model generated it (from OpenRouterResponse.model)
+    en: {
+        description: MetadataField;
+        keywords: MetadataField;
+    };
+    fr: {
+        description: MetadataField;
+        keywords: MetadataField;
+    };
+}
+
 //Page status
 export interface PageStatus {
     inScope: boolean;                // True for user-added pages, False for discovered parent pages (user can also toggle this status)
@@ -91,6 +113,7 @@ export interface ProjectTreeNodeData {
     originalParent: string;
     status: PageStatus;
     metadata?: PageMeta;
+    metadataReview?: MetadataReview;   // AI generated metadata workflow
     problem?: PageProblem
 }
 
@@ -119,6 +142,13 @@ export interface FlattenedTreeNode {
     title: string;
     description: string;
     keywords: string;
+    //AI generated metadata
+    aiDescriptionEN: MetadataField | undefined;
+    aiKeywordsEN: MetadataField | undefined;
+    aiDescriptionFR: MetadataField | undefined;
+    aiKeywordsFR: MetadataField | undefined;
+    aiGeneratedAt: Date | undefined;
+    aiModel: string | undefined;
     //Owner
     owner: string;
     email: string;
@@ -127,7 +157,7 @@ export interface FlattenedTreeNode {
 export interface TableColumn {
     field: keyof FlattenedTreeNode;
     translationKey: string;
-    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive';
+    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive' | 'date' | 'aiText';
     frozen?: boolean;
     group: 'page' | 'oppPage' | 'github' | 'status' | 'owner' | 'pageData' | 'metadata';
     visibleByDefault: boolean;

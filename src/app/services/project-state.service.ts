@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, inject, effect } from '@angular/core';
-import { Project, ProjectMetadata, ProjectPhase, GitHubRepo, GitHubUser, ProjectTreeNodeData, FlattenedTreeNode, TableColumn } from '../common/data.model';
+import { Project, ProjectMetadata, ProjectPhase, GitHubRepo, GitHubUser, ProjectTreeNodeData, FlattenedTreeNode, TableColumn, MetadataReview } from '../common/data.model';
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../environments/environment';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
@@ -170,6 +170,20 @@ export class ProjectStateService {
                 node.data.sha = {};
             }
             node.data.sha[mode] = sha;
+            this.project.update(p => ({
+                ...p,
+                lastModified: new Date(),
+                projectData: [...p.projectData]
+            }));
+        }
+    }
+
+    setMetadataReview(url: string, review: MetadataReview): void {
+        const tree = this.getProjectTree();
+        const node = this.findNodeByUrl(tree, url);
+
+        if (node?.data) {
+            node.data.metadataReview = review;
             this.project.update(p => ({
                 ...p,
                 lastModified: new Date(),
@@ -584,6 +598,13 @@ export class ProjectStateService {
                     title: data.metadata?.title || '',
                     description: data.metadata?.description || '',
                     keywords: data.metadata?.keywords || '',
+                    //AI Metadata
+                    aiDescriptionEN: data.metadataReview?.en.description,
+                    aiKeywordsEN: data.metadataReview?.en.keywords,
+                    aiDescriptionFR: data.metadataReview?.fr.description,
+                    aiKeywordsFR: data.metadataReview?.fr.keywords,
+                    aiModel: data.metadataReview?.model,
+                    aiGeneratedAt: data.metadataReview?.generatedAt,
                 });
 
                 if (node.children?.length) {
@@ -649,6 +670,13 @@ export class ProjectStateService {
             { field: 'title', translationKey: 'inventory.header.title', type: 'text', group: 'metadata', visibleByDefault: false },
             { field: 'description', translationKey: 'inventory.header.description', type: 'longText', group: 'metadata', visibleByDefault: false },
             { field: 'keywords', translationKey: 'inventory.header.keywords', type: 'longText', group: 'metadata', visibleByDefault: false },
+            //AI Metadata
+            { field: 'aiDescriptionEN', translationKey: 'inventory.header.ai.descriptionEN', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            { field: 'aiKeywordsEN', translationKey: 'inventory.header.ai.keywordsEN', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            { field: 'aiDescriptionFR', translationKey: 'inventory.header.ai.descriptionFR', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            { field: 'aiKeywordsFR', translationKey: 'inventory.header.ai.keywordsFR', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            { field: 'aiModel', translationKey: 'inventory.header.ai.model', type: 'text', group: 'metadata', visibleByDefault: false },
+            { field: 'aiGeneratedAt', translationKey: 'inventory.header.ai.date', type: 'date', group: 'metadata', visibleByDefault: false },
         ];
     }
 

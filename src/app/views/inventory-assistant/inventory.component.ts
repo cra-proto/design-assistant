@@ -24,11 +24,15 @@ import { ExportProjectComponent } from '../../components/export-project/export-p
 import { AddPagesComponent } from '../../components/add-pages/add-pages.component';
 import { FlattenedTreeNode, TableColumn } from '../../common/data.model';
 import { IaTableComponent } from '../../components/ia-table/ia-table.component';
+import { InventoryPrompts } from '../../common/prompts/inventory.prompts';
+import { InventoryPromptKey } from '../../common/prompts/prompt.model';
 
 //Services
 import { ProjectStateService } from '../../services/project-state.service';
 import { IaDiagramService } from '../../components/ia-diagram/ia-diagram.service';
 import { FindPagesComponent } from "../../components/find-pages/find-pages.component";
+import { OpenRouterService, OpenRouterResponse } from '../../services/ai/openrouter.service';
+import { FetchService } from '../../services/fetch.service';
 
 import { environment } from '../../../environments/environment';
 
@@ -53,6 +57,8 @@ export class InventoryComponent implements OnInit {
     public projectState = inject(ProjectStateService);
     public translate = inject(TranslateService);
     private confirmationService = inject(ConfirmationService);
+    public openRouterService = inject(OpenRouterService);
+    private fetchService = inject(FetchService);
     iaDiagram = inject(IaDiagramService);
 
     production = environment.production;
@@ -81,7 +87,7 @@ export class InventoryComponent implements OnInit {
     scrollableColumns: TableColumn[] = [];
 
     // Current selections
-    selectedNodes = [] // Flattened TreeNode data (for delete, status toggles, etc.)
+    selectedNodes: FlattenedTreeNode[] = [] // Flattened TreeNode data (for delete, status toggles, etc.)
     selectedColumnFields: string[] = []; // Multiselect column data
     selectedGroups: string[] = []; // Multiselect group data
     unselectedGroups: string[] = []; // Multiselect group data
@@ -480,10 +486,6 @@ export class InventoryComponent implements OnInit {
         { key: 'inventory.view.tree', value: 'tree', icon: '' },
     ];
 
-    changeView() {
-        console.log(this.projectState.selectedInventoryView)
-    }
-
     // Get column group headings (includes frozen)
     get groupedHeaders() {
         const allGroups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
@@ -540,7 +542,6 @@ export class InventoryComponent implements OnInit {
     }
 
     // Track which boolean columns are filtered
-
     isColumnFiltered(field: string): boolean {
         return this.columnFilters()[field] || false;
     }
@@ -552,8 +553,92 @@ export class InventoryComponent implements OnInit {
         }));
     }
 
-    applyFilters(): void {
-        // Apply all active column filters to your table data
-        // This will depend on how your table filtering works
+    // AI metadata generation
+    async generateMetadata(mode: "live" | "prototype" = "live") {
+        if (!this.selectedNodes.length) return;
+
+        for (const node of this.selectedNodes) {
+            // Set URLs to fetch
+            let enUrl: string | null = null;
+            let frUrl: string | null = null;
+            if (mode === "prototype") {
+                enUrl = node.prototypeUrl.includes('/en/') ? node.prototypeUrl : null;
+                frUrl = node.prototypeUrl.includes('/fr/') ? node.prototypeUrl : null;
+            } else {
+                enUrl = node.url.includes('/en/') ? node.url : node.oppUrl;
+                frUrl = node.url.includes('/fr/') ? node.url : node.oppUrl;
+            }
+
+            if (!enUrl && !frUrl) {
+                console.warn(`Skipping ${node.url} — missing EN & FR URLs`);
+                continue;
+            }
+
+            // Fetch main content
+            let enMain: string | null = null;
+            let frMain: string | null = null;
+            try {
+                if (enUrl) {
+                    const enDoc = await this.fetchService.fetchContent(enUrl, 'prod', 3, 'none', true);
+                    enMain = enDoc.querySelector('main')?.innerHTML ?? enDoc.body.innerHTML;
+                }
+                if (frUrl) {
+                    const frDoc = await this.fetchService.fetchContent(frUrl, 'prod', 3, 'none', true);
+                    frMain = frDoc.querySelector('main')?.innerHTML ?? frDoc.body.innerHTML;
+                }
+            } catch (error) {
+                console.warn(`Skipping ${node.url} — fetch failed`, error);
+                continue;
+            }
+
+            // Build context for the AI
+            const context = {
+                en: {
+                    url: enUrl,
+                    existingDescription: node.description,
+                    existingKeywords: node.keywords,
+                    content: enMain,
+                },
+                fr: {
+                    url: frUrl,
+                    existingDescription: node.description,
+                    existingKeywords: node.keywords,
+                    content: frMain,
+                }
+            };
+
+            // Call OpenRouter
+            let response: string;
+            try {
+                response = await this.openRouterService.getTextFromAI(
+                    InventoryPrompts[InventoryPromptKey.Metadata],
+                    JSON.stringify(context)
+                );
+            } catch (error) {
+                console.warn(`Skipping ${node.url} — AI call failed`, error);
+                continue;
+            }
+
+            // Parse and merge into tree
+            try {
+                const parsed = JSON.parse(response);
+                this.projectState.setMetadataReview(node.url, {
+                    generatedAt: new Date(),
+                    model: this.openRouterService.state().respondingModel ?? 'unknown',
+                    en: {
+                        description: { ai: parsed.en.description, status: 'pending' },
+                        keywords: { ai: parsed.en.keywords, status: 'pending' },
+                    },
+                    fr: {
+                        description: { ai: parsed.fr.description, status: 'pending' },
+                        keywords: { ai: parsed.fr.keywords, status: 'pending' },
+                    },
+                });
+            } catch (error) {
+                console.warn(`Skipping ${node.url} — could not parse AI response`, error);
+                continue;
+            }
+
+        }
     }
 }
