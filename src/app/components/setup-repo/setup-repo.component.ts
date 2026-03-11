@@ -78,6 +78,13 @@ export class SetupRepoComponent implements OnInit {
 
   private blurTimeout: ReturnType<typeof setTimeout> | undefined;
   onRepoBlur() {
+    //Add year to new repos
+    if (this.gitHubRepo.trim() !== '' && !this.repos.includes(this.gitHubRepo)) {
+      const currentYear = new Date().getFullYear().toString();
+      if (!/[-_]?\d{4}$/.test(this.gitHubRepo)) {
+        this.gitHubRepo = `${this.gitHubRepo}-${currentYear}`;
+      }
+    }
     this.blurTimeout = setTimeout(() => {
       this.updateRepo();
     }, 200);

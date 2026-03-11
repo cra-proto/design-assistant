@@ -311,12 +311,15 @@ export class ExportGithubComponent implements OnInit {
         let content: string;
         if (isSkipped) { content = '<!-- Skipped file -->'; }
         else if (isNew) {
-          const breadcrumbs = this.projectState.getBreadcrumbChain(node.data.url);
-          content = this.exportGitHubService.formatNewPageAsJekyll(node, breadcrumbs.slice(1), this.gitHubData().owner, repo)
+          const breadcrumbs = this.projectState.getBreadcrumbChain(node.data.url).slice(1);
+          content = this.exportGitHubService.formatNewPageAsJekyll(node, breadcrumbs, this.gitHubData().owner, repo)
         }
         else {
           const doc = await this.fetchService.fetchContent(node.data.url, "prod");
-          content = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, repo);
+          const breadcrumbs = this.selectedExportTarget === 'prototype'
+            ? this.projectState.getBreadcrumbChain(node.data.url).slice(1)
+            : undefined;
+          content = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, repo, breadcrumbs);
         }
         pages.push({ url: node.data.url, path, filename, content });
       } catch (error) {
@@ -341,6 +344,7 @@ export class ExportGithubComponent implements OnInit {
       : `${this.gitHubData().repo}-baseline`;
     const branch = this.gitHubData().branch;
     const token = this.exportGitHubService.token();
+    const projectName = this.projectData().projectName;
 
     // Step 1: Gather all in-scope or baseline URLs and their content
     this.exportProgress.set({ step: 'github.export.progress.step1', progress: 5, });
@@ -372,7 +376,7 @@ export class ExportGithubComponent implements OnInit {
 
     // Step 4: Set up repo (create it if it doesn't exist, add template files)
     setTimeout(() => { this.exportProgress.set({ step: 'github.export.progress.step4', progress: 20 }); }, 1000);
-    await this.exportGitHubService.setupRepo(owner, repo, branch, token, templateFilesToExport, nodes);
+    await this.exportGitHubService.setupRepo(owner, repo, branch, token, projectName, templateFilesToExport, nodes);
 
     // Step 5: Export each page to GitHub
     const existingFiles = await this.exportGitHubService.getRepoTree(owner, repo, branch, token);
@@ -426,6 +430,7 @@ export class ExportGithubComponent implements OnInit {
       /^_config\.yml$/,
       /^index\.html$/,
       /^README\.md$/,
+      /^robots\.txt$/,
       /^_includes\/header\/header\.html$/,
       /^_includes\/resources-inc\/footer\.html$/,
       /^source\/data\/exclude-redirect-links\.json$/,
@@ -456,6 +461,7 @@ export class ExportGithubComponent implements OnInit {
     const jekyllSkipFiles: { path: string; content: string }[] = [
       { path: "_config.yml", content: "<!-- config -->" }, //genertated
       { path: "README.md", content: "<!-- readme -->" }, //generated
+      { path: "robots.txt", content: "<!-- robots -->" }, //generated
     ];
 
     // Add all Jekyll files to export list

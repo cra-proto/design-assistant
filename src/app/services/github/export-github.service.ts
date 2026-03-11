@@ -275,7 +275,7 @@ export class ExportGitHubService {
     }
   }
 
-  public async formatDocumentAsJekyll(doc: Document, url: string, owner: string, repo: string): Promise<string> {
+  public async formatDocumentAsJekyll(doc: Document, url: string, owner: string, repo: string, breadcrumbs?: { title: string; link: string }[]): Promise<string> {
 
     let layout = "default";
 
@@ -293,21 +293,30 @@ export class ExportGitHubService {
       Array.from(doc.querySelectorAll<HTMLLinkElement>('link[rel="alternate"]'))
         .find(link => link.getAttribute("hreflang") !== lang)?.href || "";
 
-    // Breadcrumbs
-    const crumbs = Array.from(doc.querySelectorAll("ol.breadcrumb li"))
-      .slice(1) // skip homepage
-      .map(li => {
-        const a = li.querySelector("a");
-        if (!a) return null;
-        const rawHref = a.getAttribute("href") || "";
-        return {
-          title: a.textContent?.trim() || "",
-          link: rawHref.startsWith("http") ? a.href : `https://www.canada.ca${a.getAttribute("href")}`,
-        };
-      })
-      .filter(Boolean) as { title: string; link: string }[];
+    // Breadcrumbs (use the breadcrumb structure passed from the component if available, otherwise use page content)
+    let crumbsYaml: string;
+    if (breadcrumbs) {
+      crumbsYaml = breadcrumbs.length > 0
+        ? breadcrumbs.map(crumb => `  - title: "${crumb.title}"\r\n    link: "${crumb.link}"`).join("\r\n")
+        : "  []";
+    } else {
+      const crumbs = Array.from(doc.querySelectorAll("ol.breadcrumb li"))
+        .slice(1) // skip homepage
+        .map(li => {
+          const a = li.querySelector("a");
+          if (!a) return null;
+          const rawHref = a.getAttribute("href") || "";
+          return {
+            title: a.textContent?.trim() || "",
+            link: rawHref.startsWith("http") ? a.href : `https://www.canada.ca${a.getAttribute("href")}`,
+          };
+        })
+        .filter(Boolean) as { title: string; link: string }[];
 
-    const crumbsYaml = crumbs.map(crumb => `  - title: "${crumb.title}"\r\n    link: "${crumb.link}"`).join("\r\n");
+      crumbsYaml = crumbs.length > 0
+        ? crumbs.map(crumb => `  - title: "${crumb.title}"\r\n    link: "${crumb.link}"`).join("\r\n")
+        : "  []";
+    }
 
     // Sign in button
     const auth = lang === "en"
@@ -410,7 +419,7 @@ export class ExportGitHubService {
     pageContent = await this.formatHtmlWithPrettier(pageContent);
 
     // Content in jekyll format
-    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\n${auth}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || "  []"}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
+    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\nrobots: "noindex, nofollow"\r\n${auth}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || "  []"}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
 
     return frontMatter;
   }
@@ -435,7 +444,7 @@ export class ExportGitHubService {
       : `auth:\r\n  type: "contextual"\r\n  label: "Se connecter"\r\n  labelExtended: "Se connecter à l'ARC"\r\n  link: "https://www.canada.ca/fr/agence-revenu/services/services-electroniques/services-ouverture-session-arc.html"`;
 
     // Build front matter
-    const frontMatter = `---\r\nlayout: default\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: ""\r\nkeywords: "${keywords}"\r\n${auth}\r\naltLangPage: ""\r\ndateModified: ${dateModified}\r\ndateIssued: ${dateModified}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${node.data.url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n<!-- Add your content here -->`;
+    const frontMatter = `---\r\nlayout: default\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: ""\r\nkeywords: "${keywords}"\r\nrobots: "noindex, nofollow"\r\n${auth}\r\naltLangPage: ""\r\ndateModified: ${dateModified}\r\ndateIssued: ${dateModified}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${node.data.url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n<!-- Add your content here -->`;
 
     return frontMatter;
   }
@@ -520,6 +529,7 @@ defaults:
     }
   }
 
+  // Create index.html (sitemap)
   private async createSitemap(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>): Promise<void> {
     const date = new Date();
     const today = date.toISOString().split("T")[0];
@@ -560,8 +570,21 @@ noFooterMain: true
     }
   }
 
+  // Create robots.txt file
+  private async createRobotsTxt(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>): Promise<void> {
+    const content = `User-agent: *
+Disallow: /
+`
+    try {
+      console.log(`Creating robots.txt for ${repo}`);
+      await this.exportToGitHub(owner, repo, branch, "robots.txt", "robots.txt", content, token, existingFiles, true, false);
+    } catch (error) {
+      console.error(`Failed to create robots.txt for ${repo}:`, error);
+    }
+  }
+
   //Set up README.md <-- add mermaid chart to this
-  async createInitialReadme(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>, treeNodes?: TreeNode[]) {
+  async createInitialReadme(owner: string, repo: string, branch: string, token: string, projectName: string, existingFiles: Map<string, string>, treeNodes?: TreeNode[]) {
     const filename = "README.md";
     const date = new Date();
     const today = date.toISOString().split("T")[0];
@@ -574,11 +597,11 @@ noFooterMain: true
       ? this.generateMermaidChart(treeNodes)
       : 'flowchart TD;\n    A[No pages in project]';
 
-    const content = `# ${repo} COP
+    const content = `# ${projectName}
 
-*description of the COP*
+*description of the project*
 
-**COP timeframe** ${startDate} - ${endDate}
+**Timeframe** ${startDate} - ${endDate}
 
 ## Overview
 
@@ -691,13 +714,14 @@ ${mermaidChart}
     return response.ok;
   }
 
-  private async createRepo(owner: string, repo: string, branch: string, token: string) {
+  private async createRepo(owner: string, repo: string, branch: string, token: string, projectName: string) {
     console.log(`Repo ${owner}/${repo} not found. Creating...`);
     const type = await this.getOwnerType(owner);
     const url =
       type === 'Organization'
         ? `https://api.github.com/orgs/${owner}/repos`
         : `https://api.github.com/user/repos`;
+    const createdDate = new Date().toLocaleDateString('en-CA', { month: 'short', year: 'numeric' });
 
     const response = await fetch(url, {
       method: "POST",
@@ -710,8 +734,12 @@ ${mermaidChart}
         private: false,
         auto_init: true,
         default_branch: branch,
-        description: "Repo created via design assistant",
-        homepage: `https://${owner}.github.io/${repo}/`
+        description: `${projectName} (${createdDate}) - initialized via AIDA`,
+        homepage: `https://${owner}.github.io/${repo}/`,
+        has_issues: false,
+        has_wiki: false,
+        has_projects: false,
+        license_template: "mit"
       })
     });
 
@@ -744,12 +772,12 @@ ${mermaidChart}
     return response.json();
   }
 
-  public async setupRepo(owner: string, repo: string, branch: string, token: string, templateFilesToExport: string[], treeNodes?: TreeNode[]) {
+  public async setupRepo(owner: string, repo: string, branch: string, token: string, projectName: string, templateFilesToExport: string[], treeNodes?: TreeNode[]) {
     const exists = await this.repoExists(owner, repo);
 
     //Create repo
     if (!exists) {
-      await this.createRepo(owner, repo, branch, token);
+      await this.createRepo(owner, repo, branch, token, projectName);
       await this.enablePages(owner, repo, branch, token);
     } else {
       console.log(`Repo ${owner}/${repo} already exists. Skipping creation.`);
@@ -758,13 +786,16 @@ ${mermaidChart}
     // Add template files
     const existingFiles = await this.getRepoTree(owner, repo, branch, token);
     if (templateFilesToExport.includes('README.md')) {
-      await this.createInitialReadme(owner, repo, branch, token, existingFiles, treeNodes);
+      await this.createInitialReadme(owner, repo, branch, token, projectName, existingFiles, treeNodes);
     }
     if (templateFilesToExport.includes('_config.yml')) {
       await this.createConfigYaml(owner, repo, branch, token, existingFiles);
     }
     if (templateFilesToExport.includes('index.html')) {
       await this.createSitemap(owner, repo, branch, token, existingFiles);
+    }
+    if (templateFilesToExport.includes('robots.txt')) {
+      await this.createRobotsTxt(owner, repo, branch, token, existingFiles);
     }
     await this.copyCoreFiles(owner, repo, branch, token, existingFiles, templateFilesToExport);
   }
