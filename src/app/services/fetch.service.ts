@@ -68,7 +68,7 @@ export class FetchService {
         else {
           if (!suppressErrors) { console.warn(`Fetch attempt #${attempt}. Status: ${response.status}. Method: ${mode}`); }
           if (attempt < retries) {
-            const backoffDelay = Math.pow(2, attempt - 1) * 200; // 200ms, 400ms, 800ms delay before retry
+            const backoffDelay = Math.pow(2, attempt - 1) * 300; // 300ms, 600ms, 1200ms delay before retry
             await this.delay(backoffDelay);
             continue;
           }
@@ -77,7 +77,7 @@ export class FetchService {
         }
       } catch (error) {
         if (attempt < retries) {
-          const backoffDelay = Math.pow(2, attempt - 1) * 200; // 200ms, 400ms, 800ms
+          const backoffDelay = Math.pow(2, attempt - 1) * 300; // 300ms, 600ms, 1200ms
           await this.delay(backoffDelay);
           continue;
         }
@@ -107,7 +107,7 @@ export class FetchService {
     hostMode: "prod" | "proto" | "both" | "none" = "both",
     retries = 3,
     delay: number | "random" | "none" = "none",
-    delayBetweenRequests = 50 //ms
+    delayBetweenRequests = 100 //ms
   ): Promise<Response> {
     url = this.validateHost(url, hostMode);
     if (delayBetweenRequests > 0) { await this.delay(delayBetweenRequests); }
