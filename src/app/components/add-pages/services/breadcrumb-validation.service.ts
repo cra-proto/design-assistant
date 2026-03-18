@@ -210,7 +210,7 @@ export class BreadcrumbValidationService {
   //Step 3.5: Collect additional metadata
   async collectJsonData(breadcrumbs: BreadcrumbNode[][]): Promise<void> {
     const uniqueUrls = this.extractUniqueUrls(breadcrumbs);
-    const fields = ['otherTitle', 'gcContributor', 'gcBranch', 'gcLastPublished', 'cq:lastModified', 'cq:template'];
+    const fields = ['otherTitle', 'gcContributor', 'gcBranch', 'gcLastPublished', 'gcModifiedIsOverridden', 'gcModifiedOverride', 'cq:lastModified', 'cq:template'];
     for (const url of uniqueUrls) {
       const contentData = await this.fetchService.fetchJSON(url, fields);
 
@@ -222,7 +222,11 @@ export class BreadcrumbValidationService {
       jsonData.owner = contentData['gcContributor'];
       jsonData.email = contentData['gcBranch'];
       jsonData.lastPublished = contentData['gcLastPublished'] ? new Date(contentData['gcLastPublished']) : undefined;
-      jsonData.lastModified = contentData['cq:lastModified'] ? new Date(contentData['cq:lastModified']) : undefined;
+      jsonData.lastModified = contentData['gcModifiedIsOverridden'] === 'true' && contentData['gcModifiedOverride']
+        ? new Date(contentData['gcModifiedOverride'])
+        : contentData['cq:lastModified']
+          ? new Date(contentData['cq:lastModified'])
+          : undefined;
       jsonData.isFreestyle = contentData['cq:template']?.includes('freestyle') ?? false;
 
       this.jsonCache.set(url, jsonData);
