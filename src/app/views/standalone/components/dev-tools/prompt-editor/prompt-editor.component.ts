@@ -21,15 +21,15 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageModule } from 'primeng/message';
 
 // AIDA
-import { RoleFragment, OutputFragment, RubricFragment } from '../../../common/prompts/shared.prompts';
-import { InventoryPrompts } from '../../../common/prompts/inventory.prompts';
-import { PagePrompts } from '../../../common/prompts/page.prompts';
-import { ProblemPrompts } from '../../../common/prompts/problems.prompts';
-import { PromptConfig, RoleKey, OutputKey, RubricKey, InventoryPromptKey, PagePromptKey, ProblemPromptKey } from '../../../common/prompts/prompt.model';
-import { ExportGitHubService } from '../../../services/github/export-github.service';
-import { UserSettingsService } from '../../../services/user-settings.service';
-import { OpenRouterService, OpenRouterResponse } from '../../../services/ai/openrouter.service';
-import { AiPromptService } from '../../../services/ai/prompt.service';
+import { RoleFragment, OutputFragment, RubricFragment } from '../../../../../common/prompts/shared.prompts';
+import { InventoryPrompts } from '../../../../../common/prompts/inventory.prompts';
+import { PagePrompts } from '../../../../../common/prompts/page.prompts';
+import { ProblemPrompts } from '../../../../../common/prompts/problems.prompts';
+import { PromptConfig, RoleKey, OutputKey, RubricKey, InventoryPromptKey, PagePromptKey, ProblemPromptKey } from '../../../../../common/prompts/prompt.model';
+import { ExportGitHubService } from '../../../../../services/github/export-github.service';
+import { UserSettingsService } from '../../../../../services/user-settings.service';
+import { OpenRouterService, OpenRouterResponse } from '../../../../../services/ai/openrouter.service';
+import { AiPromptService } from '../../../../../services/ai/prompt.service';
 
 //Diff
 import type { Diff2HtmlUIConfig } from 'diff2html/lib/ui/js/diff2html-ui-slim';

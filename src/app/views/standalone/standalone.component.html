@@ -8,17 +8,41 @@
     window.open(`http://localhost:4200/import-page?org=CRA&?url=${url}&title=${title}`, '_blank');
 })();" class="text-xl font-semibold">{{'standalone.tool1._title' | translate}}</a-->
 
+<h2>Bookmarklets</h2>
 <div class="grid py-2 px-4 lg:px-6">
     <div class="col-12 md:col-6 lg:col-4">
-        <a [href]="bookmarklet" class="text-xl font-semibold" (click)="$event.preventDefault()">{{'standalone.tool1._title' | translate}}</a>
+        <a [href]="aidaBookmarklet" class="text-xl font-semibold" (click)="$event.preventDefault()">{{'standalone.tool1._title' | translate}}</a>
         <p class="text-color-secondary mt-2">{{'standalone.tool1.description' | translate}}</p>
     </div>
     <div class="col-12 md:col-6 lg:col-4">
-        <a routerLink="/standalone/tool-2" class="text-xl font-semibold">{{'standalone.tool2._title' | translate}}</a>
+        <a [href]="githubToggleBookmarklet" class="text-xl font-semibold" (click)="$event.preventDefault()">{{'standalone.tool2._title' | translate}}</a>
         <p class="text-color-secondary mt-2">{{'standalone.tool2.description' | translate}}</p>
+    </div>
+    <div class="col-12 md:col-6 lg:col-4">
+        <a [href]="githubToggleBookmarklet" class="text-xl font-semibold" (click)="$event.preventDefault()">{{'standalone.tool3._title' | translate}}</a>
+        <p class="text-color-secondary mt-2">{{'standalone.tool3.description' | translate}}</p>
+    </div>
+</div>
+<h2>Tools</h2>
+<div class="grid py-2 px-4 lg:px-6">
+    <div class="col-12 md:col-6 lg:col-4">
+        <a routerLink="/standalone/tool-3" class="text-xl font-semibold">{{'standalone.tool3._title' | translate}}</a>
+        <p class="text-color-secondary mt-2">{{'standalone.tool3.description' | translate}}</p>
+    </div>
+    <div class="col-12 md:col-6 lg:col-4">
+        <a routerLink="/standalone/tool-3" class="text-xl font-semibold">{{'standalone.tool3._title' | translate}}</a>
+        <p class="text-color-secondary mt-2">{{'standalone.tool3.description' | translate}}</p>
     </div>
     <div class="col-12 md:col-6 lg:col-4">
         <a routerLink="/standalone/tool-3" class="text-xl font-semibold">{{'standalone.tool3._title' | translate}}</a>
         <p class="text-color-secondary mt-2">{{'standalone.tool3.description' | translate}}</p>
     </div>
 </div>
+
+@if(myToolbox() === 'CRA' || myToolbox() === 'ADMIN'){
+<!--ADD ANYTHING UNIQUE TO CRA HERE-->
+}
+
+@if(myToolbox() === 'DEV' || myToolbox() === 'ADMIN'){
+<aida-dev-tools></aida-dev-tools>
+}

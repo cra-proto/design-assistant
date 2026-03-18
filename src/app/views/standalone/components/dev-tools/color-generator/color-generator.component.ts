@@ -11,11 +11,11 @@ import { BadgeModule } from 'primeng/badge';
 import { MessageModule } from 'primeng/message';
 import { DividerModule } from 'primeng/divider';
 
-import { UserSettingsComponent } from '../../../components/user-settings/user-settings.component';
+import { UserSettingsComponent } from '../../../../../components/user-settings/user-settings.component';
 import { ColorPickerComponent } from './color-picker.component';
 import { CopyPresetComponent } from './copy-preset.component';
 
-import { UserSettingsService } from '../../../services/user-settings.service';
+import { UserSettingsService } from '../../../../../services/user-settings.service';
 import { updatePreset } from '@primeng/themes';
 
 @Component({
@@ -57,11 +57,11 @@ export class ColorGeneratorComponent {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let presetPromise: Promise<{ default: any }>;
     switch (scheme) {
-      case 'deutan': presetPromise = import('../../../common/theme-presets/preset-deutan'); break;
-      case 'protan': presetPromise = import('../../../common/theme-presets/preset-protan'); break;
-      case 'tritan': presetPromise = import('../../../common/theme-presets/preset-tritan'); break;
-      case 'custom': presetPromise = import('../../../common/theme-presets/preset-custom'); break;
-      default: presetPromise = import('../../../common/theme-presets/preset');
+      case 'deutan': presetPromise = import('../../../../../common/theme-presets/preset-deutan'); break;
+      case 'protan': presetPromise = import('../../../../../common/theme-presets/preset-protan'); break;
+      case 'tritan': presetPromise = import('../../../../../common/theme-presets/preset-tritan'); break;
+      case 'custom': presetPromise = import('../../../../../common/theme-presets/preset-custom'); break;
+      default: presetPromise = import('../../../../../common/theme-presets/preset');
     }
 
     presetPromise.then(module => {

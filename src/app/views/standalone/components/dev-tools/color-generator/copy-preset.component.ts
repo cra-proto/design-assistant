@@ -2,8 +2,8 @@ import { Component, Input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { TextareaModule } from 'primeng/textarea';
-import { ContrastUtil } from '../../../common/contrast.util';
-import { ColorConverter } from '../../../common/color-converter.util';
+import { ContrastUtil } from '../../../../../common/contrast.util';
+import { ColorConverter } from '../../../../../common/color-converter.util';
 
 @Component({
     selector: 'aida-copy-preset',

@@ -73,20 +73,11 @@
 
     <!-- App Info -->
     <div>
-      @if(myToolbox() === 'DEV' || myToolbox() === 'ADMIN'){
-      <a [routerLink]="['/dev']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
-         class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
-        <span class="material-icons text-2xl">home_repair_service</span>
-        <span class="hidden md:inline text-md">{{ 'dev._nav' | translate }}</span>
-      </a>
-      }
-      @if(myToolbox() === 'CRA' || myToolbox() === 'ADMIN'){
       <a [routerLink]="['/standalone']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
          class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
         <span class="material-icons text-2xl">home_repair_service</span>
         <span class="hidden md:inline text-md">{{ 'standalone._nav' | translate }}</span>
       </a>
-      }
       <a [routerLink]="['/about-us']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
          class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
         <span class="material-icons text-2xl">web_asset</span>

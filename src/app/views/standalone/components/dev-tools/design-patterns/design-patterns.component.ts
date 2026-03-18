@@ -15,7 +15,7 @@ import { SelectModule } from 'primeng/select';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { TooltipModule } from "primeng/tooltip";
 
-import { UserSettingsService } from '../../../services/user-settings.service';
+import { UserSettingsService } from '../../../../../services/user-settings.service';
 
 interface CodeExample {
     label: string;

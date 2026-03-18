@@ -130,22 +130,22 @@ export const routes: Routes = [
     },
     {
         path: 'dev',
-        loadComponent: () => import('./views/dev-tools/dev-tools.component').then(m => m.DevToolsComponent),
+        loadComponent: () => import('./views/standalone/components/dev-tools/dev-tools.component').then(m => m.DevToolsComponent),
         title: 'dev._title',
     },
     {
         path: 'dev/color-generator',
-        loadComponent: () => import('./views/dev-tools/color-generator/color-generator.component').then(m => m.ColorGeneratorComponent),
+        loadComponent: () => import('./views/standalone/components/dev-tools/color-generator/color-generator.component').then(m => m.ColorGeneratorComponent),
         title: 'dev.colors._title',
     },
     {
         path: 'dev/design-patterns',
-        loadComponent: () => import('./views/dev-tools/design-patterns/design-patterns.component').then(m => m.DesignPatternsComponent),
+        loadComponent: () => import('./views/standalone/components/dev-tools/design-patterns/design-patterns.component').then(m => m.DesignPatternsComponent),
         title: 'dev.patterns._title',
     },
     {
         path: 'dev/prompt-editor',
-        loadComponent: () => import('./views/dev-tools/prompt-editor/prompt-editor.component').then(m => m.PromptEditorComponent),
+        loadComponent: () => import('./views/standalone/components/dev-tools/prompt-editor/prompt-editor.component').then(m => m.PromptEditorComponent),
         title: 'dev.prompts._title',
     },
     {
