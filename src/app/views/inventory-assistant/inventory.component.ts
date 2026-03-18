@@ -63,9 +63,6 @@ export class InventoryComponent implements OnInit {
 
     production = environment.production;
 
-    // Remove this later
-    test() { console.log("Button click") }
-
     // Signals
     columnFilters = signal<Record<string, boolean>>({
         inScope: true  // Default filter applied
@@ -144,6 +141,10 @@ export class InventoryComponent implements OnInit {
         marker('inventory.tooltip.archive.to-archive');
         marker('inventory.tooltip.archive.archived');
         marker('inventory.tooltip.archive.unarchive');
+        marker('inventory.tooltip.noindex.none');
+        marker('inventory.tooltip.noindex.en-only');
+        marker('inventory.tooltip.noindex.fr-only');
+        marker('inventory.tooltip.noindex.both');
     }
 
     // Multiselect - column groups
@@ -290,7 +291,8 @@ export class InventoryComponent implements OnInit {
         return allNodes.filter(node => {
             return Object.entries(filters).every(([field, filterValue]) => {
                 if (!filterValue) return true; // Filter inactive
-                if (field === 'archiveStatus') { return node[field] !== 'current'; } // Special handling for archive field                
+                if (field === 'archiveStatus') { return node[field] !== 'current'; } // Special handling for archive field
+                if (field === 'noindex') { return node[field] !== 'none'; } // Special handling for noindex field                             
                 return node[field as keyof FlattenedTreeNode] === true; // Boolean filters - show only true values
             });
         });
@@ -341,6 +343,26 @@ export class InventoryComponent implements OnInit {
 
     getArchiveStatusTooltip(node: FlattenedTreeNode, col: TableColumn): string {
         return `inventory.tooltip.archive.${node[col.field]}`;
+    }
+
+    getNoIndexIcon(node: FlattenedTreeNode, col: TableColumn): string {
+        const status = node[col.field];
+        switch (status) {
+            case 'none':
+                return 'pi pi-minus text-gray-400';
+            case 'en-only':
+                return 'pi pi-exclamation-circle text-red-500';
+            case 'fr-only':
+                return 'pi pi-exclamation-triangle text-red-500';
+            case 'both':
+                return 'pi pi-android text-orange-500';
+            default:
+                return 'pi pi-minus text-gray-400'; // fallback
+        }
+    }
+
+    getNoIndexTooltip(node: FlattenedTreeNode, col: TableColumn): string {
+        return `inventory.tooltip.noindex.${node[col.field]}`;
     }
 
     // Table - update visible columns & check if metadata should autoexpand
@@ -595,14 +617,14 @@ export class InventoryComponent implements OnInit {
             const context = {
                 en: {
                     url: enUrl,
-                    existingDescription: node.description,
-                    existingKeywords: node.keywords,
+                    existingDescription: node.descriptionEN,
+                    existingKeywords: node.keywordsEN,
                     content: enMain,
                 },
                 fr: {
                     url: frUrl,
-                    existingDescription: node.description,
-                    existingKeywords: node.keywords,
+                    existingDescription: node.descriptionFR,
+                    existingKeywords: node.keywordsFR,
                     content: frMain,
                 }
             };

@@ -180,23 +180,13 @@
                     <!-- Scrollable columns -->
                     @for(col of scrollableColumns; track col.field){
                     <th [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border surface-card sticky-r':'surface-card sticky-r'">
-                        @if(col.type === 'boolean'){
+                        @if(col.type === 'boolean' || col.type === 'archive' || col.type === 'noindex'){
                         <p-button [label]="col.translationKey | translate" styleClass="font-bold capitalize"
                                   [icon]="isColumnFiltered(col.field) ? 'pi pi-filter' : 'pi pi-filter-slash'" iconPos="right"
                                   [severity]="isColumnFiltered(col.field) ? 'primary' : 'contrast'"
                                   text rounded tooltipPosition="top"
                                   (onClick)="toggleColumnFilter(col.field)"
                                   [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showTrue' | translate: {column: (col.translationKey | translate)})"
-                                  appendTo="body" showDelay="300" hideDelay="0" />
-                        }
-                        @else if(col.type === 'archive'){
-                        <p-button
-                                  [label]="col.translationKey | translate" styleClass="font-bold capitalize"
-                                  [icon]="isColumnFiltered(col.field) ? 'pi pi-filter' : 'pi pi-filter-slash'" iconPos="right"
-                                  [severity]="isColumnFiltered(col.field) ? 'primary' : 'contrast'"
-                                  text rounded tooltipPosition="top"
-                                  (onClick)="toggleColumnFilter(col.field)"
-                                  [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showSome' | translate)"
                                   appendTo="body" showDelay="300" hideDelay="0" />
                         }
                         @else{{{ col.translationKey | translate }}}
@@ -301,6 +291,12 @@
                         @if(col.type === 'archive'){
                         <i [class]="getArchiveStatusIcon(node, col)" class="flex justify-content-center p-2"
                            [pTooltip]="getArchiveStatusTooltip(node, col) | translate" tooltipPosition="top"
+                           appendTo="body" showDelay="300" hideDelay="0"></i>
+                        }
+                        <!-- Noindex field -->
+                        @if(col.type === 'noindex'){
+                        <i [class]="getNoIndexIcon(node, col)" class="flex justify-content-center p-2"
+                           [pTooltip]="getNoIndexTooltip(node, col) | translate" tooltipPosition="top"
                            appendTo="body" showDelay="300" hideDelay="0"></i>
                         }
                     </td>

@@ -16,6 +16,7 @@ export interface ValidationState {
 }
 
 export interface PageMetadata {
+    doubleH1: string              // the page double H1 (if any, otherwise empty string)
     h1: string;                   // the page H1
     title: string;                // the page title
     description: string;          // the page description
@@ -24,6 +25,15 @@ export interface PageMetadata {
     oppUrl?: string               // opposite language url
     isArchived?: boolean          // archive status
     linksToPortal?: boolean       // true if page links to a secure portal
+    noindex: boolean              // from page robots
+    wordCount: number             // calculated from page content
+}
+
+export interface OppMetadata {
+    title: string;                // the page title
+    description: string;          // the page description
+    keywords: string;             // the page keywords
+    noindex: boolean              // from page robots
 }
 
 export interface JsonMetadata {

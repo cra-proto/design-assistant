@@ -119,7 +119,11 @@ export class ProjectStateService {
         }));
         // Sync name to repo if not set
         if (name && !this.project().github.repo) {
-            const repo = name.replace(/[:']/g, '').replace(/\s+/g, '-').toLowerCase();
+            let repo = name.replace(/[:']/g, '').replace(/\s+/g, '-').toLowerCase();
+            const currentYear = new Date().getFullYear().toString();
+            if (!/[-_]?\d{4}$/.test(repo)) {
+                repo = `${repo}-${currentYear}`;
+            }
             this.setGitHubRepo({ repo });
         }
     }
@@ -573,6 +577,7 @@ export class ProjectStateService {
                 flatNodes.push({
                     //Current language
                     h1: data.h1 || '',
+                    doubleH1: data.doubleH1 || '',
                     url: data.url || '',
                     //Opposite language
                     oppTitle: data.metadata?.oppTitle || '',
@@ -586,18 +591,28 @@ export class ProjectStateService {
                     isMoved: data.status.isMoved,
                     isROT: data.status.isROT,
                     linksToPortal: data.status.linksToPortal,
+                    noindex: data.status.noindexEN && data.status.noindexFR ? 'both'
+                        : data.status.noindexEN ? 'en-only'
+                            : data.status.noindexFR ? 'fr-only'
+                                : 'none',
                     archiveStatus: data.status.archiveStatus,
                     //Data
                     template: data.metadata?.template || '',
                     task: data.metadata?.task || [],
                     visits: data.metadata?.visits ?? undefined,
+                    wordCount: data.metadata?.wordCount,
+                    lastModified: data.metadata?.lastModified,
+                    lastPublished: data.metadata?.lastPublished,
                     //Owner
                     owner: data.metadata?.owner || '',
                     email: data.metadata?.email || '',
                     //Metadata
-                    title: data.metadata?.title || '',
-                    description: data.metadata?.description || '',
-                    keywords: data.metadata?.keywords || '',
+                    titleEN: data.metadata?.title || '',
+                    descriptionEN: data.metadata?.description || '',
+                    keywordsEN: data.metadata?.keywords || '',
+                    titleFR: data.metadata?.titleFR || '',
+                    descriptionFR: data.metadata?.descriptionFR || '',
+                    keywordsFR: data.metadata?.keywordsFR || '',
                     //AI Metadata
                     aiDescriptionEN: data.metadataReview?.en.description,
                     aiKeywordsEN: data.metadataReview?.en.keywords,
@@ -619,6 +634,7 @@ export class ProjectStateService {
 
     markForTranslation() {
         marker('inventory.header.h1');
+        marker('inventory.header.doubleH1');
         marker('inventory.header.url');
         marker('inventory.header.oppTitle');
         marker('inventory.header.oppUrl');
@@ -630,14 +646,27 @@ export class ProjectStateService {
         marker('inventory.header.isROT');
         marker('inventory.header.linksToPortal');
         marker('inventory.header.archiveStatus');
+        marker('inventory.header.noindex');
         marker('inventory.header.owner');
         marker('inventory.header.email');
         marker('inventory.header.template');
         marker('inventory.header.task');
         marker('inventory.header.visits');
-        marker('inventory.header.title');
-        marker('inventory.header.description');
-        marker('inventory.header.keywords');
+        marker('inventory.header.wordCount');
+        marker('inventory.header.lastModified');
+        marker('inventory.header.lastPublished');
+        marker('inventory.header.titleEN');
+        marker('inventory.header.descriptionEN');
+        marker('inventory.header.keywordsEN');
+        marker('inventory.header.titleFR');
+        marker('inventory.header.descriptionFR');
+        marker('inventory.header.keywordsFR');
+        marker('inventory.header.ai.descriptionEN');
+        marker('inventory.header.ai.keywordsEN');
+        marker('inventory.header.ai.descriptionFR');
+        marker('inventory.header.ai.keywordsFR');
+        marker('inventory.header.ai.model');
+        marker('inventory.header.ai.date');
     }
 
     // NOTE: Add new translation keys to the markForTranslation() method above
@@ -645,6 +674,7 @@ export class ProjectStateService {
         return [
             //Current Language
             { field: 'h1', translationKey: 'inventory.header.h1', type: 'text', frozen: true, group: 'page', visibleByDefault: true },
+            { field: 'doubleH1', translationKey: 'inventory.header.doubleH1', type: 'text', group: 'page', visibleByDefault: false },
             { field: 'url', translationKey: 'inventory.header.url', type: 'url', group: 'page', visibleByDefault: true },
             //Opposite Language
             { field: 'oppTitle', translationKey: 'inventory.header.oppTitle', type: 'text', group: 'oppPage', visibleByDefault: false },
@@ -659,6 +689,7 @@ export class ProjectStateService {
             { field: 'isROT', translationKey: 'inventory.header.isROT', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'linksToPortal', translationKey: 'inventory.header.linksToPortal', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'archiveStatus', translationKey: 'inventory.header.archiveStatus', type: 'archive', group: 'status', visibleByDefault: true },
+            { field: 'noindex', translationKey: 'inventory.header.noindex', type: 'noindex', group: 'status', visibleByDefault: true },
             //Owner
             { field: 'owner', translationKey: 'inventory.header.owner', type: 'text', group: 'owner', visibleByDefault: true },
             { field: 'email', translationKey: 'inventory.header.email', type: 'text', group: 'owner', visibleByDefault: false },
@@ -666,15 +697,21 @@ export class ProjectStateService {
             { field: 'template', translationKey: 'inventory.header.template', type: 'text', group: 'pageData', visibleByDefault: true },
             { field: 'task', translationKey: 'inventory.header.task', type: 'array', group: 'pageData', visibleByDefault: true },
             { field: 'visits', translationKey: 'inventory.header.visits', type: 'number', group: 'pageData', visibleByDefault: true },
-            //Metadata
-            { field: 'title', translationKey: 'inventory.header.title', type: 'text', group: 'metadata', visibleByDefault: false },
-            { field: 'description', translationKey: 'inventory.header.description', type: 'longText', group: 'metadata', visibleByDefault: false },
-            { field: 'keywords', translationKey: 'inventory.header.keywords', type: 'longText', group: 'metadata', visibleByDefault: false },
-            //AI Metadata
+            { field: 'wordCount', translationKey: 'inventory.header.wordCount', type: 'number', group: 'pageData', visibleByDefault: true },
+            { field: 'lastModified', translationKey: 'inventory.header.lastModified', type: 'date', group: 'pageData', visibleByDefault: true },
+            { field: 'lastPublished', translationKey: 'inventory.header.lastPublished', type: 'date', group: 'pageData', visibleByDefault: true },
+            //Metadata & AI metadata
+            { field: 'titleEN', translationKey: 'inventory.header.titleEN', type: 'text', group: 'metadata', visibleByDefault: false },
+            { field: 'descriptionEN', translationKey: 'inventory.header.descriptionEN', type: 'longText', group: 'metadata', visibleByDefault: false },
             { field: 'aiDescriptionEN', translationKey: 'inventory.header.ai.descriptionEN', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            { field: 'keywordsEN', translationKey: 'inventory.header.keywordsEN', type: 'longText', group: 'metadata', visibleByDefault: false },
             { field: 'aiKeywordsEN', translationKey: 'inventory.header.ai.keywordsEN', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            { field: 'titleFR', translationKey: 'inventory.header.titleFR', type: 'text', group: 'metadata', visibleByDefault: false },
+            { field: 'descriptionFR', translationKey: 'inventory.header.descriptionFR', type: 'longText', group: 'metadata', visibleByDefault: false },
             { field: 'aiDescriptionFR', translationKey: 'inventory.header.ai.descriptionFR', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            { field: 'keywordsFR', translationKey: 'inventory.header.keywordsFR', type: 'longText', group: 'metadata', visibleByDefault: false },
             { field: 'aiKeywordsFR', translationKey: 'inventory.header.ai.keywordsFR', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            //AI Metadata
             { field: 'aiModel', translationKey: 'inventory.header.ai.model', type: 'text', group: 'metadata', visibleByDefault: false },
             { field: 'aiGeneratedAt', translationKey: 'inventory.header.ai.date', type: 'date', group: 'metadata', visibleByDefault: false },
         ];
