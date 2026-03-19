@@ -16,6 +16,7 @@ import { ExportGithubComponent } from './views/github-assistant/export-github.co
 // Static pages
 import { NotFoundComponent } from './views/404/not-found.component';
 import { AboutComponent } from './views/about-us/about.component';
+import { HelpComponent } from './views/help/help.component';
 
 // Authentication
 import { GithubConnectComponent } from './components/sign-in/github-connect.component';
@@ -123,6 +124,11 @@ export const routes: Routes = [
              .then(m => m.PageAssistantCompareComponent)
  
      },*/
+    {
+        path: 'help',
+        component: HelpComponent,
+        title: 'help._title',
+    },
     {
         path: 'about-us',
         component: AboutComponent,

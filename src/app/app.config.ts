@@ -1,17 +1,18 @@
 import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from "@angular/core";
-import { provideHttpClient } from "@angular/common/http";
-import { TranslateModule, TranslateLoader } from "@ngx-translate/core";
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { HttpClient } from '@angular/common/http';
-import { provideRouter, TitleStrategy } from '@angular/router';
-import { CustomTitleStrategy } from './common/custom-title-strategy';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { providePrimeNG } from 'primeng/config';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { provideHttpClient, HttpClient } from "@angular/common/http";
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr-CA';
 import localeEn from '@angular/common/locales/en-CA';
-//import Lara from '@primeng/themes/lara';
+import { provideRouter, TitleStrategy, withInMemoryScrolling } from '@angular/router';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+
+import { TranslateModule, TranslateLoader } from "@ngx-translate/core";
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+
+import { providePrimeNG } from 'primeng/config';
+import { ConfirmationService, MessageService } from 'primeng/api';
+
+import { CustomTitleStrategy } from './common/custom-title-strategy';
 import MyPreset from './common/theme-presets/preset';
 
 import { routes } from './app.routes';
@@ -25,7 +26,8 @@ const httpLoaderFactory: (http: HttpClient) => TranslateHttpLoader = (http: Http
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled' })
+    ),
     { provide: TitleStrategy, useClass: CustomTitleStrategy },
     provideHttpClient(),
     importProvidersFrom([TranslateModule.forRoot({
