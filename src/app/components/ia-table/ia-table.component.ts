@@ -305,15 +305,25 @@ export class IaTableComponent {
 
     //Save changes to URL or H1
     saveNode() {
+        let editLink = false;
+        if (this.selectedNode.data.editing === "label" && !this.selectedNode.data.url.endsWith('.html')) {
+            const fragment = this.projectState.generateUrlFragment(this.selectedNode.data.h1);
+            const separator = this.selectedNode.data.url.endsWith('/') ? '' : '/';
+            this.selectedNode.data.url += separator + fragment;
+            editLink = true;
+        }
+        else if (this.selectedNode.data.editing === "link" && !this.selectedNode.data.url.endsWith('.html')) {
+            this.selectedNode.data.url = this.selectedNode.data.url.replace(/\/$/, '') + '.html'; // add .html if missing
+        }
+
         if (this.selectedNode) {
             this.selectedNode.data.editing = null;
         }
-        if (!this.selectedNode.data.url.endsWith('.html')) {
-            this.selectedNode.data.url = this.selectedNode.data.url.replace(/\/$/, '') + '.html'; // add .html if missing
-        }
         this.draggable = true;
         this.selectable = false;
-        this.projectState.setModifiedDate();
+
+        if (editLink) { this.editNode("link"); }
+        else { this.projectState.setModifiedDate(); }
     }
 
     //Handle keyboard events while editing URL or H1

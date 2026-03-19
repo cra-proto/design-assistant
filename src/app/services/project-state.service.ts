@@ -119,7 +119,7 @@ export class ProjectStateService {
         }));
         // Sync name to repo if not set
         if (name && !this.project().github.repo) {
-            let repo = name.replace(/[:']/g, '').replace(/\s+/g, '-').toLowerCase();
+            let repo = this.generateUrlFragment(name);
             const currentYear = new Date().getFullYear().toString();
             if (!/[-_]?\d{4}$/.test(repo)) {
                 repo = `${repo}-${currentYear}`;
@@ -893,6 +893,27 @@ export class ProjectStateService {
             console.error('Failed to generate prototype URL:', error);
             return '';
         }
+    }
+
+    // Generate url fragment (for repo names and new pages)
+    public generateUrlFragment(h1: string): string {
+        // Words to remove (common articles, prepositions, conjunctions)
+        const stopWords = [
+            // English
+            'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with',
+            // French
+            'le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'et', 'ou', 'mais', 'dans', 'sur', 'a', 'au', 'aux', 'pour', 'avec'
+        ];
+
+        return h1
+            .normalize('NFD')                            // Decompose accented characters
+            .replace(/[\u0300-\u036f]/g, '')             // Remove accent marks
+            .replace(/\b(?:l|d|n|s|c|j|m|t|qu)'/gi, '')  // Remove French contractions (l', d', n', s', c', j', m', t', qu')
+            .toLowerCase()                               // Lowercase for the url
+            .replace(/[^\w\s-]/g, '')                    // Remove punctuation except hyphens
+            .split(/\s+/)                                // Split on whitespace
+            .filter(word => word.length > 0 && !stopWords.includes(word)) // Remove stop words and empty strings
+            .join('-');                                  // Join with hyphens
     }
 
     deleteNode(selectedPages: FlattenedTreeNode[], canDeleteRoot = false) {

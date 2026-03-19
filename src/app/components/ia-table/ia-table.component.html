@@ -1,5 +1,4 @@
 <p-contextMenu #cm [model]="options"></p-contextMenu>
-<h2>IA structure tree</h2>
 <p-tree [value]="projectTree()"
         [selectionMode]="selectable ? 'multiple' : null" [(selection)]="selectedNode"
         [draggableNodes]="draggable" [droppableNodes]="true" draggableScope="self" droppableScope="self" (onNodeDrop)="handleNodeDrop($event)" [validateDrop]="true"
