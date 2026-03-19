@@ -18,7 +18,7 @@
         <label for="phase">{{'project.setup.label.phase' | translate}}</label>
     </p-iftalabel>
     <!--Storage-->
-    <p-selectbutton [options]="storageOptions" optionValue="value" [(ngModel)]="projectStorage" [unselectable]="true" styleClass="w-full">
+    <p-selectbutton [options]="storageOptions()" optionValue="value" [(ngModel)]="projectStorage" [unselectable]="true" styleClass="w-full">
         <ng-template #item let-item>
             <i [class]="item.icon"></i>
             <span class="ml-1">{{ item.name | translate }}</span>
