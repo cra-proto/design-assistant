@@ -264,8 +264,8 @@ export class ExportGithubComponent implements OnInit {
 
   // Export options
   exportTargetOptions: ExportTarget[] = [
-    { label: 'github.connect.export.prototype', value: 'prototype' },
-    { label: 'github.connect.export.baseline', value: 'baseline' }
+    { label: 'github.connect.export.toggle.prototype', value: 'prototype' },
+    { label: 'github.connect.export.toggle.baseline', value: 'baseline' }
   ];
   selectedExportTarget: ExportOption = 'prototype';
 

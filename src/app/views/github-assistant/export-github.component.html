@@ -44,7 +44,7 @@
                           styleClass="secondary-outline w-full"
                           (click)="settingsOverlay.toggle($event)" />
                 <p-popover #settingsOverlay styleClass="w-full lg:w-30rem">
-                    <aida-setup-repo />
+                    <aida-setup-repo mode="baseline" />
                     @if (projectData().github.hasBaselineRepo) {
                     <div class="flex flex-column align-items-stretch mt-3">
                         <label for="export-type" class="text-sm font-semibold">{{ 'github.connect.export.label' | translate }}</label>
@@ -55,7 +55,11 @@
                                         allowEmpty="false"
                                         optionLabel="label"
                                         optionValue="value"
-                                        styleClass="secondary-outline max-h-3rem" />
+                                        styleClass="secondary-outline max-h-3rem">
+                            <ng-template #item let-item>
+                                {{ item.label | translate }}
+                            </ng-template>
+                        </p-selectButton>
                     </div>
                     }
                 </p-popover>
