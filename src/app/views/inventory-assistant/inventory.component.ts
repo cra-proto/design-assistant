@@ -501,6 +501,17 @@ export class InventoryComponent implements OnInit {
         console.log('Column settings reset to defaults');
     }
 
+    //Metadata view
+    viewMetadata() {
+        localStorage.removeItem('inventoryColumnVisibility');
+        localStorage.removeItem('inventoryGroupVisibility');
+        this.selectedColumnFields = this.allColumns
+            .filter(col => col.group === 'metadata')
+            .map(col => col.field);
+        this.syncSelectedGroups();
+        this.updateVisibleColumns();
+    }
+
 
     //View settings
     views: ViewOption[] = [

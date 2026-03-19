@@ -82,9 +82,12 @@
                         </p-iftalabel>
 
                         <!-- Top toolbar - Column settings - Reset button -->
-                        <p-button label="Reset columns" icon="pi pi-refresh"
+                        <p-button label="Default view" icon="pi pi-refresh"
                                   severity="secondary" size="small" styleClass="h-full"
                                   (onClick)="resetColumnSettings()" />
+                        <p-button label="View metadata" icon="pi pi-tags"
+                                  severity="secondary" size="small" styleClass="h-full"
+                                  (onClick)="viewMetadata()" />
                     </div>
                 </div>
                 <p-button severity="secondary" icon="pi pi-cog" label="Column settings" class="flex lg:hidden" />
