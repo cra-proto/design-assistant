@@ -45,6 +45,7 @@ export class DevToolsComponent {
     marker('inventory._');
     marker('iaDiagram._');
     marker('github._');
+    marker('help._');
     marker('about._');
     marker('notFound._');
     marker('dev._');
