@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, effect } from '@angular/core';
+import { Component, inject, OnInit, effect, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -17,6 +17,8 @@ import { ProjectStateService } from '../../services/project-state.service';
 import { ExportGitHubService } from '../../services/github/export-github.service';
 import { environment } from '../../../environments/environment';
 
+type RepoMode = 'default' | 'baseline';
+
 @Component({
   selector: 'aida-setup-repo',
   imports: [
@@ -30,6 +32,8 @@ export class SetupRepoComponent implements OnInit {
   private projectState = inject(ProjectStateService);
   private exportGitHubService = inject(ExportGitHubService);
   defaultOrg = environment.defaultOrg
+
+  @Input() mode: RepoMode = 'default';
 
   constructor() {
     // Refresh gitHubRepo when there are changes to project name (for initial sync fxn)
