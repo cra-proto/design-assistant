@@ -78,9 +78,14 @@
         <span class="material-icons text-2xl">home_repair_service</span>
         <span class="hidden md:inline text-md">{{ 'standalone._nav' | translate }}</span>
       </a>
+      <a [routerLink]="['/help']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
+         class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
+        <span class="material-icons text-2xl">help_outline</span>
+        <span class="hidden md:inline text-md">{{ 'help._nav' | translate }}</span>
+      </a>
       <a [routerLink]="['/about-us']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
          class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
-        <span class="material-icons text-2xl">web_asset</span>
+        <span class="material-icons text-2xl">wysiwyg</span>
         <span class="hidden md:inline text-md">{{ 'about._nav' | translate }}</span>
       </a>
       <a (click)="mailtoService.openMailto(mailtoService.generateFeedbackMailto())" (keydown.enter)="mailtoService.openMailto(mailtoService.generateFeedbackMailto())" tabindex="0"
