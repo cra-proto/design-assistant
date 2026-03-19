@@ -350,7 +350,7 @@
 	"inventory.tooltip.noindex.fr-only": "Only French is not indexed",
 	"inventory.tooltip.noindex.none": "Indexed",
 	"inventory.view.table": "Content inventory",
-	"inventory.view.tree": "Page move tree",
+	"inventory.view.tree": "Page move",
 	"nav._": "------------------------------NAVIGATION------------------------------",
 	"nav.project": "Project",
 	"nav.tasks": "Tasks",
