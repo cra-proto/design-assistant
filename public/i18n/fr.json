@@ -274,6 +274,8 @@
 	"github.export.table.header.url": "Chemin",
 	"github.export.templateFiles.header": "",
 	"github.warning": "Connectez-vous à l'aide de GitHub ou entrez votre jeton GitHub pour exporter votre contenu",
+	"help._": "",
+	"help._nav": "",
 	"iaDiagram._": "------------------------------IA diagram------------------------------",
 	"iaDiagram._title": "Diagramme AI",
 	"iaDiagram.tooltip.orphan": "Aucun lien à partir de la page parent",
