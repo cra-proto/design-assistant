@@ -2,11 +2,15 @@ import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { Project, ProjectMetadata, ProjectPhase, GitHubRepo, GitHubUser, ProjectTreeNodeData, FlattenedTreeNode, TableColumn, MetadataReview } from '../common/data.model';
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../environments/environment';
+import { TranslateService } from '@ngx-translate/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { version as appVersion } from '../../../package.json'
 
 import { ProjectStorageService } from '../services/storage/project-storage.service';
 import { CollaboratorService } from './collaborator.service';
+import { FetchService } from './fetch.service';
+import { AirtableService } from './airtable.service';
+import { UpdService } from './upd.service';
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
 
@@ -24,8 +28,12 @@ NO persistence logic (that goes to ProjectStorageService)*/
 
 @Injectable({ providedIn: 'root' })
 export class ProjectStateService {
+    private translate = inject(TranslateService);
     private projectStorageService = inject(ProjectStorageService);
     private collaboratorService = inject(CollaboratorService);
+    private fetchService = inject(FetchService);
+    private airtableService = inject(AirtableService);
+    private updService = inject(UpdService);
 
     // Main project state
     private project = signal<Project>({
@@ -690,9 +698,6 @@ export class ProjectStateService {
             { field: 'linksToPortal', translationKey: 'inventory.header.linksToPortal', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'archiveStatus', translationKey: 'inventory.header.archiveStatus', type: 'archive', group: 'status', visibleByDefault: true },
             { field: 'noindex', translationKey: 'inventory.header.noindex', type: 'noindex', group: 'status', visibleByDefault: true },
-            //Owner
-            { field: 'owner', translationKey: 'inventory.header.owner', type: 'text', group: 'owner', visibleByDefault: true },
-            { field: 'email', translationKey: 'inventory.header.email', type: 'text', group: 'owner', visibleByDefault: false },
             //Data
             { field: 'template', translationKey: 'inventory.header.template', type: 'text', group: 'pageData', visibleByDefault: true },
             { field: 'task', translationKey: 'inventory.header.task', type: 'array', group: 'pageData', visibleByDefault: false },
@@ -700,6 +705,9 @@ export class ProjectStateService {
             { field: 'wordCount', translationKey: 'inventory.header.wordCount', type: 'number', group: 'pageData', visibleByDefault: true },
             { field: 'lastModified', translationKey: 'inventory.header.lastModified', type: 'date', group: 'pageData', visibleByDefault: true },
             { field: 'lastPublished', translationKey: 'inventory.header.lastPublished', type: 'date', group: 'pageData', visibleByDefault: false },
+            //Owner
+            { field: 'owner', translationKey: 'inventory.header.owner', type: 'text', group: 'owner', visibleByDefault: true },
+            { field: 'email', translationKey: 'inventory.header.email', type: 'text', group: 'owner', visibleByDefault: false },
             //Metadata & AI metadata
             { field: 'titleEN', translationKey: 'inventory.header.titleEN', type: 'text', group: 'metadata', visibleByDefault: false },
             { field: 'descriptionEN', translationKey: 'inventory.header.descriptionEN', type: 'longText', group: 'metadata', visibleByDefault: false },
@@ -1045,5 +1053,83 @@ export class ProjectStateService {
 
         findAndBuildChain(this.project().projectData, url);
         return breadcrumbs;
+    }
+
+
+    // Refresh page data
+    public async refreshData(url: string, oppUrl: string, mode: 'status' | 'data' | 'owner' | 'metadata' | 'all') {
+
+        const node = this.findNodeByUrl(this.getProjectTree(), url);
+        if (!node) {
+            console.error('Node not found for URL:', url);
+            return;
+        }
+
+        const urlLang = url.includes('/en/') ? 'en' : 'fr';
+
+        let metadata;
+        if (mode === 'status' || mode === 'data' || mode === 'metadata' || mode === 'all') {
+            const doc = await this.fetchService.fetchContent(url, "prod", 3, "none", false);
+            metadata = this.fetchService.extractPageMetadata(doc, url);
+            console.log("Metadata", metadata);
+        }
+
+        let oppMetadata;
+        if (mode === 'metadata' || mode === 'all') {
+            oppMetadata = await this.fetchService.getOppMetadata(oppUrl);
+            console.log("Opp Metadata", oppMetadata);
+        }
+
+        let jsonData;
+        if (mode === 'data' || mode === 'owner' || mode === 'all') {
+            const fields = ['gcContributor', 'gcBranch', 'gcLastPublished', 'gcModifiedIsOverridden', 'gcModifiedOverride', 'cq:lastModified', 'cq:template'];
+            jsonData = await this.fetchService.fetchJSON(url, fields);
+            console.log("Ownership data", jsonData);
+        }
+
+        let task, visits;
+        if (mode === 'data' || mode === 'all') {
+            const currentLang = this.translate.currentLang?.startsWith('fr') ? 'fr' : 'en';
+            await this.airtableService.fetchTasks();
+            task = this.airtableService.findTaskNamesByUrl(url, currentLang);
+            console.log("Task data", task);
+
+            await this.updService.fetchData();
+            visits = this.updService.findVisitsByUrl(url.replace('https://', ''));
+            console.log("Visits", visits);
+        }
+
+        // Update node - use new data if fetched AND available, otherwise keep existing
+        if (node.data?.status) {
+            // STATUS MODE
+            node.data.status.linksToPortal = ((mode === 'status' || mode === 'all') && metadata?.linksToPortal !== undefined) ? metadata.linksToPortal : node.data.status.linksToPortal;
+            node.data.status.archiveStatus = ((mode === 'status' || mode === 'all') && metadata?.isArchived !== undefined) ? (metadata.isArchived ? 'archived' : 'current') : node.data.status.archiveStatus;
+            node.data.status.noindexEN = ((mode === 'status' || mode === 'all') && metadata?.noindex !== undefined) ? (urlLang === 'en' ? metadata.noindex : oppMetadata?.noindex) : node.data.status.noindexEN;
+            node.data.status.noindexFR = ((mode === 'status' || mode === 'all') && metadata?.noindex !== undefined) ? (urlLang === 'fr' ? metadata.noindex : oppMetadata?.noindex) : node.data.status.noindexFR;
+            //TODO: IA ORPHAN!
+        }
+        if (node.data?.metadata) {
+            // DATA MODE
+            node.data.metadata.template = ((mode === 'data' || mode === 'all') && metadata?.template) ? (jsonData?.['cq:template']?.includes('freestyle') ? 'freestyle' : metadata.template) : node.data.metadata.template;
+            node.data.metadata.wordCount = ((mode === 'data' || mode === 'all') && metadata?.wordCount !== undefined) ? metadata.wordCount : node.data.metadata.wordCount;
+            node.data.metadata.lastPublished = ((mode === 'data' || mode === 'all') && jsonData?.['gcLastPublished']) ? new Date(jsonData['gcLastPublished']) : node.data.metadata.lastPublished;
+            node.data.metadata.lastModified = ((mode === 'data' || mode === 'all') && jsonData) ? (jsonData['gcModifiedIsOverridden'] === 'true' && jsonData['gcModifiedOverride'] ? new Date(jsonData['gcModifiedOverride']) : jsonData['cq:lastModified'] ? new Date(jsonData['cq:lastModified']) : '') : node.data.metadata.lastModified;
+            node.data.metadata.task = ((mode === 'data' || mode === 'all') && task) ? task : node.data.metadata.task;
+            node.data.metadata.visits = ((mode === 'data' || mode === 'all') && visits !== undefined && visits !== -1) ? visits : node.data.metadata.visits;
+
+            // OWNER MODE
+            node.data.metadata.owner = ((mode === 'owner' || mode === 'all') && jsonData?.['gcContributor']) ? jsonData['gcContributor'] : node.data.metadata.owner;
+            node.data.metadata.email = ((mode === 'owner' || mode === 'all') && jsonData?.['gcBranch']) ? jsonData['gcBranch'] : node.data.metadata.email;
+
+            // METADATA MODE
+            node.data.metadata.title = ((mode === 'metadata' || mode === 'all') && (metadata?.title || oppMetadata?.title)) ? (urlLang === 'en' ? metadata?.title : oppMetadata?.title) : node.data.metadata.title;
+            node.data.metadata.description = ((mode === 'metadata' || mode === 'all') && (metadata?.description || oppMetadata?.description)) ? (urlLang === 'en' ? metadata?.description : oppMetadata?.description) : node.data.metadata.description;
+            node.data.metadata.keywords = ((mode === 'metadata' || mode === 'all') && (metadata?.keywords || oppMetadata?.keywords)) ? (urlLang === 'en' ? metadata?.keywords : oppMetadata?.keywords) : node.data.metadata.keywords;
+            node.data.metadata.titleFR = ((mode === 'metadata' || mode === 'all') && (metadata?.title || oppMetadata?.title)) ? (urlLang === 'fr' ? metadata?.title : oppMetadata?.title) : node.data.metadata.titleFR;
+            node.data.metadata.descriptionFR = ((mode === 'metadata' || mode === 'all') && (metadata?.description || oppMetadata?.description)) ? (urlLang === 'fr' ? metadata?.description : oppMetadata?.description) : node.data.metadata.descriptionFR;
+            node.data.metadata.keywordsFR = ((mode === 'metadata' || mode === 'all') && (metadata?.keywords || oppMetadata?.keywords)) ? (urlLang === 'fr' ? metadata?.keywords : oppMetadata?.keywords) : node.data.metadata.keywordsFR;
+        }
+
+        this.setModifiedDate();
     }
 }

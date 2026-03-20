@@ -674,4 +674,12 @@ export class InventoryComponent implements OnInit {
 
         }
     }
+
+    async refreshData() {
+        if (!this.selectedNodes.length) return;
+
+        for (const node of this.selectedNodes) {
+            this.projectState.refreshData(node.url, node.oppUrl, 'all');
+        }
+    }
 }

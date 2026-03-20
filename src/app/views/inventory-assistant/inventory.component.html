@@ -59,11 +59,11 @@
                                            (onChange)="onGroupSelectionChange()">
                                 <ng-template pTemplate="header">
                                     <div class="px-3 pt-2">
-                                        <span class="font-semibold">Select groups</span>
+                                        <span class="font-semibold">{{'inventory.columnVis.selectGroups' | translate}}</span>
                                     </div>
                                 </ng-template>
                             </p-multiSelect>
-                            <label for="columns">Visible column groups</label>
+                            <label for="columns">{{'inventory.columnVis.visibleGroups' | translate}}</label>
                         </p-iftalabel>
 
                         <!-- Top toolbar - Column settings - Column dropdown -->
@@ -74,18 +74,18 @@
                                            (onChange)="onColumnSelectionChange()">
                                 <ng-template pTemplate="header">
                                     <div class="px-3 pt-2">
-                                        <span class="font-semibold">Select columns</span>
+                                        <span class="font-semibold">{{'inventory.columnVis.selectColumns' | translate}}</span>
                                     </div>
                                 </ng-template>
                             </p-multiSelect>
-                            <label for="columns">Visible columns</label>
+                            <label for="columns">{{'inventory.columnVis.visibleColumns' | translate}}</label>
                         </p-iftalabel>
 
                         <!-- Top toolbar - Column settings - Reset button -->
-                        <p-button label="Default view" icon="pi pi-refresh"
+                        <p-button [label]="'inventory.columnVis.defaultView' | translate" icon="pi pi-refresh"
                                   severity="secondary" size="small" styleClass="h-full"
                                   (onClick)="resetColumnSettings()" />
-                        <p-button label="View metadata" icon="pi pi-tags"
+                        <p-button [label]="'inventory.columnVis.metadataView' | translate" icon="pi pi-tags"
                                   severity="secondary" size="small" styleClass="h-full"
                                   (onClick)="viewMetadata()" />
                     </div>
@@ -99,36 +99,40 @@
                 @if(selectedNodes.length > 0 || hasActiveFilters()){
                 <div class="flex flex-row justify-content-between align-items-center border-1 border-dashed secondary-outline surface-card">
 
-                    <!-- Bulk actions toolbar - # selected pages -->
-                    <p>{{selectedNodes.length}} pages selected</p>
+                    <div class="flex flex-row align-items-center gap-2">
+                        <!-- Bulk actions toolbar - # selected pages -->
+                        <p>{{selectedNodes.length}} pages selected</p>
 
-                    <!-- Bulk actions toolbar - Toggle page statuses -->
-                    <p-button label="Update status"></p-button>
+                        <!-- Bulk actions toolbar - Refresh data -->
+                        <p-button label="Refresh data" (onClick)="refreshData()"></p-button>
 
-                    <!-- Bulk actions toolbar - Generate metadata -->
-                    <p-button label="Generate metadata" (onClick)="generateMetadata()" [loading]="openRouterService.state().loading"></p-button>
+                        <!-- Bulk actions toolbar - Toggle page statuses -->
+                        <p-button label="Toggle status"></p-button>
 
-                    <!-- Bulk actions toolbar - Reset page statuses filters -->
-                    <p-button
-                              label="{{ 'inventory.filter.reset' | translate }}"
-                              icon="pi pi-filter-slash"
-                              severity="secondary"
-                              [outlined]="true"
-                              size="small"
-                              (onClick)="resetFilters()"
-                              [disabled]="!hasActiveFilters()" />
+                        <!-- Bulk actions toolbar - Generate metadata -->
+                        <p-button label="Generate metadata" (onClick)="generateMetadata()" [loading]="openRouterService.state().loading"></p-button>
 
-                    <!-- Bulk actions toolbar - Conditional actions - Expand metadata -->
-                    @if(hasVisibleMetadata()){
-                    <p-button
-                              [disabled]="!hasVisibleMetadata()"
-                              [label]="expandAllMetadata ? ('inventory.collapseAllMetadata' | translate) : ('inventory.expandAllMetadata' | translate)"
-                              [icon]="expandAllMetadata ? 'pi pi-minus' : 'pi pi-plus'"
-                              [outlined]="true"
-                              size="small"
-                              (click)="toggleExpandAllMetadata()" />
-                    }
+                        <!-- Bulk actions toolbar - Reset page statuses filters -->
+                        <p-button
+                                  label="{{ 'inventory.filter.reset' | translate }}"
+                                  icon="pi pi-filter-slash"
+                                  severity="secondary"
+                                  [outlined]="true"
+                                  size="small"
+                                  (onClick)="resetFilters()"
+                                  [disabled]="!hasActiveFilters()" />
 
+                        <!-- Bulk actions toolbar - Conditional actions - Expand metadata -->
+                        @if(hasVisibleMetadata()){
+                        <p-button
+                                  [disabled]="!hasVisibleMetadata()"
+                                  [label]="expandAllMetadata ? ('inventory.collapseAllMetadata' | translate) : ('inventory.expandAllMetadata' | translate)"
+                                  [icon]="expandAllMetadata ? 'pi pi-minus' : 'pi pi-plus'"
+                                  [outlined]="true"
+                                  size="small"
+                                  (click)="toggleExpandAllMetadata()" />
+                        }
+                    </div>
                     <!-- Bulk actions toolbar - Delete pages -->
                     <p-button
                               label="Delete selected pages and their children"
@@ -148,20 +152,20 @@
             }
         </div>
         <!--div>
-                <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
-                    <span class="text-xs  my-1">Visible groups</span>
-                    <p-selectbutton class="mb-0" [options]="columnGroupButtons" [(ngModel)]="selectedGroups" [multiple]="true" optionLabel="tooltip" optionValue="value" (onChange)="onGroupSelectionChange()">
-                        <ng-template let-item pTemplate="item">
-                            <i [class]="'pb-0 pi ' + item.icon" [pTooltip]="item.tooltip" tooltipPosition="top"></i>
-                        </ng-template>
-                    </p-selectbutton>
-                    <p-selectbutton class="mb-0" [options]="columnMaterialButtons" [(ngModel)]="selectedGroups" [multiple]="true" optionLabel="tooltip" optionValue="value" (onChange)="onGroupSelectionChange()">
-                        <ng-template let-item pTemplate="item">
-                            <span class="material-icons" [pTooltip]="item.tooltip" tooltipPosition="top">{{ item.icon }}</span>
-                        </ng-template>
-                    </p-selectbutton>
-                </div>
-            </div-->
+            <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
+                <span class="text-xs  my-1">Visible groups</span>
+                <p-selectbutton class="mb-0" [options]="columnGroupButtons" [(ngModel)]="selectedGroups" [multiple]="true" optionLabel="tooltip" optionValue="value" (onChange)="onGroupSelectionChange()">
+                    <ng-template let-item pTemplate="item">
+                        <i [class]="'pb-0 pi ' + item.icon" [pTooltip]="item.tooltip" tooltipPosition="top"></i>
+                    </ng-template>
+                </p-selectbutton>
+                <p-selectbutton class="mb-0" [options]="columnMaterialButtons" [(ngModel)]="selectedGroups" [multiple]="true" optionLabel="tooltip" optionValue="value" (onChange)="onGroupSelectionChange()">
+                    <ng-template let-item pTemplate="item">
+                        <span class="material-icons" [pTooltip]="item.tooltip" tooltipPosition="top">{{ item.icon }}</span>
+                    </ng-template>
+                </p-selectbutton>
+            </div>
+        </div-->
 
 
         @if(projectState.selectedInventoryView === "table"){
