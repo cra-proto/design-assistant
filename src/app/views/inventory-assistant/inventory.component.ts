@@ -83,6 +83,9 @@ export class InventoryComponent implements OnInit {
     frozenColumns: TableColumn[] = [];
     scrollableColumns: TableColumn[] = [];
 
+    // Groups
+    columnGroups = ['page', 'oppPage', 'github', 'status', 'pageData', 'owner', 'metadata'];
+
     // Current selections
     selectedNodes: FlattenedTreeNode[] = [] // Flattened TreeNode data (for delete, status toggles, etc.)
     selectedColumnFields: string[] = []; // Multiselect column data
@@ -107,9 +110,7 @@ export class InventoryComponent implements OnInit {
 
     // Multiselect - groups
     get groups() {
-        const groups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
-
-        return groups.map(groupKey => ({
+        return this.columnGroups.map(groupKey => ({
             label: this.translate.instant(`inventory.columnGroups.${groupKey}`),
             value: groupKey,
         }));
@@ -149,7 +150,7 @@ export class InventoryComponent implements OnInit {
 
     // Multiselect - column groups
     get groupedColumns() {
-        const allGroups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
+        const allGroups = this.columnGroups;
         const groups = allGroups.filter(g => this.selectedGroups.includes(g));
 
         return groups.map(groupKey => ({
@@ -173,9 +174,7 @@ export class InventoryComponent implements OnInit {
 
     // Select Button - column group toggles
     get columnGroupButtons() {
-        const groups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
-
-        return groups.map(groupKey => ({
+        return this.columnGroups.map(groupKey => ({
             value: groupKey,
             icon: this.getGroupIcon(groupKey),
             tooltip: this.translate.instant(`inventory.columnGroups.${groupKey}`)
@@ -183,9 +182,7 @@ export class InventoryComponent implements OnInit {
     }
 
     get columnMaterialButtons() {
-        const groups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
-
-        return groups.map(groupKey => ({
+        return this.columnGroups.map(groupKey => ({
             value: groupKey,
             icon: this.getMaterialIcon(groupKey),
             tooltip: this.translate.instant(`inventory.columnGroups.${groupKey}`)
@@ -521,7 +518,7 @@ export class InventoryComponent implements OnInit {
 
     // Get column group headings (includes frozen)
     get groupedHeaders() {
-        const allGroups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
+        const allGroups = this.columnGroups;
         const groups = allGroups.filter(g => {
             const hasFrozenColumns = this.allColumns.some(col => col.group === g && col.frozen);
             return this.selectedGroups.includes(g) || hasFrozenColumns;
