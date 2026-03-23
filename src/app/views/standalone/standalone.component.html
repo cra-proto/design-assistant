@@ -8,34 +8,41 @@
     window.open(`http://localhost:4200/import-page?org=CRA&?url=${url}&title=${title}`, '_blank');
 })();" class="text-xl font-semibold">{{'standalone.tool1._title' | translate}}</a-->
 
-<h2>Bookmarklets</h2>
+<h2>{{'standalone.bookmarklet._title' | translate}}</h2>
+<p>{{'standalone.bookmarklet.description' | translate}}</p>
 <div class="grid py-2 px-4 lg:px-6">
     <div class="col-12 md:col-6 lg:col-4">
-        <a [href]="aidaBookmarklet" class="text-xl font-semibold" (click)="$event.preventDefault()">{{'standalone.tool1._title' | translate}}</a>
-        <p class="text-color-secondary mt-2">{{'standalone.tool1.description' | translate}}</p>
+        <a [href]="aidaBookmarklet" class="text-xl font-semibold" (click)="$event.preventDefault()">{{'standalone.bookmarklet1._title' | translate}}</a>
+        <p class="text-color-secondary mt-2">{{'standalone.bookmarklet1.description' | translate}}<br>
+            <strong>{{'common.modified'|translate}}: </strong>2026-02-01
+        </p>
     </div>
     <div class="col-12 md:col-6 lg:col-4">
-        <a [href]="githubToggleBookmarklet" class="text-xl font-semibold" (click)="$event.preventDefault()">{{'standalone.tool2._title' | translate}}</a>
-        <p class="text-color-secondary mt-2">{{'standalone.tool2.description' | translate}}</p>
+        <a [href]="githubToggleBookmarklet" class="text-xl font-semibold" (click)="$event.preventDefault()">{{'standalone.bookmarklet2._title' | translate}}</a>
+        <p class="text-color-secondary mt-2">{{'standalone.bookmarklet2.description' | translate}}<br>
+            <strong>{{'common.modified'|translate}}: </strong>2026-03-01
+        </p>
     </div>
     <div class="col-12 md:col-6 lg:col-4">
-        <a [href]="githubToggleBookmarklet" class="text-xl font-semibold" (click)="$event.preventDefault()">{{'standalone.tool3._title' | translate}}</a>
-        <p class="text-color-secondary mt-2">{{'standalone.tool3.description' | translate}}</p>
+        <a [href]="linkCheckerBookmarklet" class="text-xl font-semibold" (click)="$event.preventDefault()">{{'standalone.bookmarklet3._title' | translate}}</a>
+        <p class="text-color-secondary mt-2">{{'standalone.bookmarklet3.description' | translate}}<br>
+            <strong>{{'common.modified'|translate}}: </strong>2026-03-23
+        </p>
     </div>
 </div>
 <h2>Tools</h2>
 <div class="grid py-2 px-4 lg:px-6">
     <div class="col-12 md:col-6 lg:col-4">
-        <a routerLink="/standalone/tool-3" class="text-xl font-semibold">{{'standalone.tool3._title' | translate}}</a>
-        <p class="text-color-secondary mt-2">{{'standalone.tool3.description' | translate}}</p>
+        <a routerLink="/standalone/tool-3" class="text-xl font-semibold">{{'standalone.tool._title' | translate}} 1</a>
+        <p class="text-color-secondary mt-2">{{'standalone.tool.description' | translate}}</p>
     </div>
     <div class="col-12 md:col-6 lg:col-4">
-        <a routerLink="/standalone/tool-3" class="text-xl font-semibold">{{'standalone.tool3._title' | translate}}</a>
-        <p class="text-color-secondary mt-2">{{'standalone.tool3.description' | translate}}</p>
+        <a routerLink="/standalone/tool-3" class="text-xl font-semibold">{{'standalone.tool._title' | translate}} 2</a>
+        <p class="text-color-secondary mt-2">{{'standalone.tool.description' | translate}}</p>
     </div>
     <div class="col-12 md:col-6 lg:col-4">
-        <a routerLink="/standalone/tool-3" class="text-xl font-semibold">{{'standalone.tool3._title' | translate}}</a>
-        <p class="text-color-secondary mt-2">{{'standalone.tool3.description' | translate}}</p>
+        <a routerLink="/standalone/tool-3" class="text-xl font-semibold">{{'standalone.tool._title' | translate}} 3</a>
+        <p class="text-color-secondary mt-2">{{'standalone.tool.description' | translate}}</p>
     </div>
 </div>
 
