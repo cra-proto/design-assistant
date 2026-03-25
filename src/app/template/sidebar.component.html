@@ -64,10 +64,13 @@
           </a>
         </div>
         <!--Icons for upcoming task nav
-          <span class="material-icons text-2xl">library_books</span>
-          <span class="material-icons text-2xl">troubleshoot</span>
-          <span class="material-icons-outlined text-2xl">manage_search</span>
-          -->
+        <span class="material-icons text-2xl">library_books</span>
+        <span class="hidden md:inline text-md">Pages</span><br>
+        <span class="material-icons text-2xl">troubleshoot</span>
+        <span class="hidden md:inline text-md">Problems</span><br>
+        <span class="material-icons-outlined text-2xl">manage_search</span>
+        <span class="hidden md:inline text-md">GREP search</span>
+        -->
       </div>
     </div>
 
@@ -78,11 +81,13 @@
         <span class="material-icons text-2xl">home_repair_service</span>
         <span class="hidden md:inline text-md">{{ 'standalone._nav' | translate }}</span>
       </a>
+      @if(!production){
       <a [routerLink]="['/help']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
          class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
         <span class="material-icons text-2xl">help_outline</span>
         <span class="hidden md:inline text-md">{{ 'help._nav' | translate }}</span>
       </a>
+      }
       <a [routerLink]="['/about-us']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
          class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
         <span class="material-icons text-2xl">wysiwyg</span>
