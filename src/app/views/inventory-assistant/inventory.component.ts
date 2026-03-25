@@ -18,11 +18,13 @@ import { ToggleButtonModule } from 'primeng/togglebutton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { RadioButtonModule } from 'primeng/radiobutton';
+import { MenuModule } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
 
 //Components and models
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
 import { AddPagesComponent } from '../../components/add-pages/add-pages.component';
-import { FlattenedTreeNode, TableColumn } from '../../common/data.model';
+import { FlattenedTreeNode, TableColumn, COLUMN_GROUPS, FIELD_FILTERS } from '../../common/data.model';
 import { IaTableComponent } from '../../components/ia-table/ia-table.component';
 import { InventoryPrompts } from '../../common/prompts/inventory.prompts';
 import { InventoryPromptKey } from '../../common/prompts/prompt.model';
@@ -46,7 +48,7 @@ interface ViewOption {
     selector: 'aida-inventory',
     imports: [CommonModule, FormsModule, TranslateModule,
         TableModule, ButtonModule, PopoverModule, TooltipModule,
-        ToolbarModule, IftaLabelModule, MultiSelectModule, SelectButtonModule,
+        ToolbarModule, IftaLabelModule, MultiSelectModule, SelectButtonModule, MenuModule,
         TagModule, ToggleButtonModule, ConfirmDialogModule,
         RadioButtonModule,
         ExportProjectComponent, AddPagesComponent, FindPagesComponent, IaTableComponent],
@@ -65,7 +67,8 @@ export class InventoryComponent implements OnInit {
 
     // Signals
     columnFilters = signal<Record<string, boolean>>({
-        inScope: true  // Default filter applied
+        inScope: true,  // Default filter applied
+        anyUnusual: false
     });
     resetFilters(): void {
         this.columnFilters.set({
@@ -84,7 +87,8 @@ export class InventoryComponent implements OnInit {
     scrollableColumns: TableColumn[] = [];
 
     // Groups
-    columnGroups = ['page', 'oppPage', 'github', 'status', 'pageData', 'owner', 'metadata'];
+    columnGroups = COLUMN_GROUPS;
+    fieldFilters = FIELD_FILTERS;
 
     // Current selections
     selectedNodes: FlattenedTreeNode[] = [] // Flattened TreeNode data (for delete, status toggles, etc.)
@@ -121,8 +125,9 @@ export class InventoryComponent implements OnInit {
         marker('inventory.columnGroups.oppPage');
         marker('inventory.columnGroups.github');
         marker('inventory.columnGroups.status');
-        marker('inventory.columnGroups.owner');
+        marker('inventory.columnGroups.problems');
         marker('inventory.columnGroups.pageData');
+        marker('inventory.columnGroups.owner');
         marker('inventory.columnGroups.metadata');
         marker('inventory.view.table');
         marker('inventory.view.tree');
@@ -286,7 +291,16 @@ export class InventoryComponent implements OnInit {
         const allNodes = this.projectState.flattenTree();
         const filters = this.columnFilters();
         return allNodes.filter(node => {
+            if (filters['anyUnusual']) {
+                const hasAnyUnusual = this.fieldFilters.some(field => {
+                    if (field === 'archiveStatus') return node[field] !== 'current';
+                    if (field === 'noindex') return node[field] !== 'none';
+                    return node[field as keyof FlattenedTreeNode] === true;
+                });
+                if (!hasAnyUnusual) return false;
+            }
             return Object.entries(filters).every(([field, filterValue]) => {
+                if (field === 'anyUnusual') return true; // Skip, not an actual column
                 if (!filterValue) return true; // Filter inactive
                 if (field === 'archiveStatus') { return node[field] !== 'current'; } // Special handling for archive field
                 if (field === 'noindex') { return node[field] !== 'none'; } // Special handling for noindex field                             
@@ -672,11 +686,147 @@ export class InventoryComponent implements OnInit {
         }
     }
 
-    async refreshData() {
+    async refreshData(mode: 'status' | 'problems' | 'data' | 'owner' | 'metadata' | 'all') {
         if (!this.selectedNodes.length) return;
 
         for (const node of this.selectedNodes) {
             this.projectState.refreshData(node.url, node.oppUrl, 'all');
         }
+    }
+
+    //Secondary toolbar dropdowns
+    itemsRefresh: MenuItem[] = [
+        {
+            label: 'inventory.menu.refresh',
+            items: [
+                {
+                    label: 'inventory.menu.refresh.all',
+                    icon: 'pi pi-plus',
+                    command: () => {
+                        this.refreshData('all')
+                    }
+                },
+            ]
+        },
+        {
+            label: 'inventory.menu.refresh.group',
+            items: [
+                {
+                    label: 'inventory.menu.refresh.status',
+                    icon: 'pi pi-cog',
+                    command: () => {
+                        this.refreshData('status')
+                    }
+                },
+                {
+                    label: 'inventory.menu.refresh.problems',
+                    icon: 'pi pi-sign-out',
+                    disabled: true,
+                    command: () => {
+                        this.refreshData('problems')
+                    }
+                },
+                {
+                    label: 'inventory.menu.refresh.data',
+                    icon: 'pi pi-cog',
+                    command: () => {
+                        this.refreshData('data')
+                    }
+                },
+                {
+                    label: 'inventory.menu.refresh.owner',
+                    icon: 'pi pi-cog',
+                    command: () => {
+                        this.refreshData('owner')
+                    }
+                },
+                {
+                    label: 'inventory.menu.refresh.metadata',
+                    icon: 'pi pi-cog',
+                    command: () => {
+                        this.refreshData('metadata')
+                    }
+                },
+            ]
+        }
+    ]
+    itemsStatus: MenuItem[] = []
+    updateStatusMenu() {
+        this.itemsStatus = [
+            {
+                label: 'inventory.menu.status.filter',
+                items: [
+                    {
+                        label: this.columnFilters()['anyUnusual']
+                            ? 'inventory.filter.status.all'
+                            : 'inventory.filter.status.none',
+                        icon: this.columnFilters()['anyUnusual']
+                            ? 'pi pi-filter'
+                            : 'pi pi-filter-slash',
+                        command: () => {
+                            this.toggleColumnFilter('anyUnusual');
+                        }
+                    },
+                    {
+                        label: 'inventory.filter.reset',
+                        icon: 'pi pi-filter-slash',
+                        command: () => {
+                            this.resetFilters()
+                        },
+                        disabled: !this.hasActiveFilters()
+                    },
+                ]
+            },
+        ];
+    };
+
+    itemsMetadata: MenuItem[] = [];
+    updateMetadataMenu() {
+        this.itemsMetadata = [
+            {
+                label: 'inventory.menu.metadata',
+                items: [
+                    {
+                        label: 'inventory.menu.metadata.generate',
+                        icon: 'pi pi-plus',
+                        command: () => {
+                            this.generateMetadata()
+                        }
+                    },
+                    {
+                        label: this.expandAllMetadata
+                            ? 'inventory.collapseAllMetadata'
+                            : 'inventory.expandAllMetadata',
+                        icon: this.expandAllMetadata ? 'pi pi-minus' : 'pi pi-plus',
+                        command: () => {
+                            this.toggleExpandAllMetadata()
+                        },
+                        disabled: !this.hasVisibleMetadata()
+                    },
+                ]
+            },
+        ];
+    }
+
+    itemsDelete: MenuItem[] = [];
+    updateDeleteMenu() {
+        this.itemsDelete = [
+            {
+                label: 'inventory.menu.metadata',
+                items: [
+                    {
+                        label: 'Delete selected pages and their children',
+                        icon: 'pi pi-trash',
+                        severity: this.selectedNodes.length === 0
+                            ? ''
+                            : 'danger',
+                        disabled: this.selectedNodes.length === 0,
+                        command: () => {
+                            this.onDeleteSelected()
+                        }
+                    },
+                ]
+            },
+        ];
     }
 }

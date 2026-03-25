@@ -82,12 +82,14 @@
                         </p-iftalabel>
 
                         <!-- Top toolbar - Column settings - Reset button -->
-                        <p-button [label]="'inventory.columnVis.defaultView' | translate" icon="pi pi-refresh"
-                                  severity="secondary" size="small" styleClass="h-full"
-                                  (onClick)="resetColumnSettings()" />
-                        <p-button [label]="'inventory.columnVis.metadataView' | translate" icon="pi pi-tags"
-                                  severity="secondary" size="small" styleClass="h-full"
-                                  (onClick)="viewMetadata()" />
+                        <div class="flex flex-column h-full gap-1">
+                            <p-button [label]="'inventory.columnVis.defaultView' | translate"
+                                      severity="primary" outlined size="small" class="h-full" styleClass="h-full w-full secondary-outline p-1"
+                                      (onClick)="resetColumnSettings()" />
+                            <p-button [label]="'inventory.columnVis.metadataView' | translate"
+                                      severity="primary" outlined size="small" class="h-full" styleClass="h-full w-full secondary-outline p-1"
+                                      (onClick)="viewMetadata()" />
+                        </div>
                     </div>
                 </div>
                 <p-button severity="secondary" icon="pi pi-cog" label="Column settings" class="flex lg:hidden" />
@@ -96,44 +98,26 @@
             <!-- Bulk actions toolbar -->
             @if(projectState.selectedInventoryView === "table"){
             <div class="h-3rm mb-2">
-                @if(selectedNodes.length > 0 || hasActiveFilters()){
-                <div class="flex flex-row justify-content-between align-items-center border-1 border-dashed secondary-outline surface-card">
+                <div class="flex flex-row align-items-center gap-2 surface-card">
+                    <!-- Bulk actions toolbar - # selected pages -->
+                    <p>{{selectedNodes.length}} pages selected</p>
 
-                    <div class="flex flex-row align-items-center gap-2">
-                        <!-- Bulk actions toolbar - # selected pages -->
-                        <p>{{selectedNodes.length}} pages selected</p>
+                    <!-- Bulk actions toolbar - Refresh data -->
+                    <p-button label="Refresh" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
+                              (onClick)="menuRefresh.toggle($event)"></p-button>
 
-                        <!-- Bulk actions toolbar - Refresh data -->
-                        <p-button label="Refresh data" (onClick)="refreshData()"></p-button>
+                    <!-- Bulk actions toolbar - Toggle page statuses -->
+                    <p-button label="Status" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
+                              (onClick)="updateStatusMenu(); menuStatus.toggle($event)"></p-button>
 
-                        <!-- Bulk actions toolbar - Toggle page statuses -->
-                        <p-button label="Toggle status"></p-button>
+                    <!-- Bulk actions toolbar - Generate metadata -->
+                    <p-button label="Metadata" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
+                              (onClick)="updateMetadataMenu(); menuMetadata.toggle($event)" [loading]="openRouterService.state().loading"></p-button>
 
-                        <!-- Bulk actions toolbar - Generate metadata -->
-                        <p-button label="Generate metadata" (onClick)="generateMetadata()" [loading]="openRouterService.state().loading"></p-button>
-
-                        <!-- Bulk actions toolbar - Reset page statuses filters -->
-                        <p-button
-                                  label="{{ 'inventory.filter.reset' | translate }}"
-                                  icon="pi pi-filter-slash"
-                                  severity="secondary"
-                                  [outlined]="true"
-                                  size="small"
-                                  (onClick)="resetFilters()"
-                                  [disabled]="!hasActiveFilters()" />
-
-                        <!-- Bulk actions toolbar - Conditional actions - Expand metadata -->
-                        @if(hasVisibleMetadata()){
-                        <p-button
-                                  [disabled]="!hasVisibleMetadata()"
-                                  [label]="expandAllMetadata ? ('inventory.collapseAllMetadata' | translate) : ('inventory.expandAllMetadata' | translate)"
-                                  [icon]="expandAllMetadata ? 'pi pi-minus' : 'pi pi-plus'"
-                                  [outlined]="true"
-                                  size="small"
-                                  (click)="toggleExpandAllMetadata()" />
-                        }
-                    </div>
                     <!-- Bulk actions toolbar - Delete pages -->
+                    <p-button label="Delete" icon="pi pi-chevron-down" iconPos="right" severity="danger" outlined styleClass="secondary-outline"
+                              (onClick)="updateDeleteMenu(); menuDelete.toggle($event)"></p-button>
+
                     <p-button
                               label="Delete selected pages and their children"
                               icon="pi pi-trash"
@@ -147,7 +131,7 @@
 
                 </div>
                 <p-confirmDialog key="inventory" />
-                }
+
             </div>
             }
         </div>
@@ -336,3 +320,49 @@
     </div>
 
 </div>
+
+<!--Menus-->
+<p-menu #menuRefresh [model]="itemsRefresh" [popup]="true">
+    <ng-template #submenuheader let-item>
+        <span class="text-primary font-bold">{{ item.label | translate}}</span>
+    </ng-template>
+    <ng-template #item let-item>
+        <a class="p-menu-item-link">
+            <i [class]="item.icon"></i>
+            <span>{{ item.label | translate}}</span>
+        </a>
+    </ng-template>
+</p-menu>
+<p-menu #menuStatus [model]="itemsStatus" [popup]="true">
+    <ng-template #submenuheader let-item>
+        <span class="text-primary font-bold">{{ item.label | translate}}</span>
+    </ng-template>
+    <ng-template #item let-item>
+        <a class="p-menu-item-link">
+            <i [class]="item.icon"></i>
+            <span>{{ item.label | translate}}</span>
+        </a>
+    </ng-template>
+</p-menu>
+<p-menu #menuMetadata [model]="itemsMetadata" [popup]="true">
+    <ng-template #submenuheader let-item>
+        <span class="text-primary font-bold">{{ item.label | translate}}</span>
+    </ng-template>
+    <ng-template #item let-item>
+        <a class="p-menu-item-link">
+            <i [class]="item.icon"></i>
+            <span>{{ item.label | translate}}</span>
+        </a>
+    </ng-template>
+</p-menu>
+<p-menu #menuDelete [model]="itemsDelete" [popup]="true">
+    <ng-template #submenuheader let-item>
+        <span class="text-red-500 font-bold">{{ item.label | translate}}</span>
+    </ng-template>
+    <ng-template #item let-item>
+        <a class="p-menu-item-link">
+            <i [class]="item.icon" [ngClass]="item.severity==='danger'?'text-red-500':''"></i>
+            <span>{{ item.label | translate}}</span>
+        </a>
+    </ng-template>
+</p-menu>
