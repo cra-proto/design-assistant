@@ -23,6 +23,7 @@ import { GithubConnectComponent } from './components/sign-in/github-connect.comp
 import { AuthCallbackComponent } from './components/sign-in/auth-callback.component';
 
 // Dev tools & standalone - LAZY LOAD THESE!
+import { StandaloneComponent } from './views/standalone/standalone.component';
 
 // Project Storage (for route guards)
 import { ProjectStorageService } from './services/storage/project-storage.service';
@@ -135,6 +136,11 @@ export const routes: Routes = [
         title: 'about._title',
     },
     {
+        path: 'standalone',
+        component: StandaloneComponent,
+        title: 'standalone._title',
+    },
+    {
         path: 'dev',
         loadComponent: () => import('./views/standalone/components/dev-tools/dev-tools.component').then(m => m.DevToolsComponent),
         title: 'dev._title',
@@ -153,11 +159,6 @@ export const routes: Routes = [
         path: 'dev/prompt-editor',
         loadComponent: () => import('./views/standalone/components/dev-tools/prompt-editor/prompt-editor.component').then(m => m.PromptEditorComponent),
         title: 'dev.prompts._title',
-    },
-    {
-        path: 'standalone',
-        loadComponent: () => import('./views/standalone/standalone.component').then(m => m.StandaloneComponent),
-        title: 'standalone._title',
     },
     {
         path: '**',
