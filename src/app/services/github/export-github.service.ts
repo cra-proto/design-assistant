@@ -772,32 +772,48 @@ ${mermaidChart}
     return response.json();
   }
 
-  public async setupRepo(owner: string, repo: string, branch: string, token: string, projectName: string, templateFilesToExport: string[], treeNodes?: TreeNode[]) {
-    const exists = await this.repoExists(owner, repo);
+  public async setupRepo(owner: string, repo: string, branch: string, token: string, projectName: string, templateFilesToExport: string[], treeNodes?: TreeNode[]): Promise<{ success: boolean, error?: { status: number, message: string } }> {
+    try {
+      const exists = await this.repoExists(owner, repo);
 
-    //Create repo
-    if (!exists) {
-      await this.createRepo(owner, repo, branch, token, projectName);
-      await this.enablePages(owner, repo, branch, token);
-    } else {
-      console.log(`Repo ${owner}/${repo} already exists. Skipping creation.`);
-    }
+      //Create repo
+      if (!exists) {
+        await this.createRepo(owner, repo, branch, token, projectName);
+        await this.enablePages(owner, repo, branch, token);
+      } else {
+        console.log(`Repo ${owner}/${repo} already exists. Skipping creation.`);
+      }
 
-    // Add template files
-    const existingFiles = await this.getRepoTree(owner, repo, branch, token);
-    if (templateFilesToExport.includes('README.md')) {
-      await this.createInitialReadme(owner, repo, branch, token, projectName, existingFiles, treeNodes);
+      // Add template files
+      const existingFiles = await this.getRepoTree(owner, repo, branch, token);
+      if (templateFilesToExport.includes('README.md')) {
+        await this.createInitialReadme(owner, repo, branch, token, projectName, existingFiles, treeNodes);
+      }
+      if (templateFilesToExport.includes('_config.yml')) {
+        await this.createConfigYaml(owner, repo, branch, token, existingFiles);
+      }
+      if (templateFilesToExport.includes('index.html')) {
+        await this.createSitemap(owner, repo, branch, token, existingFiles);
+      }
+      if (templateFilesToExport.includes('robots.txt')) {
+        await this.createRobotsTxt(owner, repo, branch, token, existingFiles);
+      }
+      await this.copyCoreFiles(owner, repo, branch, token, existingFiles, templateFilesToExport);
+
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const statusMatch = errorMessage.match(/(\d{3})/);
+      const status = statusMatch ? parseInt(statusMatch[1]) : 500;
+
+      return {
+        success: false,
+        error: {
+          status,
+          message: errorMessage
+        }
+      };
     }
-    if (templateFilesToExport.includes('_config.yml')) {
-      await this.createConfigYaml(owner, repo, branch, token, existingFiles);
-    }
-    if (templateFilesToExport.includes('index.html')) {
-      await this.createSitemap(owner, repo, branch, token, existingFiles);
-    }
-    if (templateFilesToExport.includes('robots.txt')) {
-      await this.createRobotsTxt(owner, repo, branch, token, existingFiles);
-    }
-    await this.copyCoreFiles(owner, repo, branch, token, existingFiles, templateFilesToExport);
   }
 
   //Check for existing files in a repo

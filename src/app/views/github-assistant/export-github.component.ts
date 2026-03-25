@@ -376,7 +376,24 @@ export class ExportGithubComponent implements OnInit {
 
     // Step 4: Set up repo (create it if it doesn't exist, add template files)
     setTimeout(() => { this.exportProgress.set({ step: 'github.export.progress.step4', progress: 20 }); }, 1000);
-    await this.exportGitHubService.setupRepo(owner, repo, branch, token, projectName, templateFilesToExport, nodes);
+    const setupResult = await this.exportGitHubService.setupRepo(owner, repo, branch, token, projectName, templateFilesToExport, nodes);
+
+    //Show failure message
+    if (!setupResult.success && setupResult.error?.status === 403) {
+      // Read-only token error
+      this.exportMessage.set({
+        severity: 'error',
+        text: this.translate.instant('github.export.error.readOnlyToken'),
+      });
+      return;
+    } else if (!setupResult.success) {
+      // Other errors
+      this.exportMessage.set({
+        severity: 'error',
+        text: setupResult.error?.message || this.translate.instant('github.export.error.other'),
+      });
+      return;
+    }
 
     // Step 5: Export each page to GitHub
     const existingFiles = await this.exportGitHubService.getRepoTree(owner, repo, branch, token);
