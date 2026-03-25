@@ -108,32 +108,66 @@
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam libero tempore, cum soluta nobis est eligendi optio cumque.</p>
 
         <h3 id="data">How AIDA collects its data</h3>
-        <p>When you add a Canada.ca page to your inventory, AIDA automatically fetches information from the live page including the page title (H1), description, keywords, and last modified date.</p>
+        <p>When you add a Canada.ca page to your project, AIDA fetches information from the live English and French pages, the live content.json file, the task airtable, and from a static export of page visists from the UPD.</p>
 
         <h4>Page templates</h4>
+        <p>AIDA automatically tags page templates based on specific criteria. This helps you understand what kind of page you're working with and ensures prototypes use the correct layout. Here's what AIDA looks for:</p>
 
-        <p>AIDA also identifies which page template is being used. This helps you understand what kind of page you're working with and ensures prototypes use the correct layout. Here's what AIDA looks for:</p>
-
-        <p><strong>Navigation pages</strong> — Pages where most of the content is links to other pages, like topic pages and index pages. AIDA recognizes:</p>
-        <ul>
-            <li>Topic pages (with "Most requested" or service info sections)</li>
-            <li>Pages using the subway navigation pattern</li>
-            <li>Navigation pages (where more than 70% of the text is links)</li>
+        <p class="mb-1"><strong>Navigation templates:</strong></p>
+        <ul class="mt-1">
+            <li><strong>topic</strong> - has classes <code class="custom">most-requested-bullets</code> or <code class="custom">gc-srvinfo</code></li>
+            <li><strong>old topic</strong> - has class <code class="custom">list-group-item</code> where more than 80% are links</li>
+            <li><strong>subway</strong> - has class <code class="custom">gc-subway</code></li>
+            <li><strong>old subway</strong> - has class <code class="custom">gc-navseq</code></li>
+            <li><strong>navigation</strong> - where none of the above apply and more than 70% of the text is links</li>
         </ul>
 
-        <p><strong>News and media</strong> — Press releases, tax tips, videos, and enforcement notices from the CRA newsroom.</p>
+        <p><strong>Content templates</strong></p>
+        <ul>
+            <li><strong>multimedia gallery</strong> - url includes <code class="custom">/news/cra-multimedia-library/</code> or <code class="custom">/nouvelles/bibliotheque-multimedia-arc/</code></li>
+            <li><strong>video transcript</strong> - has <code class="custom">&lt;video&gt;</code> element, H2 contains "transcript", and is a child of the multimedia gallery</li>
+            <li><strong>contact</strong> - h1 starts with "Contact" or "Contactez"</li>
+            <li><strong>brochure</strong> - has classes <code class="custom">panel-heading bg-primary</code></li>
+            <li><strong>pdf download</strong> - has a pdf link with classes <code class="custom">btn stretched-link</code> and either the <code class="custom">thumbnail</code> class or a <code class="custom">&lt;small&gt;</code> element with "PDF, # KB, # page" or "PDF, # Ko, # page"</li>
+            <li><strong>content</strong> - if no other page templates apply</li>
+        </ul>
 
-        <p><strong>Forms and publications</strong> — Form readme pages, guide readme pages, tax guides (like the T1 package), payroll tables, and TD1 forms.</p>
+        <p><strong>Newsroom templates:</strong></p>
+        <ul class="mt-1">
+            <li><strong>newsroom</strong> - url includes <code class="custom">/news/####</code> or <code class="custom">/nouvelles/####</code></li>
+            <li><strong>taxtip</strong> - url includes <code class="custom">/newsroom/tax-tips/</code> or <code class="custom">/salle-presse/conseils-fiscaux/</code></li>
+            <li><strong>tax filing season media kit</strong> - url includes <code class="custom">/tax-tips/tax-filing-season-media-kit</code> or <code class="custom">/salle-presse/mesures-relatives-enquetes-criminelles-accusations-condamnations</code></li>
+            <li><strong>enforcement notice</strong> - url includes <code class="custom">/newsroom/criminal-investigations-actions-charges-convictions</code> or <code class="custom">/salle-presse/mesures-relatives-enquetes-criminelles-accusations-condamnations</code></li>
+            <li><strong>campaign</strong> - url includes <code class="custom">/campaigns/</code> or <code class="custom">/campagnes/</code></li>
+        </ul>
 
-        <p><strong>Special page types</strong> — Contact pages, campaign pages, PDF download pages, brochures, and video transcript pages.</p>
+        <p><strong>Forms and publications templates:</strong></p>
+        <ul>
+            <li><strong>readme (form)</strong> - url includes <code class="custom">/forms-publications/forms/</code> or <code class="custom">/formulaires-publications/formulaires/</code></li>
+            <li><strong>readme (guide)</strong> - url includes <code class="custom">/forms-publications/publications/[guide number].html</code> or <code class="custom">/formulaires-publications/publications/[guide number].html</code></li>
+            <li><strong>readme (T1)</strong> - url includes <code class="custom">/general-income-tax-benefit-package/[province]?/5###-[1 to 5 letters].html</code> or <code class="custom">/trousse-generale-impot-prestations/[province]?/5###-[1 to 5 letters].html</code></li>
+            <li><strong>readme (TD1)</strong> - url includes <code class="custom">/td1-forms-pay-received-on-january-1-[year]?-later/[filename].html</code> or <code class="custom">/formulaires-td1-paies-recues-1er-janvier-[year]?-apres/[filename].html</code></li>
+            <li><strong>readme (payroll)</strong> - url includes:
+                <ul>
+                    <li><code class="custom">/t4127-payroll-deductions-formulas/</code> or <code class="custom">/t4127-formules-calcul-retenues-paie/</code></li>
+                    <li><code class="custom">/payroll-deductions-t4127-payroll-deductions-formulas/</code> or <code class="custom">/t4127-formules-calcul-retenues-paie-annees-precedentes/</code></li>
+                    <li><code class="custom">/t4032-payroll-deductions-tables/</code> or <code class="custom">/t4032-tables-retenues-paie/</code></li>
+                    <li><code class="custom">/t4032-payroll-deductions-tables-previous-years/</code> or <code class="custom">/t4032-tables-retenues-paie-documents-annees-anterieures/</code></li>
+                    <li><code class="custom">/t4008-payroll-deductions-supplementary-tables/</code> or <code class="custom">/t4008-tables-supplementaires-retenues-paie/</code></li>
+                    <li><code class="custom">/t4008-payroll-deductions-supplementary-tables-previous-years/</code> or <code class="custom">/t4008-tables-supplementaires-retenues-paie-annees-anterieures/</code></li>
+                    <li>followed by <code class="custom">[filename].html</code></li>
+                </ul>
+            </li>
+            <li><strong>guide</strong> - url includes <code class="custom">/forms-publications/publications/</code> or <code class="custom">/formulaires-publications/publications/</code> if readme (guide) doesn't apply</li>
+            <li><strong>guide (T1)</strong> - url includes:
+                <ul>
+                    <li><code class="custom">/general-income-tax-benefit-package/5000-g.html</code> or <code class="custom">/trousse-generale-impot-prestations/5000-g.html</code></li>
+                    <li><code class="custom">/general-income-tax-benefit-package/[province]?/5###-[1 to 5 letters]/[guide].html</code> or <code class="custom">/trousse-generale-impot-prestations/[province]?/5###-[1 to 5 letters]/[guide].html</code></li>
+                </ul>
+            </li>
+        </ul>
 
-        <p><strong>Content pages</strong> — If a page doesn't match any of the patterns above, it's tagged as a standard content page.</p>
-
-        <h4>Why this matters</h4>
-
-        <p>Understanding page templates helps you plan your information architecture. For example, if you're moving content from a topic page to a subway navigation page, you'll know the layout needs to change.</p>
-
-        <p>If AIDA tags a page incorrectly or if you think we're missing an important template type, please let us know through the Feedback link.</p>
+        <p>If AIDA tags a page incorrectly or if you think we're missing a template type, please let us know.</p>
 
         <h3 id="jekyll">How to adjust the Jekyll templates</h3>
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit voluptatem.</p>
