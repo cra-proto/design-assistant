@@ -691,13 +691,16 @@ export class ProjectStateService {
             { field: 'prototypeUrl', translationKey: 'inventory.header.prototypeUrl', type: 'url', group: 'github', visibleByDefault: false },
             //Status
             { field: 'inScope', translationKey: 'inventory.header.inScope', type: 'boolean', group: 'status', visibleByDefault: true },
-            { field: 'isOrphan', translationKey: 'inventory.header.isOrphan', type: 'boolean', group: 'status', visibleByDefault: true },
+
             { field: 'isNew', translationKey: 'inventory.header.isNew', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'isMoved', translationKey: 'inventory.header.isMoved', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'isROT', translationKey: 'inventory.header.isROT', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'linksToPortal', translationKey: 'inventory.header.linksToPortal', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'archiveStatus', translationKey: 'inventory.header.archiveStatus', type: 'archive', group: 'status', visibleByDefault: true },
             { field: 'noindex', translationKey: 'inventory.header.noindex', type: 'noindex', group: 'status', visibleByDefault: true },
+            //Problems
+            { field: 'isOrphan', translationKey: 'inventory.header.isOrphan', type: 'boolean', group: 'problems', visibleByDefault: true },
+            //ADD 404's!!!
             //Data
             { field: 'template', translationKey: 'inventory.header.template', type: 'text', group: 'pageData', visibleByDefault: true },
             { field: 'task', translationKey: 'inventory.header.task', type: 'array', group: 'pageData', visibleByDefault: false },
@@ -724,6 +727,8 @@ export class ProjectStateService {
             { field: 'aiGeneratedAt', translationKey: 'inventory.header.ai.date', type: 'date', group: 'metadata', visibleByDefault: false },
         ];
     }
+
+    COLUMN_FILTERS = ['isNew', 'isMoved', 'isROT', 'linksToPortal', 'archiveStatus', 'noindex', 'isOrphan'] as const;
 
     exportTreeAsCsv() {
         const tree = this.project().projectData;
@@ -1057,7 +1062,7 @@ export class ProjectStateService {
 
 
     // Refresh page data
-    public async refreshData(url: string, oppUrl: string, mode: 'status' | 'data' | 'owner' | 'metadata' | 'all') {
+    public async refreshData(url: string, oppUrl: string, mode: 'status' | 'problems' | 'data' | 'owner' | 'metadata' | 'all') {
 
         const node = this.findNodeByUrl(this.getProjectTree(), url);
         if (!node) {
@@ -1072,12 +1077,14 @@ export class ProjectStateService {
             const doc = await this.fetchService.fetchContent(url, "prod", 3, "none", false);
             metadata = this.fetchService.extractPageMetadata(doc, url);
             console.log("Metadata", metadata);
+            //TODO: add 404 & IA orphan refresh
         }
 
         let oppMetadata;
         if (mode === 'metadata' || mode === 'all') {
             oppMetadata = await this.fetchService.getOppMetadata(oppUrl);
             console.log("Opp Metadata", oppMetadata);
+            //TODO: add 404 & IA orphan refresh
         }
 
         let jsonData;
@@ -1106,7 +1113,7 @@ export class ProjectStateService {
             node.data.status.archiveStatus = ((mode === 'status' || mode === 'all') && metadata?.isArchived !== undefined) ? (metadata.isArchived ? 'archived' : 'current') : node.data.status.archiveStatus;
             node.data.status.noindexEN = ((mode === 'status' || mode === 'all') && metadata?.noindex !== undefined) ? (urlLang === 'en' ? metadata.noindex : oppMetadata?.noindex) : node.data.status.noindexEN;
             node.data.status.noindexFR = ((mode === 'status' || mode === 'all') && metadata?.noindex !== undefined) ? (urlLang === 'fr' ? metadata.noindex : oppMetadata?.noindex) : node.data.status.noindexFR;
-            //TODO: IA ORPHAN!
+            //TODO: IA ORPHAN & 404's!
         }
         if (node.data?.metadata) {
             // DATA MODE
