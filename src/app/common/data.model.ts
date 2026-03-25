@@ -171,12 +171,16 @@ export interface FlattenedTreeNode {
     email: string;
 }
 
+export const FIELD_FILTERS = ['isNew', 'isMoved', 'isROT', 'linksToPortal', 'archiveStatus', 'noindex', 'isOrphan'] as const;
+export const COLUMN_GROUPS = ['page', 'oppPage', 'github', 'status', 'problems', 'pageData', 'owner', 'metadata'] as const;
+export type ColumnGroups = typeof COLUMN_GROUPS[number];
+
 export interface TableColumn {
     field: keyof FlattenedTreeNode;
     translationKey: string;
     type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive' | 'noindex' | 'date' | 'aiText';
     frozen?: boolean;
-    group: 'page' | 'oppPage' | 'github' | 'status' | 'owner' | 'pageData' | 'metadata';
+    group: ColumnGroups;
     visibleByDefault: boolean;
 }
 
