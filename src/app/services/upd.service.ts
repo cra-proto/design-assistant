@@ -9,9 +9,7 @@ export interface UpdPageData {
     visits: number;
 }
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class UpdService {
     private http = inject(HttpClient);
 

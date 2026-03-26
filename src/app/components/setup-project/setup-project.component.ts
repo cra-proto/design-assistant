@@ -1,4 +1,4 @@
-import { Component, inject, effect } from '@angular/core';
+import { Component, inject, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -28,8 +28,8 @@ import { ProjectPhase } from '../../common/data.model';
     styles: ``
 })
 export class SetupProjectComponent {
-    projectState = inject(ProjectStateService);
-    collaboratorService = inject(CollaboratorService);
+    private projectState = inject(ProjectStateService);
+    private collaboratorService = inject(CollaboratorService);
     router = inject(Router);
 
     constructor() {
@@ -100,9 +100,9 @@ export class SetupProjectComponent {
         this.projectState.setStorageType(value);
     }
 
-    storageOptions = [
+    storageOptions = computed(() => [
         { name: 'project.setup.storage.local', value: 'local' as const, icon: 'pi pi-desktop' },
-        { name: 'project.setup.storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: this.collaboratorService.canEditProject }
-    ];
+        { name: 'project.setup.storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: !this.collaboratorService.canEditProject(this.projectState.getProject()) }
+    ]);
 
 }

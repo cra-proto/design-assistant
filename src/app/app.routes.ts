@@ -16,12 +16,14 @@ import { ExportGithubComponent } from './views/github-assistant/export-github.co
 // Static pages
 import { NotFoundComponent } from './views/404/not-found.component';
 import { AboutComponent } from './views/about-us/about.component';
+import { HelpComponent } from './views/help/help.component';
 
 // Authentication
 import { GithubConnectComponent } from './components/sign-in/github-connect.component';
 import { AuthCallbackComponent } from './components/sign-in/auth-callback.component';
 
 // Dev tools & standalone - LAZY LOAD THESE!
+import { StandaloneComponent } from './views/standalone/standalone.component';
 
 // Project Storage (for route guards)
 import { ProjectStorageService } from './services/storage/project-storage.service';
@@ -30,8 +32,8 @@ import { ProjectStateService } from './services/project-state.service';
 //Route guards
 export const landingGuard = () => {
     const router = inject(Router);
-    const projectStorage = inject(ProjectStorageService);
-    if (projectStorage.hasActiveProject()) {
+    const projectStorageService = inject(ProjectStorageService);
+    if (projectStorageService.hasActiveProject()) {
         return router.createUrlTree(['/dashboard']);
     } else {
         return router.createUrlTree(['/new-project']);
@@ -124,34 +126,39 @@ export const routes: Routes = [
  
      },*/
     {
+        path: 'help',
+        component: HelpComponent,
+        title: 'help._title',
+    },
+    {
         path: 'about-us',
         component: AboutComponent,
         title: 'about._title',
     },
     {
+        path: 'standalone',
+        component: StandaloneComponent,
+        title: 'standalone._title',
+    },
+    {
         path: 'dev',
-        loadComponent: () => import('./views/dev-tools/dev-tools.component').then(m => m.DevToolsComponent),
+        loadComponent: () => import('./views/standalone/components/dev-tools/dev-tools.component').then(m => m.DevToolsComponent),
         title: 'dev._title',
     },
     {
         path: 'dev/color-generator',
-        loadComponent: () => import('./views/dev-tools/color-generator/color-generator.component').then(m => m.ColorGeneratorComponent),
+        loadComponent: () => import('./views/standalone/components/dev-tools/color-generator/color-generator.component').then(m => m.ColorGeneratorComponent),
         title: 'dev.colors._title',
     },
     {
         path: 'dev/design-patterns',
-        loadComponent: () => import('./views/dev-tools/design-patterns/design-patterns.component').then(m => m.DesignPatternsComponent),
+        loadComponent: () => import('./views/standalone/components/dev-tools/design-patterns/design-patterns.component').then(m => m.DesignPatternsComponent),
         title: 'dev.patterns._title',
     },
     {
         path: 'dev/prompt-editor',
-        loadComponent: () => import('./views/dev-tools/prompt-editor/prompt-editor.component').then(m => m.PromptEditorComponent),
+        loadComponent: () => import('./views/standalone/components/dev-tools/prompt-editor/prompt-editor.component').then(m => m.PromptEditorComponent),
         title: 'dev.prompts._title',
-    },
-    {
-        path: 'standalone',
-        loadComponent: () => import('./views/standalone/standalone.component').then(m => m.StandaloneComponent),
-        title: 'standalone._title',
     },
     {
         path: '**',

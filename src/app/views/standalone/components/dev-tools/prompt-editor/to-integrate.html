@@ -1,0 +1,160 @@
+From template:
+@if(hasChanges()){
+<!--Review-->
+<h2 class="my-1">Review changes</h2>
+<div id="diff-container"></div>
+<!--Export-->
+<p-fieldset legend="Full File Preview" [toggleable]="true" [collapsed]="true" styleClass="secondary-outline mb-3">
+    <pre #filePreview><code class="language-typescript">{{ rebuildPromptFile(tabs[selectedTab].tool, tabs[selectedTab].prompts) }}</code></pre>
+</p-fieldset>
+<p-button [label]="'dev.prompts.button.openPR' | translate" icon="pi pi-send" disabled />
+}
+
+
+From ts:
+// Rebuild prompt file
+rebuildPromptFile(tool: string, prompts: PromptEntry[]) {
+const updatedPrompts = prompts
+.map(p => ` [${tool}PromptKey.${p.enumKey}]: \`${p.promptText}\`,`)
+.join('\n');
+
+return `import { ${tool}PromptKey } from './prompt.model'\nexport const ${tool}Prompts: Record<${tool}PromptKey, string> = {\n${updatedPrompts}\n};`;
+    }
+
+    rebuildSharedFile(): string {
+    const roleEntries = this.roleFragment
+    .map(p => ` [RoleKey.${p.enumKey}]: \`${p.promptText}\`,`)
+    .join('\n');
+
+    const outputEntries = this.outputFragment
+    .map(p => ` [OutputKey.${p.enumKey}]: \`${p.promptText}\`,`)
+    .join('\n');
+
+    const rubricEntries = this.rubricFragment
+    .map(p => ` [RubricKey.${p.enumKey}]: \`${p.promptText}\`,`)
+    .join('\n');
+
+    return `import { RoleKey, OutputKey, RubricKey } from './prompt.model'
+
+    export const RoleFragment: Record<RoleKey, string> = {
+        ${roleEntries}
+        }
+
+        export const OutputFragment: Record<OutputKey, string> = {
+            ${outputEntries}
+            }
+
+            export const RubricFragment: Record<RubricKey, string> = {
+                ${rubricEntries}
+                }`;
+                }
+
+                // Tracks if changes have been made to current tab
+                hasChanges(): boolean {
+                const tab = this.tabs[this.selectedTab];
+                const updatedContent = this.rebuildPromptFile(tab.tool, tab.prompts);
+                const originalContent = tab.original;
+                return updatedContent !== originalContent;
+                }
+
+                // Open pull request
+                pullRequestUrl: string | null = null
+                async openPullRequest(tool: string, prompts: PromptEntry[]) {
+                const content = this.rebuildPromptFile(tool, prompts);
+                const toolLC = tool.toLowerCase();
+                try {
+                const result = await this.exportGitHubService.createPullRequestForPrompts(
+                toolLC,
+                `src/app/common/prompts/${toolLC}.prompts.ts`,
+                `${toolLC}.prompts.ts`,
+                content
+                );
+                this.pullRequestUrl = result.prUrl
+                } catch (error) {
+                console.error('Failed to create PR:', error);
+                }
+                }
+
+                // Update prompts diff
+                async updateDiff() {
+                // Lazy load both modules
+                const [{ createPatch }, { Diff2HtmlUI }] = await Promise.all([
+                import('diff'),
+                import('diff2html/lib/ui/js/diff2html-ui-slim'),
+                ]);
+                const tab = this.tabs[this.selectedTab];
+                const updatedContent = this.rebuildPromptFile(tab.tool, tab.prompts);
+                const originalContent = tab.original;
+
+                // Create the patch
+                const patch = createPatch(
+                `${tab.tool.toLowerCase()}.prompts.ts`,
+                originalContent,
+                updatedContent,
+                );
+
+                // Render it
+                const config: Diff2HtmlUIConfig = {
+                drawFileList: false,
+                matching: 'words',
+                outputFormat: 'line-by-line', // or 'side-by-side'
+                highlight: true,
+                colorScheme: this.themeService.darkMode() ? ColorSchemeType.DARK : ColorSchemeType.LIGHT
+                };
+
+                const diff2htmlUi = new Diff2HtmlUI(
+                document.getElementById('diff-container')!,
+                patch,
+                config
+                );
+
+                diff2htmlUi.draw();
+                this.highlightFilePreview();
+                }
+
+                // Highlight code for export preview
+                @ViewChild('filePreview') filePreview?: ElementRef<HTMLPreElement>;
+                    async highlightFilePreview(): Promise<void> {
+                        if (!this.filePreview) return;
+
+                        try {
+                        const { default: Prism } = await import('prismjs');
+                        await import('prismjs/components/prism-typescript');
+
+                        this.loadPrismTheme(this.themeService.darkMode());
+
+                        const pre = this.filePreview.nativeElement;
+                        const codeBlock = pre.querySelector('code');
+
+                        if (codeBlock) {
+                        pre.className = ''; // Clear pre classes
+                        pre.removeAttribute('data-highlighted');
+                        pre.removeAttribute('tabindex');
+                        codeBlock.className = 'language-typescript';
+                        codeBlock.textContent = this.rebuildPromptFile(
+                        this.tabs[this.selectedTab].tool,
+                        this.tabs[this.selectedTab].prompts
+                        );
+                        Prism.highlightElement(codeBlock);
+                        }
+                        } catch (error) {
+                        console.error('Failed to load Prism:', error);
+                        }
+                        }
+
+                        // Load light/dark prism theme
+                        private loadPrismTheme(isDarkMode: boolean): void {
+                        const existingLink = document.getElementById('prism-theme') as HTMLLinkElement;
+                        const newHref = isDarkMode ? 'css/prism-okaidia.min.css' : 'css/prism.min.css';
+
+                        if (existingLink) {
+                        if (existingLink.href.endsWith(newHref)) return;
+                        existingLink.href = newHref;
+                        } else {
+                        const link = document.createElement('link');
+                        link.id = 'prism-theme';
+                        link.rel = 'stylesheet';
+                        link.href = newHref;
+                        document.head.appendChild(link);
+                        }
+                        }

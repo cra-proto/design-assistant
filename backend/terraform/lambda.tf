@@ -354,3 +354,57 @@ output "airtable_function_url" {
   description = "Direct Lambda Function URL for Airtable"
   value       = aws_lambda_function_url.airtable.function_url
 }
+
+# OpenRouter Lambda Function
+resource "aws_lambda_function" "openrouter" {
+  filename         = "${path.module}/../functions/openrouter/lambda.zip"
+  function_name    = "${var.app_name}-${var.environment}-openrouter"
+  role             = aws_iam_role.lambda_role.arn
+  handler          = "index.handler"
+  source_code_hash = filebase64sha256("${path.module}/../functions/openrouter/lambda.zip")
+  runtime          = "nodejs22.x"
+  timeout          = 120
+
+  environment {
+    variables = {
+      SECRET_NAME    = "prod/design-assistant/api-keys"
+      ALLOWED_ORIGIN = var.allowed_origins[0]
+      ENVIRONMENT    = var.environment
+    }
+  }
+}
+
+# Lambda Function URL for OpenRouter (bypasses API Gateway)
+resource "aws_lambda_function_url" "openrouter" {
+  function_name      = aws_lambda_function.openrouter.function_name
+  authorization_type = "NONE"
+
+  cors {
+    allow_origins = var.allowed_origins
+    allow_methods = ["POST"]
+    allow_headers = ["content-type"]
+    max_age       = 86400
+  }
+}
+
+# Resource-based policy to allow public invocation via Function URL
+resource "aws_lambda_permission" "openrouter_function_url" {
+  statement_id           = "AllowPublicFunctionURLInvoke"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.openrouter.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+}
+
+resource "aws_lambda_permission" "openrouter_function_invoke" {
+  statement_id  = "AllowPublicInvokeFunction"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.openrouter.function_name
+  principal     = "*"
+}
+
+# Output the Function URL
+output "openrouter_function_url" {
+  description = "Direct Lambda Function URL for OpenRouter"
+  value       = aws_lambda_function_url.openrouter.function_url
+}

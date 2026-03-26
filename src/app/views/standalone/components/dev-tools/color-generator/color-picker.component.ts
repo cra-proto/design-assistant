@@ -8,8 +8,8 @@ import { ButtonModule } from 'primeng/button';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 
-import { ContrastUtil } from '../../../common/contrast.util';
-import { ColorConverter } from '../../../common/color-converter.util';
+import { ContrastUtil } from '../../../../../common/contrast.util';
+import { ColorConverter } from '../../../../../common/color-converter.util';
 
 export interface ContrastTest {
     shade: number;

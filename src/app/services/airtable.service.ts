@@ -11,9 +11,7 @@ export interface TransformedTask {
     urlsFR: string[];
 }
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AirtableService {
     private http = inject(HttpClient);
 

@@ -20,8 +20,10 @@
         <input type="text" id="branch" pInputText [(ngModel)]="gitHubBranch" pSize="small" fluid (blur)="updateBranch()" [pKeyFilter]="branchFilter" />
         <label for="branch">{{'project.github.label.branch' | translate}}</label>
     </p-iftalabel>
+    @if(mode === "baseline"){
     <div class="flex align-items-center gap-2 mt-1">
         <p-checkbox [(ngModel)]="gitHubBaseline" inputId="baseline" [binary]="true" size="large" [disabled]="!gitHubRepo" />
         <label for="baseline" class="text-lg">{{'project.github.label.baseline' | translate}}</label>
     </div>
+    }
 </div>

@@ -1,0 +1,28 @@
+import { Injectable } from '@angular/core';
+import { PromptConfig, RoleKey, OutputKey, RubricKey } from '../../common/prompts/prompt.model';
+import { RoleFragment, OutputFragment, RubricFragment } from '../../common/prompts/shared.prompts';
+
+@Injectable({ providedIn: 'root' })
+export class AiPromptService {
+
+    composePrompt(config: PromptConfig): string {
+        const parts = [
+            config.role ? `### Role\n${RoleFragment[config.role]}` : null,
+            config.task ? `### Task\n${config.task}` : null,
+            this.formatRubric(config.rubric),
+            config.output ? `### Output requirements\n${OutputFragment[config.output]}` : null,
+        ].filter(p => p);
+
+        if (config.output === OutputKey.Json && config.jsonSchema) {
+            parts.push(`### JSON schema\n${config.jsonSchema}`);
+        }
+
+        return parts.join('\n\n');
+    }
+
+    private formatRubric(rubricKeys: RubricKey[]): string {
+        if (!rubricKeys?.length) return '';
+        const criteria = rubricKeys.map(key => RubricFragment[key]);
+        return `### Quality criteria\n${criteria.map((c, i) => `${i + 1}. ${c}`).join('\n')}`;
+    }
+}

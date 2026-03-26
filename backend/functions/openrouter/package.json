@@ -1,0 +1,20 @@
+{
+    "name": "openrouter-function",
+    "version": "1.0.0",
+    "description": "Lambda function for OpenRouter AI API integration",
+    "main": "index.js",
+    "scripts": {
+        "build": "tsc && npm run package",
+        "package": "cd dist && zip -r index.zip . && cd ..",
+        "clean": "rm -rf dist"
+    },
+    "dependencies": {
+        "@aws-sdk/client-secrets-manager": "^3.0.0",
+        "axios": "^1.6.0"
+    },
+    "devDependencies": {
+        "@types/aws-lambda": "^8.10.0",
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0"
+    }
+}

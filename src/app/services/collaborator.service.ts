@@ -1,28 +1,24 @@
 import { Injectable, inject } from '@angular/core';
 import { GitHubUser } from '../common/data.model';
 import { ProjectStorageService } from './storage/project-storage.service';
-import { LocalStorageService } from './storage/local-storage.service';
 import { ProjectMetadata, Project } from '../common/data.model';
 import { ExportGitHubService } from './github/export-github.service';
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class CollaboratorService {
-    private projectStorage = inject(ProjectStorageService);
-    private localStorage = inject(LocalStorageService);
-    private exportGithub = inject(ExportGitHubService);
+    private projectStorageService = inject(ProjectStorageService);
+    private exportGitHubService = inject(ExportGitHubService);
 
     // Check if current user is a collaborator
     canEditProject(project: ProjectMetadata | Project): boolean {
-        const currentUser = this.exportGithub.user(); // OAuth or PAT
+        const currentUser = this.exportGitHubService.user(); // OAuth or PAT
         if (!currentUser) return false;
         return project.collaborators.some(c => c.id === currentUser.id);
     }
 
     // Get current user to add to new projects
     getInitialCollaborators(): GitHubUser[] {
-        const currentUser = this.exportGithub.user();
+        const currentUser = this.exportGitHubService.user();
         return currentUser ? [currentUser] : [];
     }
 
@@ -31,7 +27,7 @@ export class CollaboratorService {
         console.log('Adding current user to local projects as collaborator:', user.login);
 
         // Get list of all local projects
-        const savedProjects = this.projectStorage.getLocalProjectList('saved');
+        const savedProjects = this.projectStorageService.getLocalProjectList('saved');
         for (const metadata of savedProjects) {
             // Only process projects with empty collaborators
             if (!metadata.collaborators || metadata.collaborators.length === 0) {
@@ -46,7 +42,7 @@ export class CollaboratorService {
     private async addUserToProject(projectKey: string, user: GitHubUser): Promise<void> {
         try {
             // Load the full project
-            const project = await this.projectStorage.loadProjectData(projectKey, 'local');
+            const project = await this.projectStorageService.loadProjectData(projectKey, 'local');
 
             if (!project) {
                 console.warn(`Could not load project ${projectKey}`);
@@ -58,10 +54,10 @@ export class CollaboratorService {
             project.lastModified = new Date();
 
             // Save back to localStorage
-            const projectToSave = this.projectStorage.prepareProjectForSave(project); // Remove circular TreeNode references
-            this.localStorage.saveData(projectKey, JSON.stringify(projectToSave)); // Save
-            this.projectStorage.updateLocalProjectList(projectKey, project); // Update local storage list
-            this.projectStorage.projectListVersion.update(v => v + 1); // Update signal
+            const projectToSave = this.projectStorageService.prepareProjectForSave(project); // Remove circular TreeNode references
+            localStorage.setItem(projectKey, JSON.stringify(projectToSave)); // Save
+            this.projectStorageService.updateLocalProjectList(projectKey, project); // Update local storage list
+            this.projectStorageService.projectListVersion.update(v => v + 1); // Update signal
 
             console.log(`Added ${user.login} as collaborator to project ${projectKey}`);
         } catch (error) {
@@ -203,7 +199,7 @@ export class CollaboratorService {
 
     // Get list of org members (for adding as collaborators)
     public async getOrgMembers(org: string): Promise<GitHubUser[]> {
-        const token = this.exportGithub.token();
+        const token = this.exportGitHubService.token();
 
         if (!token) {
             console.warn('No GitHub token available');
@@ -241,7 +237,7 @@ export class CollaboratorService {
 
     // Get detailed user information
     public async getUserDetails(username: string): Promise<GitHubUser | null> {
-        const token = this.exportGithub.token();
+        const token = this.exportGitHubService.token();
 
         if (!token) {
             console.warn('No GitHub token available');

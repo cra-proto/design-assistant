@@ -27,7 +27,7 @@ export interface MailtoContext {
 export class MailtoService {
     private translate = inject(TranslateService);
     private projectState = inject(ProjectStateService);
-    private exportGitHub = inject(ExportGitHubService);
+    private exportGitHubService = inject(ExportGitHubService);
 
     markForTranslation() {
         marker('feedback.email.bodyEN');
@@ -45,7 +45,7 @@ export class MailtoService {
             projectSaved: project.lastSaved,
             projectVersion: project.version,
             projectRepo: project.github.repo ? `https://${project.github.owner}.github.io/${project.github.repo}` : '',
-            user: this.exportGitHub.user()?.login ?? '',
+            user: this.exportGitHubService.user()?.login ?? '',
             browser: this.getBrowserInfo(),
             screen: `${window.screen.width}x${window.screen.height}`,
             viewport: `${window.innerWidth}x${window.innerHeight}`,

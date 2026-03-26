@@ -23,7 +23,7 @@ import { ExportGitHubService } from '../../services/github/export-github.service
 import { ProjectStateService } from '../../services/project-state.service';
 import { FetchService } from '../../services/fetch.service';
 import { GitHubAuthService } from '../../services/github/github-auth.service';
-import { ThemeService } from '../../services/theme.service';
+import { UserSettingsService } from '../../services/user-settings.service';
 import { environment } from '../../../environments/environment';
 
 //Components
@@ -96,7 +96,7 @@ export class ExportGithubComponent implements OnInit {
   public exportGitHubService = inject(ExportGitHubService);
   private fetchService = inject(FetchService);
   public translate = inject(TranslateService);
-  private themeService = inject(ThemeService);
+  private settingsService = inject(UserSettingsService);
   private router = inject(Router)
 
   defaultOrg = environment.defaultOrg;
@@ -213,7 +213,7 @@ export class ExportGithubComponent implements OnInit {
 
   // Status message colors & icons
   private getStatusTextColor(status: ConnectionStatus): string {
-    const isDark = this.themeService.darkMode();
+    const isDark = this.settingsService.darkMode();
 
     const colorMap: Record<ConnectionStatus, string> = {
       'connected': isDark ? 'text-green-400' : 'text-green-500',
@@ -246,7 +246,7 @@ export class ExportGithubComponent implements OnInit {
 
   getBgClasses = computed(() => {
     const status = this.connectionStatus();
-    const isDark = this.themeService.darkMode();
+    const isDark = this.settingsService.darkMode();
 
     const baseClasses = 'flex align-items-center gap-2 p-3 border-round-md mb-3';
 
@@ -264,8 +264,8 @@ export class ExportGithubComponent implements OnInit {
 
   // Export options
   exportTargetOptions: ExportTarget[] = [
-    { label: 'github.connect.export.prototype', value: 'prototype' },
-    { label: 'github.connect.export.baseline', value: 'baseline' }
+    { label: 'github.connect.export.toggle.prototype', value: 'prototype' },
+    { label: 'github.connect.export.toggle.baseline', value: 'baseline' }
   ];
   selectedExportTarget: ExportOption = 'prototype';
 
@@ -311,12 +311,15 @@ export class ExportGithubComponent implements OnInit {
         let content: string;
         if (isSkipped) { content = '<!-- Skipped file -->'; }
         else if (isNew) {
-          const breadcrumbs = this.projectState.getBreadcrumbChain(node.data.url);
-          content = this.exportGitHubService.formatNewPageAsJekyll(node, breadcrumbs.slice(1), this.gitHubData().owner, repo)
+          const breadcrumbs = this.projectState.getBreadcrumbChain(node.data.url).slice(1);
+          content = this.exportGitHubService.formatNewPageAsJekyll(node, breadcrumbs, this.gitHubData().owner, repo)
         }
         else {
           const doc = await this.fetchService.fetchContent(node.data.url, "prod");
-          content = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, repo);
+          const breadcrumbs = this.selectedExportTarget === 'prototype'
+            ? this.projectState.getBreadcrumbChain(node.data.url).slice(1)
+            : undefined;
+          content = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, repo, breadcrumbs);
         }
         pages.push({ url: node.data.url, path, filename, content });
       } catch (error) {
@@ -341,6 +344,7 @@ export class ExportGithubComponent implements OnInit {
       : `${this.gitHubData().repo}-baseline`;
     const branch = this.gitHubData().branch;
     const token = this.exportGitHubService.token();
+    const projectName = this.projectData().projectName;
 
     // Step 1: Gather all in-scope or baseline URLs and their content
     this.exportProgress.set({ step: 'github.export.progress.step1', progress: 5, });
@@ -372,7 +376,24 @@ export class ExportGithubComponent implements OnInit {
 
     // Step 4: Set up repo (create it if it doesn't exist, add template files)
     setTimeout(() => { this.exportProgress.set({ step: 'github.export.progress.step4', progress: 20 }); }, 1000);
-    await this.exportGitHubService.setupRepo(owner, repo, branch, token, templateFilesToExport, nodes);
+    const setupResult = await this.exportGitHubService.setupRepo(owner, repo, branch, token, projectName, templateFilesToExport, nodes);
+
+    //Show failure message
+    if (!setupResult.success && setupResult.error?.status === 403) {
+      // Read-only token error
+      this.exportMessage.set({
+        severity: 'error',
+        text: this.translate.instant('github.export.error.readOnlyToken'),
+      });
+      return;
+    } else if (!setupResult.success) {
+      // Other errors
+      this.exportMessage.set({
+        severity: 'error',
+        text: setupResult.error?.message || this.translate.instant('github.export.error.other'),
+      });
+      return;
+    }
 
     // Step 5: Export each page to GitHub
     const existingFiles = await this.exportGitHubService.getRepoTree(owner, repo, branch, token);
@@ -426,6 +447,7 @@ export class ExportGithubComponent implements OnInit {
       /^_config\.yml$/,
       /^index\.html$/,
       /^README\.md$/,
+      /^robots\.txt$/,
       /^_includes\/header\/header\.html$/,
       /^_includes\/resources-inc\/footer\.html$/,
       /^source\/data\/exclude-redirect-links\.json$/,
@@ -456,6 +478,7 @@ export class ExportGithubComponent implements OnInit {
     const jekyllSkipFiles: { path: string; content: string }[] = [
       { path: "_config.yml", content: "<!-- config -->" }, //genertated
       { path: "README.md", content: "<!-- readme -->" }, //generated
+      { path: "robots.txt", content: "<!-- robots -->" }, //generated
     ];
 
     // Add all Jekyll files to export list

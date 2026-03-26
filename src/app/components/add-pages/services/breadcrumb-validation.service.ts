@@ -8,7 +8,7 @@ import { UpdService } from '../../../services/upd.service';
 
 //Models
 import { TreeNode } from 'primeng/api';
-import { UrlItem, UrlData, BreadcrumbNode, PageMetadata, JsonMetadata } from '../add-pages.model';
+import { UrlItem, UrlData, BreadcrumbNode, PageMetadata, OppMetadata, JsonMetadata } from '../add-pages.model';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +18,6 @@ export class BreadcrumbValidationService {
   private fetchService = inject(FetchService);
   private airtableService = inject(AirtableService);
   private updService = inject(UpdService);
-
 
   metadataCache = new Map<string, PageMetadata>();
   jsonCache = new Map<string, JsonMetadata>();
@@ -211,7 +210,7 @@ export class BreadcrumbValidationService {
   //Step 3.5: Collect additional metadata
   async collectJsonData(breadcrumbs: BreadcrumbNode[][]): Promise<void> {
     const uniqueUrls = this.extractUniqueUrls(breadcrumbs);
-    const fields = ['otherTitle', 'gcContributor', 'gcBranch', 'gcLastPublished', 'cq:lastModified', 'cq:template'];
+    const fields = ['otherTitle', 'gcContributor', 'gcBranch', 'gcLastPublished', 'gcModifiedIsOverridden', 'gcModifiedOverride', 'cq:lastModified', 'cq:template'];
     for (const url of uniqueUrls) {
       const contentData = await this.fetchService.fetchJSON(url, fields);
 
@@ -223,7 +222,11 @@ export class BreadcrumbValidationService {
       jsonData.owner = contentData['gcContributor'];
       jsonData.email = contentData['gcBranch'];
       jsonData.lastPublished = contentData['gcLastPublished'] ? new Date(contentData['gcLastPublished']) : undefined;
-      jsonData.lastModified = contentData['cq:lastModified'] ? new Date(contentData['cq:lastModified']) : undefined;
+      jsonData.lastModified = contentData['gcModifiedIsOverridden'] === 'true' && contentData['gcModifiedOverride']
+        ? new Date(contentData['gcModifiedOverride'])
+        : contentData['cq:lastModified']
+          ? new Date(contentData['cq:lastModified'])
+          : undefined;
       jsonData.isFreestyle = contentData['cq:template']?.includes('freestyle') ?? false;
 
       this.jsonCache.set(url, jsonData);
@@ -280,25 +283,31 @@ export class BreadcrumbValidationService {
               // If breadcrumb url is 404 (possible for out-of-scope pages, especially for pseudopages that aren't set up correctly)
               console.error(`Error fetching metadata for ${crumb.url}:`, error);
               metadata = {
+                doubleH1: '',
                 h1: crumb.label,
                 title: '',
                 description: '',
                 keywords: '',
                 template: '404',
                 oppUrl: '',
-                linksToPortal: false
+                linksToPortal: false,
+                noindex: false,
+                wordCount: 0
               };
             }
           } else {
             // If URL was missing from breadcrumb (unlikely)
             metadata = {
+              doubleH1: '',
               h1: crumb.label,
               title: '',
               description: '',
               keywords: '',
               template: '404',
               oppUrl: '',
-              linksToPortal: false
+              linksToPortal: false,
+              noindex: false,
+              wordCount: 0
             };
           }
         }
@@ -312,11 +321,17 @@ export class BreadcrumbValidationService {
         console.log()
 
         if (!node) {
+          // collect the opposite language metadata for this crumb
+          const oppMetadata = metadata?.oppUrl
+            ? await this.fetchService.getOppMetadata(metadata?.oppUrl)
+            : undefined;
+          const urlLang = crumb.url.includes('/en/') ? 'en' : 'fr';
           // create a new node for this crumb if it doesn't exist
           node = {
             label: crumb.label,
             data: {
-              h1: crumb.label,
+              doubleH1: metadata.doubleH1,
+              h1: metadata.h1 ?? crumb.label,
               url: crumb.url ?? null,
               originalParent: parentUrl,
               status: {
@@ -327,13 +342,18 @@ export class BreadcrumbValidationService {
                 isMoved: false,
                 isROT: false,
                 linksToPortal: metadata.linksToPortal,
+                noindexEN: urlLang === 'en' ? metadata.noindex : oppMetadata?.noindex,
+                noindexFR: urlLang === 'fr' ? metadata.noindex : oppMetadata?.noindex,
                 archiveStatus: metadata.isArchived ? 'archived' : 'current',
                 isContainer: false,
               },
               metadata: {
-                title: metadata?.title,
-                description: metadata?.description,
-                keywords: metadata?.keywords,
+                title: urlLang === 'en' ? metadata?.title : oppMetadata?.title,
+                description: urlLang === 'en' ? metadata?.description : oppMetadata?.description,
+                keywords: urlLang === 'en' ? metadata?.keywords : oppMetadata?.keywords,
+                titleFR: urlLang === 'fr' ? metadata?.title : oppMetadata?.title,
+                descriptionFR: urlLang === 'fr' ? metadata?.description : oppMetadata?.description,
+                keywordsFR: urlLang === 'fr' ? metadata?.keywords : oppMetadata?.keywords,
                 template: jsonData?.isFreestyle ? 'freestyle' : metadata?.template,
                 oppUrl: metadata?.oppUrl,
                 oppTitle: jsonData?.oppTitle || '',
@@ -343,6 +363,7 @@ export class BreadcrumbValidationService {
                 lastModified: jsonData?.lastModified || '',
                 task: crumb.url ? this.airtableService.findTaskNamesByUrl(crumb.url, currentLang) : '',
                 visits: crumb.url ? this.updService.findVisitsByUrl(crumb.url.replace('https://', '')) : -1,
+                wordCount: metadata.wordCount,
                 //ADD UPD MOBILE%
               }
             },

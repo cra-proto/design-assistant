@@ -48,7 +48,7 @@
 <p-button [label]="'common.add' | translate" icon="pi pi-plus" class="flex justify-content-end mt-2" [disabled]="selectedCollaborators.length===0"
           (onClick)="addSelectedCollaborators()" />
 
-}@else if(exportGithub.user()){
+}@else if(exportGitHubService.user()){
 <p-message severity="warn" icon="pi pi-exclamation-triangle font-bold" [text]="'collaborators.message.notCollab' | translate" />
 @if(getRequestAccessMailto()) {
 <p-button

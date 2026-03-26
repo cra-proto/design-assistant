@@ -17,8 +17,8 @@ import { ProjectStateService } from '../../services/project-state.service';
 export class ImportPageComponent implements OnInit {
     router = inject(Router);
     route = inject(ActivatedRoute);
-    projectState = inject(ProjectStateService);
-    projectStorage = inject(ProjectStorageService);
+    private projectState = inject(ProjectStateService);
+    private projectStorageService = inject(ProjectStorageService);
     addPagesState = inject(AddPagesStateService);
 
     isLoading = false;
@@ -55,7 +55,7 @@ export class ImportPageComponent implements OnInit {
                         return;
                     }
                     else {
-                        const active = this.projectStorage.getActiveProject();
+                        const active = this.projectStorageService.getActiveProject();
                         if (active) {
                             console.warn("Invalid URL domain. Skipping new project creation and redirecting user to dashboard for previously opened project.")
                             this.router.navigate(['/dashboard']);

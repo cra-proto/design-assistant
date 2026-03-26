@@ -2,15 +2,13 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom, of, catchError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { GitHubAuthService } from '../github/github-auth.service';
+import { ExportGitHubService } from '../github/export-github.service';
 import { Project, ProjectMetadata } from '../../common/data.model';
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class CloudStorageService {
     private http = inject(HttpClient);
-    private authService = inject(GitHubAuthService);;
+    private gitHubAuthService = inject(ExportGitHubService);
 
     private readonly API_URL = `${environment.dynamodbFunctionUrl}projects`;
 
@@ -34,7 +32,7 @@ export class CloudStorageService {
      * Get headers with optional auth token
      */
     private getHeaders(): HttpHeaders {
-        const token = this.authService.getToken();
+        const token = this.gitHubAuthService.token();
         let headers = new HttpHeaders({
             'Content-Type': 'application/json'
         });
@@ -136,7 +134,7 @@ export class CloudStorageService {
      * @returns The project ID if successful, null if failed
      */
     async saveProject(project: Project, projectId?: string): Promise<string | null> {
-        if (!this.authService.isAuthenticated()) {
+        if (!this.gitHubAuthService.token()) {
             this.error.set('Authentication required to save projects');
             return null;
         }
@@ -218,7 +216,7 @@ export class CloudStorageService {
      * Delete project from cloud (requires auth)
      */
     async deleteProject(projectId: string): Promise<boolean> {
-        if (!this.authService.isAuthenticated()) {
+        if (!this.gitHubAuthService.token()) {
             this.error.set('Authentication required to delete projects');
             return false;
         }

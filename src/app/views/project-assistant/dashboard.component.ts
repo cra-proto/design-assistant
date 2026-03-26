@@ -18,7 +18,6 @@ import { DividerModule } from 'primeng/divider';
 import { ProjectStateService } from '../../services/project-state.service';
 import { ProjectPhase, PhaseStatus, CurrentPhase, GitHubRepo } from '../../common/data.model';
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
-import { CollaboratorService } from '../../services/collaborator.service';
 import { AddCollaboratorsComponent } from '../../components/add-collaborators/add-collaborators.component';
 import { environment } from '../../../environments/environment';
 
@@ -31,8 +30,7 @@ import { environment } from '../../../environments/environment';
   styles: ``
 })
 export class DashboardComponent {
-  projectState = inject(ProjectStateService);
-  collaboratorService = inject(CollaboratorService);
+  private projectState = inject(ProjectStateService);
   production = environment.production
 
   get projectData() {

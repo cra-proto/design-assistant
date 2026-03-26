@@ -19,7 +19,7 @@ import { environment } from '../../../environments/environment';
     styles: ``
 })
 export class PatComponent {
-    exportGitHubService = inject(ExportGitHubService)
+    public exportGitHubService = inject(ExportGitHubService)
 
     @Input() validateOnBlur = false;
 

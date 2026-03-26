@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { PageMetadata } from '../components/add-pages/add-pages.model';
+import { PageMetadata, OppMetadata } from '../components/add-pages/add-pages.model';
 import { isPortalDomain } from '../common/portal-domains.config';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class FetchService {
 
   //Block unknown hosts
@@ -70,7 +68,7 @@ export class FetchService {
         else {
           if (!suppressErrors) { console.warn(`Fetch attempt #${attempt}. Status: ${response.status}. Method: ${mode}`); }
           if (attempt < retries) {
-            const backoffDelay = Math.pow(2, attempt - 1) * 200; // 200ms, 400ms, 800ms delay before retry
+            const backoffDelay = Math.pow(2, attempt - 1) * 300; // 300ms, 600ms, 1200ms delay before retry
             await this.delay(backoffDelay);
             continue;
           }
@@ -79,7 +77,7 @@ export class FetchService {
         }
       } catch (error) {
         if (attempt < retries) {
-          const backoffDelay = Math.pow(2, attempt - 1) * 200; // 200ms, 400ms, 800ms
+          const backoffDelay = Math.pow(2, attempt - 1) * 300; // 300ms, 600ms, 1200ms
           await this.delay(backoffDelay);
           continue;
         }
@@ -109,7 +107,7 @@ export class FetchService {
     hostMode: "prod" | "proto" | "both" | "none" = "both",
     retries = 3,
     delay: number | "random" | "none" = "none",
-    delayBetweenRequests = 50 //ms
+    delayBetweenRequests = 100 //ms
   ): Promise<Response> {
     url = this.validateHost(url, hostMode);
     if (delayBetweenRequests > 0) { await this.delay(delayBetweenRequests); }
@@ -166,8 +164,18 @@ export class FetchService {
   // Extracts metadata from an HTML document
   public extractPageMetadata(doc: Document, url: string): PageMetadata {
     // Get H1 (or double H1)
-    const h1Elements = Array.from(doc.querySelectorAll('h1'));
-    const h1: string = h1Elements.map(e => e.textContent?.trim()).filter(Boolean).join('<br>');
+    const h1Elements = Array.from(doc.querySelectorAll('h1')).filter(h1 => !h1.classList.contains('wb-inv'));
+    const h1Texts = h1Elements.map(e => e.textContent?.trim()).filter(Boolean);
+
+    let doubleH1 = '';
+    let h1 = '';
+
+    if (h1Texts.length === 1) {
+      h1 = h1Texts[0] ?? '';
+    } else if (h1Texts.length > 1) {
+      doubleH1 = h1Texts[0] ?? '';
+      h1 = h1Texts.slice(1).join('<br>');
+    }
 
     // Get metadata
     const title = doc.querySelector('meta[name="dcterms.title"]')?.getAttribute('content') || '';
@@ -202,8 +210,8 @@ export class FetchService {
     const isVideoTranscript = hasVideo && hasTranscriptH2 && isMultimedia;
     //Forms & pubs
     const isFormReadme = url.includes('/forms-publications/forms/') || url.includes('/formulaires-publications/formulaires/');
-    const isPubReadme = url.includes('/forms-publications/publications/') || url.includes('/formulaires-publications/publications/');
-    const isPub = /\/(forms-publications\/publications|formulaires-publications\/publications)\/[a-z0-9-]+\.html$/.test(url);
+    const isPub = url.includes('/forms-publications/publications/') || url.includes('/formulaires-publications/publications/'); //must check after isPubReadme
+    const isPubReadme = /\/(forms-publications\/publications|formulaires-publications\/publications)\/[a-z0-9-]+\.html$/.test(url);
     const is5000g = url.includes('/general-income-tax-benefit-package/5000-g.html') || url.includes('/trousse-generale-impot-prestations/5000-g.html')
     const isT1Readme = /\/(general-income-tax-benefit-package|trousse-generale-impot-prestations)\/([a-z-]+\/)?5\d{3}-[a-z]{1,5}\.html$/.test(url);
     const isT1Pub = /\/(general-income-tax-benefit-package|trousse-generale-impot-prestations)\/([a-z-]+\/)?5\d{3}-[a-z]{1,5}\/[a-z0-9-]+\.html$/.test(url);
@@ -302,7 +310,25 @@ export class FetchService {
     const oppLang = currentLang === 'en' ? 'fr' : 'en';
     const oppUrl = doc.querySelector(`link[rel="alternate"][hreflang="${oppLang}"]`)?.getAttribute('href') || '';
 
-    return { h1, title, description, keywords, template, oppUrl, isArchived, linksToPortal };
+    //Index status
+    const robotsContent = doc.querySelector('meta[name="robots"]')?.getAttribute('content') || '';
+    const noindex = robotsContent.includes('noindex');
+
+    //Word count
+    const text = doc.querySelector('main')?.textContent || '';
+    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+    const wordCount = words.length;
+
+    return { doubleH1, h1, title, description, keywords, template, oppUrl, isArchived, linksToPortal, noindex, wordCount };
   }
 
+  public async getOppMetadata(url: string): Promise<OppMetadata> {
+    const doc = await this.fetchContent(url, "prod", 3, "none", true);
+    const title = doc.querySelector('meta[name="dcterms.title"]')?.getAttribute('content') || '';
+    const description = doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+    const keywords = doc.querySelector('meta[name="keywords"]')?.getAttribute('content') || '';
+    const robotsContent = doc.querySelector('meta[name="robots"]')?.getAttribute('content') || '';
+    const noindex = robotsContent.includes('noindex');
+    return { title, description, keywords, noindex };
+  }
 }

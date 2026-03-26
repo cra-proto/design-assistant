@@ -35,9 +35,9 @@ export type CollaboratorMode = 'list' | 'dashboard' | 'switch';
 export class AddCollaboratorsComponent implements OnInit {
     private translate = inject(TranslateService);
     private confirmationService = inject(ConfirmationService);
-    collaboratorService = inject(CollaboratorService);
-    projectState = inject(ProjectStateService);
-    exportGithub = inject(ExportGitHubService);
+    public collaboratorService = inject(CollaboratorService);
+    private projectState = inject(ProjectStateService);
+    public exportGitHubService = inject(ExportGitHubService);
 
     @Input() mode: CollaboratorMode = 'list';
     @Input() collabs: GitHubUser[] | null = null;
@@ -49,7 +49,7 @@ export class AddCollaboratorsComponent implements OnInit {
 
     // Remove collaborator with confirmation for removing self
     removeCollaborator(collab: GitHubUser) {
-        const currentUser = this.exportGithub.user();
+        const currentUser = this.exportGitHubService.user();
         if (currentUser && collab.id === currentUser.id) {
             this.confirmationService.confirm({
                 key: 'collab',
@@ -166,7 +166,7 @@ export class AddCollaboratorsComponent implements OnInit {
     getRequestAccessMailto(): string {
         const emails = this.collaboratorService.getCollaboratorEmails(this.collaborators());
         const name = this.projectData().projectName;
-        const user = this.exportGithub.user();
+        const user = this.exportGitHubService.user();
         if (emails.length === 0) return '';
 
         const subject = this.translate.instant('collaborators.email.requestAccess.subject', { name });

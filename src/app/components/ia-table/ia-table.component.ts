@@ -17,7 +17,7 @@ import { TooltipModule } from 'primeng/tooltip';
 // Services
 import { ProjectStateService } from '../../services/project-state.service';
 import { TreeNodeStyleService } from '../../services/treenode-style.service';
-import { ThemeService } from '../../services/theme.service';
+import { UserSettingsService } from '../../services/user-settings.service';
 
 @Component({
     selector: 'aida-ia-table',
@@ -31,15 +31,15 @@ import { ThemeService } from '../../services/theme.service';
     styleUrl: './ia-table.component.css'
 })
 export class IaTableComponent {
-    projectState = inject(ProjectStateService);
-    treeNodeStyleService = inject(TreeNodeStyleService);
-    theme = inject(ThemeService);
+    private projectState = inject(ProjectStateService);
+    private treeNodeStyleService = inject(TreeNodeStyleService);
+    private settingsService = inject(UserSettingsService);
     private locationStrategy = inject(LocationStrategy);
     projectTree = computed(() => this.projectState.getProject().projectData);
 
     constructor() {
         effect(() => {
-            this.theme.darkMode(); // track dark mode changes
+            this.settingsService.darkMode(); // track dark mode changes
             this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
         });
     }
@@ -305,15 +305,25 @@ export class IaTableComponent {
 
     //Save changes to URL or H1
     saveNode() {
+        let editLink = false;
+        if (this.selectedNode.data.editing === "label" && !this.selectedNode.data.url.endsWith('.html')) {
+            const fragment = this.projectState.generateUrlFragment(this.selectedNode.data.h1);
+            const separator = this.selectedNode.data.url.endsWith('/') ? '' : '/';
+            this.selectedNode.data.url += separator + fragment;
+            editLink = true;
+        }
+        else if (this.selectedNode.data.editing === "link" && !this.selectedNode.data.url.endsWith('.html')) {
+            this.selectedNode.data.url = this.selectedNode.data.url.replace(/\/$/, '') + '.html'; // add .html if missing
+        }
+
         if (this.selectedNode) {
             this.selectedNode.data.editing = null;
         }
-        if (!this.selectedNode.data.url.endsWith('.html')) {
-            this.selectedNode.data.url = this.selectedNode.data.url.replace(/\/$/, '') + '.html'; // add .html if missing
-        }
         this.draggable = true;
         this.selectable = false;
-        this.projectState.setModifiedDate();
+
+        if (editLink) { this.editNode("link"); }
+        else { this.projectState.setModifiedDate(); }
     }
 
     //Handle keyboard events while editing URL or H1

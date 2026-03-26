@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, effect } from '@angular/core';
+import { Component, inject, OnInit, effect, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -17,6 +17,8 @@ import { ProjectStateService } from '../../services/project-state.service';
 import { ExportGitHubService } from '../../services/github/export-github.service';
 import { environment } from '../../../environments/environment';
 
+type RepoMode = 'default' | 'baseline';
+
 @Component({
   selector: 'aida-setup-repo',
   imports: [
@@ -27,9 +29,11 @@ import { environment } from '../../../environments/environment';
   styles: ``
 })
 export class SetupRepoComponent implements OnInit {
-  projectState = inject(ProjectStateService);
-  exportGitHubService = inject(ExportGitHubService);
+  private projectState = inject(ProjectStateService);
+  private exportGitHubService = inject(ExportGitHubService);
   defaultOrg = environment.defaultOrg
+
+  @Input() mode: RepoMode = 'default';
 
   constructor() {
     // Refresh gitHubRepo when there are changes to project name (for initial sync fxn)
@@ -78,6 +82,13 @@ export class SetupRepoComponent implements OnInit {
 
   private blurTimeout: ReturnType<typeof setTimeout> | undefined;
   onRepoBlur() {
+    //Add year to new repos
+    if (this.gitHubRepo.trim() !== '' && !this.repos.includes(this.gitHubRepo)) {
+      const currentYear = new Date().getFullYear().toString();
+      if (!/[-_]?\d{4}$/.test(this.gitHubRepo)) {
+        this.gitHubRepo = `${this.gitHubRepo}-${currentYear}`;
+      }
+    }
     this.blurTimeout = setTimeout(() => {
       this.updateRepo();
     }, 200);

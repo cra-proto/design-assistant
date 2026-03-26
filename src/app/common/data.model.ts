@@ -46,18 +46,46 @@ export interface GitHubRepo {
 
 //Page metadata
 export interface PageMeta {
-    title?: string;                 // Metadata title
-    description?: string;           // Metadata description
-    keywords?: string;              // Metadata keywords
+    title?: string;                 // English Metadata title
+    description?: string;           // English Metadata description
+    keywords?: string;              // English Metadata keywords
+    titleFR?: string;               // French Metadata title
+    descriptionFR?: string;         // French Metadata description
+    keywordsFR?: string;            // French Metadata keywords
     template?: string;              // Determined based on page content & url pattern
-    task?: string[];                  // Determined by comparing with task airtable data
+    task?: string[];                // Determined by comparing with task airtable data
     visits?: number;                // Determined by comparing with UPD data
+    wordCount: number;              // Count of words on page
     oppUrl?: string;                // Opposite language URL 
     oppTitle?: string;              // jrc:content.json otherTitle
     owner?: string;                 // jrc:content.json gcContributor
     email?: string;                 // jrc:content.json gcBranch
     lastPublished?: Date;           // jrc:content.json gcLastPublished
     lastModified?: Date;            // jrc:content.json cq:lastModified
+    noindexEN?: boolean;
+    noindexFR?: boolean;
+}
+
+//AI metadata generation workflow
+export type MetadataReviewStatus = 'pending' | 'approved' | 'edited' | 'rejected';
+
+export interface MetadataField {
+    ai: string;           // What the AI suggested
+    edited?: string;      // What the user changed it to (only set if different from ai)
+    status: MetadataReviewStatus;
+}
+
+export interface MetadataReview {
+    generatedAt: Date;
+    model: string;       // Which model generated it (from OpenRouterResponse.model)
+    en: {
+        description: MetadataField;
+        keywords: MetadataField;
+    };
+    fr: {
+        description: MetadataField;
+        keywords: MetadataField;
+    };
 }
 
 //Page status
@@ -69,6 +97,8 @@ export interface PageStatus {
     isMoved: boolean;                // True if current parent doesn't match baseline parent
     isROT: boolean;                  // True if user flags page as ROT (redundant, outdated, trivial)
     linksToPortal: boolean;          // True if page links to a portal
+    noindexEN: boolean;              // True if English page is not indexed for search
+    noindexFR: boolean;              // True if French page is not indexed for search
     archiveStatus: 'current' | 'archived' | 'to-archive' | 'unarchive' // current/archived is set during add pages step, user can toggle to-archive
     isContainer: boolean;            // True if page is a container page (used to group together pages for AI combine/split actions)
 }
@@ -87,16 +117,19 @@ export interface PageProblem {
 
 export interface ProjectTreeNodeData {
     h1: string;
+    doubleH1: string;
     url: string;
     originalParent: string;
     status: PageStatus;
     metadata?: PageMeta;
+    metadataReview?: MetadataReview;   // AI generated metadata workflow
     problem?: PageProblem
 }
 
 export interface FlattenedTreeNode {
     //Current language
     h1: string;
+    doubleH1: string;
     url: string;
     //Opposite language
     oppTitle: string;
@@ -110,26 +143,44 @@ export interface FlattenedTreeNode {
     isMoved: boolean;
     isROT: boolean;
     linksToPortal: boolean;
+    noindex: 'both' | 'en-only' | 'fr-only' | 'none';
     archiveStatus: 'current' | 'archived' | 'to-archive' | 'unarchive'
     //Data
     template: string;
     task: string[];
     visits: number | undefined;
+    lastModified: Date | undefined;
+    lastPublished: Date | undefined;
+    wordCount: number | undefined;
     //Metadata
-    title: string;
-    description: string;
-    keywords: string;
+    titleEN: string;
+    titleFR: string;
+    descriptionEN: string;
+    descriptionFR: string;
+    keywordsEN: string;
+    keywordsFR: string;
+    //AI generated metadata
+    aiDescriptionEN: MetadataField | undefined;
+    aiKeywordsEN: MetadataField | undefined;
+    aiDescriptionFR: MetadataField | undefined;
+    aiKeywordsFR: MetadataField | undefined;
+    aiGeneratedAt: Date | undefined;
+    aiModel: string | undefined;
     //Owner
     owner: string;
     email: string;
 }
 
+export const FIELD_FILTERS = ['isNew', 'isMoved', 'isROT', 'linksToPortal', 'archiveStatus', 'noindex', 'isOrphan'] as const;
+export const COLUMN_GROUPS = ['page', 'oppPage', 'github', 'status', 'problems', 'pageData', 'owner', 'metadata'] as const;
+export type ColumnGroups = typeof COLUMN_GROUPS[number];
+
 export interface TableColumn {
     field: keyof FlattenedTreeNode;
     translationKey: string;
-    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive';
+    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive' | 'noindex' | 'date' | 'aiText';
     frozen?: boolean;
-    group: 'page' | 'oppPage' | 'github' | 'status' | 'owner' | 'pageData' | 'metadata';
+    group: ColumnGroups;
     visibleByDefault: boolean;
 }
 
@@ -161,4 +212,5 @@ export interface ProjectMetadata {
     collaborators: GitHubUser[];
     github: GitHubRepo;
     storageType: 'local' | 'cloud';
+    org?: string;
 }

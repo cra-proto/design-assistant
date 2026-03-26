@@ -18,17 +18,23 @@ import { ToggleButtonModule } from 'primeng/togglebutton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { RadioButtonModule } from 'primeng/radiobutton';
+import { MenuModule } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
 
 //Components and models
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
 import { AddPagesComponent } from '../../components/add-pages/add-pages.component';
-import { FlattenedTreeNode, TableColumn } from '../../common/data.model';
+import { FlattenedTreeNode, TableColumn, COLUMN_GROUPS, FIELD_FILTERS } from '../../common/data.model';
 import { IaTableComponent } from '../../components/ia-table/ia-table.component';
+import { InventoryPrompts } from '../../common/prompts/inventory.prompts';
+import { InventoryPromptKey } from '../../common/prompts/prompt.model';
 
 //Services
 import { ProjectStateService } from '../../services/project-state.service';
 import { IaDiagramService } from '../../components/ia-diagram/ia-diagram.service';
 import { FindPagesComponent } from "../../components/find-pages/find-pages.component";
+import { OpenRouterService, OpenRouterResponse } from '../../services/ai/openrouter.service';
+import { FetchService } from '../../services/fetch.service';
 
 import { environment } from '../../../environments/environment';
 
@@ -42,7 +48,7 @@ interface ViewOption {
     selector: 'aida-inventory',
     imports: [CommonModule, FormsModule, TranslateModule,
         TableModule, ButtonModule, PopoverModule, TooltipModule,
-        ToolbarModule, IftaLabelModule, MultiSelectModule, SelectButtonModule,
+        ToolbarModule, IftaLabelModule, MultiSelectModule, SelectButtonModule, MenuModule,
         TagModule, ToggleButtonModule, ConfirmDialogModule,
         RadioButtonModule,
         ExportProjectComponent, AddPagesComponent, FindPagesComponent, IaTableComponent],
@@ -53,25 +59,27 @@ export class InventoryComponent implements OnInit {
     public projectState = inject(ProjectStateService);
     public translate = inject(TranslateService);
     private confirmationService = inject(ConfirmationService);
+    public openRouterService = inject(OpenRouterService);
+    private fetchService = inject(FetchService);
     iaDiagram = inject(IaDiagramService);
 
     production = environment.production;
 
-    // Remove this later
-    test() { console.log("Button click") }
-
     // Signals
     columnFilters = signal<Record<string, boolean>>({
-        inScope: true  // Default filter applied
+        inScope: true,  // Default filter applied
+        anyUnusual: false
     });
     resetFilters(): void {
         this.columnFilters.set({
             inScope: true  // Reset to default state
         });
     }
+
     hasActiveFilters(): boolean {
         const filters = this.columnFilters();
-        return Object.keys(filters).length > 1 || !filters['inScope']; // Checks for filters other than inScope
+        const activeFilterCount = Object.values(filters).filter(v => v === true).length;
+        return activeFilterCount > 1 || !filters['inScope']; // Checks for filters other than inScope
     }
 
     // All table columns
@@ -80,8 +88,12 @@ export class InventoryComponent implements OnInit {
     frozenColumns: TableColumn[] = [];
     scrollableColumns: TableColumn[] = [];
 
+    // Groups
+    columnGroups = COLUMN_GROUPS;
+    fieldFilters = FIELD_FILTERS;
+
     // Current selections
-    selectedNodes = [] // Flattened TreeNode data (for delete, status toggles, etc.)
+    selectedNodes: FlattenedTreeNode[] = [] // Flattened TreeNode data (for delete, status toggles, etc.)
     selectedColumnFields: string[] = []; // Multiselect column data
     selectedGroups: string[] = []; // Multiselect group data
     unselectedGroups: string[] = []; // Multiselect group data
@@ -104,9 +116,7 @@ export class InventoryComponent implements OnInit {
 
     // Multiselect - groups
     get groups() {
-        const groups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
-
-        return groups.map(groupKey => ({
+        return this.columnGroups.map(groupKey => ({
             label: this.translate.instant(`inventory.columnGroups.${groupKey}`),
             value: groupKey,
         }));
@@ -117,8 +127,9 @@ export class InventoryComponent implements OnInit {
         marker('inventory.columnGroups.oppPage');
         marker('inventory.columnGroups.github');
         marker('inventory.columnGroups.status');
-        marker('inventory.columnGroups.owner');
+        marker('inventory.columnGroups.problems');
         marker('inventory.columnGroups.pageData');
+        marker('inventory.columnGroups.owner');
         marker('inventory.columnGroups.metadata');
         marker('inventory.view.table');
         marker('inventory.view.tree');
@@ -138,11 +149,15 @@ export class InventoryComponent implements OnInit {
         marker('inventory.tooltip.archive.to-archive');
         marker('inventory.tooltip.archive.archived');
         marker('inventory.tooltip.archive.unarchive');
+        marker('inventory.tooltip.noindex.none');
+        marker('inventory.tooltip.noindex.en-only');
+        marker('inventory.tooltip.noindex.fr-only');
+        marker('inventory.tooltip.noindex.both');
     }
 
     // Multiselect - column groups
     get groupedColumns() {
-        const allGroups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
+        const allGroups = this.columnGroups;
         const groups = allGroups.filter(g => this.selectedGroups.includes(g));
 
         return groups.map(groupKey => ({
@@ -166,9 +181,7 @@ export class InventoryComponent implements OnInit {
 
     // Select Button - column group toggles
     get columnGroupButtons() {
-        const groups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
-
-        return groups.map(groupKey => ({
+        return this.columnGroups.map(groupKey => ({
             value: groupKey,
             icon: this.getGroupIcon(groupKey),
             tooltip: this.translate.instant(`inventory.columnGroups.${groupKey}`)
@@ -176,9 +189,7 @@ export class InventoryComponent implements OnInit {
     }
 
     get columnMaterialButtons() {
-        const groups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
-
-        return groups.map(groupKey => ({
+        return this.columnGroups.map(groupKey => ({
             value: groupKey,
             icon: this.getMaterialIcon(groupKey),
             tooltip: this.translate.instant(`inventory.columnGroups.${groupKey}`)
@@ -282,9 +293,19 @@ export class InventoryComponent implements OnInit {
         const allNodes = this.projectState.flattenTree();
         const filters = this.columnFilters();
         return allNodes.filter(node => {
+            if (filters['anyUnusual']) {
+                const hasAnyUnusual = this.fieldFilters.some(field => {
+                    if (field === 'archiveStatus') return node[field] !== 'current';
+                    if (field === 'noindex') return node[field] !== 'none';
+                    return node[field as keyof FlattenedTreeNode] === true;
+                });
+                if (!hasAnyUnusual) return false;
+            }
             return Object.entries(filters).every(([field, filterValue]) => {
+                if (field === 'anyUnusual') return true; // Skip, not an actual column
                 if (!filterValue) return true; // Filter inactive
-                if (field === 'archiveStatus') { return node[field] !== 'current'; } // Special handling for archive field                
+                if (field === 'archiveStatus') { return node[field] !== 'current'; } // Special handling for archive field
+                if (field === 'noindex') { return node[field] !== 'none'; } // Special handling for noindex field                             
                 return node[field as keyof FlattenedTreeNode] === true; // Boolean filters - show only true values
             });
         });
@@ -335,6 +356,26 @@ export class InventoryComponent implements OnInit {
 
     getArchiveStatusTooltip(node: FlattenedTreeNode, col: TableColumn): string {
         return `inventory.tooltip.archive.${node[col.field]}`;
+    }
+
+    getNoIndexIcon(node: FlattenedTreeNode, col: TableColumn): string {
+        const status = node[col.field];
+        switch (status) {
+            case 'none':
+                return 'pi pi-minus text-gray-400';
+            case 'en-only':
+                return 'pi pi-exclamation-circle text-red-500';
+            case 'fr-only':
+                return 'pi pi-exclamation-triangle text-red-500';
+            case 'both':
+                return 'pi pi-android text-orange-500';
+            default:
+                return 'pi pi-minus text-gray-400'; // fallback
+        }
+    }
+
+    getNoIndexTooltip(node: FlattenedTreeNode, col: TableColumn): string {
+        return `inventory.tooltip.noindex.${node[col.field]}`;
     }
 
     // Table - update visible columns & check if metadata should autoexpand
@@ -473,6 +514,17 @@ export class InventoryComponent implements OnInit {
         console.log('Column settings reset to defaults');
     }
 
+    //Metadata view
+    viewMetadata() {
+        localStorage.removeItem('inventoryColumnVisibility');
+        localStorage.removeItem('inventoryGroupVisibility');
+        this.selectedColumnFields = this.allColumns
+            .filter(col => col.group === 'metadata')
+            .map(col => col.field);
+        this.syncSelectedGroups();
+        this.updateVisibleColumns();
+    }
+
 
     //View settings
     views: ViewOption[] = [
@@ -480,13 +532,9 @@ export class InventoryComponent implements OnInit {
         { key: 'inventory.view.tree', value: 'tree', icon: '' },
     ];
 
-    changeView() {
-        console.log(this.projectState.selectedInventoryView)
-    }
-
     // Get column group headings (includes frozen)
     get groupedHeaders() {
-        const allGroups = ['page', 'oppPage', 'github', 'status', 'owner', 'pageData', 'metadata'];
+        const allGroups = this.columnGroups;
         const groups = allGroups.filter(g => {
             const hasFrozenColumns = this.allColumns.some(col => col.group === g && col.frozen);
             return this.selectedGroups.includes(g) || hasFrozenColumns;
@@ -540,7 +588,6 @@ export class InventoryComponent implements OnInit {
     }
 
     // Track which boolean columns are filtered
-
     isColumnFiltered(field: string): boolean {
         return this.columnFilters()[field] || false;
     }
@@ -552,8 +599,246 @@ export class InventoryComponent implements OnInit {
         }));
     }
 
-    applyFilters(): void {
-        // Apply all active column filters to your table data
-        // This will depend on how your table filtering works
+    toggleFlaggedFilter(): void {
+        this.columnFilters.set({
+            inScope: this.columnFilters()['anyUnusual'],
+            anyUnusual: !this.columnFilters()['anyUnusual']
+        });
+    }
+
+    // AI metadata generation
+    async generateMetadata(mode: "live" | "prototype" = "live") {
+        if (!this.selectedNodes.length) return;
+
+        for (const node of this.selectedNodes) {
+            // Set URLs to fetch
+            let enUrl: string | null = null;
+            let frUrl: string | null = null;
+            if (mode === "prototype") {
+                enUrl = node.prototypeUrl.includes('/en/') ? node.prototypeUrl : null;
+                frUrl = node.prototypeUrl.includes('/fr/') ? node.prototypeUrl : null;
+            } else {
+                enUrl = node.url.includes('/en/') ? node.url : node.oppUrl;
+                frUrl = node.url.includes('/fr/') ? node.url : node.oppUrl;
+            }
+
+            if (!enUrl && !frUrl) {
+                console.warn(`Skipping ${node.url} — missing EN & FR URLs`);
+                continue;
+            }
+
+            // Fetch main content
+            let enMain: string | null = null;
+            let frMain: string | null = null;
+            try {
+                if (enUrl) {
+                    const enDoc = await this.fetchService.fetchContent(enUrl, 'prod', 3, 'none', true);
+                    enMain = enDoc.querySelector('main')?.innerHTML ?? enDoc.body.innerHTML;
+                }
+                if (frUrl) {
+                    const frDoc = await this.fetchService.fetchContent(frUrl, 'prod', 3, 'none', true);
+                    frMain = frDoc.querySelector('main')?.innerHTML ?? frDoc.body.innerHTML;
+                }
+            } catch (error) {
+                console.warn(`Skipping ${node.url} — fetch failed`, error);
+                continue;
+            }
+
+            // Build context for the AI
+            const context = {
+                en: {
+                    url: enUrl,
+                    existingDescription: node.descriptionEN,
+                    existingKeywords: node.keywordsEN,
+                    content: enMain,
+                },
+                fr: {
+                    url: frUrl,
+                    existingDescription: node.descriptionFR,
+                    existingKeywords: node.keywordsFR,
+                    content: frMain,
+                }
+            };
+
+            // Call OpenRouter
+            let response: string;
+            try {
+                response = await this.openRouterService.getTextFromAI(
+                    InventoryPrompts[InventoryPromptKey.Metadata],
+                    JSON.stringify(context)
+                );
+            } catch (error) {
+                console.warn(`Skipping ${node.url} — AI call failed`, error);
+                continue;
+            }
+
+            // Parse and merge into tree
+            try {
+                const parsed = JSON.parse(response);
+                this.projectState.setMetadataReview(node.url, {
+                    generatedAt: new Date(),
+                    model: this.openRouterService.state().respondingModel ?? 'unknown',
+                    en: {
+                        description: { ai: parsed.en.description, status: 'pending' },
+                        keywords: { ai: parsed.en.keywords, status: 'pending' },
+                    },
+                    fr: {
+                        description: { ai: parsed.fr.description, status: 'pending' },
+                        keywords: { ai: parsed.fr.keywords, status: 'pending' },
+                    },
+                });
+            } catch (error) {
+                console.warn(`Skipping ${node.url} — could not parse AI response`, error);
+                continue;
+            }
+
+        }
+    }
+
+    async refreshData(mode: 'status' | 'problems' | 'data' | 'owner' | 'metadata' | 'all') {
+        if (!this.selectedNodes.length) return;
+
+        for (const node of this.selectedNodes) {
+            this.projectState.refreshData(node.url, node.oppUrl, 'all');
+        }
+    }
+
+    //Secondary toolbar dropdowns
+    itemsRefresh: MenuItem[] = [];
+    updateRefreshMenu() {
+        this.itemsRefresh = [
+            {
+                label: this.translate.instant('inventory.menu.refresh'),
+                items: [
+                    {
+                        label: this.translate.instant('inventory.menu.refresh.all'),
+                        icon: 'pi pi-refresh',
+                        command: () => {
+                            this.refreshData('all')
+                        }
+                    },
+                ]
+            },
+            {
+                label: this.translate.instant('inventory.menu.refresh.group'),
+                items: [
+                    {
+                        label: this.translate.instant('inventory.menu.refresh.status'),
+                        icon: 'pi pi-refresh',
+                        command: () => {
+                            this.refreshData('status')
+                        }
+                    },
+                    {
+                        label: this.translate.instant('inventory.menu.refresh.problems'),
+                        icon: 'pi pi-refresh',
+                        disabled: true,
+                        command: () => {
+                            this.refreshData('problems')
+                        }
+                    },
+                    {
+                        label: this.translate.instant('inventory.menu.refresh.data'),
+                        icon: 'pi pi-refresh',
+                        command: () => {
+                            this.refreshData('data')
+                        }
+                    },
+                    {
+                        label: this.translate.instant('inventory.menu.refresh.owner'),
+                        icon: 'pi pi-refresh',
+                        command: () => {
+                            this.refreshData('owner')
+                        }
+                    },
+                    {
+                        label: this.translate.instant('inventory.menu.refresh.metadata'),
+                        icon: 'pi pi-refresh',
+                        command: () => {
+                            this.refreshData('metadata')
+                        }
+                    },
+                ]
+            }
+        ]
+    }
+    itemsStatus: MenuItem[] = []
+    updateStatusMenu() {
+        this.itemsStatus = [
+            {
+                label: this.translate.instant('inventory.menu.status.filter'),
+                items: [
+                    {
+                        label: this.columnFilters()['anyUnusual']
+                            ? this.translate.instant('inventory.menu.status.filter.remove')
+                            : this.translate.instant('inventory.menu.status.filter.add'),
+                        icon: this.columnFilters()['anyUnusual']
+                            ? 'pi pi-filter'
+                            : 'pi pi-filter-slash',
+                        command: () => {
+                            this.toggleFlaggedFilter();
+                        }
+                    },
+                    {
+                        label: this.translate.instant('inventory.menu.status.filter.reset'),
+                        icon: 'pi pi-filter-slash',
+                        command: () => {
+                            this.resetFilters()
+                        },
+                        disabled: !this.hasActiveFilters()
+                    },
+                ]
+            },
+        ];
+    };
+
+    itemsMetadata: MenuItem[] = [];
+    updateMetadataMenu() {
+        this.itemsMetadata = [
+            {
+                label: this.translate.instant('inventory.menu.metadata'),
+                items: [
+                    {
+                        label: this.translate.instant('inventory.menu.metadata.generate'),
+                        icon: 'pi pi-sparkles',
+                        command: () => {
+                            this.generateMetadata()
+                        }
+                    },
+                    {
+                        label: this.expandAllMetadata
+                            ? this.translate.instant('inventory.menu.metadata.collapseAll')
+                            : this.translate.instant('inventory.menu.metadata.expandAll'),
+                        icon: this.expandAllMetadata ? 'pi pi-minus' : 'pi pi-plus',
+                        command: () => {
+                            this.toggleExpandAllMetadata()
+                        },
+                        disabled: !this.hasVisibleMetadata()
+                    },
+                ]
+            },
+        ];
+    }
+
+    itemsDelete: MenuItem[] = [];
+    updateDeleteMenu() {
+        this.itemsDelete = [
+            {
+                label: this.translate.instant('inventory.menu.delete'),
+                items: [
+                    {
+                        label: this.translate.instant('inventory.menu.delete.selected'),
+                        icon: 'pi pi-trash',
+                        severity: this.selectedNodes.length === 0
+                            ? ''
+                            : 'danger',
+                        disabled: this.selectedNodes.length === 0,
+                        command: () => {
+                            this.onDeleteSelected()
+                        }
+                    },
+                ]
+            },
+        ];
     }
 }

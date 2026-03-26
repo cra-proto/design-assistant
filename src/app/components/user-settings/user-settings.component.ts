@@ -7,7 +7,7 @@ import { MenuItem } from 'primeng/api';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SelectModule } from 'primeng/select';
 
-import { ThemeService, ColorScheme } from '../../services/theme.service';
+import { UserSettingsService, ColorScheme } from '../../services/user-settings.service';
 
 export type SettingsMode = 'all' | 'language' | 'theme';
 
@@ -20,14 +20,14 @@ export type SettingsMode = 'all' | 'language' | 'theme';
     styles: ``
 })
 export class UserSettingsComponent {
-    themeService = inject(ThemeService);
+    private settingsService = inject(UserSettingsService);
 
     @Input() mode: SettingsMode = 'all';
 
     constructor() {
         effect(() => {
-            this.selectedTheme = this.themeService.darkMode();
-            this.selectedScheme = this.themeService.colorScheme();
+            this.selectedTheme = this.settingsService.darkMode();
+            this.selectedScheme = this.settingsService.colorScheme();
         });
     }
 
@@ -35,20 +35,20 @@ export class UserSettingsComponent {
     langOptions: MenuItem[] = [{ label: 'common.language.english', value: 'en' }, { label: 'common.language.french', value: 'fr' }];
 
     get selectedLang(): string {
-        return this.themeService.currentLang();
+        return this.settingsService.currentLang();
     }
 
     set selectedLang(value: string) {
-        this.themeService.setLanguage(value);
+        this.settingsService.setLanguage(value);
     }
 
     // Dark & Light theme
     themeOptions: MenuItem[] = [{ label: 'settings.theme.light', value: false }, { label: 'settings.theme.dark', value: true }];
 
-    selectedTheme: boolean = this.themeService.darkMode();
+    selectedTheme: boolean = this.settingsService.darkMode();
 
     changeTheme() {
-        this.themeService.toggle();
+        this.settingsService.toggle();
     }
 
     // Default & other themes
@@ -72,9 +72,9 @@ export class UserSettingsComponent {
         marker('settings.theme.custom');
     }
 
-    selectedScheme = this.themeService.colorScheme();
+    selectedScheme = this.settingsService.colorScheme();
 
     changeScheme() {
-        this.themeService.setColorScheme(this.selectedScheme);
+        this.settingsService.setColorScheme(this.selectedScheme);
     }
 }

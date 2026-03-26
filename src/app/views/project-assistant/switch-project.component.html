@@ -19,12 +19,12 @@
       <!--Search-->
       <p-iconfield>
         <p-inputicon styleClass="pi pi-search" />
-        <input id="search" type="text" pInputText placeholder="Search" class="min-w-min md:min-w-max w-full" />
+        <input id="search" type="text" pInputText placeholder="Search" class="min-w-min md:min-w-max w-full" [(ngModel)]="searchTerm" />
       </p-iconfield>
       <!--Sort-->
       <p-select id="sort" [options]="sortOptions" [(ngModel)]="selectedSort" placeholder="Sort by" styleClass="min-w-min md:min-w-max" />
       <!--Filter-->
-      <p-multiselect inputId="filter" [options]="groupedFilters" [group]="true" [(ngModel)]="selectedFilter" placeholder="Filter files" styleClass="min-w-min md:min-w-max">
+      <p-multiselect inputId="filter" (onClick)="updateGroupedFilters()" [options]="groupedFilters" [group]="true" [(ngModel)]="selectedFilter" placeholder="Filter files" styleClass="min-w-min md:min-w-max">
         <ng-template let-group #group>
           <div class="flex items-center">
             <span>{{ group.label }}</span>
@@ -51,7 +51,7 @@
                 styleClass="white-space-nowrap secondary-outline w-full"
                 disabled />
       <!--RECYCLE BIN-->
-      @if(projectStorage.getLocalProjectList('deleted').length > 0)
+      @if(projectStorageService.getLocalProjectList('deleted').length > 0)
       {<p-button
                 [label]="currentMode() === 'deleted' ? 'View saved projects' : 'View deleted projects'"
                 [icon]="currentMode() === 'deleted' ? 'pi pi-list' : 'pi pi-trash'"
@@ -70,18 +70,18 @@
     @for(project of projects; track project.key + project.storageType) {
     <div class="col-12 md:col-6 lg:col-4">
       <p-card [styleClass]="currentMode() === 'deleted'
-                              ? 'h-full border-2 border-red-500 cursor-pointer'
-                              : 'h-full border-1 surface-border cursor-pointer'"
+                              ? 'h-full border-2 border-red-500 cursor-pointer hover:shadow-4'
+                              : 'h-full border-1 surface-border cursor-pointer hover:shadow-3'"
               (click)="loadProject(project.key, project.id, project.storageType)">
 
         <ng-template pTemplate="header">
           <div class="flex justify-content-between align-items-start p-3 pb-0">
             <!--Tags-->
             <div class="flex gap-2">
-              @if (projectStorage.currentActive()?.key === project.key && project.storageType === 'local') {
+              @if (projectStorageService.currentActive()?.key === project.key && project.storageType === 'local') {
               <p-tag value="Active" icon="pi pi-check" severity="success" [style]="{'font-size': '0.75rem'}" />
               }
-              @if (projectStorage.currentActive()?.key === project.id && project.storageType === 'cloud') {
+              @if (projectStorageService.currentActive()?.key === project.id && project.storageType === 'cloud') {
               <p-tag value="Active" icon="pi pi-check" severity="success" [style]="{'font-size': '0.75rem'}" />
               }
               @if (project.storageType === 'local') {

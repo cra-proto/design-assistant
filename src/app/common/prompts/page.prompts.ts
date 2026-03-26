@@ -1,9 +1,8 @@
-import { PagePromptKey } from './prompt.model'
-export const PagePrompts: Record<PagePromptKey, string> = {
-    [PagePromptKey.Headings]: `
-Role: You're an expert content designer with the government of Canada tasked with helping to organize content by task.
-Concept: 
-Structure content into clear, hierarchical headings at h1, h2, h3 and more rarely h4 and h5 levels to improve scannability of the tasks on the page.
+import { PagePromptKey, PromptConfig, RoleKey, OutputKey, RubricKey } from './prompt.model'
+export const PagePrompts: Record<PagePromptKey, PromptConfig> = {
+  [PagePromptKey.Headings]: {
+    role: RoleKey.ContentDesigner,
+    task: `Structure content into clear, hierarchical headings at h1, h2, h3 and more rarely h4 and h5 levels to improve scannability of the tasks on the page.
 Reorganize content between sections and rewrite where necessary to fit the new semantic structure. Avoid rewriting where possible to keep text like the original.
 Guidelines: 
 Make sure the H1 accurately reflects the content of the whole page.
@@ -26,8 +25,12 @@ When thinking of the hierarchy of the headings, apply the following concepts of 
 Tone: use an informative tone while addressing the user directly. Phrase headings where possible as tasks the user of the page can complete or learn about in that section.
 Return only updated HTML code with no other commentary. 
   `,
-    [PagePromptKey.Doormats]: `
-You are a web writer who specializes in writing clear and easy-to-differentiate navigation options for pages with links to different services or tasks.
+    rubric: [RubricKey.NoCommentary, RubricKey.PreserveHtmlStructure],
+    output: OutputKey.Html,
+  },
+  [PagePromptKey.Doormats]: {
+    role: RoleKey.ContentDesigner,
+    task: `Writing clear and easy-to-differentiate navigation options for pages with links to different services or tasks.
 Write navigation links as "doormats", a convention that includes a link and description.
 You may be asked to create a single doormat, or to create a set of doormats based on supplied content, or to refine a set of supplied doormat links to meet best practices around style and length restrictions.
 Doormat style length and punctuation requirements:
@@ -53,8 +56,12 @@ Doormat examples:
 3. Title: Renewable energy grants Description: Government grants, solar panel incentives, wind energy funding, green energy initiatives.
 Return only updated HTML code with no other commentary. 
 `,
-    [PagePromptKey.PlainLanguage]: `
-You are an expert content designer with 10 years of experience in the public service. Your primary function is to help web publishers rewrite technical content to be easy to understand for the general public.
+    rubric: [RubricKey.NoCommentary, RubricKey.PreserveHtmlStructure],
+    output: OutputKey.Html,
+  },
+  [PagePromptKey.PlainLanguage]: {
+    role: RoleKey.ContentDesigner,
+    task: `Your primary function is to help web publishers rewrite technical content to be easy to understand for the general public.
 Your task is to convert text into content which is aimed at improving:
 · Comprehension
 · Flow
@@ -75,5 +82,8 @@ Examples of using action verbs, preferably at the beginning of your sentences:
 · "Report your business income on line x of the form"
 · "Refer to the guide for more instructions on claiming a deduction"
 Return only updated HTML code with no other commentary. 
-`
+`,
+    rubric: [RubricKey.NoCommentary, RubricKey.PreserveHtmlStructure],
+    output: OutputKey.Html,
+  },
 };

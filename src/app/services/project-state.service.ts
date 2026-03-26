@@ -1,11 +1,16 @@
 import { Injectable, signal, computed, inject, effect } from '@angular/core';
-import { Project, ProjectMetadata, ProjectPhase, GitHubRepo, GitHubUser, ProjectTreeNodeData, FlattenedTreeNode, TableColumn } from '../common/data.model';
+import { Project, ProjectMetadata, ProjectPhase, GitHubRepo, GitHubUser, ProjectTreeNodeData, FlattenedTreeNode, TableColumn, MetadataReview } from '../common/data.model';
 import { TreeNode } from 'primeng/api';
 import { environment } from '../../environments/environment';
+import { TranslateService } from '@ngx-translate/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
+import { version as appVersion } from '../../../package.json'
 
 import { ProjectStorageService } from '../services/storage/project-storage.service';
 import { CollaboratorService } from './collaborator.service';
+import { FetchService } from './fetch.service';
+import { AirtableService } from './airtable.service';
+import { UpdService } from './upd.service';
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
 
@@ -21,18 +26,20 @@ Computed signals for stats (page counts, problem counts, etc.)
 Auto-save effect with debouncing
 NO persistence logic (that goes to ProjectStorageService)*/
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ProjectStateService {
-    private projectStorage = inject(ProjectStorageService);
+    private translate = inject(TranslateService);
+    private projectStorageService = inject(ProjectStorageService);
     private collaboratorService = inject(CollaboratorService);
+    private fetchService = inject(FetchService);
+    private airtableService = inject(AirtableService);
+    private updService = inject(UpdService);
 
     // Main project state
     private project = signal<Project>({
         id: this.generateId(),
         key: '',
-        version: environment.version,
+        version: appVersion,
         projectName: '',
         phase: ProjectPhase.Draft,
         created: new Date(),
@@ -120,7 +127,11 @@ export class ProjectStateService {
         }));
         // Sync name to repo if not set
         if (name && !this.project().github.repo) {
-            const repo = name.replace(/[:']/g, '').replace(/\s+/g, '-').toLowerCase();
+            let repo = this.generateUrlFragment(name);
+            const currentYear = new Date().getFullYear().toString();
+            if (!/[-_]?\d{4}$/.test(repo)) {
+                repo = `${repo}-${currentYear}`;
+            }
             this.setGitHubRepo({ repo });
         }
     }
@@ -171,6 +182,20 @@ export class ProjectStateService {
                 node.data.sha = {};
             }
             node.data.sha[mode] = sha;
+            this.project.update(p => ({
+                ...p,
+                lastModified: new Date(),
+                projectData: [...p.projectData]
+            }));
+        }
+    }
+
+    setMetadataReview(url: string, review: MetadataReview): void {
+        const tree = this.getProjectTree();
+        const node = this.findNodeByUrl(tree, url);
+
+        if (node?.data) {
+            node.data.metadataReview = review;
             this.project.update(p => ({
                 ...p,
                 lastModified: new Date(),
@@ -366,7 +391,7 @@ export class ProjectStateService {
             }));
 
             const project = this.project();
-            const success = await this.projectStorage.saveProject(project);
+            const success = await this.projectStorageService.saveProject(project);
 
             if (success) {
                 // Wait 2 seconds before showing "saved" status
@@ -439,8 +464,8 @@ export class ProjectStateService {
             const project: Project = JSON.parse(saved);
 
             // Version check
-            if (project.version !== environment.version) {
-                console.warn(`Project version (${project.version}) differs from app version (${environment.version}). Some features may not work correctly.`);
+            if (project.version !== appVersion) {
+                console.warn(`Project version (${project.version}) differs from app version (${appVersion}). Some features may not work correctly.`);
                 //return false;
             }
 
@@ -482,7 +507,7 @@ export class ProjectStateService {
         try {
             const project: Project = JSON.parse(jsonString);
 
-            if (project.version !== environment.version) {
+            if (project.version !== appVersion) {
                 console.warn('Incompatible project version. Import skipped.');
                 return false;
             }
@@ -524,7 +549,7 @@ export class ProjectStateService {
         this.project.set({
             id: this.generateId(),
             key: 'autosave',
-            version: environment.version,
+            version: appVersion,
             projectName: '',
             phase: ProjectPhase.Draft,
             created: new Date(),
@@ -560,6 +585,7 @@ export class ProjectStateService {
                 flatNodes.push({
                     //Current language
                     h1: data.h1 || '',
+                    doubleH1: data.doubleH1 || '',
                     url: data.url || '',
                     //Opposite language
                     oppTitle: data.metadata?.oppTitle || '',
@@ -573,18 +599,35 @@ export class ProjectStateService {
                     isMoved: data.status.isMoved,
                     isROT: data.status.isROT,
                     linksToPortal: data.status.linksToPortal,
+                    noindex: data.status.noindexEN && data.status.noindexFR ? 'both'
+                        : data.status.noindexEN ? 'en-only'
+                            : data.status.noindexFR ? 'fr-only'
+                                : 'none',
                     archiveStatus: data.status.archiveStatus,
                     //Data
                     template: data.metadata?.template || '',
                     task: data.metadata?.task || [],
                     visits: data.metadata?.visits ?? undefined,
+                    wordCount: data.metadata?.wordCount,
+                    lastModified: data.metadata?.lastModified,
+                    lastPublished: data.metadata?.lastPublished,
                     //Owner
                     owner: data.metadata?.owner || '',
                     email: data.metadata?.email || '',
                     //Metadata
-                    title: data.metadata?.title || '',
-                    description: data.metadata?.description || '',
-                    keywords: data.metadata?.keywords || '',
+                    titleEN: data.metadata?.title || '',
+                    descriptionEN: data.metadata?.description || '',
+                    keywordsEN: data.metadata?.keywords || '',
+                    titleFR: data.metadata?.titleFR || '',
+                    descriptionFR: data.metadata?.descriptionFR || '',
+                    keywordsFR: data.metadata?.keywordsFR || '',
+                    //AI Metadata
+                    aiDescriptionEN: data.metadataReview?.en.description,
+                    aiKeywordsEN: data.metadataReview?.en.keywords,
+                    aiDescriptionFR: data.metadataReview?.fr.description,
+                    aiKeywordsFR: data.metadataReview?.fr.keywords,
+                    aiModel: data.metadataReview?.model,
+                    aiGeneratedAt: data.metadataReview?.generatedAt,
                 });
 
                 if (node.children?.length) {
@@ -599,6 +642,7 @@ export class ProjectStateService {
 
     markForTranslation() {
         marker('inventory.header.h1');
+        marker('inventory.header.doubleH1');
         marker('inventory.header.url');
         marker('inventory.header.oppTitle');
         marker('inventory.header.oppUrl');
@@ -610,14 +654,27 @@ export class ProjectStateService {
         marker('inventory.header.isROT');
         marker('inventory.header.linksToPortal');
         marker('inventory.header.archiveStatus');
+        marker('inventory.header.noindex');
         marker('inventory.header.owner');
         marker('inventory.header.email');
         marker('inventory.header.template');
         marker('inventory.header.task');
         marker('inventory.header.visits');
-        marker('inventory.header.title');
-        marker('inventory.header.description');
-        marker('inventory.header.keywords');
+        marker('inventory.header.wordCount');
+        marker('inventory.header.lastModified');
+        marker('inventory.header.lastPublished');
+        marker('inventory.header.titleEN');
+        marker('inventory.header.descriptionEN');
+        marker('inventory.header.keywordsEN');
+        marker('inventory.header.titleFR');
+        marker('inventory.header.descriptionFR');
+        marker('inventory.header.keywordsFR');
+        marker('inventory.header.ai.descriptionEN');
+        marker('inventory.header.ai.keywordsEN');
+        marker('inventory.header.ai.descriptionFR');
+        marker('inventory.header.ai.keywordsFR');
+        marker('inventory.header.ai.model');
+        marker('inventory.header.ai.date');
     }
 
     // NOTE: Add new translation keys to the markForTranslation() method above
@@ -625,7 +682,8 @@ export class ProjectStateService {
         return [
             //Current Language
             { field: 'h1', translationKey: 'inventory.header.h1', type: 'text', frozen: true, group: 'page', visibleByDefault: true },
-            { field: 'url', translationKey: 'inventory.header.url', type: 'url', group: 'page', visibleByDefault: true },
+            { field: 'doubleH1', translationKey: 'inventory.header.doubleH1', type: 'text', group: 'page', visibleByDefault: false },
+            { field: 'url', translationKey: 'inventory.header.url', type: 'url', group: 'page', visibleByDefault: false },
             //Opposite Language
             { field: 'oppTitle', translationKey: 'inventory.header.oppTitle', type: 'text', group: 'oppPage', visibleByDefault: false },
             { field: 'oppUrl', translationKey: 'inventory.header.oppUrl', type: 'url', group: 'oppPage', visibleByDefault: false },
@@ -633,23 +691,39 @@ export class ProjectStateService {
             { field: 'prototypeUrl', translationKey: 'inventory.header.prototypeUrl', type: 'url', group: 'github', visibleByDefault: false },
             //Status
             { field: 'inScope', translationKey: 'inventory.header.inScope', type: 'boolean', group: 'status', visibleByDefault: true },
-            { field: 'isOrphan', translationKey: 'inventory.header.isOrphan', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'isNew', translationKey: 'inventory.header.isNew', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'isMoved', translationKey: 'inventory.header.isMoved', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'isROT', translationKey: 'inventory.header.isROT', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'linksToPortal', translationKey: 'inventory.header.linksToPortal', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'archiveStatus', translationKey: 'inventory.header.archiveStatus', type: 'archive', group: 'status', visibleByDefault: true },
+            { field: 'noindex', translationKey: 'inventory.header.noindex', type: 'noindex', group: 'status', visibleByDefault: true },
+            //Problems
+            { field: 'isOrphan', translationKey: 'inventory.header.isOrphan', type: 'boolean', group: 'problems', visibleByDefault: true },
+            //ADD 404's!!!
+            //Data
+            { field: 'template', translationKey: 'inventory.header.template', type: 'text', group: 'pageData', visibleByDefault: true },
+            { field: 'task', translationKey: 'inventory.header.task', type: 'array', group: 'pageData', visibleByDefault: false },
+            { field: 'visits', translationKey: 'inventory.header.visits', type: 'number', group: 'pageData', visibleByDefault: true },
+            { field: 'wordCount', translationKey: 'inventory.header.wordCount', type: 'number', group: 'pageData', visibleByDefault: true },
+            { field: 'lastModified', translationKey: 'inventory.header.lastModified', type: 'date', group: 'pageData', visibleByDefault: true },
+            { field: 'lastPublished', translationKey: 'inventory.header.lastPublished', type: 'date', group: 'pageData', visibleByDefault: false },
             //Owner
             { field: 'owner', translationKey: 'inventory.header.owner', type: 'text', group: 'owner', visibleByDefault: true },
             { field: 'email', translationKey: 'inventory.header.email', type: 'text', group: 'owner', visibleByDefault: false },
-            //Data
-            { field: 'template', translationKey: 'inventory.header.template', type: 'text', group: 'pageData', visibleByDefault: true },
-            { field: 'task', translationKey: 'inventory.header.task', type: 'array', group: 'pageData', visibleByDefault: true },
-            { field: 'visits', translationKey: 'inventory.header.visits', type: 'number', group: 'pageData', visibleByDefault: true },
-            //Metadata
-            { field: 'title', translationKey: 'inventory.header.title', type: 'text', group: 'metadata', visibleByDefault: false },
-            { field: 'description', translationKey: 'inventory.header.description', type: 'longText', group: 'metadata', visibleByDefault: false },
-            { field: 'keywords', translationKey: 'inventory.header.keywords', type: 'longText', group: 'metadata', visibleByDefault: false },
+            //Metadata & AI metadata
+            { field: 'titleEN', translationKey: 'inventory.header.titleEN', type: 'text', group: 'metadata', visibleByDefault: false },
+            { field: 'descriptionEN', translationKey: 'inventory.header.descriptionEN', type: 'longText', group: 'metadata', visibleByDefault: false },
+            { field: 'aiDescriptionEN', translationKey: 'inventory.header.ai.descriptionEN', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            { field: 'keywordsEN', translationKey: 'inventory.header.keywordsEN', type: 'longText', group: 'metadata', visibleByDefault: false },
+            { field: 'aiKeywordsEN', translationKey: 'inventory.header.ai.keywordsEN', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            { field: 'titleFR', translationKey: 'inventory.header.titleFR', type: 'text', group: 'metadata', visibleByDefault: false },
+            { field: 'descriptionFR', translationKey: 'inventory.header.descriptionFR', type: 'longText', group: 'metadata', visibleByDefault: false },
+            { field: 'aiDescriptionFR', translationKey: 'inventory.header.ai.descriptionFR', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            { field: 'keywordsFR', translationKey: 'inventory.header.keywordsFR', type: 'longText', group: 'metadata', visibleByDefault: false },
+            { field: 'aiKeywordsFR', translationKey: 'inventory.header.ai.keywordsFR', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            //AI Metadata
+            { field: 'aiModel', translationKey: 'inventory.header.ai.model', type: 'text', group: 'metadata', visibleByDefault: false },
+            { field: 'aiGeneratedAt', translationKey: 'inventory.header.ai.date', type: 'date', group: 'metadata', visibleByDefault: false },
         ];
     }
 
@@ -831,6 +905,27 @@ export class ProjectStateService {
         }
     }
 
+    // Generate url fragment (for repo names and new pages)
+    public generateUrlFragment(h1: string): string {
+        // Words to remove (common articles, prepositions, conjunctions)
+        const stopWords = [
+            // English
+            'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with',
+            // French
+            'le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'et', 'ou', 'mais', 'dans', 'sur', 'a', 'au', 'aux', 'pour', 'avec'
+        ];
+
+        return h1
+            .normalize('NFD')                            // Decompose accented characters
+            .replace(/[\u0300-\u036f]/g, '')             // Remove accent marks
+            .replace(/\b(?:l|d|n|s|c|j|m|t|qu)'/gi, '')  // Remove French contractions (l', d', n', s', c', j', m', t', qu')
+            .toLowerCase()                               // Lowercase for the url
+            .replace(/[^\w\s-]/g, '')                    // Remove punctuation except hyphens
+            .split(/\s+/)                                // Split on whitespace
+            .filter(word => word.length > 0 && !stopWords.includes(word)) // Remove stop words and empty strings
+            .join('-');                                  // Join with hyphens
+    }
+
     deleteNode(selectedPages: FlattenedTreeNode[], canDeleteRoot = false) {
         const projectTree = this.getProjectTree();
 
@@ -960,5 +1055,85 @@ export class ProjectStateService {
 
         findAndBuildChain(this.project().projectData, url);
         return breadcrumbs;
+    }
+
+
+    // Refresh page data
+    public async refreshData(url: string, oppUrl: string, mode: 'status' | 'problems' | 'data' | 'owner' | 'metadata' | 'all') {
+
+        const node = this.findNodeByUrl(this.getProjectTree(), url);
+        if (!node) {
+            console.error('Node not found for URL:', url);
+            return;
+        }
+
+        const urlLang = url.includes('/en/') ? 'en' : 'fr';
+
+        let metadata;
+        if (mode === 'status' || mode === 'data' || mode === 'metadata' || mode === 'all') {
+            const doc = await this.fetchService.fetchContent(url, "prod", 3, "none", false);
+            metadata = this.fetchService.extractPageMetadata(doc, url);
+            console.log("Metadata", metadata);
+            //TODO: add 404 & IA orphan refresh
+        }
+
+        let oppMetadata;
+        if (mode === 'metadata' || mode === 'all') {
+            oppMetadata = await this.fetchService.getOppMetadata(oppUrl);
+            console.log("Opp Metadata", oppMetadata);
+            //TODO: add 404 & IA orphan refresh
+        }
+
+        let jsonData;
+        if (mode === 'data' || mode === 'owner' || mode === 'all') {
+            const fields = ['gcContributor', 'gcBranch', 'gcLastPublished', 'gcModifiedIsOverridden', 'gcModifiedOverride', 'cq:lastModified', 'cq:template'];
+            jsonData = await this.fetchService.fetchJSON(url, fields);
+            console.log("Ownership data", jsonData);
+        }
+
+        let task, visits;
+        if (mode === 'data' || mode === 'all') {
+            const currentLang = this.translate.currentLang?.startsWith('fr') ? 'fr' : 'en';
+            await this.airtableService.fetchTasks();
+            task = this.airtableService.findTaskNamesByUrl(url, currentLang);
+            console.log("Task data", task);
+
+            await this.updService.fetchData();
+            visits = this.updService.findVisitsByUrl(url.replace('https://', ''));
+            console.log("Visits", visits);
+        }
+
+        // Update node - use new data if fetched AND available, otherwise keep existing
+        if (node.data?.status) {
+            // STATUS MODE
+            node.data.status.linksToPortal = ((mode === 'status' || mode === 'all') && metadata?.linksToPortal !== undefined) ? metadata.linksToPortal : node.data.status.linksToPortal;
+            node.data.status.archiveStatus = ((mode === 'status' || mode === 'all') && metadata?.isArchived !== undefined) ? (metadata.isArchived ? 'archived' : 'current') : node.data.status.archiveStatus;
+            node.data.status.noindexEN = ((mode === 'status' || mode === 'all') && metadata?.noindex !== undefined) ? (urlLang === 'en' ? metadata.noindex : oppMetadata?.noindex) : node.data.status.noindexEN;
+            node.data.status.noindexFR = ((mode === 'status' || mode === 'all') && metadata?.noindex !== undefined) ? (urlLang === 'fr' ? metadata.noindex : oppMetadata?.noindex) : node.data.status.noindexFR;
+            //TODO: IA ORPHAN & 404's!
+        }
+        if (node.data?.metadata) {
+            // DATA MODE
+            node.data.metadata.template = ((mode === 'data' || mode === 'all') && metadata?.template) ? (jsonData?.['cq:template']?.includes('freestyle') ? 'freestyle' : metadata.template) : node.data.metadata.template;
+            node.data.metadata.wordCount = ((mode === 'data' || mode === 'all') && metadata?.wordCount !== undefined) ? metadata.wordCount : node.data.metadata.wordCount;
+            node.data.metadata.lastPublished = ((mode === 'data' || mode === 'all') && jsonData?.['gcLastPublished']) ? new Date(jsonData['gcLastPublished']) : node.data.metadata.lastPublished;
+            node.data.metadata.lastModified = ((mode === 'data' || mode === 'all') && jsonData) ? (jsonData['gcModifiedIsOverridden'] === 'true' && jsonData['gcModifiedOverride'] ? new Date(jsonData['gcModifiedOverride']) : jsonData['cq:lastModified'] ? new Date(jsonData['cq:lastModified']) : '') : node.data.metadata.lastModified;
+            node.data.metadata.task = ((mode === 'data' || mode === 'all') && task) ? task : node.data.metadata.task;
+            node.data.metadata.visits = ((mode === 'data' || mode === 'all') && visits !== undefined && visits !== -1) ? visits : node.data.metadata.visits;
+
+            // OWNER MODE
+            node.data.metadata.owner = ((mode === 'owner' || mode === 'all') && jsonData?.['gcContributor']) ? jsonData['gcContributor'] : node.data.metadata.owner;
+            node.data.metadata.email = ((mode === 'owner' || mode === 'all') && jsonData?.['gcBranch']) ? jsonData['gcBranch'] : node.data.metadata.email;
+
+            // METADATA MODE
+            node.data.metadata.title = ((mode === 'metadata' || mode === 'all') && (metadata?.title || oppMetadata?.title)) ? (urlLang === 'en' ? metadata?.title : oppMetadata?.title) : node.data.metadata.title;
+            node.data.metadata.description = ((mode === 'metadata' || mode === 'all') && (metadata?.description || oppMetadata?.description)) ? (urlLang === 'en' ? metadata?.description : oppMetadata?.description) : node.data.metadata.description;
+            node.data.metadata.keywords = ((mode === 'metadata' || mode === 'all') && (metadata?.keywords || oppMetadata?.keywords)) ? (urlLang === 'en' ? metadata?.keywords : oppMetadata?.keywords) : node.data.metadata.keywords;
+            node.data.metadata.titleFR = ((mode === 'metadata' || mode === 'all') && (metadata?.title || oppMetadata?.title)) ? (urlLang === 'fr' ? metadata?.title : oppMetadata?.title) : node.data.metadata.titleFR;
+            node.data.metadata.descriptionFR = ((mode === 'metadata' || mode === 'all') && (metadata?.description || oppMetadata?.description)) ? (urlLang === 'fr' ? metadata?.description : oppMetadata?.description) : node.data.metadata.descriptionFR;
+            node.data.metadata.keywordsFR = ((mode === 'metadata' || mode === 'all') && (metadata?.keywords || oppMetadata?.keywords)) ? (urlLang === 'fr' ? metadata?.keywords : oppMetadata?.keywords) : node.data.metadata.keywordsFR;
+        }
+
+        this.setModifiedDate();
     }
 }

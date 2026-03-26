@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
+import { Router } from '@angular/router';
 
 //PrimeNG modules
 import { ButtonModule } from 'primeng/button';
@@ -9,7 +10,6 @@ import { MenuItem } from 'primeng/api';
 
 //Services
 import { ProjectStateService } from '../../services/project-state.service';
-import { ProjectStorageService } from '../../services/storage/project-storage.service';
 
 @Component({
     selector: 'aida-export-project',
@@ -21,9 +21,8 @@ import { ProjectStorageService } from '../../services/storage/project-storage.se
     styles: ``
 })
 export class ExportProjectComponent {
-
-    projectState = inject(ProjectStateService);
-    projectStorage = inject(ProjectStorageService);
+    private projectState = inject(ProjectStateService);
+    private router = inject(Router);
 
     markForTranslation() {
         marker('export.github');
@@ -35,7 +34,9 @@ export class ExportProjectComponent {
         {
             label: 'export.github',
             icon: 'pi pi-github',
-            routerLink: '/export-github'
+            command: () => {
+                this.router.navigate(['/export-github']);
+            },
         },
         {
             separator: true,

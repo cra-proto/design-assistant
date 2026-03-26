@@ -35,8 +35,7 @@
                                            [inputId]="view.value"
                                            [name]="view.key"
                                            [value]="view.value"
-                                           [(ngModel)]="projectState.selectedInventoryView"
-                                           (ngModelChange)="changeView()">
+                                           [(ngModel)]="projectState.selectedInventoryView">
                             </p-radioButton>
                             <label [for]="view.value">
                                 <i [class]="view.icon"></i>
@@ -60,11 +59,11 @@
                                            (onChange)="onGroupSelectionChange()">
                                 <ng-template pTemplate="header">
                                     <div class="px-3 pt-2">
-                                        <span class="font-semibold">Select groups</span>
+                                        <span class="font-semibold">{{'inventory.columnVis.selectGroups' | translate}}</span>
                                     </div>
                                 </ng-template>
                             </p-multiSelect>
-                            <label for="columns">Visible column groups</label>
+                            <label for="columns">{{'inventory.columnVis.visibleGroups' | translate}}</label>
                         </p-iftalabel>
 
                         <!-- Top toolbar - Column settings - Column dropdown -->
@@ -75,17 +74,22 @@
                                            (onChange)="onColumnSelectionChange()">
                                 <ng-template pTemplate="header">
                                     <div class="px-3 pt-2">
-                                        <span class="font-semibold">Select columns</span>
+                                        <span class="font-semibold">{{'inventory.columnVis.selectColumns' | translate}}</span>
                                     </div>
                                 </ng-template>
                             </p-multiSelect>
-                            <label for="columns">Visible columns</label>
+                            <label for="columns">{{'inventory.columnVis.visibleColumns' | translate}}</label>
                         </p-iftalabel>
 
                         <!-- Top toolbar - Column settings - Reset button -->
-                        <p-button label="Reset columns" icon="pi pi-refresh"
-                                  severity="secondary" size="small" styleClass="h-full"
-                                  (onClick)="resetColumnSettings()" />
+                        <div class="flex flex-column h-full gap-1">
+                            <p-button [label]="'inventory.columnVis.defaultView' | translate"
+                                      severity="primary" outlined size="small" class="h-full" styleClass="h-full w-full secondary-outline p-1"
+                                      (onClick)="resetColumnSettings()" />
+                            <p-button [label]="'inventory.columnVis.metadataView' | translate"
+                                      severity="primary" outlined size="small" class="h-full" styleClass="h-full w-full secondary-outline p-1"
+                                      (onClick)="viewMetadata()" />
+                        </div>
                     </div>
                 </div>
                 <p-button severity="secondary" icon="pi pi-cog" label="Column settings" class="flex lg:hidden" />
@@ -94,69 +98,47 @@
             <!-- Bulk actions toolbar -->
             @if(projectState.selectedInventoryView === "table"){
             <div class="h-3rm mb-2">
-                @if(selectedNodes.length > 0 || hasActiveFilters()){
-                <div class="flex flex-row justify-content-between align-items-center border-1 border-dashed secondary-outline surface-card">
-
+                <div class="flex flex-row align-items-center gap-2 surface-card">
                     <!-- Bulk actions toolbar - # selected pages -->
                     <p>{{selectedNodes.length}} pages selected</p>
 
+                    <!-- Bulk actions toolbar - Refresh data -->
+                    <p-button label="Refresh" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
+                              (onClick)="updateRefreshMenu(); menuRefresh.toggle($event)"></p-button>
+
                     <!-- Bulk actions toolbar - Toggle page statuses -->
-                    <p-button label="Update status"></p-button>
+                    <p-button label="Status" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
+                              (onClick)="updateStatusMenu(); menuStatus.toggle($event)"></p-button>
 
-                    <!-- Bulk actions toolbar - Reset page statuses filters -->
-                    <p-button
-                              label="{{ 'inventory.filter.reset' | translate }}"
-                              icon="pi pi-filter-slash"
-                              severity="secondary"
-                              [outlined]="true"
-                              size="small"
-                              (onClick)="resetFilters()"
-                              [disabled]="!hasActiveFilters()" />
-
-                    <!-- Bulk actions toolbar - Conditional actions - Expand metadata -->
-                    @if(hasVisibleMetadata()){
-                    <p-button
-                              [disabled]="!hasVisibleMetadata()"
-                              [label]="expandAllMetadata ? ('inventory.collapseAllMetadata' | translate) : ('inventory.expandAllMetadata' | translate)"
-                              [icon]="expandAllMetadata ? 'pi pi-minus' : 'pi pi-plus'"
-                              [outlined]="true"
-                              size="small"
-                              (click)="toggleExpandAllMetadata()" />
-                    }
+                    <!-- Bulk actions toolbar - Generate metadata -->
+                    <p-button label="Metadata" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
+                              (onClick)="updateMetadataMenu(); menuMetadata.toggle($event)" [loading]="openRouterService.state().loading"></p-button>
 
                     <!-- Bulk actions toolbar - Delete pages -->
-                    <p-button
-                              label="Delete selected pages and their children"
-                              icon="pi pi-trash"
-                              severity="danger"
-                              outlined
-                              size="small"
-                              styleClass="secondary-outline"
-                              (click)="onDeleteSelected()"
-                              [disabled]="selectedNodes.length === 0" />
-
+                    <p-button label="Delete" icon="pi pi-chevron-down" iconPos="right" severity="danger" outlined styleClass="secondary-outline"
+                              (onClick)="updateDeleteMenu(); menuDelete.toggle($event)"></p-button>
 
                 </div>
                 <p-confirmDialog key="inventory" />
-                }
+
             </div>
             }
         </div>
         <!--div>
-                <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
-                    <span class="text-xs  my-1">Visible groups</span>
-                    <p-selectbutton class="mb-0" [options]="columnGroupButtons" [(ngModel)]="selectedGroups" [multiple]="true" optionLabel="tooltip" optionValue="value" (onChange)="onGroupSelectionChange()">
-                        <ng-template let-item pTemplate="item">
-                            <i [class]="'pb-0 pi ' + item.icon" [pTooltip]="item.tooltip" tooltipPosition="top"></i>
-                        </ng-template>
-                    </p-selectbutton>
-                    <p-selectbutton class="mb-0" [options]="columnMaterialButtons" [(ngModel)]="selectedGroups" [multiple]="true" optionLabel="tooltip" optionValue="value" (onChange)="onGroupSelectionChange()">
-                        <ng-template let-item pTemplate="item">
-                            <span class="material-icons" [pTooltip]="item.tooltip" tooltipPosition="top">{{ item.icon }}</span>
-                        </ng-template>
-                    </p-selectbutton>
-                </div>
-            </div-->
+            <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
+                <span class="text-xs  my-1">Visible groups</span>
+                <p-selectbutton class="mb-0" [options]="columnGroupButtons" [(ngModel)]="selectedGroups" [multiple]="true" optionLabel="tooltip" optionValue="value" (onChange)="onGroupSelectionChange()">
+                    <ng-template let-item pTemplate="item">
+                        <i [class]="'pb-0 pi ' + item.icon" [pTooltip]="item.tooltip" tooltipPosition="top"></i>
+                    </ng-template>
+                </p-selectbutton>
+                <p-selectbutton class="mb-0" [options]="columnMaterialButtons" [(ngModel)]="selectedGroups" [multiple]="true" optionLabel="tooltip" optionValue="value" (onChange)="onGroupSelectionChange()">
+                    <ng-template let-item pTemplate="item">
+                        <span class="material-icons" [pTooltip]="item.tooltip" tooltipPosition="top">{{ item.icon }}</span>
+                    </ng-template>
+                </p-selectbutton>
+            </div>
+        </div-->
 
 
         @if(projectState.selectedInventoryView === "table"){
@@ -178,23 +160,13 @@
                     <!-- Scrollable columns -->
                     @for(col of scrollableColumns; track col.field){
                     <th [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border surface-card sticky-r':'surface-card sticky-r'">
-                        @if(col.type === 'boolean'){
+                        @if(col.type === 'boolean' || col.type === 'archive' || col.type === 'noindex'){
                         <p-button [label]="col.translationKey | translate" styleClass="font-bold capitalize"
                                   [icon]="isColumnFiltered(col.field) ? 'pi pi-filter' : 'pi pi-filter-slash'" iconPos="right"
                                   [severity]="isColumnFiltered(col.field) ? 'primary' : 'contrast'"
                                   text rounded tooltipPosition="top"
                                   (onClick)="toggleColumnFilter(col.field)"
                                   [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showTrue' | translate: {column: (col.translationKey | translate)})"
-                                  appendTo="body" showDelay="300" hideDelay="0" />
-                        }
-                        @else if(col.type === 'archive'){
-                        <p-button
-                                  [label]="col.translationKey | translate" styleClass="font-bold capitalize"
-                                  [icon]="isColumnFiltered(col.field) ? 'pi pi-filter' : 'pi pi-filter-slash'" iconPos="right"
-                                  [severity]="isColumnFiltered(col.field) ? 'primary' : 'contrast'"
-                                  text rounded tooltipPosition="top"
-                                  (onClick)="toggleColumnFilter(col.field)"
-                                  [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showSome' | translate)"
                                   appendTo="body" showDelay="300" hideDelay="0" />
                         }
                         @else{{{ col.translationKey | translate }}}
@@ -239,6 +211,42 @@
                             }
                         </div>
                         }
+                        <!-- AI text fields (metadata) -->
+                        @if(col.type === 'aiText'){
+                        @if(node[col.field]; as field){
+                        @if(field.status === 'rejected'){
+                        <div class="flex align-items-center gap-2">
+                            <p-tag severity="danger" [value]="'common.rejected' | translate" />
+                        </div>
+                        } @else {
+                        <div class="flex align-items-start gap-2">
+                            <div [class.line-clamp-3]="!isMetadataExpanded(rowIndex, col.field)">
+                                <p-tag [value]="field.status"
+                                       [severity]="field.status === 'edited' ? 'warn' : field.status === 'approved' ? 'success' : 'secondary'" />
+                                <p-tag [value]="field.status === 'edited' ? field.edited.length : field.ai.length" pTooltip="character count" appendTo="body" showDelay="300" hideDelay="0"
+                                       [severity]="field.length >= 10 && field.length <= 160 ? 'success' : 'danger'" class="mx-1" />
+                                {{ field.status === 'edited' ? field.edited : field.ai }}
+                            </div>
+                            <div class="flex flex-column gap-1">
+                                @if(!expandAllMetadata){
+                                <p-button [icon]="isMetadataExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                                          text rounded size="small"
+                                          (click)="toggleMetadataCell(rowIndex, col.field)"
+                                          [pTooltip]="isMetadataExpanded(rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
+                                          appendTo="body" showDelay="300" hideDelay="0" />
+                                }
+                            </div>
+                        </div>
+                        }
+                        } @else {
+                        <i class="pi pi-minus text-gray-400 flex justify-content-center p-2"
+                           [pTooltip]="'inventory.tooltip.ai.metadata' | translate" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0"></i>
+                        }
+                        }
+                        <!-- Date fields -->
+                        @if(col.type === 'date'){
+                        {{ node[col.field] | date:'yyyy-MM-dd' }}
+                        }
                         <!-- URL fields -->
                         @if(col.type === 'url'){
                         <div class="max-w-30rem">
@@ -263,6 +271,12 @@
                         @if(col.type === 'archive'){
                         <i [class]="getArchiveStatusIcon(node, col)" class="flex justify-content-center p-2"
                            [pTooltip]="getArchiveStatusTooltip(node, col) | translate" tooltipPosition="top"
+                           appendTo="body" showDelay="300" hideDelay="0"></i>
+                        }
+                        <!-- Noindex field -->
+                        @if(col.type === 'noindex'){
+                        <i [class]="getNoIndexIcon(node, col)" class="flex justify-content-center p-2"
+                           [pTooltip]="getNoIndexTooltip(node, col) | translate" tooltipPosition="top"
                            appendTo="body" showDelay="300" hideDelay="0"></i>
                         }
                     </td>
@@ -295,3 +309,49 @@
     </div>
 
 </div>
+
+<!--Menus-->
+<p-menu #menuRefresh [model]="itemsRefresh" [popup]="true">
+    <ng-template #submenuheader let-item>
+        <span class="text-primary font-bold">{{ item.label | translate}}</span>
+    </ng-template>
+    <ng-template #item let-item>
+        <a class="p-menu-item-link">
+            <i [class]="item.icon"></i>
+            <span>{{ item.label | translate}}</span>
+        </a>
+    </ng-template>
+</p-menu>
+<p-menu #menuStatus [model]="itemsStatus" [popup]="true">
+    <ng-template #submenuheader let-item>
+        <span class="text-primary font-bold">{{ item.label | translate}}</span>
+    </ng-template>
+    <ng-template #item let-item>
+        <a class="p-menu-item-link">
+            <i [class]="item.icon"></i>
+            <span>{{ item.label | translate}}</span>
+        </a>
+    </ng-template>
+</p-menu>
+<p-menu #menuMetadata [model]="itemsMetadata" [popup]="true">
+    <ng-template #submenuheader let-item>
+        <span class="text-primary font-bold">{{ item.label | translate}}</span>
+    </ng-template>
+    <ng-template #item let-item>
+        <a class="p-menu-item-link">
+            <i [class]="item.icon"></i>
+            <span>{{ item.label | translate}}</span>
+        </a>
+    </ng-template>
+</p-menu>
+<p-menu #menuDelete [model]="itemsDelete" [popup]="true">
+    <ng-template #submenuheader let-item>
+        <span class="text-red-500 font-bold">{{ item.label | translate}}</span>
+    </ng-template>
+    <ng-template #item let-item>
+        <a class="p-menu-item-link">
+            <i [class]="item.icon" [ngClass]="item.severity==='danger'?'text-red-500':''"></i>
+            <span>{{ item.label | translate}}</span>
+        </a>
+    </ng-template>
+</p-menu>
