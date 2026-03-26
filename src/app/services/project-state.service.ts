@@ -691,7 +691,6 @@ export class ProjectStateService {
             { field: 'prototypeUrl', translationKey: 'inventory.header.prototypeUrl', type: 'url', group: 'github', visibleByDefault: false },
             //Status
             { field: 'inScope', translationKey: 'inventory.header.inScope', type: 'boolean', group: 'status', visibleByDefault: true },
-
             { field: 'isNew', translationKey: 'inventory.header.isNew', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'isMoved', translationKey: 'inventory.header.isMoved', type: 'boolean', group: 'status', visibleByDefault: true },
             { field: 'isROT', translationKey: 'inventory.header.isROT', type: 'boolean', group: 'status', visibleByDefault: true },
@@ -727,8 +726,6 @@ export class ProjectStateService {
             { field: 'aiGeneratedAt', translationKey: 'inventory.header.ai.date', type: 'date', group: 'metadata', visibleByDefault: false },
         ];
     }
-
-    COLUMN_FILTERS = ['isNew', 'isMoved', 'isROT', 'linksToPortal', 'archiveStatus', 'noindex', 'isOrphan'] as const;
 
     exportTreeAsCsv() {
         const tree = this.project().projectData;
