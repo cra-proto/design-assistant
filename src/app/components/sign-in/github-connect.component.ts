@@ -84,7 +84,9 @@ export class GithubConnectComponent implements OnInit {
         {
           label: 'common.search',
           icon: 'pi pi-search',
-          routerLink: '/switch-project'
+          command: () => {
+            this.router.navigate(['/switch-project']);
+          }
         }
       ]
     },
