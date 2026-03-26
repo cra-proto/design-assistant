@@ -212,4 +212,5 @@ export interface ProjectMetadata {
     collaborators: GitHubUser[];
     github: GitHubRepo;
     storageType: 'local' | 'cloud';
+    org?: string;
 }
