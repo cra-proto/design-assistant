@@ -104,7 +104,7 @@
 
                     <!-- Bulk actions toolbar - Refresh data -->
                     <p-button label="Refresh" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
-                              (onClick)="menuRefresh.toggle($event)"></p-button>
+                              (onClick)="updateRefreshMenu(); menuRefresh.toggle($event)"></p-button>
 
                     <!-- Bulk actions toolbar - Toggle page statuses -->
                     <p-button label="Status" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
@@ -117,17 +117,6 @@
                     <!-- Bulk actions toolbar - Delete pages -->
                     <p-button label="Delete" icon="pi pi-chevron-down" iconPos="right" severity="danger" outlined styleClass="secondary-outline"
                               (onClick)="updateDeleteMenu(); menuDelete.toggle($event)"></p-button>
-
-                    <p-button
-                              label="Delete selected pages and their children"
-                              icon="pi pi-trash"
-                              severity="danger"
-                              outlined
-                              size="small"
-                              styleClass="secondary-outline"
-                              (click)="onDeleteSelected()"
-                              [disabled]="selectedNodes.length === 0" />
-
 
                 </div>
                 <p-confirmDialog key="inventory" />

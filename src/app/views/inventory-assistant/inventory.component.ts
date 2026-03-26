@@ -75,9 +75,11 @@ export class InventoryComponent implements OnInit {
             inScope: true  // Reset to default state
         });
     }
+
     hasActiveFilters(): boolean {
         const filters = this.columnFilters();
-        return Object.keys(filters).length > 1 || !filters['inScope']; // Checks for filters other than inScope
+        const activeFilterCount = Object.values(filters).filter(v => v === true).length;
+        return activeFilterCount > 1 || !filters['inScope']; // Checks for filters other than inScope
     }
 
     // All table columns
@@ -597,6 +599,13 @@ export class InventoryComponent implements OnInit {
         }));
     }
 
+    toggleFlaggedFilter(): void {
+        this.columnFilters.set({
+            inScope: this.columnFilters()['anyUnusual'],
+            anyUnusual: !this.columnFilters()['anyUnusual']
+        });
+    }
+
     // AI metadata generation
     async generateMetadata(mode: "live" | "prototype" = "live") {
         if (!this.selectedNodes.length) return;
@@ -695,80 +704,83 @@ export class InventoryComponent implements OnInit {
     }
 
     //Secondary toolbar dropdowns
-    itemsRefresh: MenuItem[] = [
-        {
-            label: 'inventory.menu.refresh',
-            items: [
-                {
-                    label: 'inventory.menu.refresh.all',
-                    icon: 'pi pi-plus',
-                    command: () => {
-                        this.refreshData('all')
-                    }
-                },
-            ]
-        },
-        {
-            label: 'inventory.menu.refresh.group',
-            items: [
-                {
-                    label: 'inventory.menu.refresh.status',
-                    icon: 'pi pi-cog',
-                    command: () => {
-                        this.refreshData('status')
-                    }
-                },
-                {
-                    label: 'inventory.menu.refresh.problems',
-                    icon: 'pi pi-sign-out',
-                    disabled: true,
-                    command: () => {
-                        this.refreshData('problems')
-                    }
-                },
-                {
-                    label: 'inventory.menu.refresh.data',
-                    icon: 'pi pi-cog',
-                    command: () => {
-                        this.refreshData('data')
-                    }
-                },
-                {
-                    label: 'inventory.menu.refresh.owner',
-                    icon: 'pi pi-cog',
-                    command: () => {
-                        this.refreshData('owner')
-                    }
-                },
-                {
-                    label: 'inventory.menu.refresh.metadata',
-                    icon: 'pi pi-cog',
-                    command: () => {
-                        this.refreshData('metadata')
-                    }
-                },
-            ]
-        }
-    ]
+    itemsRefresh: MenuItem[] = [];
+    updateRefreshMenu() {
+        this.itemsRefresh = [
+            {
+                label: this.translate.instant('inventory.menu.refresh'),
+                items: [
+                    {
+                        label: this.translate.instant('inventory.menu.refresh.all'),
+                        icon: 'pi pi-refresh',
+                        command: () => {
+                            this.refreshData('all')
+                        }
+                    },
+                ]
+            },
+            {
+                label: this.translate.instant('inventory.menu.refresh.group'),
+                items: [
+                    {
+                        label: this.translate.instant('inventory.menu.refresh.status'),
+                        icon: 'pi pi-refresh',
+                        command: () => {
+                            this.refreshData('status')
+                        }
+                    },
+                    {
+                        label: this.translate.instant('inventory.menu.refresh.problems'),
+                        icon: 'pi pi-refresh',
+                        disabled: true,
+                        command: () => {
+                            this.refreshData('problems')
+                        }
+                    },
+                    {
+                        label: this.translate.instant('inventory.menu.refresh.data'),
+                        icon: 'pi pi-refresh',
+                        command: () => {
+                            this.refreshData('data')
+                        }
+                    },
+                    {
+                        label: this.translate.instant('inventory.menu.refresh.owner'),
+                        icon: 'pi pi-refresh',
+                        command: () => {
+                            this.refreshData('owner')
+                        }
+                    },
+                    {
+                        label: this.translate.instant('inventory.menu.refresh.metadata'),
+                        icon: 'pi pi-refresh',
+                        command: () => {
+                            this.refreshData('metadata')
+                        }
+                    },
+                ]
+            }
+        ]
+    }
     itemsStatus: MenuItem[] = []
     updateStatusMenu() {
         this.itemsStatus = [
             {
-                label: 'inventory.menu.status.filter',
+                label: this.translate.instant('inventory.menu.status.filter'),
                 items: [
                     {
                         label: this.columnFilters()['anyUnusual']
-                            ? 'inventory.filter.status.all'
-                            : 'inventory.filter.status.none',
+                            ? this.translate.instant('inventory.menu.status.filter.remove')
+                            : this.translate.instant('inventory.menu.status.filter.add'),
                         icon: this.columnFilters()['anyUnusual']
                             ? 'pi pi-filter'
                             : 'pi pi-filter-slash',
                         command: () => {
-                            this.toggleColumnFilter('anyUnusual');
+                            this.toggleFlaggedFilter();
                         }
                     },
                     {
-                        label: 'inventory.filter.reset',
+                        label: this.translate.instant('inventory.menu.status.filter.reset'),
                         icon: 'pi pi-filter-slash',
                         command: () => {
                             this.resetFilters()
@@ -784,19 +796,19 @@ export class InventoryComponent implements OnInit {
     updateMetadataMenu() {
         this.itemsMetadata = [
             {
-                label: 'inventory.menu.metadata',
+                label: this.translate.instant('inventory.menu.metadata'),
                 items: [
                     {
-                        label: 'inventory.menu.metadata.generate',
-                        icon: 'pi pi-plus',
+                        label: this.translate.instant('inventory.menu.metadata.generate'),
+                        icon: 'pi pi-sparkles',
                         command: () => {
                             this.generateMetadata()
                         }
                     },
                     {
                         label: this.expandAllMetadata
-                            ? 'inventory.collapseAllMetadata'
-                            : 'inventory.expandAllMetadata',
+                            ? this.translate.instant('inventory.menu.metadata.collapseAll')
+                            : this.translate.instant('inventory.menu.metadata.expandAll'),
                         icon: this.expandAllMetadata ? 'pi pi-minus' : 'pi pi-plus',
                         command: () => {
                             this.toggleExpandAllMetadata()
@@ -812,10 +824,10 @@ export class InventoryComponent implements OnInit {
     updateDeleteMenu() {
         this.itemsDelete = [
             {
-                label: 'inventory.menu.metadata',
+                label: this.translate.instant('inventory.menu.delete'),
                 items: [
                     {
-                        label: 'Delete selected pages and their children',
+                        label: this.translate.instant('inventory.menu.delete.selected'),
                         icon: 'pi pi-trash',
                         severity: this.selectedNodes.length === 0
                             ? ''
