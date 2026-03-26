@@ -204,6 +204,8 @@ export class PromptEditorComponent {
         marker('aiPrompt.component.rubric');
         marker('aiPrompt.component.task');
         marker('aiPrompt.component.jsonSchema');
+
+        marker('dev.prompts.button.openPR');
     }
 
     rebuildSharedFile() { return "" }
