@@ -391,6 +391,8 @@
 	"project._": "------------------------------PROJECT------------------------------",
 	"project._nav.edit": "Modifier le projet",
 	"project._nav.new": "Nouveau projet",
+	"project.bookmarklet._title": "",
+	"project.bookmarklet.description": "",
 	"project.dashboard.comingSoon": "Bientôt disponible",
 	"project.github._": "------------------------------GITHUB SETUP------------------------------",
 	"project.github._title": "Configurer le répertoire GitHub",
