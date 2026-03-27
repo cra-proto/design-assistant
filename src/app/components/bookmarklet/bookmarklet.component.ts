@@ -36,7 +36,7 @@ export class BookmarkletComponent {
             `const isGitHubEdit=currentUrl.includes('github.com');` +
             `const isGitHubPreview=currentUrl.includes('.github.io')||currentUrl.includes('test.canada.ca');` +
             `const isCanadaCa=currentUrl.includes('canada.ca');` +
-            // GitHub edit --> GitHub preview (works for any repo)
+            // GitHub edit → GitHub preview (works for any repo)
             `if(isGitHubEdit){` +
             `const isRoot=currentUrl.match(/^https:\\/\\/github\\.com\\/([^\\/]+)\\/([^\\/]+)\\/?$/);` +
             `const isGcProto=currentUrl.includes('github.com/gc-proto/');` +
@@ -47,11 +47,11 @@ export class BookmarkletComponent {
             `if(isRoot){window.location.href='https://'+isRoot[1]+'.github.io/'+isRoot[2]+'/'}` +
             `else{window.location.href=currentUrl.replace(/^https:\\/\\/github\\.com\\/(.*?)\\/(.*?)\\/(blob|tree|edit)\\/.*?\\/(.*?)(\\/)?(\\.\\w+)?$/,'https://$1.github.io/$2/$4$6');}` +
             `}` +
-            // GitHub preview --> Canada.ca (ONLY if in my repo)
+            // GitHub preview → Canada.ca (ONLY if in my repo)
             `}else if(isGitHubPreview&&isInMyRepo){` +
             `const path=currentUrl.split(repo)[1];` +
             `window.location.href='https://www.canada.ca'+path;` +
-            // GitHub preview --> GitHub edit (if NOT in my repo)
+            // GitHub preview → GitHub edit (if NOT in my repo)
             `}else if(isGitHubPreview){` +
             `var i='index.html';if(currentUrl.includes('.html')){i=''};` +
             `if(currentUrl.includes('test.canada.ca')){` +
@@ -59,11 +59,11 @@ export class BookmarkletComponent {
             `}else{` +
             `window.location.href=currentUrl.replace(/^https:\\/\\/(.*?)\\.github\\.io\\/(.*?)\\/(.*?)(\\/)?(\\.\\w+)?$/,'https://github.com/$1/$2/blob/main/$3$5/'+i);` +
             `}` +
-            // Canada.ca --> GitHub edit (assumes page exists in my repo)
+            // Canada.ca → GitHub edit (assumes page exists in my repo)
             `}else if(isCanadaCa){` +
             `const path=currentUrl.replace(/^https:\\/\\/.*?canada\\.ca/,'');` +
             `window.location.href='https://github.com/'+owner+'/'+repo+'/blob/main'+path;` +
-            // Fallback --> root of my repo
+            // Fallback → root of my repo
             `}else{` +
             `window.location.href='https://github.com/'+owner+'/'+repo;` +
             `}` +
