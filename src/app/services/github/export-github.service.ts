@@ -535,7 +535,7 @@ defaults:
     const today = date.toISOString().split("T")[0];
     const content = `---
 testBanner: false
-title: "${repo} repository sitemap [GCWeb Jekyll pages]"
+title: "${repo} repository sitemap"
 dateModified: ${today}
 dateIssued: ${today}
 nositesearch: true
@@ -555,12 +555,63 @@ noFooterMain: true
         </ul>
     </div>
 </div>
-<ul>
-{% assign sitePages = site.pages | sort: "url" %}
-{% for p in sitePages %}
-    <li><a href="{{ site.baseurl }}{{ p.url }}">{{ p.title | default: p.url }}</a></li>
-{% endfor %}
-</ul>`
+{% comment %} Separate English and French pages {% endcomment %}
+{% assign englishPages = site.pages | where_exp: "p", "p.url contains '/en/'" | sort: "url" %}
+{% assign frenchPages = site.pages | where_exp: "p", "p.url contains '/fr/'" | sort: "url" %}
+
+{% if frenchPages.size > 0 %}
+    {% comment %} Two-column layout {% endcomment %}
+    {% comment %} Track which French pages we've already paired {% endcomment %}
+    {% assign pairedFrenchUrls = "" | split: "" %}
+    
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>English</th>
+                <th>Français</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for enPage in englishPages %}
+            <tr>
+                <td><a href="{{ site.baseurl }}{{ enPage.url }}">{{ enPage.title | default: enPage.url }}</a></td>
+                <td>
+                {% assign foundFrench = false %}
+                {% if enPage.altLangPage %}
+                    {% comment %} Look up French page by English altLangPage {% endcomment %}
+                    {% for frPage in frenchPages %}
+                        {% if enPage.altLangPage contains frPage.url %}
+                            <a href="{{ site.baseurl }}{{ frPage.url }}">{{ frPage.title | default: frPage.url }}</a>
+                            {% assign pairedFrenchUrls = pairedFrenchUrls | push: frPage.url %}
+                            {% assign foundFrench = true %}
+                            {% break %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                {% unless foundFrench %}<i class="fa fa-minus"></i>{% endunless %}
+                </td>
+            </tr>
+        {% endfor %}
+        
+        {% comment %} Add unpaired French pages {% endcomment %}
+        {% for frPage in frenchPages %}
+            {% unless pairedFrenchUrls contains frPage.url %}
+                <tr>
+                    <td><i class="fa fa-minus"></i></td>
+                    <td><a href="{{ site.baseurl }}{{ frPage.url }}">{{ frPage.title | default: frPage.url }}</a></td>
+                </tr>
+            {% endunless %}
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    {% comment %} Single-column layout (English only) {% endcomment %}
+    <ul>
+    {% for enPage in englishPages %}
+        <li><a href="{{ site.baseurl }}{{ enPage.url }}">{{ enPage.title | default: enPage.url }}</a></li>
+    {% endfor %}
+    </ul>
+{% endif %}`
 
     try {
       console.log(`Creating sitemap for ${repo}`);
