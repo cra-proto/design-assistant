@@ -441,12 +441,12 @@ export class InventoryComponent implements OnInit {
         } else {
             this.confirmationService.confirm({
                 key: 'inventory',
-                message: `Delete ${this.selectedNodes.length} page(s)?`,
-                header: 'Confirm Deletion',
+                message: this.translate.instant('inventory.delete.confirmMessage', { count: this.selectedNodes.length }),
+                header: this.translate.instant('inventory.delete._title'),
                 icon: 'pi pi-exclamation-circle',
                 acceptIcon: 'pi pi-trash',
-                acceptLabel: 'Delete',
-                rejectLabel: 'Cancel',
+                acceptLabel: this.translate.instant('common.delete'),
+                rejectLabel: this.translate.instant('common.cancel'),
                 acceptButtonStyleClass: 'p-button-danger',
                 rejectButtonStyleClass: 'p-button-secondary',
                 accept: () => {
@@ -468,27 +468,41 @@ export class InventoryComponent implements OnInit {
             .filter(p => !p.inScope)
             .map(p => `${p.h1}`)
             .join('<br>');
-        const message = `
-        <p class="mt-0">Deleting ${deleteCount} page(s) will also remove ${additionalPages.length} child page(s).</p>
-        ${inScopeCount > 0 ? `
-        <p>${inScopeCount > 0 ? `${inScopeCount} in-scope page(s) will be affected!` : ''}</p>
-        <h2>Delete these in-scope pages?</h2>
-        <p>${inScopeList}</p>
-        ` : ''}
-        ${baselineCount > 0 ? `
-        <h2>Delete these baseline pages?</h2>
-        <p>${baselineList}</p>
-        ` : ''}
-    `.trim();
+        const childWarning = this.translate.instant('inventory.delete.childPagesWarning', {
+            deleteCount,
+            childCount: additionalPages.length
+        });
+
+        let message = `<p class="mt-0">${childWarning}</p>`;
+
+        if (inScopeCount > 0) {
+            const inScopeWarning = this.translate.instant('inventory.delete.inScopeWarning', { count: inScopeCount });
+            const inScopeHeading = this.translate.instant('inventory.delete.inScopeHeading');
+            message += `
+            <p>${inScopeWarning}</p>
+            <h2>${inScopeHeading}</h2>
+            <p>${inScopeList}</p>
+        `;
+        }
+
+        if (baselineCount > 0) {
+            const baselineHeading = this.translate.instant('inventory.delete.baselineHeading');
+            message += `
+            <h2>${baselineHeading}</h2>
+            <p>${baselineList}</p>
+        `;
+        }
+
+        message = message.trim();
 
         this.confirmationService.confirm({
             key: 'inventory',
             message,
-            header: 'Confirm Deletion',
+            header: this.translate.instant('inventory.delete._title'),
             icon: 'pi pi-exclamation-triangle',
             acceptIcon: 'pi pi-trash',
-            acceptLabel: 'Delete',
-            rejectLabel: 'Cancel',
+            acceptLabel: this.translate.instant('common.delete'),
+            rejectLabel: this.translate.instant('common.cancel'),
             acceptButtonStyleClass: 'p-button-danger',
             rejectButtonStyleClass: 'p-button-secondary',
             accept: () => {

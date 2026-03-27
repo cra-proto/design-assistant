@@ -2,6 +2,7 @@ import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { RouterLink } from "@angular/router";
 
 //PrimeNG modules
 import { ButtonModule } from 'primeng/button';
@@ -20,7 +21,7 @@ import { FindPagesComponent } from '../../components/find-pages/find-pages.compo
 @Component({
   selector: 'aida-edit-project',
   imports: [
-    CommonModule, FormsModule, TranslateModule,
+    CommonModule, FormsModule, TranslateModule, RouterLink,
     SetupProjectComponent, SetupRepoComponent, AddCollaboratorsComponent, AddPagesComponent, FindPagesComponent,
     DrawerModule, ButtonModule, MessageModule
   ],

@@ -73,6 +73,8 @@ export class AddPagesComponent implements OnInit {
     production = environment.production;
     showBreadcrumbDialog = false;
     duplicatesSkipped: string[] = [];
+    invalidUrlsSkipped: string[] = [];
+    oppositeLangSkipped: string[] = [];
 
     // Computed getters for template
     get validationState() { return this.addPagesState.getValidationState(); }
@@ -85,43 +87,65 @@ export class AddPagesComponent implements OnInit {
 
     // Translations
     markForTranslation() {
+        marker('addPages.addPagesButton');
+        marker('addPages.addPagesButton.plural');
+        marker('addPages.blocked.description');
+        marker('addPages.blocked.description.plural');
+        marker('addPages.blocked.heading');
+        marker('addPages.blocked.heading.plural');
+        marker('addPages.broken.description');
+        marker('addPages.broken.description.plural');
+        marker('addPages.broken.heading');
+        marker('addPages.broken.heading.plural');
+        marker('addPages.duplicate.description');
+        marker('addPages.duplicate.description.plural');
+        marker('addPages.duplicate.heading');
+        marker('addPages.duplicate.heading.plural');
         marker('addPages.duplicatesSkipped');
         marker('addPages.duplicatesSkipped.plural');
+        marker('addPages.invalid.description');
+        marker('addPages.invalid.description.plural');
+        marker('addPages.invalid.heading');
+        marker('addPages.invalid.heading.plural');
+        marker('addPages.invalidUrlsSkipped');
+        marker('addPages.invalidUrlsSkipped.plural');
+        marker('addPages.oppositeLang.description');
+        marker('addPages.oppositeLang.description.plural');
+        marker('addPages.oppositeLang.heading');
+        marker('addPages.oppositeLang.heading.plural');
+        marker('addPages.oppositeLangSkipped');
+        marker('addPages.oppositeLangSkipped.plural');
+        marker('addPages.redirect.description');
+        marker('addPages.redirect.description.plural');
+        marker('addPages.redirect.heading');
+        marker('addPages.redirect.heading.plural');
+        marker('addPages.valid.description');
+        marker('addPages.valid.description.plural');
+        marker('addPages.valid.heading');
+        marker('addPages.valid.heading.plural');
         marker('addPages.validated');
         marker('addPages.validated.plural');
         marker('addPages.validating');
         marker('addPages.validating.plural');
-        marker('addPages.valid.heading');
-        marker('addPages.valid.heading.plural');
-        marker('addPages.valid.description');
-        marker('addPages.valid.description.plural');
-        marker('addPages.broken.heading');
-        marker('addPages.broken.heading.plural');
-        marker('addPages.broken.description');
-        marker('addPages.broken.description.plural');
-        marker('addPages.redirect.heading');
-        marker('addPages.redirect.heading.plural');
-        marker('addPages.redirect.description');
-        marker('addPages.redirect.description.plural');
-        marker('addPages.blocked.heading');
-        marker('addPages.blocked.heading.plural');
-        marker('addPages.blocked.description');
-        marker('addPages.blocked.description.plural');
-        marker('addPages.duplicate.heading');
-        marker('addPages.duplicate.heading.plural');
-        marker('addPages.duplicate.description');
-        marker('addPages.duplicate.description.plural');
-        marker('addPages.addPagesButton');
-        marker('addPages.addPagesButton.plural');
     }
 
     // Parse URLs from textarea
     parseUrls(): void {
         const rawUrls = this.validationState.rawUrls;
         const existingUrls = this.projectState.getAllUrls();
-        const { parsedUrls, duplicates } = this.urlValidation.parseUrls(rawUrls, existingUrls);
+        const currentLang = this.translate.currentLang?.startsWith('fr') ? 'fr' : 'en';
+        const { parsedUrls, duplicates, invalidUrls, oppositeLangUrls } = this.urlValidation.parseUrls(rawUrls, existingUrls, currentLang);
+
+        this.validationState.rawUrls = [
+            ...parsedUrls.map(item => item.href),
+            ...duplicates,
+            ...invalidUrls,
+            ...oppositeLangUrls
+        ].join('\n');
 
         this.duplicatesSkipped = duplicates;
+        this.invalidUrlsSkipped = invalidUrls;
+        this.oppositeLangSkipped = oppositeLangUrls;
 
         this.addPagesState.setValidationState({
             urls: parsedUrls,
@@ -142,6 +166,24 @@ export class AddPagesComponent implements OnInit {
         const key = count === 1
             ? 'addPages.duplicatesSkipped'
             : 'addPages.duplicatesSkipped.plural';
+        return this.translate.instant(key, { count });
+    }
+
+    // Warning message for invalid URLs skipped
+    getInvalidUrlMessage(): string {
+        const count = this.invalidUrlsSkipped.length;
+        const key = count === 1
+            ? 'addPages.invalidUrlsSkipped'
+            : 'addPages.invalidUrlsSkipped.plural';
+        return this.translate.instant(key, { count });
+    }
+
+    // Warning message for opposite language URLs skipped
+    getOppositeLangMessage(): string {
+        const count = this.oppositeLangSkipped.length;
+        const key = count === 1
+            ? 'addPages.oppositeLangSkipped'
+            : 'addPages.oppositeLangSkipped.plural';
         return this.translate.instant(key, { count });
     }
 
@@ -190,13 +232,15 @@ export class AddPagesComponent implements OnInit {
     }
 
     // Headers for link lists
-    getStatusText(status: 'valid' | 'broken' | 'redirect' | 'blocked' | 'duplicate', type: 'heading' | 'description'): string {
+    getStatusText(status: 'valid' | 'broken' | 'redirect' | 'blocked' | 'duplicate' | 'oppositeLang' | 'invalid', type: 'heading' | 'description'): string {
         const countMap = {
             'valid': this.urlsOk.length,
             'broken': this.urlsBad.length,
             'redirect': this.urlsRedirected.length,
             'blocked': this.urlsBlocked.length,
-            'duplicate': this.duplicatesSkipped.length
+            'duplicate': this.duplicatesSkipped.length,
+            'oppositeLang': this.oppositeLangSkipped.length,
+            'invalid': this.invalidUrlsSkipped.length
         };
         const count = countMap[status];
         const key = count === 1

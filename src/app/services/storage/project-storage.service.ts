@@ -365,7 +365,7 @@ export class ProjectStorageService {
         }
     }
 
-    // Delete a local project (saved --> recycle bin --> delete)
+    // Delete a local project (saved → recycle bin → delete)
     private deleteLocalProject(key: string): boolean {
         //Check if project is in savedProjects or deletedProjects
         const savedProjects = JSON.parse(this.localStorageService.getData(this.SAVED_PROJECTS_KEY) || '[]');

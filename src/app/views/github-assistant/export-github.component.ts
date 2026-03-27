@@ -29,6 +29,7 @@ import { environment } from '../../../environments/environment';
 //Components
 import { SetupRepoComponent } from '../../components/setup-repo/setup-repo.component';
 import { PatComponent } from "../../components/sign-in/pat.component";
+import { BookmarkletComponent } from '../../components/bookmarklet/bookmarklet.component';
 
 
 type ConnectionStatus = 'checking' | 'connected' | 'warning' | 'error' | 'missing';
@@ -86,7 +87,7 @@ interface ExportMessage {
   imports: [CommonModule, FormsModule, TranslateModule,
     MessageModule, ButtonModule, TooltipModule, PopoverModule, SelectButtonModule, DividerModule,
     TableModule, ChipModule, PanelModule, ProgressBarModule,
-    SetupRepoComponent, PatComponent],
+    SetupRepoComponent, PatComponent, BookmarkletComponent],
   templateUrl: './export-github.component.html',
   styles: ``
 })
@@ -504,15 +505,22 @@ export class ExportGithubComponent implements OnInit {
       const isAutoUpdateFile = jekyllUpdateFiles.some(f => f.path === path);
       const isAlwaysSkipFile = jekyllSkipFiles.some(f => f.path === path);
 
-      console.log(`Path: ${path}, inExport: ${inExport}, inGitHub: ${inGitHub}`);
+      //Check ROT status & skip by default
+      const fullUrl = `https://www.canada.ca/${path}`;
+      const node = this.projectState.findNodeByUrl(this.projectState.getProjectTree(), fullUrl);
+      const isRot = node?.data?.status?.isROT === true;
+
+      console.log(`Path: ${path}, inExport: ${inExport}, inGitHub: ${inGitHub}, isRot: ${isRot}`);
 
       let status: FileCompareRow['status'];
-      if (inExport && inGitHub) {
+
+      if (isRot) {
+        status = inGitHub ? ExportStatus.SkipOverwrite : ExportStatus.SkipNew;
+      }
+      else if (inExport && inGitHub) {
         if (isAutoUpdateFile) status = ExportStatus.ExportOverwrite;
         else if (isAlwaysSkipFile) status = ExportStatus.SkipOverwrite;
         else {
-          const fullUrl = `https://www.canada.ca/${path}`;
-          const node = this.projectState.findNodeByUrl(this.projectState.getProjectTree(), fullUrl);
           const storedSha = node?.data?.sha?.[this.selectedExportTarget];
           const githubSha = filteredGithubPages.get(path);
           status = storedSha && storedSha === githubSha
