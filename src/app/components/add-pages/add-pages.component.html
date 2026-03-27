@@ -8,6 +8,12 @@
 @if(duplicatesSkipped.length > 0){
 <p-message severity="error" size="small" variant="simple" styleClass="mb-2" [text]="getDuplicateMessage()" />
 }
+@if(invalidUrlsSkipped.length > 0){
+<p-message severity="error" size="small" variant="simple" styleClass="mb-2" [text]="getInvalidUrlMessage()" />
+}
+@if(oppositeLangSkipped.length > 0){
+<p-message severity="error" size="small" variant="simple" styleClass="mb-2" [text]="getOppositeLangMessage()" />
+}
 
 <div class="flex flex-row align-items-center gap-2">
     <!--Validate URLs-->
@@ -159,6 +165,28 @@
 </ul>
 }
 
+<!-- Invalid URLs Skipped -->
+@if (invalidUrlsSkipped.length > 0) {
+<h4 class="mb-2 mt-3">{{getStatusText('invalid','heading')}}</h4>
+<p class="text-sm text-color-secondary my-1">{{getStatusText('invalid','description')}}</p>
+<ul class="my-0 list-none">
+    <li *ngFor="let url of invalidUrlsSkipped" class="flex align-items-center">
+        <i class="pi pi-times-circle text-red-500 mr-2"></i>{{ url }}
+    </li>
+</ul>
+}
+
+<!-- Opposite Language URLs Skipped -->
+@if (oppositeLangSkipped.length > 0) {
+<h4 class="mb-2 mt-3">{{getStatusText('oppositeLang','heading')}}</h4>
+<p class="text-sm text-color-secondary my-1">{{getStatusText('oppositeLang','description')}}</p>
+<ul class="my-0 list-none">
+    <li *ngFor="let url of oppositeLangSkipped" class="flex align-items-center">
+        <i class="pi pi-exclamation-triangle text-orange-500 mr-2"></i>{{ url }}
+    </li>
+</ul>
+}
+
 <!-- Confirm Duplicate Popup -->
 <p-confirmpopup key="addPages" appendTo="body" />
 <!-- Add new page popup -->
@@ -229,7 +257,8 @@
           [closable]="!breadcrumbState.isValidating"
           [closeOnEscape]="!breadcrumbState.isValidating"
           [header]="'addPages.breadcrumb.validating' | translate"
-          [style]="{ width: '50vw' }">
+          [style]="{ width: '50vw' }"
+          appendTo="body">
 
     <div class="flex flex-column gap-3">
         <!--Progress-->
