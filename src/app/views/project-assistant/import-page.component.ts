@@ -7,6 +7,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ProjectStorageService } from '../../services/storage/project-storage.service';
 import { AddPagesStateService } from '../../components/add-pages/services/add-pages-state.service';
 import { ProjectStateService } from '../../services/project-state.service';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 @Component({
     selector: 'aida-import-page',
@@ -22,6 +23,10 @@ export class ImportPageComponent implements OnInit {
     addPagesState = inject(AddPagesStateService);
 
     isLoading = false;
+
+    markForTranslation() {
+        marker('importPage._title');
+    }
 
     async ngOnInit(): Promise<void> {
         this.isLoading = true;

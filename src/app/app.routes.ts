@@ -69,13 +69,13 @@ export const routes: Routes = [
     {
         path: 'new-project',
         component: EditProjectComponent,
-        title: 'newProject._title',
+        title: 'project._nav.new',
     },
     {
         path: 'edit-project',
         component: EditProjectComponent,
         canActivate: [editProjectGuard],
-        title: 'editProject._title',
+        title: 'project._nav.edit',
     },
     {
         path: 'import-page',
@@ -95,7 +95,7 @@ export const routes: Routes = [
     {
         path: 'export-github',
         component: ExportGithubComponent,
-        title: 'exportGithub._title',
+        title: 'github._nav',
     },
     {
         path: 'inventory',

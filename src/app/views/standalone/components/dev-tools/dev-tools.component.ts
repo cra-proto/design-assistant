@@ -51,6 +51,7 @@ export class DevToolsComponent {
     marker('dev._');
     marker('standalone._');
     marker('aiPrompt._');
+    marker('importPage._');
     // Components
     marker('nav._');
     marker('export._');

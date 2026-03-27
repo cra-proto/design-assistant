@@ -6,7 +6,7 @@
         </div>
         <!-- Secondary task buttons -->
         <div class="mt-0 lg:mt-5 mb-2 flex flex-row lg:flex-column gap-2">
-            <p-button label="View IA diagram" icon="pi pi-sitemap"
+            <p-button [label]="('common.view' | translate) + ' ' + ('iaDiagram._title' | translate)" icon="pi pi-sitemap"
                       outlined size="small" styleClass="secondary-outline w-full min-w-max"
                       (click)="iaDiagram.openDiagram()" />
             <aida-export-project />
@@ -126,7 +126,7 @@
         </div>
         <!--div>
             <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
-                <span class="text-xs  my-1">Visible groups</span>
+                <span class="text-xs  my-1">{{'inventory.columnVis.visibleGroups' | translate}}</span>
                 <p-selectbutton class="mb-0" [options]="columnGroupButtons" [(ngModel)]="selectedGroups" [multiple]="true" optionLabel="tooltip" optionValue="value" (onChange)="onGroupSelectionChange()">
                     <ng-template let-item pTemplate="item">
                         <i [class]="'pb-0 pi ' + item.icon" [pTooltip]="item.tooltip" tooltipPosition="top"></i>
