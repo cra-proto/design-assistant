@@ -226,7 +226,19 @@
 <div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0 min-w-min">
     <h2 class="text-2xl my-1">{{'github.export._title' | translate}}</h2>
     <p class="my-1">{{'github.export.description' | translate}}</p>
-
+    <!--Choose language-->
+    <div class="flex flex-column align-items-stretch mt-3">
+        <label for="export-type" class="text-sm font-semibold">{{ 'github.export.language.label' | translate }}</label>
+        <p-selectButton id="export-type"
+                        [options]="exportLanguageOptions"
+                        [(ngModel)]="selectedExportLanguage"
+                        (onChange)="compareFiles()"
+                        allowEmpty="false"
+                        optionLabel="label"
+                        optionValue="value"
+                        styleClass="secondary-outline max-h-3rem" />
+    </div>
+    <p>NOTE: language options are not connected display logic but not to export logic yet</p>
     <!--Project files-->
     <p-table [value]="projectTable()" size="small">
         <ng-template pTemplate="header" stripedRows>
@@ -247,7 +259,7 @@
                     <p-chip [label]="file.status | translate"
                             [icon]="getIcon(file.status)"
                             [class]="'cursor-pointer font-bold center-chip w-10rem p-1 ' + getBgAndText(file.status)"
-                            (click)="file.status === ExportStatus.AddToProject ? addToProject(file) : toggleUpdate(file)" />
+                            (click)="(file.status === ExportStatus.AddToProject || file.status === ExportStatus.OppLanguage) ? addToProject(file) : toggleUpdate(file)" />
                 </td>
             </tr>
         </ng-template>
