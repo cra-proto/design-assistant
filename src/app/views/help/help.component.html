@@ -115,7 +115,7 @@
         <p>AIDA detects page templates based on specific criteria and puts that information in the "Template" column of your content inventory table. This helps give you an overview of what kind of pages you're working with. Here's what AIDA looks for:</p>
         <p class="mb-1"><strong>Navigation templates:</strong></p>
         <ul class="mt-1">
-            <li><strong>topic</strong> - has classes <code class="custom">most-requested-bullets</code> or <code class="custom">gc-srvinfo</code></li>
+            <li><strong>topic</strong> - has classes <code class="custom">most-requested-bullets</code> or <code class="custom">gc-srvinfo</code> or <code class="custom">mwsdoormat-links-container</code></li>
             <li><strong>old topic</strong> - has class <code class="custom">list-group-item</code> where more than 80% are links</li>
             <li><strong>subway</strong> - has class <code class="custom">gc-subway</code></li>
             <li><strong>old subway</strong> - has class <code class="custom">gc-navseq</code></li>
@@ -175,6 +175,20 @@
 
     <section class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
         <h2 id="release">Release notes</h2>
+
+        <h3 id="0-5-3">Release 0.5.3 (March 31, 2026)</h3>
+        <h4>GitHub export improvements</h4>
+        <ul>
+            <li>Add option to export English, French or both languages for prototyping</li>
+        </ul>
+        <h4>Update bookmarklets</h4>
+        <ul>
+            <li>Update "Toggle [repo name] and "Toggle github" to work with new cra-test-arc.canada.ca subdomain</li>
+        </ul>
+        <h4>Update template detection</h4>
+        <ul>
+            <li>Add "mwsdoormat-links-container" to topic page template detection logic</li>
+        </ul>
 
         <h3 id="0-5-2">Release 0.5.2 (March 27, 2026)</h3>
         <h4>Add pages improvements</h4>
