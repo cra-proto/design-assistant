@@ -194,6 +194,7 @@ export class FetchService {
     const hasOldSubway = doc.querySelector('.gc-navseq') !== null;
     const hasMostRequested = doc.querySelector('.most-requested-bullets') !== null;
     const hasGcSrvinfo = doc.querySelector('.gc-srvinfo') !== null;
+    const hasDoormatComponent = doc.querySelector('.mwsdoormat-links-container') !== null;
     const isContactH1 = h1.startsWith('Contact') || h1.startsWith('Contactez');
     const isCampaignUrl = url.includes('/campaigns/') || url.includes('/campagnes/');
     //News
@@ -281,7 +282,7 @@ export class FetchService {
       template = 'readme (payroll)';
     } else if (isContactH1) {
       template = 'contact';
-    } else if (hasMostRequested || hasGcSrvinfo) {
+    } else if (hasMostRequested || hasGcSrvinfo || hasDoormatComponent) {
       template = 'topic';
     } else if (isOldTopic) {
       template = 'old topic';
