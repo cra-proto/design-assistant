@@ -31,6 +31,7 @@
             <li><a [routerLink]="[]" fragment="jekyll">How to adjust the Jekyll templates</a></li>
         </ul>
     </li>
+    <li><a [routerLink]="[]" fragment="release">Release notes</a></li>
 </ul>
 
 <div class="flex flex-column gap-3 my-3">
@@ -172,4 +173,68 @@
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit voluptatem.</p>
     </section>
 
+    <section class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+        <h2 id="release">Release notes</h2>
+
+        <h3 id="0-5-2">Release 0.5.2 (March 27, 2026)</h3>
+        <h4>Add pages improvements</h4>
+        <ul>
+            <li>Added input validation to enforce single-language page entry</li>
+            <li>Automatic URL formatting and normalization</li>
+            <li>Removed list of urls undergoing validation (we still show urls with problems and valid or skipped urls)</li>
+            <li>Added "View pages" section to the Edit/New project view</li>
+        </ul>
+        <h4>Github export improvements</h4>
+        <ul>
+            <li>Improved GitHub index.html to support bilingual sitemap generation with paired English/French URLs</li>
+        </ul>
+
+        <h3 id="0-5-1">Release 0.5.1 (March 26, 2026)</h3>
+        <h4>New bookmarklet</h4>
+        <ul>
+            <li>Added project-specific "Toggle [repo name]" bookmarklet to toggle between GitHub preview, edit mode, and Canada.ca.</li>
+        </ul>
+
+        <h3 id="0-5-0">Release 0.5.0 (March 25, 2026)</h3>
+        <h4>AI-powered metadata generation</h4>
+        <ul>
+            <li>Generate metadata automatically for selected pages using AI assistance</li>
+        </ul>
+        <h4>Content inventory improvements</h4>
+        <ul>
+            <li>Expanded data collection: word count, noindex status, last modified/published dates</li>
+            <li>Expanded metadata collection to both languages</li>
+            <li>Secondary toolbar for bulk actions on selected pages</li>
+            <li>Improved page status filtering</li>
+            <li>Added option to refresh the collected page data</li>
+            <li>Reorganized IA orphan detection into dedicated problem category</li>
+        </ul>
+        <h4>Switch project improvements</h4>
+        <ul>
+            <li>Fixed cloud project upload with GitHub Personal Access Tokens</li>
+            <li>Filters on switch project view are now linked to the project files</li>
+        </ul>
+        <h4>GitHub export improvements</h4>
+        <ul>
+            <li>Added an index.html page to generate a list of files in your repo and robots.txt</li>
+            <li>Breadcrumbs now reflect any changes you've made in AIDA instead of the live page</li>
+        </ul>
+        <h4>New toolbox view</h4>
+        <ul>
+            <li>Added bookmarklets, "Open in AIDA", "Toggle GitHub", and "Check links"</li>
+            <li>Note: this view will eventually have some standalone tools that aren't linked to project data</li>
+        </ul>
+
+        <h3 id="0-4-0">Release 0.4.0 (February 25, 2026)</h3>
+        <h4>Initial release - core project management</h4>
+        <ul>
+            <li>Project dashboard view with high level stats and design phase tracking (discover, assess, design, approve)</li>
+            <li>Edit/New project view where you can name your project, associate it with a GitHub repo, add collaborators, add pages, or find pages from the task inventory</li>
+            <li>Switch project view where you can switch between your projects, view any cloud project, or mark projects for deletion (they are stored for 30 days before final deletion)</li>
+            <li>Manage inventory view where you can see all the data collected for your pages, add brand new pages, or change the IA structure</li>
+            <li>IA diagram view where you can see the page hierarchy</li>
+            <li>Export to GitHub view where you can export your pages in Jekyll format. The file comparison table can detect if you've made changes in GitHub after the export and will automatically skip those files on future exports (can be overriden by the user).</li>
+        </ul>
+
+    </section>
 </div>
