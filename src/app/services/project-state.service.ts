@@ -275,12 +275,16 @@ export class ProjectStateService {
     }
 
     // Get all URLs in tree (for duplicate checking)
-    getAllUrls(mode: 'all' | 'inScope' = 'all'): Set<string> {
+    getAllUrls(mode: 'all' | 'inScope' = 'all', lang: 'primary' | 'opposite' = 'primary'): Set<string> {
         const urls = new Set<string>();
         const traverse = (nodes: TreeNode<ProjectTreeNodeData>[]) => {
             for (const node of nodes) {
-                if (mode === 'inScope' && node.data?.url && node.data?.status.inScope) urls.add(node.data.url)
-                else if (mode === 'all' && node.data?.url) urls.add(node.data.url);
+                const url = lang === 'primary' ? node.data?.url : node.data?.metadata?.oppUrl;
+                if (mode === 'inScope' && url && node.data?.status.inScope) {
+                    urls.add(url);
+                } else if (mode === 'all' && url) {
+                    urls.add(url);
+                }
                 if (node.children?.length) traverse(node.children);
             }
         };
@@ -344,13 +348,14 @@ export class ProjectStateService {
     }
 
     //TreeNode lookup
-    findNodeByUrl(nodes: TreeNode[], url: string): TreeNode | null {
+    findNodeByUrl(nodes: TreeNode[], url: string, lang: 'primary' | 'opposite' = 'primary'): TreeNode | null {
         for (const node of nodes) {
-            if (node.data?.url === url) {
+            const nodeUrl = lang === 'primary' ? node.data?.url : node.data?.metadata?.oppUrl;
+            if (nodeUrl === url) {
                 return node;
             }
             if (node.children) {
-                const found = this.findNodeByUrl(node.children, url);
+                const found = this.findNodeByUrl(node.children, url, lang);
                 if (found) return found;
             }
         }
@@ -1135,5 +1140,15 @@ export class ProjectStateService {
         }
 
         this.setModifiedDate();
+    }
+
+    // Get first URL from project to determine primary language
+    detectPrimaryLanguage(): 'en' | 'fr' {
+        const nodes = this.getProjectTree();
+        if (nodes.length > 0 && nodes[0].children && nodes[0].children.length > 0) {
+            const firstUrl = nodes[0].children[0].data?.url || '';
+            return firstUrl.includes('/en/') || firstUrl.includes('/en.html') ? 'en' : 'fr';
+        }
+        return 'en'; // fallback
     }
 }
