@@ -152,6 +152,7 @@ export interface FlattenedTreeNode {
     lastModified: Date | undefined;
     lastPublished: Date | undefined;
     wordCount: number | undefined;
+    updLink: string | undefined;
     //Metadata
     titleEN: string;
     titleFR: string;
@@ -178,7 +179,7 @@ export type ColumnGroups = typeof COLUMN_GROUPS[number];
 export interface TableColumn {
     field: keyof FlattenedTreeNode;
     translationKey: string;
-    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive' | 'noindex' | 'date' | 'aiText';
+    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive' | 'noindex' | 'date' | 'aiText' | 'upd';
     frozen?: boolean;
     group: ColumnGroups;
     visibleByDefault: boolean;

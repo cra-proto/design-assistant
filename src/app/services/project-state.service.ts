@@ -616,6 +616,7 @@ export class ProjectStateService {
                     wordCount: data.metadata?.wordCount,
                     lastModified: data.metadata?.lastModified,
                     lastPublished: data.metadata?.lastPublished,
+                    updLink: '',
                     //Owner
                     owner: data.metadata?.owner || '',
                     email: data.metadata?.email || '',
@@ -668,6 +669,7 @@ export class ProjectStateService {
         marker('inventory.header.wordCount');
         marker('inventory.header.lastModified');
         marker('inventory.header.lastPublished');
+        marker('inventory.header.updLink');
         marker('inventory.header.titleEN');
         marker('inventory.header.descriptionEN');
         marker('inventory.header.keywordsEN');
@@ -707,23 +709,24 @@ export class ProjectStateService {
             //ADD 404's!!!
             //Data
             { field: 'template', translationKey: 'inventory.header.template', type: 'text', group: 'pageData', visibleByDefault: true },
-            { field: 'task', translationKey: 'inventory.header.task', type: 'array', group: 'pageData', visibleByDefault: false },
             { field: 'visits', translationKey: 'inventory.header.visits', type: 'number', group: 'pageData', visibleByDefault: true },
             { field: 'wordCount', translationKey: 'inventory.header.wordCount', type: 'number', group: 'pageData', visibleByDefault: true },
+            { field: 'task', translationKey: 'inventory.header.task', type: 'array', group: 'pageData', visibleByDefault: false },
             { field: 'lastModified', translationKey: 'inventory.header.lastModified', type: 'date', group: 'pageData', visibleByDefault: true },
             { field: 'lastPublished', translationKey: 'inventory.header.lastPublished', type: 'date', group: 'pageData', visibleByDefault: false },
+            { field: 'updLink', translationKey: 'inventory.header.updLink', type: 'upd', group: 'pageData', visibleByDefault: false },
             //Owner
             { field: 'owner', translationKey: 'inventory.header.owner', type: 'text', group: 'owner', visibleByDefault: true },
             { field: 'email', translationKey: 'inventory.header.email', type: 'text', group: 'owner', visibleByDefault: false },
             //Metadata & AI metadata
             { field: 'titleEN', translationKey: 'inventory.header.titleEN', type: 'text', group: 'metadata', visibleByDefault: false },
+            { field: 'titleFR', translationKey: 'inventory.header.titleFR', type: 'text', group: 'metadata', visibleByDefault: false },
             { field: 'descriptionEN', translationKey: 'inventory.header.descriptionEN', type: 'longText', group: 'metadata', visibleByDefault: false },
             { field: 'aiDescriptionEN', translationKey: 'inventory.header.ai.descriptionEN', type: 'aiText', group: 'metadata', visibleByDefault: false },
-            { field: 'keywordsEN', translationKey: 'inventory.header.keywordsEN', type: 'longText', group: 'metadata', visibleByDefault: false },
-            { field: 'aiKeywordsEN', translationKey: 'inventory.header.ai.keywordsEN', type: 'aiText', group: 'metadata', visibleByDefault: false },
-            { field: 'titleFR', translationKey: 'inventory.header.titleFR', type: 'text', group: 'metadata', visibleByDefault: false },
             { field: 'descriptionFR', translationKey: 'inventory.header.descriptionFR', type: 'longText', group: 'metadata', visibleByDefault: false },
             { field: 'aiDescriptionFR', translationKey: 'inventory.header.ai.descriptionFR', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            { field: 'keywordsEN', translationKey: 'inventory.header.keywordsEN', type: 'longText', group: 'metadata', visibleByDefault: false },
+            { field: 'aiKeywordsEN', translationKey: 'inventory.header.ai.keywordsEN', type: 'aiText', group: 'metadata', visibleByDefault: false },
             { field: 'keywordsFR', translationKey: 'inventory.header.keywordsFR', type: 'longText', group: 'metadata', visibleByDefault: false },
             { field: 'aiKeywordsFR', translationKey: 'inventory.header.ai.keywordsFR', type: 'aiText', group: 'metadata', visibleByDefault: false },
             //AI Metadata
@@ -739,11 +742,12 @@ export class ProjectStateService {
         // Headers
         rows.push([
             //Current language
-            'Page Title (h1)',
+            'Page title (h1)',
+            'Section title (double h1)',
             'URL',
             //Opposite language
-            'Opposite Language Title',
-            'Opposite Language URL',
+            'Opposite language title',
+            'Opposite language URL',
             //GitHub
             'Prototype Url',
             //Status
@@ -776,7 +780,8 @@ export class ProjectStateService {
 
                 rows.push([
                     //Current language
-                    `"${data.h1 || ''}"`,
+                    data.h1 || '',
+                    data.doubleH1 || '',
                     data.url || '',
                     //Opposite language
                     `"${data.metadata?.oppTitle || ''}"`,
@@ -791,6 +796,7 @@ export class ProjectStateService {
                     data.status.isROT ? 'Yes' : 'No',
                     data.status.linksToPortal ? 'Yes' : 'No',
                     data.status.archiveStatus ?? '',
+                    //Problems
                     //Owner
                     data.metadata?.owner || '',
                     data.metadata?.email || '',
@@ -898,11 +904,16 @@ export class ProjectStateService {
     generatePrototypeUrl(productionUrl: string, type: 'current' | 'baseline' = 'current'): string {
         const { owner, repo } = this.project().github;
         if (!owner || !repo) { return ''; }
+        const isCRAproto = owner === 'cra-proto';
+        const isGCproto = owner === 'gc-proto';
         try {
             const url = new URL(productionUrl);
             const path = url.pathname; // e.g., /en/revenue-agency/services/tax/individuals.html
             const repoSuffix = type === 'baseline' ? `${repo}-baseline` : repo;
-            const prototypeUrl = `https://${owner}.github.io/${repoSuffix}${path}`;
+            let prototypeUrl = `https://${owner}.github.io/${repoSuffix}${path}`;
+            if (isCRAproto) { prototypeUrl = `https://cra-test-arc.canada.ca/${repoSuffix}${path}` }
+            else if (isGCproto) { prototypeUrl = `https://test.canada.ca/${repoSuffix}${path}` }
+
             return prototypeUrl;
         } catch (error) {
             console.error('Failed to generate prototype URL:', error);

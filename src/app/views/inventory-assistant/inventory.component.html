@@ -279,6 +279,18 @@
                            [pTooltip]="getNoIndexTooltip(node, col) | translate" tooltipPosition="top"
                            appendTo="body" showDelay="300" hideDelay="0"></i>
                         }
+                        <!-- UPD link -->
+                        @if(col.type === 'upd'){
+                        @if(!node.isNew){
+                        <p-button [pTooltip]="'inventory.openInUPD' | translate" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0"
+                                  rounded outlined severity="info" size="small" styleClass="secondary-outline" icon="pi pi-external-link" iconPos="top"
+                                  (onClick)="openInUPD(node, col)" class="flex justify-content-center" />
+                        } @else {
+                        <i class="pi pi-minus text-gray-400 flex justify-content-center p-2"
+                           [pTooltip]="'inventory.notInUPD' | translate" tooltipPosition="top"
+                           appendTo="body" showDelay="300" hideDelay="0"></i>
+                        }
+                        }
                     </td>
                     }
                 </tr>
