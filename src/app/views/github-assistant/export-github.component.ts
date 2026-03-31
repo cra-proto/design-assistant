@@ -287,12 +287,13 @@ export class ExportGithubComponent implements OnInit {
   }
 
   //Get in-scope URLs and page content (used by export fxn)
-  private async getUrlandContent(node: TreeNode): Promise<PageData[]> {
+  private async getUrlandContent(node: TreeNode, lang: 'primary' | 'opposite' = 'primary'): Promise<PageData[]> {
     const pages: PageData[] = [];
+    const url = lang === 'primary' ? node.data?.url : node.data?.metadata?.oppUrl;
 
     const scope = this.selectedExportTarget === 'prototype'
-      ? node?.data?.status.inScope && node?.data?.url
-      : node?.data?.url
+      ? node?.data?.status.inScope && url
+      : url
 
     const repo = this.selectedExportTarget === 'prototype'
       ? this.gitHubData().repo
@@ -301,7 +302,7 @@ export class ExportGithubComponent implements OnInit {
     if (scope && repo) {
       try {
         // Extract path and filename
-        const path = new URL(node.data.url).pathname.replace(/^\/+/, "");
+        const path = new URL(url).pathname.replace(/^\/+/, "");
         const filename = path.split("/").pop() || "index.html";
 
         // Check if skipped or new
@@ -314,25 +315,25 @@ export class ExportGithubComponent implements OnInit {
         let content: string;
         if (isSkipped) { content = '<!-- Skipped file -->'; }
         else if (isNew) {
-          const breadcrumbs = this.projectState.getBreadcrumbChain(node.data.url).slice(1);
-          content = this.exportGitHubService.formatNewPageAsJekyll(node, breadcrumbs, this.gitHubData().owner, repo)
+          const breadcrumbs = this.projectState.getBreadcrumbChain(node.data.url, lang).slice(1);
+          content = this.exportGitHubService.formatNewPageAsJekyll(node, breadcrumbs, this.gitHubData().owner, repo, lang)
         }
         else {
-          const doc = await this.fetchService.fetchContent(node.data.url, "prod");
+          const doc = await this.fetchService.fetchContent(url, "prod");
           const breadcrumbs = this.selectedExportTarget === 'prototype'
-            ? this.projectState.getBreadcrumbChain(node.data.url).slice(1)
+            ? this.projectState.getBreadcrumbChain(node.data.url, lang).slice(1)
             : undefined;
-          content = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, repo, breadcrumbs);
+          content = await this.exportGitHubService.formatDocumentAsJekyll(doc, url, this.gitHubData().owner, repo, breadcrumbs);
         }
-        pages.push({ url: node.data.url, path, filename, content });
+        pages.push({ url, path, filename, content });
       } catch (error) {
-        console.error(`Error fetching content for ${node.data.url}:`, error);
+        console.error(`Error fetching content for ${url}:`, error);
       }
     }
     // recurse into children
     if (node?.children) {
       for (const child of node.children) {
-        const childPages = await this.getUrlandContent(child);
+        const childPages = await this.getUrlandContent(child, lang);
         pages.push(...childPages);
       }
     }
@@ -352,7 +353,17 @@ export class ExportGithubComponent implements OnInit {
     // Step 1: Gather all in-scope or baseline URLs and their content
     this.exportProgress.set({ step: 'github.export.progress.step1', progress: 5, });
     const nodes = this.projectState.getProjectTree();
-    const pages: PageData[] = await this.getUrlandContent(nodes[0]);
+
+    let pages: PageData[] = [];
+    if (this.selectedExportLanguage === 'primary') {
+      pages = await this.getUrlandContent(nodes[0], 'primary');
+    } else if (this.selectedExportLanguage === 'opposite') {
+      pages = await this.getUrlandContent(nodes[0], 'opposite');
+    } else { // 'both'
+      const primaryPages = await this.getUrlandContent(nodes[0], 'primary');
+      const oppositePages = await this.getUrlandContent(nodes[0], 'opposite');
+      pages = [...primaryPages, ...oppositePages];
+    }
     console.log('Exporting pages to GitHub:', pages);
 
     // Step 2: Add paths and filenames for GitHub and filter out any skipped pages
@@ -401,13 +412,17 @@ export class ExportGithubComponent implements OnInit {
     // Step 5: Export each page to GitHub
     const existingFiles = await this.exportGitHubService.getRepoTree(owner, repo, branch, token);
     const progressPerFile = 60 / exportPages.length;
+    const primaryLang = this.projectState.detectPrimaryLanguage();
+
     for (const [index, page] of exportPages.entries()) {
       try {
         this.exportProgress.set({ step: 'github.export.progress.step5', progress: 30 + (index * progressPerFile), });
         const result = await this.exportGitHubService.exportToGitHub(owner, repo, branch, page.path, page.filename, page.content, token, existingFiles, true);
         //Store SHA with project data
         if (result?.content?.sha) {
-          this.projectState.setPageSha(page.url, result.content.sha, this.selectedExportTarget)
+          const pathLang = page.path.startsWith('en/') || page.path.endsWith('en.html') ? 'en' : 'fr';
+          const lang = pathLang === primaryLang ? 'primary' : 'opposite';
+          this.projectState.setPageSha(page.url, result.content.sha, this.selectedExportTarget, lang);
         }
       } catch (error) {
         console.error(`Error exporting ${page.path}:`, error);
@@ -415,9 +430,20 @@ export class ExportGithubComponent implements OnInit {
     }
     // Step 6: Add redirect & index file
     setTimeout(() => { this.exportProgress.set({ step: 'github.export.progress.step6', progress: 90 }); }, 1000);
-    const redirects = allPages.map(page => ({
-      origin: page.url,
-      destination: `/${repo}/${page.path}`
+    // Get GitHub paths
+    const githubPages: Map<string, string> = await this.exportGitHubService.getRepoTree(owner, repo, branch, token);
+    const githubContentPages = [...githubPages.keys()].filter(path =>
+      path.startsWith('en/') || path.startsWith('fr/')
+    );
+    // Combine with exported paths (allPages)
+    const allPagePaths = new Set([
+      ...allPages.map(page => page.path),
+      ...githubContentPages
+    ]);
+    // Format redirect
+    const redirects = [...allPagePaths].map(path => ({
+      origin: `https://www.canada.ca/${path}`,
+      destination: `/${repo}/${path}`
     }));
     const redirectsJson = JSON.stringify(redirects, null, 2);
     await this.exportGitHubService.exportToGitHub(owner, repo, branch, "source/data/exclude-redirect-links.json", "exclude-redirect-links.json", redirectsJson, token, existingFiles, true);
