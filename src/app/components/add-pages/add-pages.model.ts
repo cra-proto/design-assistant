@@ -30,6 +30,8 @@ export interface PageMetadata {
 }
 
 export interface OppMetadata {
+    h1: string;                   // the page H1
+    doubleH1: string;             // the page double H1 (if any)
     title: string;                // the page title
     description: string;          // the page description
     keywords: string;             // the page keywords

@@ -173,15 +173,22 @@ export class ProjectStateService {
         }));
     }
 
-    setPageSha(url: string, sha: string, mode: 'prototype' | 'baseline' = 'prototype'): void {
+    setPageSha(url: string, sha: string, mode: 'prototype' | 'baseline' = 'prototype', lang: 'primary' | 'opposite' = 'primary'): void {
         const tree = this.getProjectTree();
-        const node = this.findNodeByUrl(tree, url);
+        const node = this.findNodeByUrl(tree, url, lang);
 
         if (node?.data) {
-            if (!node.data.sha) {
-                node.data.sha = {};
+            if (lang === 'primary') {
+                if (!node.data.sha) {
+                    node.data.sha = {};
+                }
+                node.data.sha[mode] = sha;
+            } else {
+                if (!node.data.oppSha) {
+                    node.data.oppSha = {};
+                }
+                node.data.oppSha[mode] = sha;
             }
-            node.data.sha[mode] = sha;
             this.project.update(p => ({
                 ...p,
                 lastModified: new Date(),
@@ -593,7 +600,8 @@ export class ProjectStateService {
                     doubleH1: data.doubleH1 || '',
                     url: data.url || '',
                     //Opposite language
-                    oppTitle: data.metadata?.oppTitle || '',
+                    oppH1: data.metadata?.oppTitle || '',
+                    oppDoubleH1: data.metadata?.oppSectionTitle || '',
                     oppUrl: data.metadata?.oppUrl || '',
                     //Github
                     prototypeUrl: this.generatePrototypeUrl(data.url) || '',
@@ -650,7 +658,8 @@ export class ProjectStateService {
         marker('inventory.header.h1');
         marker('inventory.header.doubleH1');
         marker('inventory.header.url');
-        marker('inventory.header.oppTitle');
+        marker('inventory.header.oppH1');
+        marker('inventory.header.oppDoubleH1');
         marker('inventory.header.oppUrl');
         marker('inventory.header.prototypeUrl');
         marker('inventory.header.inScope');
@@ -692,7 +701,8 @@ export class ProjectStateService {
             { field: 'doubleH1', translationKey: 'inventory.header.doubleH1', type: 'text', group: 'page', visibleByDefault: false },
             { field: 'url', translationKey: 'inventory.header.url', type: 'url', group: 'page', visibleByDefault: false },
             //Opposite Language
-            { field: 'oppTitle', translationKey: 'inventory.header.oppTitle', type: 'text', group: 'oppPage', visibleByDefault: false },
+            { field: 'oppH1', translationKey: 'inventory.header.oppH1', type: 'text', group: 'oppPage', visibleByDefault: false },
+            { field: 'oppDoubleH1', translationKey: 'inventory.header.oppDoubleH1', type: 'text', group: 'oppPage', visibleByDefault: false },
             { field: 'oppUrl', translationKey: 'inventory.header.oppUrl', type: 'url', group: 'oppPage', visibleByDefault: false },
             //GitHub
             { field: 'prototypeUrl', translationKey: 'inventory.header.prototypeUrl', type: 'url', group: 'github', visibleByDefault: false },
@@ -1039,7 +1049,7 @@ export class ProjectStateService {
     selectedInventoryView: 'table' | 'tree' = 'table';
 
     // Get breadcrumb chain by url
-    getBreadcrumbChain(url: string): { title: string; link: string }[] {
+    getBreadcrumbChain(url: string, lang: 'primary' | 'opposite' = 'primary'): { title: string; link: string }[] {
         const breadcrumbs: { title: string; link: string }[] = [];
 
         const findAndBuildChain = (
@@ -1048,13 +1058,15 @@ export class ProjectStateService {
             ancestors: TreeNode<ProjectTreeNodeData>[] = []
         ): boolean => {
             for (const node of nodes) {
-                // When URL is found, build breadcrumb from collected ancestors
+                // When URL is found, build breadcrumb from collected ancestors                
                 if (node.data?.url === targetUrl) {
                     for (const ancestor of ancestors) {
                         if (ancestor.data?.url) {
+                            const url = lang === 'primary' ? ancestor.data.url : ancestor.data?.metadata?.oppUrl;
+                            const h1 = lang === 'primary' ? ancestor.data.h1 : ancestor.data?.metadata?.oppTitle;
                             breadcrumbs.push({
-                                title: ancestor.data.h1 || ancestor.label || "",
-                                link: ancestor.data.url
+                                title: h1 || "",
+                                link: url || ""
                             });
                         }
                     }
@@ -1083,7 +1095,7 @@ export class ProjectStateService {
             return;
         }
 
-        const urlLang = url.includes('/en/') ? 'en' : 'fr';
+        const urlLang = (url.includes('/en/') || url.endsWith('en.html')) ? 'en' : 'fr';
 
         let metadata;
         if (mode === 'status' || mode === 'data' || mode === 'metadata' || mode === 'all') {
@@ -1120,6 +1132,11 @@ export class ProjectStateService {
         }
 
         // Update node - use new data if fetched AND available, otherwise keep existing
+        if (node.data) {
+            // ALL MODE
+            node.data.h1 = ((mode === 'all') && metadata?.h1) ? metadata?.h1 : node.data.h1;
+            node.data.doubleH1 = ((mode === 'all') && metadata?.doubleH1) ? metadata?.doubleH1 : node.data.doubleH1;
+        }
         if (node.data?.status) {
             // STATUS MODE
             node.data.status.linksToPortal = ((mode === 'status' || mode === 'all') && metadata?.linksToPortal !== undefined) ? metadata.linksToPortal : node.data.status.linksToPortal;
@@ -1129,6 +1146,10 @@ export class ProjectStateService {
             //TODO: IA ORPHAN & 404's!
         }
         if (node.data?.metadata) {
+            // ALL MODE
+            node.data.metadata.oppTitle = ((mode === 'all') && oppMetadata?.h1) ? oppMetadata?.h1 : node.data.metadata.oppTitle;
+            node.data.metadata.oppSectionTitle = ((mode === 'all') && oppMetadata?.doubleH1) ? oppMetadata?.doubleH1 : node.data.metadata.oppSectionTitle;
+
             // DATA MODE
             node.data.metadata.template = ((mode === 'data' || mode === 'all') && metadata?.template) ? (jsonData?.['cq:template']?.includes('freestyle') ? 'freestyle' : metadata.template) : node.data.metadata.template;
             node.data.metadata.wordCount = ((mode === 'data' || mode === 'all') && metadata?.wordCount !== undefined) ? metadata.wordCount : node.data.metadata.wordCount;

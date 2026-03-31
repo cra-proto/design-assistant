@@ -57,7 +57,8 @@ export interface PageMeta {
     visits?: number;                // Determined by comparing with UPD data
     wordCount: number;              // Count of words on page
     oppUrl?: string;                // Opposite language URL 
-    oppTitle?: string;              // jrc:content.json otherTitle
+    oppTitle?: string;              // Opposite language H1
+    oppSectionTitle?: string        // Opposite language double H1
     owner?: string;                 // jrc:content.json gcContributor
     email?: string;                 // jrc:content.json gcBranch
     lastPublished?: Date;           // jrc:content.json gcLastPublished
@@ -132,7 +133,8 @@ export interface FlattenedTreeNode {
     doubleH1: string;
     url: string;
     //Opposite language
-    oppTitle: string;
+    oppH1: string;
+    oppDoubleH1: string;
     oppUrl: string;
     //GitHub
     prototypeUrl: string;
