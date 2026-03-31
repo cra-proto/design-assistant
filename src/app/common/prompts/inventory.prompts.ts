@@ -8,11 +8,11 @@ export const InventoryPrompts: Record<InventoryPromptKey, PromptConfig> = {
         output: OutputKey.Json,
         jsonSchema: `{
 "en": {
-"description": "string (130-160 chars)",
+"description": "string (120-160 chars)",
 "keywords": ["string", "string", "string", "string", "string", "string", "string", "string", "string", "string"]
 },
 "fr": {
-"description": "string (max 275 chars)",
+"description": "string (120-200 chars)",
 "keywords": ["string", "string", "string", "string", "string", "string", "string", "string", "string", "string"]
 }
 }`
