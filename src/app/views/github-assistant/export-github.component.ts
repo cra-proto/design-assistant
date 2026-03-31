@@ -121,7 +121,7 @@ export class ExportGithubComponent implements OnInit {
   markForTranslation() {
     marker('github.connect.export.description.prototype');
     marker('github.connect.export.description.baseline');
-    marker('github.export.status.oppLanguage');
+    marker('github.export.status.addOppLangToProject');
     marker('github.export.status.addToGitHub');
     marker('github.export.status.addToProject');
     marker('github.export.status.skipNew');
