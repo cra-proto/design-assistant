@@ -128,7 +128,7 @@ export class HeaderComponent {
 
   // Dark/Light logos for different breakpoints
   get logoSrc() {
-    return this.settingsService.darkMode() ? 'sig-wht-en.svg' : 'sig-blk-en.svg';
+    return this.settingsService.darkMode() ? 'images/sig-wht-en.svg' : 'images/sig-blk-en.svg';
   }
 
 }

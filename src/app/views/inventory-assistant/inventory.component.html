@@ -245,7 +245,7 @@
                         }
                         <!-- Date fields -->
                         @if(col.type === 'date'){
-                        {{ node[col.field] | date:'yyyy-MM-dd' }}
+                        <span class="white-space-nowrap">{{ node[col.field] | date:'yyyy-MM-dd' }}</span>
                         }
                         <!-- URL fields -->
                         @if(col.type === 'url'){
@@ -286,16 +286,7 @@
                                   rounded outlined severity="info" size="small" styleClass="secondary-outline" icon="pi pi-external-link" iconPos="top"
                                   (onClick)="openInUPD(node, col)" class="flex justify-content-center">
                             <ng-template pTemplate="icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px">
-                                    <g>
-                                        <rect fill="none" height="24" width="24" />
-                                    </g>
-                                    <g>
-                                        <rect height="10" width="4" x="4" y="12" fill="#BBDEFB" />
-                                        <rect height="20" width="4" x="10" y="2" fill="#64B5F6" />
-                                        <rect height="15" width="4" x="16" y="7" fill="#1976D2" />
-                                    </g>
-                                </svg>
+                                <img src="images/upd-icon.svg" width="24" height="24" alt="">
                             </ng-template>
                         </p-button>
                         } @else {
