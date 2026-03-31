@@ -6,5 +6,5 @@ export const environment = { // Same infrastructure as development, only differe
     airtableFunctionUrl: 'https://i7vbe2ntgsh26rvibknsi4zuia0rmpyn.lambda-url.ca-central-1.on.aws/',
     openrouterFunctionUrl: 'https://lh3cjcmhvvekco7nkioztgxnxq0pcisv.lambda-url.ca-central-1.on.aws/',
     defaultOrg: 'cra-proto',
-    templateOrg: 'proto-cra', //for accessing core-prototype
+    templateOrg: 'cra-proto', //for accessing core-prototype
 };
