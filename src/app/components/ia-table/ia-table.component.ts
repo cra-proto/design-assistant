@@ -289,7 +289,7 @@ export class IaTableComponent {
 
 
     //Edit URL or H1
-    editNode(mode: 'label' | 'link' = 'label') {
+    editNode(mode: 'label' | 'link' | 'oppLabel' | 'oppLink' = 'label') {
         if (this.selectedNode) {
             this.selectedNode.data.editing = mode;
             this.editingNode = this.selectedNode;
@@ -306,6 +306,7 @@ export class IaTableComponent {
     //Save changes to URL or H1
     saveNode() {
         let editLink = false;
+        const editFrench = this.selectedNode.data.metadata.oppTitle === "French title";
         if (this.selectedNode.data.editing === "label" && !this.selectedNode.data.url.endsWith('.html')) {
             const fragment = this.projectState.generateUrlFragment(this.selectedNode.data.h1);
             const separator = this.selectedNode.data.url.endsWith('/') ? '' : '/';
@@ -315,6 +316,11 @@ export class IaTableComponent {
         else if (this.selectedNode.data.editing === "link" && !this.selectedNode.data.url.endsWith('.html')) {
             this.selectedNode.data.url = this.selectedNode.data.url.replace(/\/$/, '') + '.html'; // add .html if missing
         }
+        else if (this.selectedNode.data.editing === "oppLabel" && !this.selectedNode.data.metadata.oppUrl.endsWith('.html')) {
+            const fragment = this.projectState.generateUrlFragment(this.selectedNode.data.metadata.oppTitle);
+            const separator = this.selectedNode.data.metadata.oppUrl.endsWith('/') ? '' : '/';
+            this.selectedNode.data.metadata.oppUrl += separator + fragment + '.html';
+        }
 
         if (this.selectedNode) {
             this.selectedNode.data.editing = null;
@@ -323,6 +329,7 @@ export class IaTableComponent {
         this.selectable = false;
 
         if (editLink) { this.editNode("link"); }
+        else if (editFrench) { this.editNode("oppLabel"); }
         else { this.projectState.setModifiedDate(); }
     }
 
@@ -349,6 +356,8 @@ export class IaTableComponent {
         const originalParent = this.selectedNode.data.url;
         const pathPrefix = originalParent.replace(".html", "/")
 
+        const oppParent = this.selectedNode.data.metadata.oppUrl.replace(".html", "/");
+
         // Create the new node
         const newNode: TreeNode = {
             label: 'New page',
@@ -365,6 +374,10 @@ export class IaTableComponent {
                     isROT: false,
                     linksToPortal: false,
                     archiveStatus: 'current',
+                },
+                metadata: {
+                    oppTitle: 'French title',
+                    oppUrl: oppParent,
                 }
             },
             children: []
