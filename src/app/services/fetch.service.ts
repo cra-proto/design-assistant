@@ -167,7 +167,7 @@ export class FetchService {
     const h1Elements = Array.from(doc.querySelectorAll('h1')).filter(h1 => !h1.classList.contains('wb-inv'));
     const h1Texts = h1Elements.map(e => e.textContent?.trim()).filter(Boolean);
 
-    let doubleH1 = '';
+    let doubleH1 = doc.querySelector('hgroup p:has(+ h1)')?.innerHTML || doc.querySelector('p.lead:has(+ h1)')?.innerHTML || '';
     let h1 = '';
 
     if (h1Texts.length === 1) {
@@ -329,7 +329,7 @@ export class FetchService {
     const h1Elements = Array.from(doc.querySelectorAll('h1')).filter(h1 => !h1.classList.contains('wb-inv'));
     const h1Texts = h1Elements.map(e => e.textContent?.trim()).filter(Boolean);
 
-    let doubleH1 = '';
+    let doubleH1 = doc.querySelector('hgroup p:has(+ h1)')?.innerHTML || doc.querySelector('p.lead:has(+ h1)')?.innerHTML || '';
     let h1 = '';
 
     if (h1Texts.length === 1) {
