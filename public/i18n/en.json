@@ -247,7 +247,7 @@
 	"github.connect.export._title.": "Export settings",
 	"github.connect.export.description.baseline": "Export the baseline pages for your project to your baseline repository.",
 	"github.connect.export.description.prototype": "Export the in-scope pages for your project to your prototype repository.",
-	"github.connect.export.label": "Export type:",
+	"github.connect.export.label": "Export type",
 	"github.connect.export.toggle.baseline": "Baseline",
 	"github.connect.export.toggle.prototype": "In-scope",
 	"github.connect.openRepo": "Open in GitHub",

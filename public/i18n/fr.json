@@ -247,7 +247,7 @@
 	"github.connect.export._title.": "Paramètres d'exportation",
 	"github.connect.export.description.baseline": "Exportez les pages de base de votre projet vers votre répertoire de base.",
 	"github.connect.export.description.prototype": "Exportez les pages dans la portée de votre projet vers le prototype de votre répertoire.",
-	"github.connect.export.label": "Type d'exportation :",
+	"github.connect.export.label": "Type d'exportation",
 	"github.connect.export.toggle.baseline": "Base de référence",
 	"github.connect.export.toggle.prototype": "Dans la portée",
 	"github.connect.openRepo": "Ouvrir dans GitHub",

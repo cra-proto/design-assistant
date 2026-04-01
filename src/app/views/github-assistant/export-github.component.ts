@@ -34,13 +34,6 @@ import { BookmarkletComponent } from '../../components/bookmarklet/bookmarklet.c
 
 type ConnectionStatus = 'checking' | 'connected' | 'warning' | 'error' | 'missing';
 
-type ExportOption = 'prototype' | 'baseline'
-
-interface ExportTarget {
-  label: string;
-  value: ExportOption;
-}
-
 enum ExportStatus {
   ExportNew = 'github.export.status.addToGitHub', // Export - New page
   ExportOverwrite = 'github.export.status.overwrite', // Export - Existing page
@@ -264,13 +257,6 @@ export class ExportGithubComponent implements OnInit {
     return `${baseClasses} ${bgMap[status]}`;
   });
   // End of status message colors & icons
-
-  // Export options
-  exportTargetOptions: ExportTarget[] = [
-    { label: 'github.connect.export.toggle.prototype', value: 'prototype' },
-    { label: 'github.connect.export.toggle.baseline', value: 'baseline' }
-  ];
-  selectedExportTarget: ExportOption = 'prototype';
 
   // Initialize table and connection status
   async ngOnInit() {
@@ -728,7 +714,18 @@ export class ExportGithubComponent implements OnInit {
     });
   }
 
-  //Support for opposite language exports
+
+  // Export target options
+  selectedExportTarget: 'prototype' | 'baseline' = 'prototype';
+
+  get exportTargetOptions() {
+    return [
+      { label: this.translate.instant('github.connect.export.toggle.prototype'), value: 'prototype' },
+      { label: this.translate.instant('github.connect.export.toggle.baseline'), value: 'baseline' }
+    ];
+  }
+
+  //Export language options
   selectedExportLanguage: 'primary' | 'opposite' | 'both' = 'primary';
 
   get exportLanguageOptions() {
