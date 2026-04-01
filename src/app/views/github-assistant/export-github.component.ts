@@ -476,9 +476,7 @@ export class ExportGithubComponent implements OnInit {
       /^index\.html$/,
       /^README\.md$/,
       /^robots\.txt$/,
-      /^_includes\/header\/header\.html$/,
-      /^_includes\/headers-includes\/sitesearch\.html$/,
-      /^_includes\/resources-inc\/footer\.html$/,
+      /^_includes\/.*$/,
       /^source\/data\/exclude-redirect-links\.json$/,
       /^source\/exit-intent-e\.html$/,
       /^source\/exit-intent-f\.html$/,
@@ -510,6 +508,8 @@ export class ExportGithubComponent implements OnInit {
       { path: "_includes/header/header.html", content: "<!-- header -->" }, //copied from core-prototype
       { path: "_includes/headers-includes/sitesearch.html", content: "<!-- sitesearch -->" }, //copied from core-prototype
       { path: "_includes/resources-inc/footer.html", content: "<!-- footer -->" }, //copied from core-prototype
+      { path: "_includes/i18n.liquid", content: "<!-- i18n -->" }, //copied from core-prototype
+      { path: "_includes/metadata.html", content: "<!-- metadata -->" }, //copied from core-prototype
       { path: "source/exit-intent-e.html", content: "<!-- exit intent - english -->" }, //copied from core-prototype
       { path: "source/exit-intent-f.html", content: "<!-- exit intent - french -->" }, //copied from core-prototype
       { path: "source/data/exclude-redirect-links.json", content: "<!-- redirects -->" }, //generated for all pages in repo

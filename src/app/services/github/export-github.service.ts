@@ -287,6 +287,9 @@ export class ExportGitHubService {
     const pageLang = (doc.querySelector('meta[name="dcterms.language"]') as HTMLMetaElement)?.content?.slice(0, 2) || "en";
     const issued = (doc.querySelector('meta[name="dcterms.issued"]') as HTMLMetaElement)?.content || "";
     const modified = (doc.querySelector('meta[name="dcterms.modified"]') as HTMLMetaElement)?.content || "";
+    const robots = (doc.querySelector('meta[name="robots"]') as HTMLMetaElement)?.content || "";
+    let robotsYaml = "";
+    if (robots) { robotsYaml = "\r\nrobots: \"" + robots + "\""; }
 
     // Set alternate language link
     const altLangPage =
@@ -424,7 +427,7 @@ export class ExportGitHubService {
     pageContent = await this.formatHtmlWithPrettier(pageContent);
 
     // Content in jekyll format
-    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\nrobots: "noindex, nofollow"\r\n${auth}${fra}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || "  []"}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
+    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\n${auth}${fra}${robotsYaml}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || "  []"}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
 
     return frontMatter;
   }
@@ -458,7 +461,7 @@ export class ExportGitHubService {
       : `\r\nlang: fr\r\nfeedbackPath: https://www.canada.ca/etc/designs/canada/wet-boew/assets/feedback/page-feedback-fr.html\r\nprivacyUrl: https://www.canada.ca/fr/agence-revenu/organisation/avis-confidentialite.html\r\ntermsURL: https://www.canada.ca/fr/transparence/avis.html\r\nsitemenuPath: https://www.canada.ca/content/dam/canada/sitemenu/sitemenu-v2-fr.html\r\ncontextualFooter:\r\n  title: "Agence du revenu du Canada (ARC)"\r\n  links:\r\n    - text: "Contacter l'ARCA"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/coordonnees.html"\r\n    - text: "Mettre à jour vos renseignements"\r\n      url: "https://www.canada.ca/fr/agence-revenu/services/mettre-a-jour-renseignements-arc.html"\r\n    - text: "À propos de l'ARC"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/a-propos-agence-revenu-canada-arc.html"`
 
     // Build front matter
-    const frontMatter = `---\r\nlayout: default\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: ""\r\nkeywords: "${keywords}"\r\nrobots: "noindex, nofollow"\r\n${auth}${fra}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${dateModified}\r\ndateIssued: ${dateModified}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n<!-- Add your content here -->`;
+    const frontMatter = `---\r\nlayout: default\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: ""\r\nkeywords: "${keywords}"\r\n${auth}${fra}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${dateModified}\r\ndateIssued: ${dateModified}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n<!-- Add your content here -->`;
 
     return frontMatter;
   }
@@ -500,6 +503,7 @@ exitPage:
 externalOrigin: "https://www.canada.ca"
 modifiedLinkList: "/${repo}/source/data/exclude-redirect-links.json"
 relativeExternalLinks: false
+robots: "noindex, nofollow"
 testBanner: true
 
 # Page front matter defaults
@@ -713,12 +717,29 @@ ${mermaidChart}
     `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/_includes/header/header.html`,
     `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/_includes/headers-includes/sitesearch.html`,
     `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/_includes/resources-inc/footer.html`,
+    `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/_includes/i18n.liquid`,
+    `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/_includes/metadata.html`,
     `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/source/exit-intent-e.html`,
+    `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/source/exit-intent-f.html`,
     `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/404.html`,
   ];
 
   private async copyCoreFiles(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>, templateFilesToExport: string[]) {
-    for (const file of this.filesToCopy) {
+
+    // Set up list of files to copy from template repo
+    const templateTree = await this.getRepoTree(this.templateOrg, 'core-prototype', 'main', token);
+    const includesFiles = Array.from(templateTree.keys())
+      .filter(path => path.startsWith('_includes/'))
+      .map(path => `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/${path}`);
+    const allFilesToCopy = [
+      ...includesFiles,
+      `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/source/exit-intent-e.html`,
+      `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/source/exit-intent-f.html`,
+      `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/404.html`,
+    ];
+
+    // Copy files
+    for (const file of allFilesToCopy) {
       try {
         const urlParts = new URL(file).pathname.split("/");
         const destPath = urlParts.slice(4).join("/"); // everything after /main/
@@ -823,6 +844,20 @@ ${mermaidChart}
   }
 
   private async enablePages(owner: string, repo: string, branch: string, token: string) {
+    // Check if Pages is already enabled
+    const checkResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pages`, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/vnd.github+json"
+      }
+    });
+
+    if (checkResponse.ok) {
+      console.log(`GitHub Pages already enabled on ${owner}/${repo}`);
+      return checkResponse.json();
+    }
+
+    // Enabled pages (if not already enabled)
     const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/pages`, {
       method: "POST",
       headers: {
@@ -838,7 +873,8 @@ ${mermaidChart}
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to enable Pages: ${response.status}`);
+      const errorBody = await response.text();
+      throw new Error(`Failed to enable Pages: ${response.status} - ${errorBody}`);
     }
     console.log(`GitHub Pages enabled on ${branch} branch.`);
     return response.json();
@@ -851,10 +887,13 @@ ${mermaidChart}
       //Create repo
       if (!exists) {
         await this.createRepo(owner, repo, branch, token, projectName);
-        await this.enablePages(owner, repo, branch, token);
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for GitHub to fully initialize the repo        
       } else {
         console.log(`Repo ${owner}/${repo} already exists. Skipping creation.`);
       }
+
+      // Enable Pages
+      await this.enablePages(owner, repo, branch, token);
 
       // Add template files
       const existingFiles = await this.getRepoTree(owner, repo, branch, token);
