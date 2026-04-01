@@ -18,6 +18,11 @@
                 <input type="text" pInputText [(ngModel)]="node.data.url" pSize="small" class="ia-label" (keydown)="onInputKeydown($event)" />
                 <p-inputgroup-addon><p-button icon="pi pi-check" severity="secondary" size="small" (onClick)="saveNode()" /></p-inputgroup-addon>
             </p-inputgroup>
+            } @else if(node.data.editing === 'oppLabel'){
+            <p-inputgroup>
+                <input type="text" pInputText [(ngModel)]="node.data.metadata.oppTitle" pSize="small" class="ia-label" (keydown)="onInputKeydown($event)" fluid />
+                <p-inputgroup-addon><p-button icon="pi pi-check" severity="secondary" size="small" (onClick)="saveNode()" /></p-inputgroup-addon>
+            </p-inputgroup>
             }
             } @else {
             <!-- Display mode -->

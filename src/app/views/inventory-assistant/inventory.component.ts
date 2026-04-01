@@ -855,4 +855,11 @@ export class InventoryComponent implements OnInit {
             },
         ];
     }
+
+    openInUPD(node: FlattenedTreeNode, col: TableColumn): void {
+        const currentLang = this.translate.currentLang?.startsWith('fr') ? '&lang=FR' : ''; //sets UI language in UPD
+        const updLink = `https://cra-arc.alpha.canada.ca/en/pages?url=${node.url}${currentLang}`
+        window.open(updLink, '_blank');
+    }
+
 }

@@ -167,7 +167,7 @@ export class FetchService {
     const h1Elements = Array.from(doc.querySelectorAll('h1')).filter(h1 => !h1.classList.contains('wb-inv'));
     const h1Texts = h1Elements.map(e => e.textContent?.trim()).filter(Boolean);
 
-    let doubleH1 = '';
+    let doubleH1 = doc.querySelector('hgroup p:has(+ h1)')?.innerHTML || doc.querySelector('p.lead:has(+ h1)')?.innerHTML || '';
     let h1 = '';
 
     if (h1Texts.length === 1) {
@@ -194,6 +194,7 @@ export class FetchService {
     const hasOldSubway = doc.querySelector('.gc-navseq') !== null;
     const hasMostRequested = doc.querySelector('.most-requested-bullets') !== null;
     const hasGcSrvinfo = doc.querySelector('.gc-srvinfo') !== null;
+    const hasDoormatComponent = doc.querySelector('.mwsdoormat-links-container') !== null;
     const isContactH1 = h1.startsWith('Contact') || h1.startsWith('Contactez');
     const isCampaignUrl = url.includes('/campaigns/') || url.includes('/campagnes/');
     //News
@@ -281,7 +282,7 @@ export class FetchService {
       template = 'readme (payroll)';
     } else if (isContactH1) {
       template = 'contact';
-    } else if (hasMostRequested || hasGcSrvinfo) {
+    } else if (hasMostRequested || hasGcSrvinfo || hasDoormatComponent) {
       template = 'topic';
     } else if (isOldTopic) {
       template = 'old topic';
@@ -324,11 +325,25 @@ export class FetchService {
 
   public async getOppMetadata(url: string): Promise<OppMetadata> {
     const doc = await this.fetchContent(url, "prod", 3, "none", true);
+    // Get H1 (or double H1)
+    const h1Elements = Array.from(doc.querySelectorAll('h1')).filter(h1 => !h1.classList.contains('wb-inv'));
+    const h1Texts = h1Elements.map(e => e.textContent?.trim()).filter(Boolean);
+
+    let doubleH1 = doc.querySelector('hgroup p:has(+ h1)')?.innerHTML || doc.querySelector('p.lead:has(+ h1)')?.innerHTML || '';
+    let h1 = '';
+
+    if (h1Texts.length === 1) {
+      h1 = h1Texts[0] ?? '';
+    } else if (h1Texts.length > 1) {
+      doubleH1 = h1Texts[0] ?? '';
+      h1 = h1Texts.slice(1).join('<br>');
+    }
+    // Get Metadata
     const title = doc.querySelector('meta[name="dcterms.title"]')?.getAttribute('content') || '';
     const description = doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
     const keywords = doc.querySelector('meta[name="keywords"]')?.getAttribute('content') || '';
     const robotsContent = doc.querySelector('meta[name="robots"]')?.getAttribute('content') || '';
     const noindex = robotsContent.includes('noindex');
-    return { title, description, keywords, noindex };
+    return { h1, doubleH1, title, description, keywords, noindex };
   }
 }

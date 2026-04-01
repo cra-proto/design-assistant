@@ -21,6 +21,6 @@ export class FooterComponent {
   appVersion = appVersion
 
   get logoSrc() {
-    return this.settingsService.darkMode() ? 'wmms-wht.svg' : 'wmms-blk.svg';
+    return this.settingsService.darkMode() ? 'images/wmms-wht.svg' : 'images/wmms-blk.svg';
   }
 }

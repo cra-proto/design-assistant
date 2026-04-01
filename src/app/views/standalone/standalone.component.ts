@@ -29,7 +29,7 @@ export class StandaloneComponent {
     }
 
     githubToggleBookmarklet: SafeUrl = this.sanitizer.bypassSecurityTrustUrl(
-        `javascript:(function(){if(window.location.href.indexOf("github.com")>-1){window.location=window.location.toString().replace(/^https:\\/\\/github.com\\/(.*?)\\/(.*?)\\/(blob|tree|edit)\\/.*?\\/(.*?)(\\/)?(\\.\\w+)?$/,"https://$1.github.io/$2/$4$6");}else{var i = "index.html"; if(window.location.href.indexOf(".html")>-1){i = ""};window.location=window.location.toString().replace(/^https:\\/\\/(.*?).github.io\\/(.*?)\\/(.*?)(\\/)?(\\.\\w+)?$/,"https://github.com/$1/$2/tree/main/$3$5/"+i).replace(/^https:\\/\\/test.canada.ca\\/(.*?)\\/(.*?)(\\/)?(\\.\\w+)?$/,"https://github.com/gc-proto/$1/tree/master/$2$4/"+i);}})();`
+        `javascript:(function(){if(window.location.href.indexOf("github.com")>-1){window.location=window.location.toString().replace(/^https:\\/\\/github.com\\/(.*?)\\/(.*?)\\/(blob|tree|edit)\\/.*?\\/(.*?)(\\/)?(\\.\\w+)?$/,"https://$1.github.io/$2/$4$6");}else{var i = "index.html"; if(window.location.href.indexOf(".html")>-1){i = ""};window.location=window.location.toString().replace(/^https:\\/\\/(.*?).github.io\\/(.*?)\\/(.*?)(\\/)?(\\.\\w+)?$/,"https://github.com/$1/$2/tree/main/$3$5/"+i).replace(/^https:\\/\\/test.canada.ca\\/(.*?)\\/(.*?)(\\/)?(\\.\\w+)?$/,"https://github.com/gc-proto/$1/tree/master/$2$4/"+i).replace(/^https:\\/\\/cra-test-arc.canada.ca\\/(.*?)\\/(.*?)(\\/)?(\\.\\w+)?$/,"https://github.com/cra-proto/$1/tree/main/$2$4/"+i);}})();`
     );
 
     linkCheckerBookmarklet: SafeUrl = this.sanitizer.bypassSecurityTrustUrl(

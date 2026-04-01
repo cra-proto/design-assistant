@@ -57,7 +57,8 @@ export interface PageMeta {
     visits?: number;                // Determined by comparing with UPD data
     wordCount: number;              // Count of words on page
     oppUrl?: string;                // Opposite language URL 
-    oppTitle?: string;              // jrc:content.json otherTitle
+    oppTitle?: string;              // Opposite language H1
+    oppSectionTitle?: string        // Opposite language double H1
     owner?: string;                 // jrc:content.json gcContributor
     email?: string;                 // jrc:content.json gcBranch
     lastPublished?: Date;           // jrc:content.json gcLastPublished
@@ -132,7 +133,8 @@ export interface FlattenedTreeNode {
     doubleH1: string;
     url: string;
     //Opposite language
-    oppTitle: string;
+    oppH1: string;
+    oppDoubleH1: string;
     oppUrl: string;
     //GitHub
     prototypeUrl: string;
@@ -152,6 +154,7 @@ export interface FlattenedTreeNode {
     lastModified: Date | undefined;
     lastPublished: Date | undefined;
     wordCount: number | undefined;
+    updLink: string | undefined;
     //Metadata
     titleEN: string;
     titleFR: string;
@@ -178,7 +181,7 @@ export type ColumnGroups = typeof COLUMN_GROUPS[number];
 export interface TableColumn {
     field: keyof FlattenedTreeNode;
     translationKey: string;
-    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive' | 'noindex' | 'date' | 'aiText';
+    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive' | 'noindex' | 'date' | 'aiText' | 'upd';
     frozen?: boolean;
     group: ColumnGroups;
     visibleByDefault: boolean;

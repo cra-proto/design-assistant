@@ -34,19 +34,13 @@ import { BookmarkletComponent } from '../../components/bookmarklet/bookmarklet.c
 
 type ConnectionStatus = 'checking' | 'connected' | 'warning' | 'error' | 'missing';
 
-type ExportOption = 'prototype' | 'baseline'
-
-interface ExportTarget {
-  label: string;
-  value: ExportOption;
-}
-
 enum ExportStatus {
   ExportNew = 'github.export.status.addToGitHub', // Export - New page
   ExportOverwrite = 'github.export.status.overwrite', // Export - Existing page
   SkipNew = 'github.export.status.skipNew', // Skip export - New page
   SkipOverwrite = 'github.export.status.skipOverwrite', // Skip export - Existing page
-  AddToProject = 'github.export.status.addToProject' // Add GitHub only page to project
+  AddToProject = 'github.export.status.addToProject', // Add GitHub only page to project
+  OppLanguage = 'github.export.status.addOppLangToProject' // Add GitHub only page to project (converts to primary language)
 }
 
 interface FileStatus {
@@ -120,6 +114,7 @@ export class ExportGithubComponent implements OnInit {
   markForTranslation() {
     marker('github.connect.export.description.prototype');
     marker('github.connect.export.description.baseline');
+    marker('github.export.status.addOppLangToProject');
     marker('github.export.status.addToGitHub');
     marker('github.export.status.addToProject');
     marker('github.export.status.skipNew');
@@ -263,13 +258,6 @@ export class ExportGithubComponent implements OnInit {
   });
   // End of status message colors & icons
 
-  // Export options
-  exportTargetOptions: ExportTarget[] = [
-    { label: 'github.connect.export.toggle.prototype', value: 'prototype' },
-    { label: 'github.connect.export.toggle.baseline', value: 'baseline' }
-  ];
-  selectedExportTarget: ExportOption = 'prototype';
-
   // Initialize table and connection status
   async ngOnInit() {
     await this.compareFiles();
@@ -285,12 +273,13 @@ export class ExportGithubComponent implements OnInit {
   }
 
   //Get in-scope URLs and page content (used by export fxn)
-  private async getUrlandContent(node: TreeNode): Promise<PageData[]> {
+  private async getUrlandContent(node: TreeNode, lang: 'primary' | 'opposite' = 'primary'): Promise<PageData[]> {
     const pages: PageData[] = [];
+    const url = lang === 'primary' ? node.data?.url : node.data?.metadata?.oppUrl;
 
     const scope = this.selectedExportTarget === 'prototype'
-      ? node?.data?.status.inScope && node?.data?.url
-      : node?.data?.url
+      ? node?.data?.status.inScope && url
+      : url
 
     const repo = this.selectedExportTarget === 'prototype'
       ? this.gitHubData().repo
@@ -299,7 +288,7 @@ export class ExportGithubComponent implements OnInit {
     if (scope && repo) {
       try {
         // Extract path and filename
-        const path = new URL(node.data.url).pathname.replace(/^\/+/, "");
+        const path = new URL(url).pathname.replace(/^\/+/, "");
         const filename = path.split("/").pop() || "index.html";
 
         // Check if skipped or new
@@ -312,25 +301,25 @@ export class ExportGithubComponent implements OnInit {
         let content: string;
         if (isSkipped) { content = '<!-- Skipped file -->'; }
         else if (isNew) {
-          const breadcrumbs = this.projectState.getBreadcrumbChain(node.data.url).slice(1);
-          content = this.exportGitHubService.formatNewPageAsJekyll(node, breadcrumbs, this.gitHubData().owner, repo)
+          const breadcrumbs = this.projectState.getBreadcrumbChain(node.data.url, lang).slice(1);
+          content = this.exportGitHubService.formatNewPageAsJekyll(node, breadcrumbs, this.gitHubData().owner, repo, lang)
         }
         else {
-          const doc = await this.fetchService.fetchContent(node.data.url, "prod");
+          const doc = await this.fetchService.fetchContent(url, "prod");
           const breadcrumbs = this.selectedExportTarget === 'prototype'
-            ? this.projectState.getBreadcrumbChain(node.data.url).slice(1)
+            ? this.projectState.getBreadcrumbChain(node.data.url, lang).slice(1)
             : undefined;
-          content = await this.exportGitHubService.formatDocumentAsJekyll(doc, node.data.url, this.gitHubData().owner, repo, breadcrumbs);
+          content = await this.exportGitHubService.formatDocumentAsJekyll(doc, url, this.gitHubData().owner, repo, breadcrumbs);
         }
-        pages.push({ url: node.data.url, path, filename, content });
+        pages.push({ url, path, filename, content });
       } catch (error) {
-        console.error(`Error fetching content for ${node.data.url}:`, error);
+        console.error(`Error fetching content for ${url}:`, error);
       }
     }
     // recurse into children
     if (node?.children) {
       for (const child of node.children) {
-        const childPages = await this.getUrlandContent(child);
+        const childPages = await this.getUrlandContent(child, lang);
         pages.push(...childPages);
       }
     }
@@ -350,7 +339,17 @@ export class ExportGithubComponent implements OnInit {
     // Step 1: Gather all in-scope or baseline URLs and their content
     this.exportProgress.set({ step: 'github.export.progress.step1', progress: 5, });
     const nodes = this.projectState.getProjectTree();
-    const pages: PageData[] = await this.getUrlandContent(nodes[0]);
+
+    let pages: PageData[] = [];
+    if (this.selectedExportLanguage === 'primary') {
+      pages = await this.getUrlandContent(nodes[0], 'primary');
+    } else if (this.selectedExportLanguage === 'opposite') {
+      pages = await this.getUrlandContent(nodes[0], 'opposite');
+    } else { // 'both'
+      const primaryPages = await this.getUrlandContent(nodes[0], 'primary');
+      const oppositePages = await this.getUrlandContent(nodes[0], 'opposite');
+      pages = [...primaryPages, ...oppositePages];
+    }
     console.log('Exporting pages to GitHub:', pages);
 
     // Step 2: Add paths and filenames for GitHub and filter out any skipped pages
@@ -399,13 +398,17 @@ export class ExportGithubComponent implements OnInit {
     // Step 5: Export each page to GitHub
     const existingFiles = await this.exportGitHubService.getRepoTree(owner, repo, branch, token);
     const progressPerFile = 60 / exportPages.length;
+    const primaryLang = this.projectState.detectPrimaryLanguage();
+
     for (const [index, page] of exportPages.entries()) {
       try {
         this.exportProgress.set({ step: 'github.export.progress.step5', progress: 30 + (index * progressPerFile), });
         const result = await this.exportGitHubService.exportToGitHub(owner, repo, branch, page.path, page.filename, page.content, token, existingFiles, true);
         //Store SHA with project data
         if (result?.content?.sha) {
-          this.projectState.setPageSha(page.url, result.content.sha, this.selectedExportTarget)
+          const pathLang = page.path.startsWith('en/') || page.path.endsWith('en.html') ? 'en' : 'fr';
+          const lang = pathLang === primaryLang ? 'primary' : 'opposite';
+          this.projectState.setPageSha(page.url, result.content.sha, this.selectedExportTarget, lang);
         }
       } catch (error) {
         console.error(`Error exporting ${page.path}:`, error);
@@ -413,9 +416,20 @@ export class ExportGithubComponent implements OnInit {
     }
     // Step 6: Add redirect & index file
     setTimeout(() => { this.exportProgress.set({ step: 'github.export.progress.step6', progress: 90 }); }, 1000);
-    const redirects = allPages.map(page => ({
-      origin: page.url,
-      destination: `/${repo}/${page.path}`
+    // Get GitHub paths
+    const githubPages: Map<string, string> = await this.exportGitHubService.getRepoTree(owner, repo, branch, token);
+    const githubContentPages = [...githubPages.keys()].filter(path =>
+      path.startsWith('en/') || path.startsWith('fr/')
+    );
+    // Combine with exported paths (allPages)
+    const allPagePaths = new Set([
+      ...allPages.map(page => page.path),
+      ...githubContentPages
+    ]);
+    // Format redirect
+    const redirects = [...allPagePaths].map(path => ({
+      origin: `https://www.canada.ca/${path}`,
+      destination: `/${repo}/${path}`
     }));
     const redirectsJson = JSON.stringify(redirects, null, 2);
     await this.exportGitHubService.exportToGitHub(owner, repo, branch, "source/data/exclude-redirect-links.json", "exclude-redirect-links.json", redirectsJson, token, existingFiles, true);
@@ -437,27 +451,52 @@ export class ExportGithubComponent implements OnInit {
     const token = this.exportGitHubService.token();
 
     const scope = this.selectedExportTarget === 'prototype' ? "inScope" : "all"
-    const pages = this.projectState.getAllUrls(scope);
-    console.log(pages);
 
-    const projectPaths = [...pages].map(url => url.replace("https://www.canada.ca/", ""));
+    const relativeUrls = (urls: Set<string>) =>
+      [...urls].map(url => url.replace("https://www.canada.ca/", ""));
+
+    const pages = relativeUrls(this.projectState.getAllUrls(scope, 'primary'));
+    const oppPages = relativeUrls(this.projectState.getAllUrls(scope, 'opposite'));
+
+    // Build project paths based on selected export language
+    let projectPaths: string[] = [];
+    if (this.selectedExportLanguage === 'primary') {
+      projectPaths = pages;
+    } else if (this.selectedExportLanguage === 'opposite') {
+      projectPaths = oppPages;
+    } else {
+      projectPaths = [...pages, ...oppPages];
+    }
 
     const githubPages: Map<string, string> = await this.exportGitHubService.getRepoTree(owner, repo, branch, token);
 
+    // Only show GitHub files in AIDA if they match these patterns 
     const githubFilePatterns = [
       /^_config\.yml$/,
       /^index\.html$/,
       /^README\.md$/,
       /^robots\.txt$/,
       /^_includes\/header\/header\.html$/,
+      /^_includes\/headers-includes\/sitesearch\.html$/,
       /^_includes\/resources-inc\/footer\.html$/,
       /^source\/data\/exclude-redirect-links\.json$/,
       /^source\/exit-intent-e\.html$/,
       /^source\/exit-intent-f\.html$/,
       /^404\.html$/,
-      /^en\/?.*/,   // anything under /en/
-      /^fr\/?.*/,   // anything under /fr/
     ];
+
+    // Add language-specific GitHub file patterns (based on export mode)
+    const primaryLang = this.projectState.detectPrimaryLanguage();
+    const oppositeLang = primaryLang === 'en' ? 'fr' : 'en';
+
+    if (this.selectedExportLanguage === 'primary') {
+      githubFilePatterns.push(new RegExp(`^${primaryLang}\/.*`));
+    } else if (this.selectedExportLanguage === 'opposite') {
+      githubFilePatterns.push(new RegExp(`^${oppositeLang}\/.*`));
+    } else { // 'both'
+      githubFilePatterns.push(/^en\/.*/);
+      githubFilePatterns.push(/^fr\/.*/);
+    }
 
     const filteredGithubPages = new Map(
       [...githubPages].filter(([path]) =>
@@ -472,6 +511,7 @@ export class ExportGithubComponent implements OnInit {
       { path: "_includes/headers-includes/sitesearch.html", content: "<!-- sitesearch -->" }, //copied from core-prototype
       { path: "_includes/resources-inc/footer.html", content: "<!-- footer -->" }, //copied from core-prototype
       { path: "source/exit-intent-e.html", content: "<!-- exit intent - english -->" }, //copied from core-prototype
+      { path: "source/exit-intent-f.html", content: "<!-- exit intent - french -->" }, //copied from core-prototype
       { path: "source/data/exclude-redirect-links.json", content: "<!-- redirects -->" }, //generated for all pages in repo
       { path: "index.html", content: "<!-- sitemap -->" }, //generated for all pages in repo
     ];
@@ -505,23 +545,42 @@ export class ExportGithubComponent implements OnInit {
       const isAutoUpdateFile = jekyllUpdateFiles.some(f => f.path === path);
       const isAlwaysSkipFile = jekyllSkipFiles.some(f => f.path === path);
 
+      // Get path language for node lookup
+      const pathLang = path.startsWith('en/') || path.endsWith('en.html') ? 'en' :
+        path.startsWith('fr/') || path.endsWith('fr.html') ? 'fr' : null;
+
       //Check ROT status & skip by default
       const fullUrl = `https://www.canada.ca/${path}`;
-      const node = this.projectState.findNodeByUrl(this.projectState.getProjectTree(), fullUrl);
+      let node: TreeNode | null = null;
+      if (pathLang === primaryLang) {
+        node = this.projectState.findNodeByUrl(this.projectState.getProjectTree(), fullUrl, 'primary');
+      } else if (pathLang === oppositeLang) {
+        node = this.projectState.findNodeByUrl(this.projectState.getProjectTree(), fullUrl, 'opposite');
+      }
       const isRot = node?.data?.status?.isROT === true;
 
-      console.log(`Path: ${path}, inExport: ${inExport}, inGitHub: ${inGitHub}, isRot: ${isRot}`);
+      const shouldIgnorePage = inGitHub && !inExport && pathLang !== null && pathLang !== primaryLang;
+
+      console.log(`Path: ${path}, inExport: ${inExport}, inGitHub: ${inGitHub}, isRot: ${isRot}, shouldIgnore: ${shouldIgnorePage}`);
 
       let status: FileCompareRow['status'];
 
-      if (isRot) {
+      if (shouldIgnorePage) {
+        status = ExportStatus.OppLanguage;
+      }
+      else if (isRot) {
         status = inGitHub ? ExportStatus.SkipOverwrite : ExportStatus.SkipNew;
       }
       else if (inExport && inGitHub) {
         if (isAutoUpdateFile) status = ExportStatus.ExportOverwrite;
         else if (isAlwaysSkipFile) status = ExportStatus.SkipOverwrite;
         else {
-          const storedSha = node?.data?.sha?.[this.selectedExportTarget];
+          let storedSha: string | undefined;
+          if (pathLang === primaryLang) {
+            storedSha = node?.data?.sha?.[this.selectedExportTarget];
+          } else if (pathLang === oppositeLang) {
+            storedSha = node?.data?.oppSha?.[this.selectedExportTarget];
+          }
           const githubSha = filteredGithubPages.get(path);
           status = storedSha && storedSha === githubSha
             ? ExportStatus.ExportOverwrite  // SHA matches - refresh content
@@ -562,6 +621,11 @@ export class ExportGithubComponent implements OnInit {
       icon: 'pi pi-github',
       background: 'bg-primary-500 hover:bg-primary-600',
       text: 'text-primary-50'
+    },
+    [ExportStatus.OppLanguage]: {
+      icon: 'pi pi-github',
+      background: 'bg-primary-100 hover:bg-primary-200',
+      text: 'text-primary-900'
     }
   };
 
@@ -623,11 +687,61 @@ export class ExportGithubComponent implements OnInit {
   exportProgress = signal<ExportProgress | null>(null);
 
   //Add to project
-  addToProject(file: FileCompareRow) {
-    const url = `https://www.canada.ca/${file.path}`;
+  async addToProject(file: FileCompareRow) {
+    let url = `https://www.canada.ca/${file.path}`;
+    if (file.status === ExportStatus.OppLanguage) {
+      try {
+        const doc = await this.fetchService.fetchContent(url);
+        const htmlLang = doc.documentElement.getAttribute('lang');
+        const metaLang = doc.querySelector('meta[name="dcterms.language"]')?.getAttribute('content');
+        const normalizedMetaLang = metaLang === 'eng' ? 'en' : metaLang === 'fra' ? 'fr' : null;
+        const urlLang = url.includes('/en/') ? 'en' : url.includes('/fr/') ? 'fr' : null;
+        const currentLang = htmlLang || normalizedMetaLang || urlLang || 'en'; // default to en
+        const oppLang = currentLang === 'en' ? 'fr' : 'en';
+        const oppUrl = doc.querySelector(`link[rel="alternate"][hreflang="${oppLang}"]`)?.getAttribute('href') || '';
+        if (!oppUrl) {
+          console.error('No opposite language link found for:', url);
+          return;
+        }
+        url = oppUrl;
+      } catch (error) {
+        console.error('Error fetching page:', error);
+        return; // or show an error message to the user
+      }
+    }
     this.router.navigate(['/import-page'], {
       queryParams: { url: url }
     });
+  }
+
+
+  // Export target options
+  selectedExportTarget: 'prototype' | 'baseline' = 'prototype';
+
+  get exportTargetOptions() {
+    return [
+      { label: this.translate.instant('github.connect.export.toggle.prototype'), value: 'prototype' },
+      { label: this.translate.instant('github.connect.export.toggle.baseline'), value: 'baseline' }
+    ];
+  }
+
+  //Export language options
+  selectedExportLanguage: 'primary' | 'opposite' | 'both' = 'primary';
+
+  get exportLanguageOptions() {
+    const primaryLang = this.projectState.detectPrimaryLanguage();
+    const primaryLabel = primaryLang === 'en'
+      ? this.translate.instant('common.language.english')
+      : this.translate.instant('common.language.french');
+    const oppositeLabel = primaryLang === 'en'
+      ? this.translate.instant('common.language.french')
+      : this.translate.instant('common.language.english');
+
+    return [
+      { label: primaryLabel, value: 'primary' },
+      { label: oppositeLabel, value: 'opposite' },
+      { label: this.translate.instant('common.both'), value: 'both' }
+    ];
   }
 
 }

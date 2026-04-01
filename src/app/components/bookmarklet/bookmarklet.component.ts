@@ -32,15 +32,19 @@ export class BookmarkletComponent {
             `const owner='${owner}';` +
             `const repo='${repo}';` +
             `const currentUrl=window.location.href;` +
-            `const isInMyRepo=currentUrl.includes(owner+'/'+repo)||currentUrl.includes(owner+'.github.io/'+repo);` +
+            `const isInMyRepo=currentUrl.includes(owner+'/'+repo)||currentUrl.includes(owner+'.github.io/'+repo)||currentUrl.includes('cra-test-arc.canada.ca/'+repo);` +
             `const isGitHubEdit=currentUrl.includes('github.com');` +
-            `const isGitHubPreview=currentUrl.includes('.github.io')||currentUrl.includes('test.canada.ca');` +
+            `const isGitHubPreview=currentUrl.includes('.github.io')||currentUrl.includes('test.canada.ca')||currentUrl.includes('cra-test-arc.canada.ca');` +
             `const isCanadaCa=currentUrl.includes('canada.ca');` +
             // GitHub edit → GitHub preview (works for any repo)
             `if(isGitHubEdit){` +
             `const isRoot=currentUrl.match(/^https:\\/\\/github\\.com\\/([^\\/]+)\\/([^\\/]+)\\/?$/);` +
             `const isGcProto=currentUrl.includes('github.com/gc-proto/');` +
-            `if(isGcProto){` +
+            `const isCraProto=currentUrl.includes('github.com/cra-proto/');` +
+            `if(isCraProto){` +
+            `if(isRoot){window.location.href='https://cra-test-arc.canada.ca/'+isRoot[2]+'/'}` +
+            `else{window.location.href=currentUrl.replace(/^https:\\/\\/github\\.com\\/cra-proto\\/(.*?)\\/(blob|tree|edit)\\/.*?\\/(.*?)(\\/)?(\\.\\w+)?$/,'https://cra-test-arc.canada.ca/$1/$3$5');}` +
+            `}else if(isGcProto){` +
             `if(isRoot){window.location.href='https://test.canada.ca/'+isRoot[2]+'/'}` +
             `else{window.location.href=currentUrl.replace(/^https:\\/\\/github\\.com\\/gc-proto\\/(.*?)\\/(blob|tree|edit)\\/.*?\\/(.*?)(\\/)?(\\.\\w+)?$/,'https://test.canada.ca/$1/$3$5');}` +
             `}else{` +
@@ -54,7 +58,9 @@ export class BookmarkletComponent {
             // GitHub preview → GitHub edit (if NOT in my repo)
             `}else if(isGitHubPreview){` +
             `var i='index.html';if(currentUrl.includes('.html')){i=''};` +
-            `if(currentUrl.includes('test.canada.ca')){` +
+            `if(currentUrl.includes('cra-test-arc.canada.ca')){` +
+            `window.location.href=currentUrl.replace(/^https:\\/\\/cra-test-arc\\.canada\\.ca\\/(.*?)\\/(.*?)(\\/)?(\\.\\w+)?$/,'https://github.com/cra-proto/$1/blob/main/$2$4/'+i);` +
+            `}else if(currentUrl.includes('test.canada.ca')){` +
             `window.location.href=currentUrl.replace(/^https:\\/\\/test\\.canada\\.ca\\/(.*?)\\/(.*?)(\\/)?(\\.\\w+)?$/,'https://github.com/gc-proto/$1/blob/master/$2$4/'+i);` +
             `}else{` +
             `window.location.href=currentUrl.replace(/^https:\\/\\/(.*?)\\.github\\.io\\/(.*?)\\/(.*?)(\\/)?(\\.\\w+)?$/,'https://github.com/$1/$2/blob/main/$3$5/'+i);` +

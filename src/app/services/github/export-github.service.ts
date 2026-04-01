@@ -284,14 +284,14 @@ export class ExportGitHubService {
     const description = (doc.querySelector('meta[name="description"]') as HTMLMetaElement)?.content.trim() || "";
     const subject = (doc.querySelector('meta[name="dcterms.subject"]') as HTMLMetaElement)?.content.trim() || "";
     const keywords = (doc.querySelector('meta[name="keywords"]') as HTMLMetaElement)?.content.trim() || "";
-    const lang = (doc.querySelector('meta[name="dcterms.language"]') as HTMLMetaElement)?.content?.slice(0, 2) || "en";
+    const pageLang = (doc.querySelector('meta[name="dcterms.language"]') as HTMLMetaElement)?.content?.slice(0, 2) || "en";
     const issued = (doc.querySelector('meta[name="dcterms.issued"]') as HTMLMetaElement)?.content || "";
     const modified = (doc.querySelector('meta[name="dcterms.modified"]') as HTMLMetaElement)?.content || "";
 
     // Set alternate language link
     const altLangPage =
       Array.from(doc.querySelectorAll<HTMLLinkElement>('link[rel="alternate"]'))
-        .find(link => link.getAttribute("hreflang") !== lang)?.href || "";
+        .find(link => link.getAttribute("hreflang") !== pageLang)?.href || "";
 
     // Breadcrumbs (use the breadcrumb structure passed from the component if available, otherwise use page content)
     let crumbsYaml: string;
@@ -319,9 +319,14 @@ export class ExportGitHubService {
     }
 
     // Sign in button
-    const auth = lang === "en"
+    const auth = pageLang === "en"
       ? `auth:\r\n  type: "contextual"\r\n  label: "Sign in"\r\n  labelExtended: "CRA sign in"\r\n  link: "https://www.canada.ca/en/revenue-agency/services/e-services/cra-login-services.html"`
       : `auth:\r\n  type: "contextual"\r\n  label: "Se connecter"\r\n  labelExtended: "Se connecter à l'ARC"\r\n  link: "https://www.canada.ca/fr/agence-revenu/services/services-electroniques/services-ouverture-session-arc.html"`;
+
+    // French overrides
+    const fra = pageLang === "en"
+      ? ''
+      : `\r\nlang: fr\r\nfeedbackPath: https://www.canada.ca/etc/designs/canada/wet-boew/assets/feedback/page-feedback-fr.html\r\nprivacyUrl: https://www.canada.ca/fr/agence-revenu/organisation/avis-confidentialite.html\r\ntermsURL: https://www.canada.ca/fr/transparence/avis.html\r\nsitemenuPath: https://www.canada.ca/content/dam/canada/sitemenu/sitemenu-v2-fr.html\r\ncontextualFooter:\r\n  title: "Agence du revenu du Canada (ARC)"\r\n  links:\r\n    - text: "Contacter l'ARC"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/coordonnees.html"\r\n    - text: "Mettre à jour vos renseignements"\r\n      url: "https://www.canada.ca/fr/agence-revenu/services/mettre-a-jour-renseignements-arc.html"\r\n    - text: "À propos de l'ARC"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/a-propos-agence-revenu-canada-arc.html"`
 
     // Page content
     const mainEl = doc.querySelector("main");
@@ -419,19 +424,23 @@ export class ExportGitHubService {
     pageContent = await this.formatHtmlWithPrettier(pageContent);
 
     // Content in jekyll format
-    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\nrobots: "noindex, nofollow"\r\n${auth}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || "  []"}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
+    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\nrobots: "noindex, nofollow"\r\n${auth}${fra}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || "  []"}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
 
     return frontMatter;
   }
 
-  public formatNewPageAsJekyll(node: TreeNode, breadcrumbs: { title: string; link: string }[], owner: string, repo: string): string {
+  public formatNewPageAsJekyll(node: TreeNode, breadcrumbs: { title: string; link: string }[], owner: string, repo: string, lang: 'primary' | 'opposite' = 'primary'): string {
+    //Get URL
+    const url = lang === 'primary' ? node.data?.url : node.data?.metadata?.oppUrl;
+    const altLangPage = lang === 'primary' ? node.data?.metadata?.oppUrl || "" : node.data?.url || "";
+
     // Determine language from URL
-    const lang = node.data.url.includes('/fr/') ? 'fr' : 'en';
+    const pageLang = url.includes('/fr/') ? 'fr' : 'en';
 
     // Extract metadata from node
-    const title = node.data.h1 || "";
-    const description = node.data.metadata?.description || "";
-    const keywords = node.data.metadata?.keywords || "";
+    const title = lang === 'primary' ? node.data.h1 || "" : node.data.metadata.oppTitle || "";
+    const description = pageLang === "en" ? node.data.metadata?.descriptionEN || "" : node.data.metadata?.descriptionFR || "";
+    const keywords = pageLang === "en" ? node.data.metadata?.keywordsEN || "" : node.data.metadata?.keywordsFR || "";
     const dateModified = new Date().toISOString().split('T')[0];
 
     const crumbsYaml = breadcrumbs.length > 0
@@ -439,22 +448,29 @@ export class ExportGitHubService {
       : "  []";
 
     // Sign in button based on language
-    const auth = lang === "en"
+    const auth = pageLang === "en"
       ? `auth:\r\n  type: "contextual"\r\n  label: "Sign in"\r\n  labelExtended: "CRA sign in"\r\n  link: "https://www.canada.ca/en/revenue-agency/services/e-services/cra-login-services.html"`
       : `auth:\r\n  type: "contextual"\r\n  label: "Se connecter"\r\n  labelExtended: "Se connecter à l'ARC"\r\n  link: "https://www.canada.ca/fr/agence-revenu/services/services-electroniques/services-ouverture-session-arc.html"`;
 
+    // French overrides
+    const fra = pageLang === "en"
+      ? ''
+      : `\r\nlang: fr\r\nfeedbackPath: https://www.canada.ca/etc/designs/canada/wet-boew/assets/feedback/page-feedback-fr.html\r\nprivacyUrl: https://www.canada.ca/fr/agence-revenu/organisation/avis-confidentialite.html\r\ntermsURL: https://www.canada.ca/fr/transparence/avis.html\r\nsitemenuPath: https://www.canada.ca/content/dam/canada/sitemenu/sitemenu-v2-fr.html\r\ncontextualFooter:\r\n  title: "Agence du revenu du Canada (ARC)"\r\n  links:\r\n    - text: "Contacter l'ARCA"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/coordonnees.html"\r\n    - text: "Mettre à jour vos renseignements"\r\n      url: "https://www.canada.ca/fr/agence-revenu/services/mettre-a-jour-renseignements-arc.html"\r\n    - text: "À propos de l'ARC"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/a-propos-agence-revenu-canada-arc.html"`
+
     // Build front matter
-    const frontMatter = `---\r\nlayout: default\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: ""\r\nkeywords: "${keywords}"\r\nrobots: "noindex, nofollow"\r\n${auth}\r\naltLangPage: ""\r\ndateModified: ${dateModified}\r\ndateIssued: ${dateModified}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${node.data.url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n<!-- Add your content here -->`;
+    const frontMatter = `---\r\nlayout: default\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: ""\r\nkeywords: "${keywords}"\r\nrobots: "noindex, nofollow"\r\n${auth}${fra}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${dateModified}\r\ndateIssued: ${dateModified}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n<!-- Add your content here -->`;
 
     return frontMatter;
   }
 
   private async createConfigYaml(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>): Promise<void> {
+    const orgUrl = owner === 'cra-proto' ? 'https://cra-test-arc.canada.ca' : `https://${owner}.github.io`
+    const templateUrl = this.templateOrg === 'cra-proto' ? 'https://cra-test-arc.canada.ca' : `https://${owner}.github.io`
     const content = `---
 # standard jekyll configuration
 content_editable: true
 baseurl: /${repo}
-url: https://${owner}.github.io
+url: ${orgUrl}
 repository: ${owner}/${repo}
 website: https://www.canada.ca/en.html
 
@@ -516,10 +532,10 @@ defaults:
       css:
         - https://use.fontawesome.com/releases/v5.15.4/css/all.css
         - https://wet-boew.github.io/themes-dist/GCWeb/GCWeb/m%C3%A9li-m%C3%A9lo/2025-12-mille-iles.css
-        - https://${this.templateOrg}.github.io/core-prototype/source/css/testing-banner.css
+        - ${templateUrl}/core-prototype/source/css/testing-banner.css
       script:
         - https://wet-boew.github.io/themes-dist/GCWeb/GCWeb/m%C3%A9li-m%C3%A9lo/2025-12-mille-iles.js
-        - https://${this.templateOrg}.github.io/core-prototype/source/scripts/external-link-detour.js
+        - ${templateUrl}/core-prototype/source/scripts/external-link-detour.js
         `
     try {
       console.log(`Creating _config.yml for ${repo}`);
@@ -643,6 +659,7 @@ Disallow: /
     const startDate = date.toISOString().split("T")[0]; // 2 weeks ago
     date.setDate(date.getDate() + 98);
     const endDate = date.toISOString().split("T")[0]; // 14 weeks from start
+    const orgUrl = owner === 'cra-proto' ? 'https://cra-test-arc.canada.ca' : `https://${owner}.github.io`
 
     const mermaidChart = treeNodes
       ? this.generateMermaidChart(treeNodes)
@@ -659,7 +676,7 @@ Disallow: /
 This repository was created via the **Design Assistant**.  
 It contains the template files and in-scope pages needed to get started.
 
-GitHub Pages: [https://${owner}.github.io/${repo}](https://${owner}.github.io/${repo})
+GitHub Pages: [${orgUrl}/${repo}](${orgUrl}/${repo})
 
 ---
 ## Update procedures
@@ -774,6 +791,8 @@ ${mermaidChart}
         : `https://api.github.com/user/repos`;
     const createdDate = new Date().toLocaleDateString('en-CA', { month: 'short', year: 'numeric' });
 
+    const indexPage = owner === 'cra-proto' ? `https://cra-test-arc.canada.ca/${repo}` : owner === 'gc-proto' ? `https://test.canada.ca/${repo}` : `https://${owner}.github.io/${repo}/`;
+
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -786,10 +805,12 @@ ${mermaidChart}
         auto_init: true,
         default_branch: branch,
         description: `${projectName} (${createdDate}) - initialized via AIDA`,
-        homepage: `https://${owner}.github.io/${repo}/`,
+        homepage: indexPage,
         has_issues: false,
         has_wiki: false,
         has_projects: false,
+        has_downloads: false,
+        has_discussions: false,
         license_template: "mit"
       })
     });
