@@ -22,26 +22,6 @@ export class BreadcrumbValidationService {
   metadataCache = new Map<string, PageMetadata>();
   jsonCache = new Map<string, JsonMetadata>();
 
-  //Get one breadcrumb
-  private getBreadcrumb(doc: Document, baseUrl: string): BreadcrumbNode[] {
-    const breadcrumbItems = doc.querySelectorAll('.breadcrumb li a');
-    const breadcrumbArray: BreadcrumbNode[] = [];
-    breadcrumbItems.forEach((el) => {
-      const rawHref = el.getAttribute('href') || '';
-      let absoluteUrl = '';
-      try {
-        absoluteUrl = new URL(rawHref, baseUrl).href.replace("/content/canadasite", ""); // handles both relative + absolute
-      } catch {
-        console.warn(`Invalid breadcrumb href: ${rawHref}`);
-      }
-      breadcrumbArray.push({
-        label: el.textContent?.trim() || '',
-        url: absoluteUrl,
-      });
-    });
-    return breadcrumbArray;
-  }
-
   //Step 1: Get all breadcrumbs (and any other data we want from the page, H1, metadata, template etc.)
   public async getAllBreadcrumbs(pages: UrlItem[]): Promise<UrlData[]> {
     const results: UrlData[] = [];
@@ -54,7 +34,7 @@ export class BreadcrumbValidationService {
         const doc = await this.fetchService.fetchContent(url, "prod", 3, "random");
 
         //Get breadcrumb
-        const breadcrumb = this.getBreadcrumb(doc, "https://www.canada.ca");
+        const breadcrumb = this.fetchService.getBreadcrumb(doc, "https://www.canada.ca");
 
         //Get metadata
         const metadata = this.fetchService.extractPageMetadata(doc, url);
