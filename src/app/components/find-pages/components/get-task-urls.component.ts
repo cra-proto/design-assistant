@@ -12,10 +12,8 @@ import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 
 // Services
-import { ProjectStateService } from '../../../services/project-state.service';
 import { AirtableService } from '../../../services/airtable.service';
 import { AddPagesStateService } from '../../add-pages/services/add-pages-state.service';
-import { UrlValidationService } from '../../add-pages/services/url-validation.service';
 
 export interface TaskOption {
   id: number;
@@ -37,9 +35,8 @@ export interface TaskOption {
 export class GetTaskUrlsComponent implements OnInit {
   // Services    
   public airtableService = inject(AirtableService);
-  translate = inject(TranslateService);
-  addPagesState = inject(AddPagesStateService);
-  urlValidation = inject(UrlValidationService);
+  private translate = inject(TranslateService);
+  private addPagesState = inject(AddPagesStateService);
 
   // Signals
   private currentLanguage = signal<'en' | 'fr'>(
