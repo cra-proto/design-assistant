@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { PageMetadata, OppMetadata } from '../components/add-pages/add-pages.model';
+import { PageMetadata, OppMetadata, BreadcrumbNode } from '../components/add-pages/add-pages.model';
 import { isPortalDomain } from '../common/portal-domains.config';
 
 @Injectable({ providedIn: 'root' })
@@ -100,6 +100,21 @@ export class FetchService {
     const response = await this.fetchWithRetry(url, "GET", retries, delay, suppressErrors);
     const html = await response.text();
     return new DOMParser().parseFromString(html, "text/html");
+  }
+
+  public async fetchContentAndStatus(
+    url: string,
+    hostMode: "prod" | "proto" | "both" | "none" = "both",
+    retries = 3,
+    delay: number | "random" | "none" = "none",
+    suppressErrors = false
+  ): Promise<{ doc: Document; finalUrl: string }> {
+    url = this.validateHost(url, hostMode);
+    const response = await this.fetchWithRetry(url, "GET", retries, delay, suppressErrors);
+    const html = await response.text();
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const finalUrl = response.url || url;
+    return { doc, finalUrl };
   }
 
   public async fetchStatus(
@@ -345,5 +360,46 @@ export class FetchService {
     const robotsContent = doc.querySelector('meta[name="robots"]')?.getAttribute('content') || '';
     const noindex = robotsContent.includes('noindex');
     return { h1, doubleH1, title, description, keywords, noindex };
+  }
+
+  //Get breadcrumb
+  public getBreadcrumb(doc: Document, baseUrl: string): BreadcrumbNode[] {
+    const breadcrumbItems = doc.querySelectorAll('.breadcrumb li a');
+    const breadcrumbArray: BreadcrumbNode[] = [];
+    breadcrumbItems.forEach((el) => {
+      const rawHref = el.getAttribute('href') || '';
+      let absoluteUrl = '';
+      try {
+        absoluteUrl = new URL(rawHref, baseUrl).href.replace("/content/canadasite", ""); // handles both relative + absolute
+      } catch {
+        console.warn(`Invalid breadcrumb href: ${rawHref}`);
+      }
+      breadcrumbArray.push({
+        label: el.textContent?.trim() || '',
+        url: absoluteUrl,
+      });
+    });
+    return breadcrumbArray;
+  }
+
+  //Get same-domain links
+  public getLinks(doc: Document, baseUrl: string): string[] {
+    const baseDomain = new URL(baseUrl).origin
+    const links = Array.from(doc.querySelectorAll('main a'))
+      .map(a => a.getAttribute('href'))
+      .filter((href): href is string => !!href)
+      .map(href => {
+        try {
+          const url = new URL(href, baseUrl);
+          url.hash = '';
+          url.search = '';
+          return url.href;
+        } catch {
+          return null;
+        }
+      })
+      .filter((href): href is string => !!href)
+      .filter(href => new URL(href).origin === baseDomain);
+    return [...new Set(links)];
   }
 }
