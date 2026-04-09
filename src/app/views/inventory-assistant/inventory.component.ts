@@ -323,15 +323,46 @@ export class InventoryComponent implements OnInit {
             const valueA = a[field as keyof FlattenedTreeNode];
             const valueB = b[field as keyof FlattenedTreeNode];
 
-            // Handle null/undefined - at end for ascending, at beginning for descending
-            if (valueA == null && valueB == null) return 0;
-            if (valueA == null) return order === 1 ? 1 : -1;
-            if (valueB == null) return order === 1 ? -1 : 1;
+            // Get the column type
+            const column = this.projectState.getTreeTableColumns().find(col => col.field === field);
+            const colType = column?.type;
 
-            // Text comparison (case-insensitive)
-            const comparison = valueA.toString().toLowerCase().localeCompare(
-                valueB.toString().toLowerCase()
-            );
+            // Handle null/undefined
+            const isEmptyA = valueA == null || valueA === '' || (Array.isArray(valueA) && valueA.length === 0);
+            const isEmptyB = valueB == null || valueB === '' || (Array.isArray(valueB) && valueB.length === 0);
+            if (isEmptyA && isEmptyB) return 0;
+            if (colType === 'date' || colType === 'number') {
+                // null at the start (by oldest date or smallest number)
+                if (isEmptyA) return -order;
+                if (isEmptyB) return order;
+            } else {
+                // null at the end (by z)
+                if (isEmptyA) return order;
+                if (isEmptyB) return -order;
+            }
+
+            let comparison = 0;
+
+            // Type-specific comparison
+            if (colType === 'date') {
+                // Compare as dates
+                const dateA = new Date(valueA as string).getTime();
+                const dateB = new Date(valueB as string).getTime();
+                comparison = dateA - dateB;
+            } else if (colType === 'number') {
+                // Compare as numbers
+                comparison = (valueA as number) - (valueB as number);
+            } else if (colType === 'array') {
+                // Compare arrays by joined string
+                const strA = (valueA as string[]).join(', ').toLowerCase();
+                const strB = (valueB as string[]).join(', ').toLowerCase();
+                comparison = strA.localeCompare(strB);
+            } else {
+                // Default: text comparison (case-insensitive)
+                comparison = valueA.toString().toLowerCase().localeCompare(
+                    valueB.toString().toLowerCase()
+                );
+            }
 
             return order * comparison;
         });
