@@ -142,7 +142,8 @@
 
 
         @if(projectState.selectedInventoryView === "table"){
-        <p-table [value]="tableData()" [(selection)]="selectedNodes" dataKey="url" selectionMode="multiple" size="small" [scrollable]="false">
+        <p-table #dt [value]="tableData()" [(selection)]="selectedNodes" dataKey="url" selectionMode="multiple" size="small" [scrollable]="false"
+                 (sortFunction)="customSort($event)" [customSort]="true">
 
             <ng-template pTemplate="header">
                 <tr>
@@ -155,11 +156,17 @@
                     <!-- Frozen columns -->
                     <th class="sticky-rc surface-card"><p-tableHeaderCheckbox /></th>
                     @for(col of frozenColumns; track col.field){
-                    <th [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border surface-card sticky-rh':'surface-card sticky-rh'">{{ col.translationKey | translate }}</th>
+                    <th [pSortableColumn]="col.field" [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border surface-card sticky-rh':'surface-card sticky-rh'">
+                        <div class="flex align-items-center gap-2">
+                            {{ col.translationKey | translate }}
+                            <p-sortIcon [field]="col.field" />
+                        </div>
+                    </th>
                     }
                     <!-- Scrollable columns -->
                     @for(col of scrollableColumns; track col.field){
-                    <th [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border surface-card sticky-r':'surface-card sticky-r'">
+                    <th [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border surface-card sticky-r':'surface-card sticky-r'"
+                        [pSortableColumn]="(col.type === 'text' || col.type === 'url' || col.type === 'number' || col.type === 'date' || col.type === 'array') ? col.field : undefined">
                         @if(col.type === 'boolean' || col.type === 'archive' || col.type === 'noindex'){
                         <p-button [label]="col.translationKey | translate" styleClass="font-bold capitalize"
                                   [icon]="isColumnFiltered(col.field) ? 'pi pi-filter' : 'pi pi-filter-slash'" iconPos="right"
@@ -168,8 +175,14 @@
                                   (onClick)="toggleColumnFilter(col.field)"
                                   [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showTrue' | translate: {column: (col.translationKey | translate)})"
                                   appendTo="body" showDelay="300" hideDelay="0" />
+                        } @else if(col.type === 'text' || col.type === 'url' || col.type === 'number' || col.type === 'date' || col.type === 'array') {
+                        <div class="flex align-items-center gap-2">
+                            {{ col.translationKey | translate }}
+                            <p-sortIcon [field]="col.field" />
+                        </div>
+                        }@else{
+                        {{ col.translationKey | translate }}
                         }
-                        @else{{{ col.translationKey | translate }}}
                     </th>
                     }
                 </tr>
