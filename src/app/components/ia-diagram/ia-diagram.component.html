@@ -3,11 +3,19 @@
         <h1 class="mb-2">{{'iaDiagram._title' | translate}}</h1>
         <p-button icon="pi pi-times" text rounded (onClick)="iaDiagram.closeDiagram()" [attr.aria-label]="'common.close' | translate" />
     </div>
+
     <div class="overflow-auto">
+        <!--Toggle View-->
+        <div class="flex flex-column hover:text-primary absolute z-1 ml-4">
+            <label for="view" class="text-xs font-semibold xl:my-1">{{ 'common.view' | translate }}</label>
+            <p-selectButton id="view" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
+                            [options]="viewOptions" [(ngModel)]="selectedView" (onChange)="changeView()" />
+        </div>
+        <!--IA Diagram-->
         <p-organization-chart [value]="projectTree()" styleClass="mt-2">
             <ng-template let-node pTemplate="default">
                 <!--ORPHAN STATUS-->
-                @if(node.data.status.isOrphan){
+                @if(node.data.status.isOrphan && selectedView() !== 'final'){
                 <div class="-mt-6 mb-6">
                     <i class="pi pi-times text-red-500" [pTooltip]="'iaDiagram.tooltip.orphan' | translate" tooltipPosition="top" tooltipStyleClass="z-200"></i>
                 </div>
