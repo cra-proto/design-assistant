@@ -228,6 +228,7 @@ html.dark-mode .p-button.p-button-primary {
 .secondary-outline .p-splitbutton-button,
 .secondary-outline .p-splitbutton-dropdown,
 .secondary-outline.p-button,
+.secondary-outline .p-inputtext,
 .secondary-outline {
   border-color: var(--p-zinc-200) !important;
 }

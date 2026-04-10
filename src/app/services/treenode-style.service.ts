@@ -7,7 +7,7 @@ export class TreeNodeStyleService {
     private theme = inject(UserSettingsService)
 
     //TreeNode styles
-    public updateNodeStyles(nodes: TreeNode[] | null, level = 0): void {
+    public updateNodeStyles(nodes: TreeNode[] | null, level = 0, applyStatusColors = true): void {
         if (!nodes) return;
 
         for (const node of nodes) {
@@ -17,11 +17,11 @@ export class TreeNodeStyleService {
             let bgStyle: string;
             if (!node.data?.status.inScope || node.data?.status.isContainer) {
                 bgStyle = this.contextStyles['template'];
-            } else if (node.data?.status.isNew) {
+            } else if (node.data?.status.isNew && applyStatusColors) {
                 bgStyle = this.contextStyles['new'];
-            } else if (node.data?.status.isROT) {
+            } else if (node.data?.status.isROT && applyStatusColors) {
                 bgStyle = this.contextStyles['rot'];
-            } else if (node.data?.status.isMoved) {
+            } else if (node.data?.status.isMoved && applyStatusColors) {
                 bgStyle = this.contextStyles['move'];
             } else {
                 bgStyle = this.bgColors[level % this.bgColors.length];
@@ -31,7 +31,7 @@ export class TreeNodeStyleService {
 
             if (node.children?.length) {
                 const nextLevel = (!node.data?.status.inScope || node.data?.status.isContainer) ? level : level + 1;
-                this.updateNodeStyles(node.children, nextLevel);
+                this.updateNodeStyles(node.children, nextLevel, applyStatusColors);
             }
         }
     }

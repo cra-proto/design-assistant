@@ -1,0 +1,21 @@
+<h3>{{'findPages.findChildren._title' | translate}}</h3>
+<p>{{'findPages.findChildren.description' | translate}}</p>
+<div class="flex flex-row gap-1">
+    <p-iftalabel>
+        <p-inputnumber inputId="depth" [showButtons]="true" mode="decimal" variant="outlined" class="secondary-outline"
+                       [(ngModel)]="getChildPagesService.depth" [min]="0" [max]="6" />
+        <label for="depth">{{'findPages.findChildren.depth' | translate}}</label>
+    </p-iftalabel>
+    <p-button icon="pi pi-search" [label]="'findPages.findChildren.add' | translate" severity="primary" class="flex min-h-full white-space-nowrap"
+              (click)="addChildPages()" [loading]="getChildPagesService.searchProgress()" />
+</div>
+@if(getChildPagesService.searchProgress(); as progress){
+<p-progressbar [value]="progress.processedUrls / progress.totalUrls * 100 | number:'1.0-0'" styleClass="h-2rem centered-label mt-1 transition-duration-100">
+    <ng-template #content>
+        <div class="flex flex-row gap-6">
+            <span class="text-white">{{'findPages.findChildren.progressDepth' | translate}} {{progress.depth}}</span>
+            <span class="text-white">{{progress.processedUrls}}/{{progress.totalUrls}}</span>
+        </div>
+    </ng-template>
+</p-progressbar>
+}

@@ -552,6 +552,15 @@ export class ProjectStateService {
         });
     }
 
+    // Add parent references back
+    private rebuildParents(nodes: TreeNode[], parent: TreeNode | undefined): void {
+        for (const node of nodes) {
+            node.parent = parent;
+            if (node.children?.length) {
+                this.rebuildParents(node.children, node);
+            }
+        }
+    }
 
     // Reset project
     async resetProject() {
@@ -1183,4 +1192,71 @@ export class ProjectStateService {
         }
         return 'en'; // fallback
     }
+
+    // Restore moved pages to their original position
+    getBaselineTree(nodes: TreeNode[]): TreeNode[] {
+        // Clone so we don't edit the working copy if the IA tree
+        const clonedTree = structuredClone(nodes);
+        this.rebuildParents(clonedTree, undefined);
+
+        // Check for moved nodes and keep processing until no more are found
+        let hasMovedNodes = true;
+        while (hasMovedNodes) {
+            const movedNodes: Array<{ node: TreeNode, originalParentUrl: string }> = [];
+            this.collectMovedNodes(clonedTree, movedNodes);
+
+            if (movedNodes.length === 0) {
+                hasMovedNodes = false;
+                break;
+            }
+
+            // Move each moved node back under its original parent
+            for (const { node, originalParentUrl } of movedNodes) {
+                const originalParent = originalParentUrl === ''
+                    ? null  // Root level
+                    : this.findNodeByUrl(clonedTree, originalParentUrl);
+
+                if (originalParent) {
+                    originalParent.children = originalParent.children || [];
+                    originalParent.children.push(node);
+                    node.parent = originalParent;
+                }
+            }
+        }
+        this.removeNewPages(clonedTree);
+        return clonedTree;
+    }
+
+    private collectMovedNodes(nodes: TreeNode[], movedNodes: Array<{ node: TreeNode, originalParentUrl: string }>): void {
+        for (let i = nodes.length - 1; i >= 0; i--) {
+            const node = nodes[i];
+            const currentParentUrl = node.parent?.data?.url ?? '';
+            const originalParentUrl = node.data?.originalParent ?? '';
+
+            // Check if this node has been moved
+            if (currentParentUrl !== originalParentUrl) {
+                // Remove from current position (with all children attached)
+                movedNodes.push({
+                    node: node,
+                    originalParentUrl: originalParentUrl
+                });
+                nodes.splice(i, 1);
+            } else if (node.children?.length) {
+                // Only traverse children if THIS node hasn't moved
+                this.collectMovedNodes(node.children, movedNodes);
+            }
+        }
+    }
+
+    private removeNewPages(nodes: TreeNode[]): void {
+        for (let i = nodes.length - 1; i >= 0; i--) {
+            const node = nodes[i];
+            if (node.data?.status.isNew) {
+                nodes.splice(i, 1);
+            } else if (node.children?.length) {
+                this.removeNewPages(node.children);
+            }
+        }
+    }
+
 }

@@ -1,11 +1,11 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 //PrimeNG Modules
-import { TableModule } from 'primeng/table';
+import { TableModule, Table } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { PopoverModule } from 'primeng/popover';
 import { TooltipModule } from 'primeng/tooltip';
@@ -16,10 +16,9 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService } from 'primeng/api';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { MenuModule } from 'primeng/menu';
-import { MenuItem } from 'primeng/api';
+import { ConfirmationService, MenuItem, SortEvent } from 'primeng/api';
 
 //Components and models
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
@@ -81,6 +80,9 @@ export class InventoryComponent implements OnInit {
         const activeFilterCount = Object.values(filters).filter(v => v === true).length;
         return activeFilterCount > 1 || !filters['inScope']; // Checks for filters other than inScope
     }
+
+    @ViewChild('dt') dt!: Table;
+    isSorted: boolean | null = null
 
     // All table columns
     allColumns = this.projectState.getTreeTableColumns();
@@ -292,7 +294,9 @@ export class InventoryComponent implements OnInit {
     tableData = computed<FlattenedTreeNode[]>(() => {
         const allNodes = this.projectState.flattenTree();
         const filters = this.columnFilters();
-        return allNodes.filter(node => {
+
+        //Apply filters
+        const filtered = allNodes.filter(node => {
             if (filters['anyUnusual']) {
                 const hasAnyUnusual = this.fieldFilters.some(field => {
                     if (field === 'archiveStatus') return node[field] !== 'current';
@@ -308,6 +312,59 @@ export class InventoryComponent implements OnInit {
                 if (field === 'noindex') { return node[field] !== 'none'; } // Special handling for noindex field                             
                 return node[field as keyof FlattenedTreeNode] === true; // Boolean filters - show only true values
             });
+        });
+
+        //Apply sorting
+        const field = this.sortField();
+        const order = this.sortOrder();
+        if (!field) return filtered;
+
+        return [...filtered].sort((a, b) => {
+            const valueA = a[field as keyof FlattenedTreeNode];
+            const valueB = b[field as keyof FlattenedTreeNode];
+
+            // Get the column type
+            const column = this.projectState.getTreeTableColumns().find(col => col.field === field);
+            const colType = column?.type;
+
+            // Handle null/undefined
+            const isEmptyA = valueA == null || valueA === '' || (Array.isArray(valueA) && valueA.length === 0);
+            const isEmptyB = valueB == null || valueB === '' || (Array.isArray(valueB) && valueB.length === 0);
+            if (isEmptyA && isEmptyB) return 0;
+            if (colType === 'date' || colType === 'number') {
+                // null at the start (by oldest date or smallest number)
+                if (isEmptyA) return -order;
+                if (isEmptyB) return order;
+            } else {
+                // null at the end (by z)
+                if (isEmptyA) return order;
+                if (isEmptyB) return -order;
+            }
+
+            let comparison = 0;
+
+            // Type-specific comparison
+            if (colType === 'date') {
+                // Compare as dates
+                const dateA = new Date(valueA as string).getTime();
+                const dateB = new Date(valueB as string).getTime();
+                comparison = dateA - dateB;
+            } else if (colType === 'number') {
+                // Compare as numbers
+                comparison = (valueA as number) - (valueB as number);
+            } else if (colType === 'array') {
+                // Compare arrays by joined string
+                const strA = (valueA as string[]).join(', ').toLowerCase();
+                const strB = (valueB as string[]).join(', ').toLowerCase();
+                comparison = strA.localeCompare(strB);
+            } else {
+                // Default: text comparison (case-insensitive)
+                comparison = valueA.toString().toLowerCase().localeCompare(
+                    valueB.toString().toLowerCase()
+                );
+            }
+
+            return order * comparison;
         });
     });
 
@@ -620,6 +677,13 @@ export class InventoryComponent implements OnInit {
         });
     }
 
+    toggleInScopeFilter(): void {
+        this.columnFilters.set({
+            inScope: !this.columnFilters()['inScope'],
+            anyUnusual: false
+        });
+    }
+
     // AI metadata generation
     async generateMetadata(mode: "live" | "prototype" = "live") {
         if (!this.selectedNodes.length) return;
@@ -794,12 +858,15 @@ export class InventoryComponent implements OnInit {
                         }
                     },
                     {
-                        label: this.translate.instant('inventory.menu.status.filter.reset'),
-                        icon: 'pi pi-filter-slash',
+                        label: this.columnFilters()['inScope']
+                            ? this.translate.instant('inventory.menu.inscope.filter.remove')
+                            : this.translate.instant('inventory.menu.inscope.filter.add'),
+                        icon: this.columnFilters()['inScope']
+                            ? 'pi pi-filter'
+                            : 'pi pi-filter-slash',
                         command: () => {
-                            this.resetFilters()
-                        },
-                        disabled: !this.hasActiveFilters()
+                            this.toggleInScopeFilter();
+                        }
                     },
                 ]
             },
@@ -860,6 +927,28 @@ export class InventoryComponent implements OnInit {
         const currentLang = this.translate.currentLang?.startsWith('fr') ? '&lang=FR' : ''; //sets UI language in UPD
         const updLink = `https://cra-arc.alpha.canada.ca/en/pages?url=${node.url}${currentLang}`
         window.open(updLink, '_blank');
+    }
+
+    // Table sorting
+    sortField = signal<string | null>(null);
+    sortOrder = signal<number>(1); // 1 = ascending, -1 = descending
+    lastSortField: string | null = null;
+    lastSortOrder: number | null = null;
+
+    // Sort table
+    customSort(event: SortEvent): void {
+        if (event.field === this.lastSortField && event.order === 1 && this.lastSortOrder === -1) {
+            this.sortField.set(null);
+            this.sortOrder.set(1);
+            this.lastSortField = null;
+            this.lastSortOrder = null;
+            this.dt.reset();
+        } else {
+            this.sortField.set(event.field ?? null);
+            this.sortOrder.set(event.order ?? 1);
+            this.lastSortField = event.field ?? null;
+            this.lastSortOrder = event.order ?? null;
+        }
     }
 
 }
