@@ -15,7 +15,7 @@
         <p-organization-chart [value]="projectTree()" styleClass="mt-2">
             <ng-template let-node pTemplate="default">
                 <!--ORPHAN STATUS-->
-                @if(node.data.status.isOrphan && selectedView() !== 'final'){
+                @if(node.data.status.isOrphan){
                 <div class="-mt-6 mb-6">
                     <i class="pi pi-times text-red-500" [pTooltip]="'iaDiagram.tooltip.orphan' | translate" tooltipPosition="top" tooltipStyleClass="z-200"></i>
                 </div>
