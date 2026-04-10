@@ -677,6 +677,13 @@ export class InventoryComponent implements OnInit {
         });
     }
 
+    toggleInScopeFilter(): void {
+        this.columnFilters.set({
+            inScope: !this.columnFilters()['inScope'],
+            anyUnusual: false
+        });
+    }
+
     // AI metadata generation
     async generateMetadata(mode: "live" | "prototype" = "live") {
         if (!this.selectedNodes.length) return;
@@ -851,12 +858,15 @@ export class InventoryComponent implements OnInit {
                         }
                     },
                     {
-                        label: this.translate.instant('inventory.menu.status.filter.reset'),
-                        icon: 'pi pi-filter-slash',
+                        label: this.columnFilters()['inScope']
+                            ? this.translate.instant('inventory.menu.inscope.filter.remove')
+                            : this.translate.instant('inventory.menu.inscope.filter.add'),
+                        icon: this.columnFilters()['inScope']
+                            ? 'pi pi-filter'
+                            : 'pi pi-filter-slash',
                         command: () => {
-                            this.resetFilters()
-                        },
-                        disabled: !this.hasActiveFilters()
+                            this.toggleInScopeFilter();
+                        }
                     },
                 ]
             },
