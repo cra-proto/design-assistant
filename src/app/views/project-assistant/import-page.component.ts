@@ -75,7 +75,7 @@ export class ImportPageComponent implements OnInit {
                 }
                 catch (urlError) {
                     // Invalid URL format
-                    console.warn("Invalid URL format. Redirecting user.");
+                    console.warn(`Invalid URL format. Redirecting user. ${urlError}`);
                     this.router.navigate(['/dashboard']);
                     return;
                 }

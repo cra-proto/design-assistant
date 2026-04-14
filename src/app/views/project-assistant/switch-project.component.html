@@ -53,7 +53,7 @@
       <!--RECYCLE BIN-->
       @if(projectStorageService.getLocalProjectList('deleted').length > 0)
       {<p-button
-                [label]="currentMode() === 'deleted' ? 'View saved projects' : 'View deleted projects'"
+                [label]="currentMode() === 'deleted' ? ('switch.viewSaved' | translate) : ('switch.viewDeleted' | translate)"
                 [icon]="currentMode() === 'deleted' ? 'pi pi-list' : 'pi pi-trash'"
                 outlined
                 size="small"
@@ -114,7 +114,7 @@
 
         <ng-template pTemplate="title">
           <div class="text-xl font-bold -mt-3">
-            {{ project.projectName || "Autosave" }}
+            {{ project.projectName || ('common.autosave' | translate) }}
           </div>
         </ng-template>
 

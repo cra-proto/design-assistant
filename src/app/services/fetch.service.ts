@@ -130,7 +130,7 @@ export class FetchService {
   }
 
   public async fetchJSON(url: string, fields: string[]): Promise<Record<string, string>> {
-    const jsonUrl = url.replace('.html', '/jcr:content.json');
+    const jsonUrl = url.replace('.html', '/jcr:content.json?nocache=true');
     const result: Record<string, string> = {};
 
     try {
@@ -393,7 +393,7 @@ export class FetchService {
           const url = new URL(href, baseUrl);
           url.hash = '';
           url.search = '';
-          return url.href;
+          return url.href.replace("/content/canadasite", "");
         } catch {
           return null;
         }

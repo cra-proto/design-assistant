@@ -32,6 +32,8 @@ export class IaDiagramComponent {
     const tree = this.projectState.getProject().projectData;
     if (this.selectedView() === 'baseline') {
       return this.projectState.getBaselineTree(tree);
+    } else if (this.selectedView() === 'final') {
+      return this.projectState.getFinalTree(tree);
     } else return tree;
   });
 

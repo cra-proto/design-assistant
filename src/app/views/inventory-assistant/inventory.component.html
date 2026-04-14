@@ -297,7 +297,7 @@
                         @if(!node.isNew){
                         <p-button [pTooltip]="'inventory.openInUPD' | translate" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0"
                                   rounded outlined severity="info" size="small" styleClass="secondary-outline" icon="pi pi-external-link" iconPos="top"
-                                  (onClick)="openInUPD(node, col)" class="flex justify-content-center">
+                                  (onClick)="openInUPD(node)" class="flex justify-content-center">
                             <ng-template pTemplate="icon">
                                 <img src="images/upd-icon.svg" width="24" height="24" alt="">
                             </ng-template>

@@ -521,9 +521,9 @@ export class AddPagesComponent implements OnInit {
 
         // Create the new TreeNode for the broken page
         const newNode: TreeNode = {
-            label: 'New page',
+            label: this.translate.instant('addPages.new.H1'),
             data: {
-                h1: 'New page',
+                h1: this.translate.instant('addPages.new.H1'),
                 url: this.selectedBrokenUrl.href,
                 originalParent: this.selectedParentUrl.url,
                 status: {

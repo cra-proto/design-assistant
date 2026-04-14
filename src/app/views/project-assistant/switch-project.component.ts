@@ -45,6 +45,7 @@ import { ProjectStorageService } from '../../services/storage/project-storage.se
 import { CloudStorageService } from '../../services/storage/cloud-storage.service';
 import { ProjectMetadata, ProjectPhase } from '../../common/data.model';
 
+//TODO: FIX HARDCODED TRANSLATIONS
 
 @Component({
   selector: 'aida-switch-project',

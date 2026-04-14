@@ -158,45 +158,6 @@ export class CollaboratorService {
         return colors[collab.id % colors.length];
     }
 
-    // Collaborator avatar - test users
-    public testCollaborators: GitHubUser[] = [
-        {
-            login: 'amber',
-            id: 12345,
-            avatar_url: '',
-            name: 'Amber L',
-            email: 'amber@email.com'
-        },
-        {
-            login: 'miguel',
-            id: 67890,
-            avatar_url: '',
-            name: 'Miguel B',
-            email: 'miguel@email.com'
-        },
-        {
-            login: 'naomi',
-            id: 24680,
-            avatar_url: '',
-            name: 'Naomi H',
-            email: 'naomi@email.com'
-        },
-        {
-            login: 'parissa',
-            id: 13579,
-            avatar_url: '',
-            name: 'Parissa N',
-            email: 'parissa@email.com'
-        },
-        {
-            login: 'Rosa',
-            id: 11111,
-            avatar_url: '',
-            name: 'Rosa Z',
-            email: 'rosa@email.com'
-        }
-    ];
-
     // Get list of org members (for adding as collaborators)
     public async getOrgMembers(org: string): Promise<GitHubUser[]> {
         const token = this.exportGitHubService.token();

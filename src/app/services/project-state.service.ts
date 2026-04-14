@@ -995,7 +995,6 @@ export class ProjectStateService {
                     const childIndex = children.findIndex(c => c === nodeToDelete);
                     if (childIndex > -1) {
                         children.splice(childIndex, 1);
-                        node.children = children.length ? children : undefined;
                         return true;
                     }
                     // recurse into grandchildren
@@ -1193,7 +1192,7 @@ export class ProjectStateService {
         return 'en'; // fallback
     }
 
-    // Restore moved pages to their original position
+    // Restore moved pages to their original position and remove new pages
     getBaselineTree(nodes: TreeNode[]): TreeNode[] {
         // Clone so we don't edit the working copy if the IA tree
         const clonedTree = structuredClone(nodes);
@@ -1227,6 +1226,16 @@ export class ProjectStateService {
         return clonedTree;
     }
 
+    // Remove ROT pages
+    getFinalTree(nodes: TreeNode[]): TreeNode[] {
+        // Clone so we don't edit the working copy if the IA tree
+        const clonedTree = structuredClone(nodes);
+        this.rebuildParents(clonedTree, undefined);
+        // Remove ROT
+        this.removeROTPages(clonedTree);
+        return clonedTree;
+    }
+
     private collectMovedNodes(nodes: TreeNode[], movedNodes: Array<{ node: TreeNode, originalParentUrl: string }>): void {
         for (let i = nodes.length - 1; i >= 0; i--) {
             const node = nodes[i];
@@ -1255,6 +1264,17 @@ export class ProjectStateService {
                 nodes.splice(i, 1);
             } else if (node.children?.length) {
                 this.removeNewPages(node.children);
+            }
+        }
+    }
+
+    private removeROTPages(nodes: TreeNode[]): void {
+        for (let i = nodes.length - 1; i >= 0; i--) {
+            const node = nodes[i];
+            if (node.data?.status.isROT) {
+                nodes.splice(i, 1);
+            } else if (node.children?.length) {
+                this.removeROTPages(node.children);
             }
         }
     }

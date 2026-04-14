@@ -1,4 +1,4 @@
-import { Component, inject, computed, ViewChild, effect, afterNextRender } from '@angular/core';
+import { Component, inject, computed, ViewChild, effect, afterNextRender, OnDestroy } from '@angular/core';
 import { CommonModule, LocationStrategy } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -19,6 +19,8 @@ import { ProjectStateService } from '../../services/project-state.service';
 import { TreeNodeStyleService } from '../../services/treenode-style.service';
 import { UserSettingsService } from '../../services/user-settings.service';
 
+//TODO: FIX HARDCODED TRANSLATIONS
+
 @Component({
     selector: 'aida-ia-table',
     imports: [FormsModule, CommonModule, TranslateModule,
@@ -30,7 +32,7 @@ import { UserSettingsService } from '../../services/user-settings.service';
     templateUrl: './ia-table.component.html',
     styleUrl: './ia-table.component.css'
 })
-export class IaTableComponent {
+export class IaTableComponent implements OnDestroy {
     private projectState = inject(ProjectStateService);
     private treeNodeStyleService = inject(TreeNodeStyleService);
     private settingsService = inject(UserSettingsService);
@@ -51,6 +53,12 @@ export class IaTableComponent {
         ];
         this.baseHref = this.locationStrategy.getBaseHref();
         this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
+    }
+
+    ngOnDestroy(): void {
+        if (this.editingNode) { //auto-save before exiting
+            this.editingNode.data.editing = null;
+        }
     }
 
     //REVIEW THESE FUNCTIONS
@@ -489,7 +497,6 @@ export class IaTableComponent {
                 if (childIndex > -1) {
                     this.undoArray.push({ node: nodeToDelete, parent: node, index: childIndex });
                     children.splice(childIndex, 1);
-                    node.children = children.length ? children : undefined;
                     return true;
                 }
                 // recurse into grandchildren
