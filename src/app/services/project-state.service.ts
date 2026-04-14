@@ -995,7 +995,6 @@ export class ProjectStateService {
                     const childIndex = children.findIndex(c => c === nodeToDelete);
                     if (childIndex > -1) {
                         children.splice(childIndex, 1);
-                        node.children = children.length ? children : undefined;
                         return true;
                     }
                     // recurse into grandchildren
