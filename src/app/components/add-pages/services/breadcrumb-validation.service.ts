@@ -81,7 +81,7 @@ export class BreadcrumbValidationService {
         ? [{
           ...p.breadcrumb[0],
           styleClass: inScopeUrls.has(p.breadcrumb[0].url) ? this.Colors.green : this.Colors.gray,
-          linkTooltip: 'Breadcrumb root',
+          linkTooltip: this.translate.instant('addPages.breadcrumb.tooltip.isRoot'),
           inScope: inScopeUrls.has(p.breadcrumb[0].url),
           iaOrphan: false
         }]
@@ -89,18 +89,18 @@ export class BreadcrumbValidationService {
       ...p.breadcrumb.slice(1).map(crumb => ({
         ...crumb,
         icon: `${this.Icons.pending} ${this.Colors.gray}`,
-        iconTooltip: 'Validation pending',
+        iconTooltip: this.translate.instant('addPages.breadcrumb.tooltip.validationPending'),
         styleClass: this.Colors.gray,
-        linkTooltip: 'Validation pending',
+        linkTooltip: this.translate.instant('addPages.breadcrumb.tooltip.validationPending'),
         inScope: inScopeUrls.has(crumb.url)
       })),
       { //include actual page in breadcrumb
         label: p.h1,
         url: p.href,
         icon: `${this.Icons.pending} ${this.Colors.gray}`,
-        iconTooltip: 'Validation pending',
+        iconTooltip: this.translate.instant('addPages.breadcrumb.tooltip.validationPending'),
         styleClass: this.Colors.gray,
-        linkTooltip: 'Validation pending',
+        linkTooltip: this.translate.instant('addPages.breadcrumb.tooltip.validationPending'),
         inScope: true
       } as BreadcrumbNode
     ].filter(Boolean)); //removes undefined (can happen when adding homepage or any page missing a breadcrumb)
@@ -138,8 +138,8 @@ export class BreadcrumbValidationService {
 
         if (!parent.url || !child.url) { // fallback if breadcrumbs are missing links (unlikely but could happen on freestyle pages)
           child.icon = `${this.Icons.error} ${this.Colors.red}`;
-          child.iconTooltip = 'Link missing from breadcrumb'
-          child.iaOrphan = true;
+          child.iconTooltip = this.translate.instant('addPages.breadcrumb.tooltip.linkMissing'),
+            child.iaOrphan = true;
           continue;
         }
 
@@ -154,7 +154,7 @@ export class BreadcrumbValidationService {
             .filter((href): href is string => !!href)
             .map(href => {
               try {
-                return new URL(href, parent.url).href;
+                return new URL(href, parent.url).href.replace("/content/canadasite", "");
               } catch {
                 return href;
               }
@@ -162,24 +162,24 @@ export class BreadcrumbValidationService {
 
           if (links.includes(child.url)) {
             child.icon = `${this.Icons.valid} ${this.Colors.green}`;
-            child.iconTooltip = 'Valid connection'
+            child.iconTooltip = this.translate.instant('addPages.breadcrumb.tooltip.validConnection')
             child.iaOrphan = false;
             child.styleClass = child.inScope ? this.Colors.green : this.Colors.gray;
-            child.linkTooltip = 'Valid child page';
+            child.linkTooltip = this.translate.instant('addPages.breadcrumb.tooltip.validChild');
           } else {
             child.icon = `${this.Icons.orphan} ${this.Colors.red}`;
-            child.iconTooltip = 'No link from parent'
+            child.iconTooltip = this.translate.instant('addPages.breadcrumb.tooltip.noLink')
             child.iaOrphan = true;
             child.styleClass = child.inScope ? this.Colors.red : this.Colors.gray;
-            child.linkTooltip = 'IA Orphan';
+            child.linkTooltip = this.translate.instant('addPages.breadcrumb.tooltip.isOrphan');
           }
         } catch (error) { //this will happen if fetch fails (breadcrumb link may be broken for example since we only validate the urls from the user input)
           console.error(`Error validating breadcrumb link from ${parent.url} to ${child.url}:`, error);
           child.icon = `${this.Icons.error} ${this.Colors.red}`;
-          child.iconTooltip = 'Error validating link'
+          child.iconTooltip = this.translate.instant('addPages.breadcrumb.tooltip.error')
           child.iaOrphan = true;
           child.styleClass = child.inScope ? `${this.Colors.red} ${this.Modifiers.errorBorder}` : `${this.Colors.gray} ${this.Modifiers.errorBorder}`;
-          child.linkTooltip = 'Error validating link';
+          child.linkTooltip = this.translate.instant('addPages.breadcrumb.tooltip.error')
         }
       }
     }
@@ -356,7 +356,7 @@ export class BreadcrumbValidationService {
 
         // descend to this node's children for the next crumb
         parentUrl = node.data.url ?? null;
-        currentLevel = node.children!;
+        currentLevel = node.children ?? [];
       }
     }
     return clonedTree;
