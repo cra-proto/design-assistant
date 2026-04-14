@@ -288,8 +288,8 @@ export class ExportGitHubService {
     const issued = (doc.querySelector('meta[name="dcterms.issued"]') as HTMLMetaElement)?.content || "";
     const modified = (doc.querySelector('meta[name="dcterms.modified"]') as HTMLMetaElement)?.content || "";
     const robots = (doc.querySelector('meta[name="robots"]') as HTMLMetaElement)?.content || "";
-    let robotsYaml = "";
-    if (robots) { robotsYaml = "\r\nrobots: \"" + robots + "\""; }
+    const robotsYaml = robots ? "\r\nrobots: \"" + robots + "\"" : "";
+    const limitedWidth = doc.querySelector('.cnt-wdth-lmtd') ? "\r\npageclass: cnt-wdth-lmtd" : "";
 
     // Set alternate language link
     const altLangPage =
@@ -427,7 +427,7 @@ export class ExportGitHubService {
     pageContent = await this.formatHtmlWithPrettier(pageContent);
 
     // Content in jekyll format
-    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\n${auth}${fra}${robotsYaml}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || "  []"}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
+    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\n${auth}${fra}${robotsYaml}${limitedWidth}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || "  []"}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
 
     return frontMatter;
   }
@@ -445,6 +445,7 @@ export class ExportGitHubService {
     const description = pageLang === "en" ? node.data.metadata?.descriptionEN || "" : node.data.metadata?.descriptionFR || "";
     const keywords = pageLang === "en" ? node.data.metadata?.keywordsEN || "" : node.data.metadata?.keywordsFR || "";
     const dateModified = new Date().toISOString().split('T')[0];
+    const limitedWidth = "\r\npageclass: cnt-wdth-lmtd"
 
     const crumbsYaml = breadcrumbs.length > 0
       ? breadcrumbs.map(crumb => `  - title: "${crumb.title}"\r\n    link: "${crumb.link}"`).join("\r\n")
@@ -461,7 +462,7 @@ export class ExportGitHubService {
       : `\r\nlang: fr\r\nfeedbackPath: https://www.canada.ca/etc/designs/canada/wet-boew/assets/feedback/page-feedback-fr.html\r\nprivacyUrl: https://www.canada.ca/fr/agence-revenu/organisation/avis-confidentialite.html\r\ntermsURL: https://www.canada.ca/fr/transparence/avis.html\r\nsitemenuPath: https://www.canada.ca/content/dam/canada/sitemenu/sitemenu-v2-fr.html\r\ncontextualFooter:\r\n  title: "Agence du revenu du Canada (ARC)"\r\n  links:\r\n    - text: "Contacter l'ARCA"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/coordonnees.html"\r\n    - text: "Mettre à jour vos renseignements"\r\n      url: "https://www.canada.ca/fr/agence-revenu/services/mettre-a-jour-renseignements-arc.html"\r\n    - text: "À propos de l'ARC"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/a-propos-agence-revenu-canada-arc.html"`
 
     // Build front matter
-    const frontMatter = `---\r\nlayout: default\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: ""\r\nkeywords: "${keywords}"\r\n${auth}${fra}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${dateModified}\r\ndateIssued: ${dateModified}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n<!-- Add your content here -->`;
+    const frontMatter = `---\r\nlayout: default\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: ""\r\nkeywords: "${keywords}"\r\n${auth}${fra}${limitedWidth}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${dateModified}\r\ndateIssued: ${dateModified}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n<!-- Add your content here -->`;
 
     return frontMatter;
   }
