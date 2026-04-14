@@ -773,11 +773,11 @@ export class InventoryComponent implements OnInit {
         }
     }
 
-    async refreshData(mode: 'status' | 'problems' | 'data' | 'owner' | 'metadata' | 'all') {
+    async refreshData(mode: 'status' | 'problems' | 'data' | 'owner' | 'metadata' | 'all' = 'all') {
         if (!this.selectedNodes.length) return;
 
         for (const node of this.selectedNodes) {
-            this.projectState.refreshData(node.url, node.oppUrl, 'all');
+            this.projectState.refreshData(node.url, node.oppUrl, mode);
         }
     }
 
@@ -923,7 +923,7 @@ export class InventoryComponent implements OnInit {
         ];
     }
 
-    openInUPD(node: FlattenedTreeNode, col: TableColumn): void {
+    openInUPD(node: FlattenedTreeNode): void {
         const currentLang = this.translate.currentLang?.startsWith('fr') ? '&lang=FR' : ''; //sets UI language in UPD
         const updLink = `https://cra-arc.alpha.canada.ca/en/pages?url=${node.url}${currentLang}`
         window.open(updLink, '_blank');
