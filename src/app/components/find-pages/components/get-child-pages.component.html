@@ -7,7 +7,7 @@
         <label for="depth">{{'findPages.findChildren.depth' | translate}}</label>
     </p-iftalabel>
     <p-button icon="pi pi-search" [label]="'findPages.findChildren.add' | translate" severity="primary" class="flex min-h-full white-space-nowrap"
-              (click)="addChildPages()" [loading]="getChildPagesService.searchProgress()" />
+              (click)="findChildPages()" [loading]="getChildPagesService.searchProgress()" />
 </div>
 @if(getChildPagesService.searchProgress(); as progress){
 <p-progressbar [value]="progress.processedUrls / progress.totalUrls * 100 | number:'1.0-0'" styleClass="h-2rem centered-label mt-1 transition-duration-100">
@@ -19,3 +19,28 @@
     </ng-template>
 </p-progressbar>
 }
+<!-- URLs List Section -->
+@if(childUrls().length > 0) {
+<h3 class="text-xl my-2">{{'findPages.findChildren.urls' | translate}}</h3>
+<div class="flex flex-row align-items-center gap-2">
+    <p-button
+              [label]="'findPages.task.addToProject' | translate"
+              icon="pi pi-plus"
+              (onClick)="addUrlsToProject()" />
+    <p class="text-color-secondary">{{ 'findPages.task.addToProject.description' | translate: { number: selectedChildUrlsCount() } }}</p>
+</div>
+<div class="flex flex-column gap-2 max-h-64 overflow-y-auto border border-color-border p-2 rounded">
+    @for(item of childUrls(); track item.url; let i = $index) {
+    <div class="flex align-items-center gap-2">
+        <p-checkbox
+                    [(ngModel)]="childUrls()[i].selected"
+                    (ngModelChange)="toggleChildUrl(i, $event)"
+                    [inputId]="'url-' + i"
+                    [binary]="true"
+                    size="large" />
+        <label [for]="'url-' + i" class="break-all">{{item.url}}</label>
+    </div>
+    }
+</div>
+}
+@else if(selectedChildUrlsCount() > 0) { <p>{{ 'findPages.task.noUrls' | translate }}</p> }
