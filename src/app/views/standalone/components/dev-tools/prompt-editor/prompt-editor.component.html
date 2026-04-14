@@ -28,8 +28,7 @@
                 <div class="flex flex-row align-items-center gap-2">
                     <p-radioButton [inputId]="'show_' + fragment.key" [binary]="true"
                                    [ngModel]="isFragmentVisible(fragment.key)"
-                                   (ngModelChange)="toggleFragment(fragment.key)">
-                    </p-radioButton>
+                                   (ngModelChange)="toggleFragment(fragment.key)" />
                     <label [for]="'show_' + fragment.key" class="cursor-pointer font-semibold">{{ fragment.label | translate }}</label>
                 </div>
                 }
@@ -39,8 +38,7 @@
                 <div class="flex flex-row align-content-center gap-2">
                     <p-checkbox [inputId]="'show_' + prompt.enumKey" [binary]="true"
                                 [ngModel]="isPromptVisible(prompt.enumKey)"
-                                (ngModelChange)="togglePrompt(prompt.enumKey)">
-                    </p-checkbox>
+                                (ngModelChange)="togglePrompt(prompt.enumKey)" />
                     <label [for]="'show_' + prompt.enumKey" class="cursor-pointer font-semibold">{{ prompt.translationKey | translate }}</label>
                 </div>
                 }}
@@ -159,6 +157,12 @@
 <p>Result: {{ result }}</p>
 <p-button (click)="testResponse()">Test response</p-button>
 <pre>Response: {{ response | json }}</pre>
-<p-progressSpinner *ngIf="aiState().loading" />
-<p-message severity="error" *ngIf="aiState().error" [text]="aiState().error!" />
-<small *ngIf="aiState().respondingModel">Answered by: {{ aiState().respondingModel }}</small>
+@if(aiState().loading){
+<p-progressSpinner />
+}
+@if(aiState().error){
+<p-message severity="error" [text]="aiState().error!" />
+}
+@if(aiState().respondingModel){
+<small>Answered by: {{ aiState().respondingModel }}</small>
+}
