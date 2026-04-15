@@ -131,3 +131,11 @@
         padding-right: 5rem;
     }
 }
+
+.hasMenu:hover {
+    background-color: var(--p-primary-100) !important;
+}
+
+html.dark-mode .hasMenu:hover {
+    background-color: var(--p-primary-500) !important;
+}

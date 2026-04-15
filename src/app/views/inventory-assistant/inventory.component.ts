@@ -19,6 +19,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { MenuModule } from 'primeng/menu';
 import { ConfirmationService, MenuItem, SortEvent } from 'primeng/api';
+import { ContextMenuModule, ContextMenu } from 'primeng/contextmenu';
 
 //Components and models
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
@@ -48,7 +49,7 @@ interface ViewOption {
     imports: [CommonModule, FormsModule, TranslateModule,
         TableModule, ButtonModule, PopoverModule, TooltipModule,
         ToolbarModule, IftaLabelModule, MultiSelectModule, SelectButtonModule, MenuModule,
-        TagModule, ToggleButtonModule, ConfirmDialogModule,
+        TagModule, ToggleButtonModule, ConfirmDialogModule, ContextMenuModule,
         RadioButtonModule,
         ExportProjectComponent, AddPagesComponent, FindPagesComponent, IaTableComponent],
     templateUrl: './inventory.component.html',
@@ -369,7 +370,7 @@ export class InventoryComponent implements OnInit {
     });
 
     // Table - returns the value of a cell (used by getBooleanIcon)
-    getCellValue(node: FlattenedTreeNode, col: TableColumn): boolean {
+    getBooleanValue(node: FlattenedTreeNode, col: TableColumn): boolean {
         return node[col.field] as boolean;
     }
 
@@ -395,9 +396,12 @@ export class InventoryComponent implements OnInit {
         return `inventory.tooltip.boolean.${field}.${value}`;
     }
 
-    getArchiveStatusIcon(node: FlattenedTreeNode, col: TableColumn): string {
-        const status = node[col.field];
-        switch (status) {
+    getStringValue(node: FlattenedTreeNode, col: TableColumn): string {
+        return node[col.field] as string;
+    }
+
+    getArchiveStatusIcon(value: string): string {
+        switch (value) {
             case 'current':
                 return 'pi pi-minus text-gray-400';
             case 'to-archive':
@@ -415,9 +419,8 @@ export class InventoryComponent implements OnInit {
         return `inventory.tooltip.archive.${node[col.field]}`;
     }
 
-    getNoIndexIcon(node: FlattenedTreeNode, col: TableColumn): string {
-        const status = node[col.field];
-        switch (status) {
+    getNoIndexIcon(value: string): string {
+        switch (value) {
             case 'none':
                 return 'pi pi-minus text-gray-400';
             case 'en-only':
@@ -951,4 +954,174 @@ export class InventoryComponent implements OnInit {
         }
     }
 
+    // Context menu
+    @ViewChild('menuContext') menuContext!: ContextMenu;
+    itemsContext: MenuItem[] = [];
+
+    hasContextMenu(type: string): boolean {
+        return ['boolean', 'archive', 'noindex'].includes(type);
+    }
+
+    private currentEditNode: FlattenedTreeNode | undefined;
+    private currentEditCol: TableColumn | undefined;
+    private touchTimer: ReturnType<typeof setTimeout> | null = null;
+
+    onTouchStart(event: TouchEvent, node: FlattenedTreeNode, col: TableColumn) {
+        this.touchTimer = setTimeout(() => {
+            this.onRightClick(event, node, col);
+        }, 500); // 500ms long press
+    }
+
+    onTouchEnd(event: TouchEvent, node: FlattenedTreeNode, col: TableColumn) {
+        if (this.touchTimer) {
+            clearTimeout(this.touchTimer);
+            this.touchTimer = null;
+        }
+    }
+
+    onRightClick(event: MouseEvent | TouchEvent, node: FlattenedTreeNode, col: TableColumn) {
+        event.preventDefault();
+
+        this.currentEditNode = node;
+        this.currentEditCol = col;
+
+        if (!this.currentEditNode || !this.currentEditCol) return;
+
+        switch (col.type) {
+            case 'boolean':
+                this.updateBoolean(event, node, col);
+                break;
+            case 'archive':
+                this.updateArchive(event, node, col);
+                break;
+            case 'noindex':
+                this.updateNoIndex(event, node, col);
+                break;
+            default:
+                return;
+        }
+    }
+
+    markForTranslation2() {
+        //Booleans
+        marker('inventory.contextMenu.inScope.true');
+        marker('inventory.contextMenu.inScope.false');
+        marker('inventory.contextMenu.isNew.true');
+        marker('inventory.contextMenu.isNew.false');
+        marker('inventory.contextMenu.isMoved.true');
+        marker('inventory.contextMenu.isMoved.false');
+        marker('inventory.contextMenu.isROT.true');
+        marker('inventory.contextMenu.isROT.false');
+        marker('inventory.contextMenu.linksToPortal.true');
+        marker('inventory.contextMenu.linksToPortal.false');
+        marker('inventory.contextMenu.isOrphan.true');
+        marker('inventory.contextMenu.isOrphan.false');
+        //Archive
+        marker('inventory.contextMenu.archiveStatus.current');
+        marker('inventory.contextMenu.archiveStatus.to-archive');
+        marker('inventory.contextMenu.archiveStatus.archived');
+        marker('inventory.contextMenu.archiveStatus.unarchive');
+        //NoIndex
+        marker('inventory.contextMenu.noindex.none');
+        marker('inventory.contextMenu.noindex.both');
+
+    }
+    updateBoolean(event: MouseEvent | TouchEvent, node: FlattenedTreeNode, col: TableColumn) {
+        const currentValue = this.getBooleanValue(node, col);
+
+        this.itemsContext = [];
+
+        if (currentValue !== true) {
+            this.itemsContext.push({
+                label: this.translate.instant(`inventory.contextMenu.${col.field}.true`),
+                icon: this.getBooleanIcon(true, col.field),
+                command: () => this.saveValue(true)
+            });
+        }
+
+        if (currentValue !== false) {
+            this.itemsContext.push({
+                label: this.translate.instant(`inventory.contextMenu.${col.field}.false`),
+                icon: this.getBooleanIcon(false, col.field),
+                command: () => this.saveValue(false)
+            });
+        }
+
+        this.menuContext.show(event);
+    }
+
+    updateArchive(event: MouseEvent | TouchEvent, node: FlattenedTreeNode, col: TableColumn) {
+        const currentValue = this.getStringValue(node, col);
+
+        this.itemsContext = [];
+
+        if (currentValue === 'current') {
+            this.itemsContext.push({
+                label: this.translate.instant(`inventory.contextMenu.${col.field}.to-archive`),
+                icon: this.getArchiveStatusIcon('to-archive'),
+                command: () => this.saveValue('to-archive'),
+            });
+        }
+        else if (currentValue === 'to-archive') {
+            this.itemsContext.push({
+                label: this.translate.instant(`inventory.contextMenu.${col.field}.current`),
+                icon: this.getArchiveStatusIcon('current'),
+                command: () => this.saveValue('current'),
+            });
+        }
+        else if (currentValue === 'archived') {
+            this.itemsContext.push({
+                label: this.translate.instant(`inventory.contextMenu.${col.field}.unarchive`),
+                icon: this.getArchiveStatusIcon('unarchive'),
+                command: () => this.saveValue('unarchive'),
+            });
+        }
+        else if (currentValue === 'unarchive') {
+            this.itemsContext.push({
+                label: this.translate.instant(`inventory.contextMenu.${col.field}.archived`),
+                icon: this.getArchiveStatusIcon('archived'),
+                command: () => this.saveValue('archived'),
+            });
+        }
+        this.menuContext.show(event);
+    }
+
+    updateNoIndex(event: MouseEvent | TouchEvent, node: FlattenedTreeNode, col: TableColumn) {
+        const currentValue = this.getStringValue(node, col);
+
+        this.itemsContext = [
+            {
+                label: this.translate.instant(`inventory.contextMenu.${col.field}.both`),
+                icon: this.getNoIndexIcon('both'),
+                command: () => this.saveValue(true),
+                disabled: currentValue === 'both'
+            },
+            {
+                label: this.translate.instant(`inventory.contextMenu.${col.field}.none`),
+                icon: this.getNoIndexIcon('none'),
+                command: () => this.saveValue(false),
+                disabled: currentValue === 'none'
+            },
+
+        ];
+        this.menuContext.show(event);
+    }
+
+    saveValue(newValue: boolean | string) {
+        if (this.currentEditNode && this.currentEditCol?.field) {
+            const field = this.currentEditCol.field;
+            const section = this.currentEditCol.dataSection;
+            const node = this.projectState.findNodeByUrl(this.projectState.getProjectTree(), this.currentEditNode.url, 'primary');
+            const currentValue = node?.data[section][field]
+            if (node && field === 'noindex') {
+                node.data[section].noindexEN = newValue;
+                node.data[section].noindexFR = newValue;
+                this.projectState.setModifiedDate();
+            }
+            if (node && currentValue !== newValue) {
+                node.data[section][field] = newValue;
+                this.projectState.setModifiedDate();
+            }
+        }
+    }
 }

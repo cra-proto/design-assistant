@@ -185,6 +185,7 @@ export interface TableColumn {
     frozen?: boolean;
     group: ColumnGroups;
     visibleByDefault: boolean;
+    dataSection: string; //reference to how the data is nested in the TreeNode
 }
 
 export interface ColumnGroup {

@@ -198,7 +198,8 @@
 
                     <!-- Scrollable columns -->
                     @for(col of scrollableColumns; track col.field){
-                    <td [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border':''">
+                    <td [ngClass]="{ 'border-right-1': isLastInGroup(col.field), 'surface-border': isLastInGroup(col.field), 'hasMenu': hasContextMenu(col.type) }"
+                        (contextmenu)="onRightClick($event, node, col)" (touchstart)="onTouchStart($event, node, col)" (touchend)="onTouchEnd($event, node, col)">
                         <!-- Text fields -->
                         @if(col.type === 'text'){
                         {{ node[col.field] }}
@@ -268,7 +269,7 @@
                         }
                         <!-- Boolean fields -->
                         @if(col.type === 'boolean'){
-                        <i [class]="getBooleanIcon(getCellValue(node, col), col.field)" class="flex justify-content-center p-2"
+                        <i [class]="getBooleanIcon(getBooleanValue(node, col), col.field)" class="flex justify-content-center p-2"
                            [pTooltip]="getBooleanTooltip(node[col.field], col.field) | translate" tooltipPosition="top"
                            appendTo="body" showDelay="300" hideDelay="0"></i>
                         }
@@ -282,13 +283,13 @@
                         }
                         <!-- Archive field -->
                         @if(col.type === 'archive'){
-                        <i [class]="getArchiveStatusIcon(node, col)" class="flex justify-content-center p-2"
+                        <i [class]="getArchiveStatusIcon(getStringValue(node, col))" class="flex justify-content-center p-2"
                            [pTooltip]="getArchiveStatusTooltip(node, col) | translate" tooltipPosition="top"
                            appendTo="body" showDelay="300" hideDelay="0"></i>
                         }
                         <!-- Noindex field -->
                         @if(col.type === 'noindex'){
-                        <i [class]="getNoIndexIcon(node, col)" class="flex justify-content-center p-2"
+                        <i [class]="getNoIndexIcon(getStringValue(node, col))" class="flex justify-content-center p-2"
                            [pTooltip]="getNoIndexTooltip(node, col) | translate" tooltipPosition="top"
                            appendTo="body" showDelay="300" hideDelay="0"></i>
                         }
@@ -384,3 +385,5 @@
         </a>
     </ng-template>
 </p-menu>
+<!--Context Menus-->
+<p-contextMenu #menuContext [model]="itemsContext"></p-contextMenu>
