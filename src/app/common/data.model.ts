@@ -28,6 +28,34 @@ export interface CurrentPhase {
     status: PhaseStatus;
 }
 
+//Templates
+export enum PageTemplate {
+    Content = 'template.content',
+    Subway = 'template.subway',
+    OldSubway = 'template.oldSubway',
+    Newsroom = 'template.newsroom',
+    VideoTranscript = 'template.videoTranscript',
+    Campaign = 'template.campaign',
+    ReadmeForm = 'template.readmeForm',
+    ReadmeGuide = 'template.readmeGuide',
+    Guide = 'template.guide',
+    GuideT1 = 'template.guideT1',
+    ReadmeT1 = 'template.readmeT1',
+    ReadmeTD1 = 'template.readmeTD1',
+    ReadmePayroll = 'template.readmePayroll',
+    Contact = 'template.contact',
+    Topic = 'template.topic',
+    OldTopic = 'template.oldTopic',
+    Navigation = 'template.navigation',
+    Brochure = 'template.brochure',
+    PdfDownload = 'template.pdfDownload',
+    MultimediaGallery = 'template.multimediaGallery',
+    Taxtip = 'template.taxtip',
+    TaxFilingSeasonMediaKit = 'template.taxFilingSeasonMediaKit',
+    EnforcementNotice = 'template.enforcementNotice',
+    Freestyle = 'template.freestyle'
+}
+
 //GitHub
 export interface GitHubUser {
     login: string;
@@ -52,7 +80,7 @@ export interface PageMeta {
     titleFR?: string;               // French Metadata title
     descriptionFR?: string;         // French Metadata description
     keywordsFR?: string;            // French Metadata keywords
-    template?: string;              // Determined based on page content & url pattern
+    template?: PageTemplate;        // Determined based on page content & url pattern
     task?: string[];                // Determined by comparing with task airtable data
     visits?: number;                // Determined by comparing with UPD data
     wordCount: number;              // Count of words on page
@@ -181,7 +209,7 @@ export type ColumnGroups = typeof COLUMN_GROUPS[number];
 export interface TableColumn {
     field: keyof FlattenedTreeNode;
     translationKey: string;
-    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive' | 'noindex' | 'date' | 'aiText' | 'upd';
+    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive' | 'noindex' | 'date' | 'aiText' | 'upd' | 'template';
     frozen?: boolean;
     group: ColumnGroups;
     visibleByDefault: boolean;

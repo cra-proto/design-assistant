@@ -20,11 +20,12 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { MenuModule } from 'primeng/menu';
 import { ConfirmationService, MenuItem, SortEvent } from 'primeng/api';
 import { ContextMenuModule, ContextMenu } from 'primeng/contextmenu';
+import { SelectModule, SelectChangeEvent } from 'primeng/select';
 
 //Components and models
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
 import { AddPagesComponent } from '../../components/add-pages/add-pages.component';
-import { FlattenedTreeNode, TableColumn, COLUMN_GROUPS, FIELD_FILTERS } from '../../common/data.model';
+import { FlattenedTreeNode, TableColumn, COLUMN_GROUPS, FIELD_FILTERS, PageTemplate } from '../../common/data.model';
 import { IaTableComponent } from '../../components/ia-table/ia-table.component';
 import { InventoryPrompts } from '../../common/prompts/inventory.prompts';
 import { InventoryPromptKey } from '../../common/prompts/prompt.model';
@@ -48,7 +49,7 @@ interface ViewOption {
     selector: 'aida-inventory',
     imports: [CommonModule, FormsModule, TranslateModule,
         TableModule, ButtonModule, PopoverModule, TooltipModule,
-        ToolbarModule, IftaLabelModule, MultiSelectModule, SelectButtonModule, MenuModule,
+        ToolbarModule, IftaLabelModule, MultiSelectModule, SelectButtonModule, MenuModule, SelectModule,
         TagModule, ToggleButtonModule, ConfirmDialogModule, ContextMenuModule,
         RadioButtonModule,
         ExportProjectComponent, AddPagesComponent, FindPagesComponent, IaTableComponent],
@@ -959,7 +960,7 @@ export class InventoryComponent implements OnInit {
     itemsContext: MenuItem[] = [];
 
     hasContextMenu(type: string): boolean {
-        return ['boolean', 'archive', 'noindex'].includes(type);
+        return ['boolean', 'archive', 'noindex', 'template'].includes(type);
     }
 
     private currentEditNode: FlattenedTreeNode | undefined;
@@ -996,6 +997,9 @@ export class InventoryComponent implements OnInit {
                 break;
             case 'noindex':
                 this.updateNoIndex(event, node, col);
+                break;
+            case 'template':
+                this.isEditingInline(node, col);
                 break;
             default:
                 return;
@@ -1089,21 +1093,23 @@ export class InventoryComponent implements OnInit {
     updateNoIndex(event: MouseEvent | TouchEvent, node: FlattenedTreeNode, col: TableColumn) {
         const currentValue = this.getStringValue(node, col);
 
-        this.itemsContext = [
-            {
-                label: this.translate.instant(`inventory.contextMenu.${col.field}.both`),
-                icon: this.getNoIndexIcon('both'),
-                command: () => this.saveValue(true),
-                disabled: currentValue === 'both'
-            },
-            {
+        this.itemsContext = [];
+
+        if (currentValue === 'both') {
+            this.itemsContext.push({
                 label: this.translate.instant(`inventory.contextMenu.${col.field}.none`),
                 icon: this.getNoIndexIcon('none'),
                 command: () => this.saveValue(false),
-                disabled: currentValue === 'none'
-            },
+            });
+        }
+        else if (currentValue === 'none') {
+            this.itemsContext.push({
+                label: this.translate.instant(`inventory.contextMenu.${col.field}.both`),
+                icon: this.getNoIndexIcon('both'),
+                command: () => this.saveValue(true),
+            });
+        }
 
-        ];
         this.menuContext.show(event);
     }
 
@@ -1122,6 +1128,30 @@ export class InventoryComponent implements OnInit {
                 node.data[section][field] = newValue;
                 this.projectState.setModifiedDate();
             }
+        }
+    }
+
+    // Template dropdown
+    isEditingInline(node: FlattenedTreeNode, col: TableColumn) {
+        return this.currentEditNode === node && this.currentEditCol === col;
+    }
+
+    get templateOptions() {
+        return Object.values(PageTemplate)
+            .map(key => ({
+                value: key,
+                label: this.translate.instant(key)
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label, this.translate.currentLang));
+    }
+
+    onTemplateSelect(event: SelectChangeEvent, node: FlattenedTreeNode, col: TableColumn) {
+        const treeNode = this.projectState.findNodeByUrl(this.projectState.getProjectTree(), node.url, 'primary');
+        const newValue = this.getStringValue(node, col);
+        const currentValue = treeNode?.data[col.dataSection][col.field]
+        if (treeNode && currentValue !== newValue) {
+            treeNode.data[col.dataSection][col.field] = newValue;
+            this.projectState.setModifiedDate();
         }
     }
 }

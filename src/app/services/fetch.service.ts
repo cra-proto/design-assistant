@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { PageMetadata, OppMetadata, BreadcrumbNode } from '../components/add-pages/add-pages.model';
+import { PageTemplate } from '../common/data.model';
 import { isPortalDomain } from '../common/portal-domains.config';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 @Injectable({ providedIn: 'root' })
 export class FetchService {
@@ -268,53 +270,53 @@ export class FetchService {
     //Brochure page
     const isBrochure = doc.querySelector('.panel-heading.bg-primary') !== null;
 
-    let template = 'content'; // default
+    let template = PageTemplate.Content; // default
     if (hasSubway) {
-      template = 'subway';
+      template = PageTemplate.Subway;
     } else if (hasOldSubway) {
-      template = 'old subway';
+      template = PageTemplate.OldSubway;
     } else if (isNewsUrl) {
-      template = 'newsroom';
+      template = PageTemplate.Newsroom;
     } else if (isVideoTranscript) {
-      template = 'video transcript';
+      template = PageTemplate.VideoTranscript;
     } else if (isCampaignUrl) {
-      template = 'campaign';
+      template = PageTemplate.Campaign;
     } else if (isFormReadme) {
-      template = 'readme (form)';
+      template = PageTemplate.ReadmeForm;
     } else if (isPubReadme) {
-      template = 'readme (guide)';
+      template = PageTemplate.ReadmeGuide;
     } else if (isPub) {
-      template = 'guide';
+      template = PageTemplate.Guide;
     } else if (is5000g) {
-      template = 'guide (T1)';
+      template = PageTemplate.GuideT1;
     } else if (isT1Readme) {
-      template = 'readme (T1)';
+      template = PageTemplate.ReadmeT1;
     } else if (isT1Pub) {
-      template = 'guide (T1)';
+      template = PageTemplate.GuideT1;
     } else if (isTD1Readme) {
-      template = 'readme (TD1)';
+      template = PageTemplate.ReadmeTD1;
     } else if (isPayrollReadme) {
-      template = 'readme (payroll)';
+      template = PageTemplate.ReadmePayroll;
     } else if (isContactH1) {
-      template = 'contact';
+      template = PageTemplate.Contact;
     } else if (hasMostRequested || hasGcSrvinfo || hasDoormatComponent) {
-      template = 'topic';
+      template = PageTemplate.Topic;
     } else if (isOldTopic) {
-      template = 'old topic';
+      template = PageTemplate.OldTopic;
     } else if (isNavigational) {
-      template = 'navigation';
+      template = PageTemplate.Navigation;
     } else if (isBrochure) {
-      template = 'brochure';
+      template = PageTemplate.Brochure;
     } else if (isPdfDownload) {
-      template = 'pdf download';
+      template = PageTemplate.PdfDownload;
     } else if (isMultimedia) {
-      template = 'multimedia gallery';
+      template = PageTemplate.MultimediaGallery;
     } else if (isTaxtip) {
-      template = 'taxtip';
+      template = PageTemplate.Taxtip;
     } else if (isTFSMK) {
-      template = 'tax filing season media kit';
+      template = PageTemplate.TaxFilingSeasonMediaKit;
     } else if (isEnforcementNotice) {
-      template = 'enforcement notice';
+      template = PageTemplate.EnforcementNotice;
     }
 
     //Opposite language url
@@ -336,6 +338,33 @@ export class FetchService {
     const wordCount = words.length;
 
     return { doubleH1, h1, title, description, keywords, template, oppUrl, isArchived, linksToPortal, noindex, wordCount };
+  }
+
+  markForTranslation() {
+    marker('template.content');
+    marker('template.subway');
+    marker('template.oldSubway');
+    marker('template.newsroom');
+    marker('template.videoTranscript');
+    marker('template.campaign');
+    marker('template.readmeForm');
+    marker('template.readmeGuide');
+    marker('template.guide');
+    marker('template.guideT1');
+    marker('template.readmeT1');
+    marker('template.readmeTD1');
+    marker('template.readmePayroll');
+    marker('template.contact');
+    marker('template.topic');
+    marker('template.oldTopic');
+    marker('template.navigation');
+    marker('template.brochure');
+    marker('template.pdfDownload');
+    marker('template.multimediaGallery');
+    marker('template.taxtip');
+    marker('template.taxFilingSeasonMediaKit');
+    marker('template.enforcementNotice');
+    marker('template.freestyle');
   }
 
   public async getOppMetadata(url: string): Promise<OppMetadata> {

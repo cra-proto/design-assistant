@@ -9,6 +9,7 @@ import { UpdService } from '../../../services/upd.service';
 //Models
 import { TreeNode } from 'primeng/api';
 import { UrlItem, UrlData, BreadcrumbNode, PageMetadata, OppMetadata, JsonMetadata } from '../add-pages.model';
+import { PageTemplate } from '../../../common/data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -334,7 +335,7 @@ export class BreadcrumbValidationService {
                 titleFR: urlLang === 'fr' ? metadata?.title : oppMetadata?.title,
                 descriptionFR: urlLang === 'fr' ? metadata?.description : oppMetadata?.description,
                 keywordsFR: urlLang === 'fr' ? metadata?.keywords : oppMetadata?.keywords,
-                template: jsonData?.isFreestyle ? 'freestyle' : metadata?.template,
+                template: jsonData?.isFreestyle ? PageTemplate.Freestyle : metadata?.template,
                 oppUrl: metadata?.oppUrl,
                 oppTitle: oppMetadata?.h1 || '',
                 oppSectionTitle: oppMetadata?.doubleH1 || '',

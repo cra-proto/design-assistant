@@ -727,7 +727,7 @@ export class ProjectStateService {
             { field: 'isOrphan', translationKey: 'inventory.header.isOrphan', type: 'boolean', group: 'problems', visibleByDefault: true, dataSection: 'status' },
             //ADD 404's!!!
             //Data
-            { field: 'template', translationKey: 'inventory.header.template', type: 'text', group: 'pageData', visibleByDefault: true, dataSection: 'metadata' },
+            { field: 'template', translationKey: 'inventory.header.template', type: 'template', group: 'pageData', visibleByDefault: true, dataSection: 'metadata' },
             { field: 'visits', translationKey: 'inventory.header.visits', type: 'number', group: 'pageData', visibleByDefault: true, dataSection: 'metadata' },
             { field: 'wordCount', translationKey: 'inventory.header.wordCount', type: 'number', group: 'pageData', visibleByDefault: true, dataSection: 'metadata' },
             { field: 'task', translationKey: 'inventory.header.task', type: 'array', group: 'pageData', visibleByDefault: false, dataSection: 'metadata' },

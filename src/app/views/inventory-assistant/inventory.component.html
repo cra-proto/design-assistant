@@ -143,7 +143,8 @@
 
         @if(projectState.selectedInventoryView === "table"){
         <p-table #dt [value]="tableData()" [(selection)]="selectedNodes" dataKey="url" selectionMode="multiple" size="small" stripedRows [scrollable]="false"
-                 (sortFunction)="customSort($event)" [customSort]="true" [paginator]="projectState.getProject().baselinePages > 50" [rows]="50" [rowsPerPageOptions]="[25, 50, 100, projectState.getProject().baselinePages]">
+                 (sortFunction)="customSort($event)" [customSort]="true"
+                 [paginator]="projectState.getProject().baselinePages > 50" [rows]="50" [rowsPerPageOptions]="[25, 50, 100, projectState.getProject().baselinePages]">
 
             <ng-template pTemplate="header">
                 <tr>
@@ -188,7 +189,7 @@
                 </tr>
             </ng-template>
 
-            <ng-template pTemplate="body" let-node let-rowIndex="rowIndex">
+            <ng-template pTemplate="body" let-node let-rowIndex="rowIndex" let-editing="editing">
                 <tr [pSelectableRow]="node" [pSelectableRowIndex]="rowIndex">
                     <!-- Frozen columns -->
                     <td class="w-4rem surface-card sticky-c"><p-tableCheckbox [value]="node" size="large" /></td>
@@ -199,10 +200,30 @@
                     <!-- Scrollable columns -->
                     @for(col of scrollableColumns; track col.field){
                     <td [ngClass]="{ 'border-right-1': isLastInGroup(col.field), 'surface-border': isLastInGroup(col.field), 'hasMenu': hasContextMenu(col.type) }"
-                        (contextmenu)="onRightClick($event, node, col)" (touchstart)="onTouchStart($event, node, col)" (touchend)="onTouchEnd($event, node, col)">
+                        (contextmenu)="onRightClick($event, node, col)" (touchstart)="onTouchStart($event, node, col)" (touchend)="onTouchEnd($event, node, col)"
+                        [pEditableColumn]="node.field" pEditableColumnField="template">
                         <!-- Text fields -->
                         @if(col.type === 'text'){
-                        {{ node[col.field] }}
+                        @if(isEditingInline(node, col) && col.group === 'owner') { TEST }
+                        @else { {{ node[col.field] }} }
+                        }
+                        <!-- Dropdown fields -->
+                        @if(col.type === 'template'){
+                        @if(isEditingInline(node, col)) {
+                        <p-iftalabel class="w-10rem">
+                            <p-select [(ngModel)]="node[col.field]" inputId="template" [options]="templateOptions" optionLabel="label" optionValue="value" [filter]="true" filterBy="label" styleClass="w-full"
+                                      (onChange)="onTemplateSelect($event, node, col)">
+                                <ng-template #selectedItem let-selectedOption>
+                                    {{ selectedOption.label }}
+                                </ng-template>
+                                <ng-template let-template #item>
+                                    {{ template.label }}
+                                </ng-template>
+                            </p-select>
+                            <label for="template">{{ col.translationKey | translate }}</label>
+                        </p-iftalabel>
+                        }
+                        @else{ {{ node[col.field] | translate }} }
                         }
                         <!-- Array fields -->
                         @if(col.type === 'array'){
