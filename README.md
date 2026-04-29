@@ -28,12 +28,12 @@ npm install -g @angular/cli@19.2.14
 1. Fork this repository to your personal GitHub account
 2. Clone your fork:
 ```bash
-git clone https://github.com/YOUR-USERNAME/ai-design-assistant.git
-cd ai-design-assistant
+git clone https://github.com/YOUR-USERNAME/design-assistant.git
+cd design-assistant
 ```
 3. Add the upstream remote:
 ```bash
-git remote add upstream https://github.com/proto-cra/ai-design-assistant.git
+git remote add upstream https://github.com/proto-cra/design-assistant.git
 ```
 
 ### 4. Install Dependencies
@@ -44,8 +44,9 @@ npm install
 ### 5. Environment Configuration
 
 The application uses environment files located in `src/environments/`
-- `environment.development.ts` - local development, sandbox, and dev branches
-- `environment.ts` - production
+- `environment.sandbox.ts` - gh-pages (forked repo) & sandbox branch (main repo)
+- `environment.development.ts` - local development & and dev branch (main repo)
+- `environment.ts` - production (main repo)
 
 These files contain Lambda function URLs and are already configured. No additional setup required unless you are setting up your own AWS environment.
 
@@ -54,7 +55,7 @@ These files contain Lambda function URLs and are already configured. No addition
 ### Branch Strategy
 
 - **Personal forks**: Do all development work in your fork, branching from `dev`
-- **feature/*** branches: All development happens in feature branches
+- **feature/*** branches: All development happens in feature branches or your forked dev branch
 - **sandbox**: Testing ground for features requiring authentication (deploys to AWS dev)
 - **dev**: Staging for the next release (deploys to AWS dev)
 - **main**: Production branch (deploys to AWS production) - **Amber merges only**
@@ -85,7 +86,10 @@ Once the server is running, open your browser and navigate to `http://localhost:
 git push origin feature/your-feature-name
 ```
 
-5. **If your feature needs authentication testing:**
+5a. **If your feature needs backend functions**
+You have access to eveything except GitHub OAuth on localhost. To get access from gh-pages, send your repo path to Amber so it can be included in allowed origins.
+
+5b. **If your feature needs OAuth testing:**
 ```bash
 git checkout sandbox
 git pull upstream sandbox
