@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const statsPath = path.resolve(__dirname, '../dist/content-assistant/stats.json');
+const statsPath = path.resolve(__dirname, '../dist/design-assistant/stats.json');
 const stats = JSON.parse(fs.readFileSync(statsPath, 'utf8'));
 
 const inputs = stats.inputs || {};

@@ -9,7 +9,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "content-assistant": {
+    "design-assistant": {
       "i18n": {
         "sourceLocale": "en-CA",
         "locales": {
@@ -27,7 +27,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/content-assistant",
+            "outputPath": "dist/design-assistant",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -138,10 +138,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "content-assistant:build:production"
+              "buildTarget": "design-assistant:build:production"
             },
             "development": {
-              "buildTarget": "content-assistant:build:development"
+              "buildTarget": "design-assistant:build:development"
             }
           },
           "defaultConfiguration": "development"

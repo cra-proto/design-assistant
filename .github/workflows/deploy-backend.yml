@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - sandbox
     paths:
       - 'backend/**'
   workflow_dispatch:
@@ -36,7 +37,7 @@ jobs:
             echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
           elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "environment=production" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
+          elif [ "${{ github.ref }}" == "refs/heads/dev" || [ "${{ github.ref }}" == "refs/heads/sandbox"  ]; then
             echo "environment=dev" >> $GITHUB_OUTPUT
           fi
       
