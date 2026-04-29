@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - sandbox
     paths-ignore:
       - 'backend/**'
       - '**.md'
@@ -43,7 +44,7 @@ jobs:
           echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
         elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
           echo "environment=production" >> $GITHUB_OUTPUT
-        elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
+        elif [ "${{ github.ref }}" == "refs/heads/dev" || [ "${{ github.ref }}" == "refs/heads/sandbox"  ]; then
           echo "environment=dev" >> $GITHUB_OUTPUT
         fi
     
@@ -105,6 +106,8 @@ jobs:
       run: |
         if [ "${{ needs.deploy-infrastructure.outputs.environment }}" == "production" ]; then
           npm run build:prod
+        elif [ "${{ github.ref }}" == "refs/heads/sandbox" ]; then
+          npm run build -- --configuration=sandbox
         else
           npm run build:dev
         fi
@@ -117,7 +120,7 @@ jobs:
     
     - name: Deploy to S3
       run: |
-        aws s3 sync dist/content-assistant/browser s3://${{ needs.deploy-infrastructure.outputs.s3_bucket }} --delete
+        aws s3 sync dist/design-assistant/browser s3://${{ needs.deploy-infrastructure.outputs.s3_bucket }} --delete
     
     - name: Invalidate CloudFront cache
       run: |
