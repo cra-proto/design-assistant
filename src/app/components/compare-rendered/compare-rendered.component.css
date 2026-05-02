@@ -1,0 +1,31 @@
+/* Import fontawesome CSS <--see if there is a more efficient way to include these icons in shadowdom */
+@import url('https://use.fontawesome.com/releases/v5.15.4/css/all.css');
+
+@font-face {
+    font-family: "Glyphicons Halflings";
+    src: url(https://www.canada.ca/etc/designs/canada/wet-boew/fonts/glyphicons-halflings-regular.woff2) format("woff2");
+}
+
+.diff-container {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 1rem;
+    overflow-y: scroll;
+    height: 75vh;
+    position: relative;
+}
+
+.diff-container.original {
+    border-color: #f3a59d;
+}
+
+.diff-container.modified {
+    border-color: #83d5a8;
+}
+
+.legend-box {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
