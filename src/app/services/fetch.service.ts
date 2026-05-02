@@ -14,9 +14,11 @@ export class FetchService {
     `${environment.defaultOrg}.github.io`,
     "proto-cra.github.io",
     //"cra-design.github.io", //Currently blocked by browser because it looks like a phishing site
-    "cra-proto.github.io",
+    //"cra-proto.github.io", //Is currently cra-test-arc.canada.ca
+    "cra-test-arc.canada.ca",
     "test.canada.ca",
     //"gc-proto.github.io", //CORS error but redirects to test.canada.ca which works
+    "preview.adobecqms.net"
   ]);
   private getAllowedHosts(mode: "prod" | "proto" | "both"): Set<string> {
     const allowed = new Set<string>();
@@ -132,7 +134,8 @@ export class FetchService {
   }
 
   public async fetchJSON(url: string, fields: string[]): Promise<Record<string, string>> {
-    const jsonUrl = url.replace('.html', '/jcr:content.json?nocache=true');
+    const date = new Date().toDateString;
+    const jsonUrl = url.replace('.html', `/jcr:content.json?nocache=${date}`);
     const result: Record<string, string> = {};
 
     try {
