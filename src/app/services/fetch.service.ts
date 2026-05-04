@@ -131,7 +131,7 @@ export class FetchService {
   ): Promise<Response> {
     url = this.validateHost(url, hostMode);
     if (delayBetweenRequests > 0) { await this.delay(delayBetweenRequests); }
-    return this.fetchWithRetry(url, "HEAD", retries, delay);
+    return this.fetchWithRetry(url, "HEAD", retries, delay, true);
   }
 
   public async fetchJSON(url: string, fields: string[]): Promise<Record<string, string>> {
@@ -140,7 +140,7 @@ export class FetchService {
     const result: Record<string, string> = {};
 
     try {
-      const response = await this.fetchWithRetry(jsonUrl, "GET", 3, "none");
+      const response = await this.fetchWithRetry(jsonUrl, "GET", 3, "none", true);
       const json = await response.json();
 
       for (const field of fields) {
