@@ -73,7 +73,7 @@ export class CompareComponent {
     if (!this.compareService.selectedPage) return;
 
     // Checks if live, prototype, and baseline urls are valid & then updates version dropdown options
-    const validVersions = ['ai', 'preview'];
+    const validVersions = ['ai'];
     // Check live URL
     try {
       const liveResponse = await this.fetchService.fetchStatus(this.compareService.selectedPage(), 'prod');
@@ -159,8 +159,12 @@ export class CompareComponent {
     if (this.compareService.selectedBefore() === 'preview') {
       const url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
       const previewContent = await this.fetchService.fetchPreview(url);
+      const normalizedContent = await this.htmlNormalizationService.normalizeHTML(previewContent, "string")
+      console.log(url)
+      console.log(previewContent);
+      console.log(normalizedContent);
       this.compareService.originalHtml.set({
-        ...await this.htmlNormalizationService.normalizeHTML(previewContent, "string"),
+        ...normalizedContent,
         url: url,
         version: this.compareService.selectedBefore()
       } as htmlProcessingResult);
@@ -184,6 +188,9 @@ export class CompareComponent {
       const url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
       const previewContent = await this.fetchService.fetchPreview(url);
       const normalizedContent = await this.htmlNormalizationService.normalizeHTML(previewContent, "string")
+      console.log(url)
+      console.log(previewContent);
+      console.log(normalizedContent);
       this.compareService.modifiedHtml.set({
         ...normalizedContent,
         url: url,
