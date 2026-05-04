@@ -946,7 +946,8 @@ export class ProjectStateService {
             const url = new URL(productionUrl);
             const path = url.pathname; // e.g., /en/revenue-agency/services/tax/individuals.html
             if (type === 'preview') {
-                return `https://preview.adobecqms.net${path}`
+                //return `https://canada-preview.adobecqms.net${path}`
+                return `https://aleblanc3.github.io/test/${path}`
             } else {
                 const repoSuffix = type === 'baseline' ? `${repo}-baseline` : repo;
                 let prototypeUrl = `https://${owner}.github.io/${repoSuffix}${path}`;
