@@ -237,6 +237,7 @@ export class ExportGitHubService {
     return false;
   }
 
+  //TODO: replace this with version from html-normalization service
   private async formatHtmlWithPrettier(html: string): Promise<string> {
     if (!(navigator as any).languages) {
       (navigator as any).languages = ['en']; // fallback locale

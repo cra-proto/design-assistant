@@ -73,7 +73,7 @@ export class CompareComponent {
     if (!this.compareService.selectedPage) return;
 
     // Checks if live, prototype, and baseline urls are valid & then updates version dropdown options
-    const validVersions = ['ai'];
+    const validVersions = ['ai', 'preview'];
     // Check live URL
     try {
       const liveResponse = await this.fetchService.fetchStatus(this.compareService.selectedPage(), 'prod');
