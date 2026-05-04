@@ -61,7 +61,6 @@ export class CompareRenderedComponent implements OnChanges {
     // Run diff when inputs change
     async ngOnChanges(changes: SimpleChanges) {
         if (changes['beforeContent'] || changes['afterContent']) {
-            console.log("Change detected!")
             const shadowRoot = this.shadowDOM();
             const viewType = this.webSelectedView();
             if (this.beforeContent && !this.afterContent) this.afterContent = this.beforeContent;
