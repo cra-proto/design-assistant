@@ -158,8 +158,12 @@ export class CompareComponent {
     // Get HTML from preview
     if (this.compareService.selectedBefore() === 'preview') {
       const url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
-      const stringContent = this.fetchService.fetchPreview(url);
-      console.log(stringContent);
+      const previewContent = await this.fetchService.fetchPreview(url);
+      this.compareService.originalHtml.set({
+        ...await this.htmlNormalizationService.normalizeHTML(previewContent, "string"),
+        url: url,
+        version: this.compareService.selectedBefore()
+      } as htmlProcessingResult);
     }
     // Get HTML from live page or github
     else {
@@ -175,7 +179,17 @@ export class CompareComponent {
   async onAfterSelectionChange(version: 'live' | 'preview' | 'prototype' | 'baseline' | 'ai') {
     this.compareService.selectedAfter.set(version);
     if (!this.compareService.selectedPage) return;
-
+    // Get HTML from preview
+    if (this.compareService.selectedBefore() === 'preview') {
+      const url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
+      const previewContent = await this.fetchService.fetchPreview(url);
+      this.compareService.originalHtml.set({
+        ...await this.htmlNormalizationService.normalizeHTML(previewContent, "string"),
+        url: url,
+        version: this.compareService.selectedBefore()
+      } as htmlProcessingResult);
+    }
+    // Initialize HTML to original for AI edits
     else if (this.compareService.selectedAfter() === 'ai') {
       this.compareService.modifiedHtml.set({
         ...this.compareService.originalHtml(),
