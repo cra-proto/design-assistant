@@ -204,13 +204,16 @@ export class CompareComponent {
         version: this.compareService.selectedAfter()
       } as htmlProcessingResult);
     }
-    let url = this.compareService.selectedPage();
-    if (this.compareService.selectedAfter() === 'baseline') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'baseline'); }
-    else if (this.compareService.selectedAfter() === 'prototype') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'current'); }
-    this.compareService.modifiedHtml.set({
-      ...await this.htmlNormalizationService.normalizeHTML(url, "url"),
-      version: this.compareService.selectedAfter()
-    } as htmlProcessingResult);
+    // Get HTML from live page of GitHub
+    else {
+      let url = this.compareService.selectedPage();
+      if (this.compareService.selectedAfter() === 'baseline') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'baseline'); }
+      else if (this.compareService.selectedAfter() === 'prototype') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'current'); }
+      this.compareService.modifiedHtml.set({
+        ...await this.htmlNormalizationService.normalizeHTML(url, "url"),
+        version: this.compareService.selectedAfter()
+      } as htmlProcessingResult);
+    }
   }
 
 }
