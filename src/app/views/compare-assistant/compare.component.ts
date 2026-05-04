@@ -183,8 +183,9 @@ export class CompareComponent {
     if (this.compareService.selectedBefore() === 'preview') {
       const url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
       const previewContent = await this.fetchService.fetchPreview(url);
-      this.compareService.originalHtml.set({
-        ...await this.htmlNormalizationService.normalizeHTML(previewContent, "string"),
+      const normalizedContent = await this.htmlNormalizationService.normalizeHTML(previewContent, "string")
+      this.compareService.modifiedHtml.set({
+        ...normalizedContent,
         url: url,
         version: this.compareService.selectedBefore()
       } as htmlProcessingResult);
