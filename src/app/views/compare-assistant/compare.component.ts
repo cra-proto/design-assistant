@@ -194,7 +194,7 @@ export class CompareComponent {
       this.compareService.modifiedHtml.set({
         ...normalizedContent,
         url: url,
-        version: this.compareService.selectedBefore()
+        version: this.compareService.selectedAfter()
       } as htmlProcessingResult);
     }
     // Initialize HTML to original for AI edits
