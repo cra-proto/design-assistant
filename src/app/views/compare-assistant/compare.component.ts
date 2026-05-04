@@ -86,15 +86,10 @@ export class CompareComponent {
     }
     // Check preview URL
     const previewUrl = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
-    console.log('Generated preview URL:', previewUrl);
     try {
       const previewExists = await this.fetchService.fetchPreviewStatus(previewUrl);
-      console.log('fetchPreviewStatus result:', previewExists);
       if (previewExists) {
-        console.log('Adding preview to validVersions');
         validVersions.push('preview');
-      } else {
-        console.log('Preview exists returned false, not adding to validVersions');
       }
     } catch (error) {
       console.warn('Preview URL not accessible:', error);
@@ -165,9 +160,6 @@ export class CompareComponent {
       const url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
       const previewContent = await this.fetchService.fetchPreview(url);
       const normalizedContent = await this.htmlNormalizationService.normalizeHTML(previewContent, "string")
-      console.log(url)
-      console.log(previewContent);
-      console.log(normalizedContent);
       this.compareService.originalHtml.set({
         ...normalizedContent,
         url: url,
@@ -193,9 +185,6 @@ export class CompareComponent {
       const url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
       const previewContent = await this.fetchService.fetchPreview(url);
       const normalizedContent = await this.htmlNormalizationService.normalizeHTML(previewContent, "string")
-      console.log(url)
-      console.log(previewContent);
-      console.log(normalizedContent);
       this.compareService.modifiedHtml.set({
         ...normalizedContent,
         url: url,
