@@ -439,8 +439,8 @@ export class FetchService {
   //Get preview content
   public fetchPreview(targetUrl: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      //const previewUrl = `https://canada-preview.adobecqms.net/en/revenue-agency/web-services-test/amber/test.html?fetch=${encodeURIComponent(targetUrl)}`;
-      const previewUrl = `https://aleblanc3.github.io/test/test.html?fetch=${encodeURIComponent(targetUrl)}`;
+      const previewUrl = `https://canada-preview.adobecqms.net/en/revenue-agency/web-services-test/amber/test.html?fetch=${encodeURIComponent(targetUrl)}`;
+      //const previewUrl = `https://aleblanc3.github.io/test/test.html?fetch=${encodeURIComponent(targetUrl)}`;
 
       const popup = window.open(previewUrl, '_blank', 'width=1,height=1,left=9999,top=9999');
       if (!popup) {
@@ -450,8 +450,8 @@ export class FetchService {
       //Listen for response
       const handler = (event: MessageEvent) => {
         // Verify origin
-        //if (event.origin !== 'https://canada-preview.adobecqms.net') return;
-        if (event.origin !== 'https://aleblanc3.github.io') return;
+        if (event.origin !== 'https://canada-preview.adobecqms.net') return;
+        //if (event.origin !== 'https://aleblanc3.github.io') return;
         // Cleanup
         window.removeEventListener('message', handler);
         clearTimeout(timeout);
