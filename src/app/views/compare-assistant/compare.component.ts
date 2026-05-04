@@ -92,6 +92,7 @@ export class CompareComponent {
       }
     } catch (error) {
       console.warn('Preview URL not accessible:', error);
+      validVersions.push('preview'); // TODO: remove this later but for testing, always include preview
     }
     // Check prototype URL
     const prototypeUrl = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'current');
@@ -154,14 +155,22 @@ export class CompareComponent {
   async onBeforeSelectionChange(version: 'live' | 'preview' | 'prototype' | 'baseline' | 'ai') {
     this.compareService.selectedBefore.set(version);
     if (!this.compareService.selectedPage) return;
-
-    let url = this.compareService.selectedPage();
-    if (this.compareService.selectedBefore() === 'baseline') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'baseline'); }
-    else if (this.compareService.selectedBefore() === 'prototype') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'current'); }
-    this.compareService.originalHtml.set({
-      ...await this.htmlNormalizationService.normalizeHTML(url, "url"),
-      version: this.compareService.selectedBefore()
-    } as htmlProcessingResult);
+    // Get HTML from preview
+    if (this.compareService.selectedBefore() === 'preview') {
+      const url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
+      const stringContent = this.fetchService.fetchPreview(url);
+      console.log(stringContent);
+    }
+    // Get HTML from live page or github
+    else {
+      let url = this.compareService.selectedPage();
+      if (this.compareService.selectedBefore() === 'baseline') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'baseline'); }
+      else if (this.compareService.selectedBefore() === 'prototype') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'current'); }
+      this.compareService.originalHtml.set({
+        ...await this.htmlNormalizationService.normalizeHTML(url, "url"),
+        version: this.compareService.selectedBefore()
+      } as htmlProcessingResult);
+    }
   }
   async onAfterSelectionChange(version: 'live' | 'preview' | 'prototype' | 'baseline' | 'ai') {
     this.compareService.selectedAfter.set(version);
