@@ -86,10 +86,15 @@ export class CompareComponent {
     }
     // Check preview URL
     const previewUrl = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
+    console.log('Generated preview URL:', previewUrl);
     try {
       const previewExists = await this.fetchService.fetchPreviewStatus(previewUrl);
+      console.log('fetchPreviewStatus result:', previewExists);
       if (previewExists) {
+        console.log('Adding preview to validVersions');
         validVersions.push('preview');
+      } else {
+        console.log('Preview exists returned false, not adding to validVersions');
       }
     } catch (error) {
       console.warn('Preview URL not accessible:', error);

@@ -475,7 +475,7 @@ export class FetchService {
 
   fetchPreviewStatus(targetUrl: string): Promise<boolean> {
     return new Promise((resolve) => {
-      const previewUrl = `https://canada-preview.adobecqms.net/en/revenue-agency/web-services-test/amber/test.html?${encodeURIComponent(targetUrl)}&check=true`;
+      const previewUrl = `https://canada-preview.adobecqms.net/en/revenue-agency/web-services-test/amber/test.html?fetch=${encodeURIComponent(targetUrl)}&check=true`;
       const popup = window.open(previewUrl, '_blank', 'width=1,height=1,left=9999,top=9999');
 
       if (!popup) {
