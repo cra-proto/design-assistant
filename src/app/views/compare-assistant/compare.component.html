@@ -12,7 +12,8 @@
           <span class="text-xs my-1">{{ 'compare.pageOptions.selection' | translate }}</span>
           <p-iftalabel>
             <p-select inputId="page" [options]="pageOptions" [ngModel]="compareService.selectedPage()" (ngModelChange)="onPageSelectionChange($event)"
-                      optionLabel="label" optionValue="value" class="w-20rem sm:w-27rem" />
+                      optionLabel="label" optionValue="value" class="w-20rem sm:w-27rem"
+                      [loading]="compareService.loading()" loadingIcon="pi pi-spin pi-spinner" />
             <label for="page">{{'compare.pageOptions.page' | translate}}</label>
           </p-iftalabel>
         </div>
@@ -23,13 +24,15 @@
             <!--Before-->
             <p-iftalabel>
               <p-select inputId="before" [options]="beforeOptions" [ngModel]="compareService.selectedBefore()" (ngModelChange)="onBeforeSelectionChange($event)"
-                        optionLabel="label" optionValue="value" class="w-20rem sm:w-13rem" />
+                        optionLabel="label" optionValue="value" class="w-20rem sm:w-13rem"
+                        [loading]="compareService.loading() || compareService.loadingBefore()" loadingIcon="pi pi-spin pi-spinner" />
               <label for="before">{{'compare.pageOptions.before' | translate}}</label>
             </p-iftalabel>
             <!--After-->
             <p-iftalabel>
               <p-select inputId="after" [options]="afterOptions" [ngModel]="compareService.selectedAfter()" (ngModelChange)="onAfterSelectionChange($event)"
-                        optionLabel="label" optionValue="value" class="w-20rem sm:w-13rem" />
+                        optionLabel="label" optionValue="value" class="w-20rem sm:w-13rem"
+                        [loading]="compareService.loading() || compareService.loadingAfter()" loadingIcon="pi pi-spin pi-spinner" />
               <label for="after">{{'compare.pageOptions.after' | translate}}</label>
             </p-iftalabel>
           </div>

@@ -70,59 +70,64 @@ export class CompareComponent {
   }
 
   async onPageSelectionChange(page: string) {
-    this.compareService.selectedPage.set(page);
-    if (!this.compareService.selectedPage) return;
+    this.compareService.loading.set(true);
+    try {
+      this.compareService.selectedPage.set(page);
+      if (!this.compareService.selectedPage) return;
 
-    // Checks if live, prototype, and baseline urls are valid & then updates version dropdown options
-    const validVersions = ['ai'];
-    // Check live URL
-    try {
-      const liveResponse = await this.fetchService.fetchStatus(this.compareService.selectedPage(), 'prod');
-      if (liveResponse.ok) {
-        validVersions.push('live');
-      }
-    } catch (error) {
-      console.warn('Live URL not accessible:', error);
-    }
-    // Check preview URL
-    const previewUrl = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
-    try {
-      const previewExists = await this.fetchService.fetchPreviewStatus(previewUrl);
-      if (previewExists) {
-        validVersions.push('preview');
-      }
-    } catch (error) {
-      console.warn('Preview URL not accessible:', error);
-    }
-    // Check prototype URL
-    const prototypeUrl = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'current');
-    if (prototypeUrl) {
+      // Checks if live, prototype, and baseline urls are valid & then updates version dropdown options
+      const validVersions = ['ai'];
+      // Check live URL
       try {
-        const protoResponse = await this.fetchService.fetchStatus(prototypeUrl, 'proto');
-        if (protoResponse.ok) {
-          validVersions.push('prototype');
+        const liveResponse = await this.fetchService.fetchStatus(this.compareService.selectedPage(), 'prod');
+        if (liveResponse.ok) {
+          validVersions.push('live');
         }
       } catch (error) {
-        console.warn('Prototype URL not accessible:', error);
+        console.warn('Live URL not accessible:', error);
       }
-    }
-    // Check baseline URL (only if hasBaseline is true)
-    if (this.projectState.getProject().github.hasBaselineRepo) {
-      const baselineUrl = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'baseline');
-      if (baselineUrl) {
+      // Check preview URL
+      const previewUrl = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
+      try {
+        const previewExists = await this.fetchService.fetchPreviewStatus(previewUrl);
+        if (previewExists) {
+          validVersions.push('preview');
+        }
+      } catch (error) {
+        console.warn('Preview URL not accessible:', error);
+      }
+      // Check prototype URL
+      const prototypeUrl = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'current');
+      if (prototypeUrl) {
         try {
-          const baselineResponse = await this.fetchService.fetchStatus(baselineUrl, 'proto');
-          if (baselineResponse.ok) {
-            validVersions.push('baseline');
+          const protoResponse = await this.fetchService.fetchStatus(prototypeUrl, 'proto');
+          if (protoResponse.ok) {
+            validVersions.push('prototype');
           }
         } catch (error) {
-          console.warn('Baseline URL not accessible:', error);
+          console.warn('Prototype URL not accessible:', error);
         }
       }
+      // Check baseline URL (only if hasBaseline is true)
+      if (this.projectState.getProject().github.hasBaselineRepo) {
+        const baselineUrl = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'baseline');
+        if (baselineUrl) {
+          try {
+            const baselineResponse = await this.fetchService.fetchStatus(baselineUrl, 'proto');
+            if (baselineResponse.ok) {
+              validVersions.push('baseline');
+            }
+          } catch (error) {
+            console.warn('Baseline URL not accessible:', error);
+          }
+        }
+      }
+      this.allOptions = validVersions;
+      this.onBeforeSelectionChange(this.compareService.selectedBefore());
+      this.onAfterSelectionChange(this.compareService.selectedAfter());
+    } finally {
+      this.compareService.loading.set(false);
     }
-    this.allOptions = validVersions;
-    this.onBeforeSelectionChange(this.compareService.selectedBefore());
-    this.onAfterSelectionChange(this.compareService.selectedAfter());
   }
 
   // Version dropdown options & on change
@@ -153,60 +158,71 @@ export class CompareComponent {
   }
 
   async onBeforeSelectionChange(version: 'live' | 'preview' | 'prototype' | 'baseline' | 'ai') {
-    this.compareService.selectedBefore.set(version);
-    if (!this.compareService.selectedPage) return;
-    // Get HTML from preview
-    if (this.compareService.selectedBefore() === 'preview') {
-      const url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
-      const previewContent = await this.fetchService.fetchPreview(url);
-      const normalizedContent = await this.htmlNormalizationService.normalizeHTML(previewContent, "string")
-      this.compareService.originalHtml.set({
-        ...normalizedContent,
-        url: url,
-        version: this.compareService.selectedBefore()
-      } as htmlProcessingResult);
-    }
-    // Get HTML from live page or github
-    else {
-      let url = this.compareService.selectedPage();
-      if (this.compareService.selectedBefore() === 'baseline') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'baseline'); }
-      else if (this.compareService.selectedBefore() === 'prototype') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'current'); }
-      this.compareService.originalHtml.set({
-        ...await this.htmlNormalizationService.normalizeHTML(url, "url"),
-        version: this.compareService.selectedBefore()
-      } as htmlProcessingResult);
+    this.compareService.loadingBefore.set(true);
+    try {
+      this.compareService.selectedBefore.set(version);
+      if (!this.compareService.selectedPage) return;
+      // Get HTML from preview
+      if (this.compareService.selectedBefore() === 'preview') {
+        const url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
+        const previewContent = await this.fetchService.fetchPreview(url);
+        const normalizedContent = await this.htmlNormalizationService.normalizeHTML(previewContent, "string")
+        this.compareService.originalHtml.set({
+          ...normalizedContent,
+          url: url,
+          version: this.compareService.selectedBefore()
+        } as htmlProcessingResult);
+      }
+      // Get HTML from live page or github
+      else {
+        let url = this.compareService.selectedPage();
+        if (this.compareService.selectedBefore() === 'baseline') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'baseline'); }
+        else if (this.compareService.selectedBefore() === 'prototype') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'current'); }
+        this.compareService.originalHtml.set({
+          ...await this.htmlNormalizationService.normalizeHTML(url, "url"),
+          version: this.compareService.selectedBefore()
+        } as htmlProcessingResult);
+      }
+    } finally {
+      this.compareService.loadingBefore.set(false);
     }
   }
+
   async onAfterSelectionChange(version: 'live' | 'preview' | 'prototype' | 'baseline' | 'ai') {
-    this.compareService.selectedAfter.set(version);
-    if (!this.compareService.selectedPage) return;
-    // Get HTML from preview
-    if (this.compareService.selectedAfter() === 'preview') {
-      const url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
-      const previewContent = await this.fetchService.fetchPreview(url);
-      const normalizedContent = await this.htmlNormalizationService.normalizeHTML(previewContent, "string")
-      this.compareService.modifiedHtml.set({
-        ...normalizedContent,
-        url: url,
-        version: this.compareService.selectedAfter()
-      } as htmlProcessingResult);
-    }
-    // Initialize HTML to original for AI edits
-    else if (this.compareService.selectedAfter() === 'ai') {
-      this.compareService.modifiedHtml.set({
-        ...this.compareService.originalHtml(),
-        version: this.compareService.selectedAfter()
-      } as htmlProcessingResult);
-    }
-    // Get HTML from live page of GitHub
-    else {
-      let url = this.compareService.selectedPage();
-      if (this.compareService.selectedAfter() === 'baseline') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'baseline'); }
-      else if (this.compareService.selectedAfter() === 'prototype') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'current'); }
-      this.compareService.modifiedHtml.set({
-        ...await this.htmlNormalizationService.normalizeHTML(url, "url"),
-        version: this.compareService.selectedAfter()
-      } as htmlProcessingResult);
+    this.compareService.loadingAfter.set(true);
+    try {
+      this.compareService.selectedAfter.set(version);
+      if (!this.compareService.selectedPage) return;
+      // Get HTML from preview
+      if (this.compareService.selectedAfter() === 'preview') {
+        const url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
+        const previewContent = await this.fetchService.fetchPreview(url);
+        const normalizedContent = await this.htmlNormalizationService.normalizeHTML(previewContent, "string")
+        this.compareService.modifiedHtml.set({
+          ...normalizedContent,
+          url: url,
+          version: this.compareService.selectedAfter()
+        } as htmlProcessingResult);
+      }
+      // Initialize HTML to original for AI edits
+      else if (this.compareService.selectedAfter() === 'ai') {
+        this.compareService.modifiedHtml.set({
+          ...this.compareService.originalHtml(),
+          version: this.compareService.selectedAfter()
+        } as htmlProcessingResult);
+      }
+      // Get HTML from live page of GitHub
+      else {
+        let url = this.compareService.selectedPage();
+        if (this.compareService.selectedAfter() === 'baseline') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'baseline'); }
+        else if (this.compareService.selectedAfter() === 'prototype') { url = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'current'); }
+        this.compareService.modifiedHtml.set({
+          ...await this.htmlNormalizationService.normalizeHTML(url, "url"),
+          version: this.compareService.selectedAfter()
+        } as htmlProcessingResult);
+      }
+    } finally {
+      this.compareService.loadingAfter.set(false);
     }
   }
 
