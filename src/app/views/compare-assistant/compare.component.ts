@@ -54,6 +54,7 @@ export class CompareComponent {
     marker('compare.pageOptions.live');
     marker('compare.pageOptions.prototype');
     marker('compare.pageOptions.baseline');
+    marker('compare.pageOptions.preview');
     marker('compare.pageOptions.ai');
     marker('compare.view.comparison');
     marker('compare.view.linebyline');
@@ -86,13 +87,12 @@ export class CompareComponent {
     // Check preview URL
     const previewUrl = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'preview');
     try {
-      const previewResponse = await this.fetchService.fetchStatus(previewUrl, 'proto');
-      if (previewResponse.ok) {
+      const previewExists = await this.fetchService.fetchPreviewStatus(previewUrl);
+      if (previewExists) {
         validVersions.push('preview');
       }
     } catch (error) {
       console.warn('Preview URL not accessible:', error);
-      validVersions.push('preview'); // TODO: remove this later but for testing, always include preview
     }
     // Check prototype URL
     const prototypeUrl = this.projectState.generatePrototypeUrl(this.compareService.selectedPage(), 'current');
