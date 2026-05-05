@@ -7,6 +7,8 @@ import { htmlProcessingResult } from '../../services/html-normalization.service'
 export class CompareService {
 
     // HTML content cache
+    private htmlCache = signal<Map<string, htmlProcessingResult>>(new Map());
+    private statusCache = signal<Map<string, boolean>>(new Map());
     originalHtml = signal<htmlProcessingResult | undefined>(undefined);
     modifiedHtml = signal<htmlProcessingResult | undefined>(undefined);
 
@@ -18,9 +20,35 @@ export class CompareService {
     loading = signal<boolean>(false);
     loadingBefore = signal<boolean>(false);
     loadingAfter = signal<boolean>(false);
+    loadingAll = signal<boolean>(false);
+
+    // Helpers to get & set HTML cache
+    getCachedHtml(url: string): htmlProcessingResult | undefined {
+        return this.htmlCache().get(url);
+    }
+
+    setCachedHtml(url: string, html: htmlProcessingResult): void {
+        const cache = new Map(this.htmlCache());
+        cache.set(url, html);
+        this.htmlCache.set(cache);
+    }
+
+    // Helpers to get & set status cache
+    getCachedStatus(url: string): boolean | undefined {
+        return this.statusCache().get(url);
+    }
+
+    setCachedStatus(url: string, status: boolean): void {
+        const cache = new Map(this.statusCache());
+        cache.set(url, status);
+        this.statusCache.set(cache);
+        console.log('Cached status:', url, status);
+    }
 
     // Clear HTML content cache
     clearCache() {
+        this.htmlCache.set(new Map());
+        this.statusCache.set(new Map());
         this.originalHtml.set(undefined);
         this.modifiedHtml.set(undefined);
     }
