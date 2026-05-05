@@ -1,0 +1,118 @@
+<div class="flex flex-column text-color-secondary max-w-max">
+    <!--View options-->
+    <label class="mb-1 font-semibold block" for="views'">{{ 'common.view' | translate }}</label>
+    <div role="radiogroup" id="views" class="flex flex-row gap-3 my-1">
+        @for(view of webViewOptions; track view.value){
+        <div class="field-radiobutton">
+            <p-radioButton [inputId]="'show_' + view.value" [name]="view.value" [value]="view.value" size="large"
+                           [ngModel]="webSelectedView()" (ngModelChange)="onWebViewChange($event)" />
+            <label [for]="'show_' + view.value" class="cursor-pointer font-semibold flex align-items-center gap-1">
+                <i [class]="view.icon"></i>
+                {{ view.label | translate }}
+            </label>
+        </div>
+        }
+    </div>
+    <!--Toolbar options-->
+    <div class="sticky top-0 z-5 p-0 mb-2 flex flex-wrap lg:flex-nowrap justify-content-between gap-5">
+
+        @if(webSelectedView() === WebViewType.Diff){
+        <div class="flex flex-row align-items-center gap-2">
+            <div class="flex flex-nowrap align-items-center">
+                <p-button
+                          icon="pi pi-chevron-left"
+                          text
+                          severity="primary"
+                          (onClick)="prev()"
+                          [ariaLabel]="'compare.rendered.prev' | translate"
+                          [pTooltip]="'compare.rendered.prev' | translate"
+                          showDelay="1000"
+                          hideDelay="300" />
+                <span class="white-space-nowrap">{{ displayCounter }}</span>
+                <p-button
+                          icon="pi pi-chevron-right"
+                          text
+                          severity="primary"
+                          (onClick)="next()"
+                          [ariaLabel]="'compare.rendered.next' | translate"
+                          [pTooltip]="'compare.rendered.next' | translate"
+                          showDelay="1000"
+                          hideDelay="300" />
+            </div>
+
+            <p-splitbutton
+                           label="Accept"
+                           icon="pi pi-check"
+                           severity="success"
+                           outlined
+                           size="small"
+                           class="secondary-outline"
+                           (onClick)="toolbarAccept()"
+                           [model]="acceptItems"
+                           [buttonProps]="{ ariaLabel: 'compare.rendered.accept' | translate }"
+                           [menuButtonProps]="{ ariaLabel: 'compare.rendered.acceptOptions' | translate }"
+                           [pTooltip]="'compare.rendered.accept' | translate"
+                           tooltipPosition="top"
+                           showDelay="1000"
+                           hideDelay="300" />
+            <p-splitbutton
+                           label="Reject"
+                           icon="pi pi-times"
+                           severity="danger"
+                           outlined
+                           size="small"
+                           class="secondary-outline"
+                           (onClick)="toolbarReject()"
+                           [model]="rejectItems"
+                           [buttonProps]="{ ariaLabel: 'compare.rendered.reject' | translate }"
+                           [menuButtonProps]="{ ariaLabel: 'compare.rendered.rejectOptions' | translate }"
+                           [pTooltip]="'compare.rendered.reject' | translate"
+                           tooltipPosition="top"
+                           showDelay="1000"
+                           hideDelay="300" />
+            @if(displayNumHighlighted){
+            <span class="text-color-secondary pl-1">{{ displayNumHighlighted }}</span>
+            }
+        </div>
+        } @else {
+        <div>
+            <p-togglebutton
+                            [(ngModel)]="toggleEdit"
+                            [offLabel]="'common.edit' | translate"
+                            [onLabel]="'common.save' | translate"
+                            offIcon="pi pi-pen-to-square"
+                            onIcon="pi pi-save"
+                            [ariaLabel]="'common.editSave' | translate"
+                            styleClass="font-bold border-none w-6rem"
+                            (onChange)="toolbarToggleEdit(webSelectedView())" />
+            <p-togglebutton
+                            [(ngModel)]="toggleCopy"
+                            [offLabel]="'common.copyCode' | translate"
+                            [onLabel]="'common.copied' | translate"
+                            offIcon="pi pi-clipboard"
+                            onIcon=""
+                            [ariaLabel]="'common.copyCode' | translate"
+                            styleClass="font-bold border-none w-9rem"
+                            (onChange)="toolbarToggleCopy(webSelectedView())" />
+            @if(getUrl()){
+            <a [href]="getUrl()" target="_blank" rel="noopener noreferrer" class="p-togglebutton border-none no-underline font-bold">
+                <span class="flex flex-row gap-2 align-items-center"><i class="pi pi-external-link"></i>Open page</span>
+            </a>
+            }
+        </div>
+        }
+        <div class="flex flex-wrap justify-content-end align-items-center gap-2 min-w-min">
+            @for(item of legendItems; track item.text){
+            <div class="flex align-items-center gap-2">
+                <div class="legend-box" [ngStyle]="{
+                            'background-color': item.style === 'highlight' ? item.colour : 'transparent',
+                            'border': item.style === 'line' ? '2px ' + (item.lineStyle || 'solid') + ' ' + item.colour : 'none',}">
+                </div>
+                <span class="legend-text">{{ item.text | translate }}</span>
+            </div>
+            }
+        </div>
+    </div>
+    <!--Shadow DOM-->
+    <div #liveContainer class="diff-container p-0" [ngClass]="webSelectedView()"></div>
+</div>
