@@ -491,6 +491,47 @@ export class CompareRenderedService {
         }
     
         */
+        // Unwrap diff elements from parent tags like <mark>, <strong>, etc. if the parent contains nothing but the diff element
+        diffDoc.querySelectorAll('ins, del').forEach(diffEl => {
+            const parent = diffEl.parentElement;
+            if (parent &&
+                parent.tagName !== 'BODY' &&
+                parent.tagName !== 'UL' &&
+                parent.tagName !== 'OL' &&
+                parent.tagName !== 'SUMMARY' &&
+                parent.tagName !== 'DETAILS' &&
+                !parent.classList.contains('diffmod') &&
+                !parent.classList.contains('diffins') &&
+                !parent.classList.contains('diffdel') &&
+                parent.children.length === 1 &&
+                parent.textContent?.trim() === diffEl.textContent?.trim()) {
+                parent.replaceWith(diffEl);
+
+                const inlineElements = ['STRONG', 'EM', 'B', 'I', 'MARK', 'CODE', 'ABBR', 'SPAN'];
+
+                if (inlineElements.includes(parent.tagName)) {
+                    // Move parent element inside diff to preserve style
+                    const parentClone = parent.cloneNode(false) as Element;
+                    while (diffEl.firstChild) {
+                        parentClone.appendChild(diffEl.firstChild);
+                    }
+                    diffEl.appendChild(parentClone);
+                    parent.replaceWith(diffEl);
+                } else {
+                    // UNWRAP: for structural elements, just remove the parent
+                    parent.replaceWith(diffEl);
+                }
+            }
+            if (diffEl.matches('ins:not(.diffins):not(.diffmod)') ||
+                diffEl.matches('del:not(.diffdel):not(.diffmod)')) {
+                // Unwrap non-standard ins/del
+                while (diffEl.firstChild) {
+                    diffEl.parentNode?.insertBefore(diffEl.firstChild, diffEl);
+                }
+                diffEl.remove();
+            }
+        });
+
         // Remove nested ins/del tags
         diffDoc.querySelectorAll('del > del, ins > ins').forEach(el => {
             const parent = el.parentElement;
@@ -506,30 +547,131 @@ export class CompareRenderedService {
             }
         });
 
-        // Assign IDs
-        const uniqueElements = Array.from(diffDoc.querySelectorAll('ins.diffins, del.diffdel, del.diffmod, .updated-link')).map((el, index) => {
-            //Group diffmods <--needs QA check
-            if (el.matches('del.diffmod') && el.nextElementSibling?.matches('ins.diffmod')) {
-                const wrapper = diffDoc.createElement('span');
-                wrapper.classList.add('diff-group');
-                const matchingIns = el.nextElementSibling;
-                el.parentNode?.insertBefore(wrapper, el);
-                wrapper.appendChild(el);
-                wrapper.appendChild(matchingIns);
-                el = wrapper;
-            }
-            const parent = el.parentElement;
-            return {
-                element: el,
-                outerHTML: parent?.innerHTML?.replace(/\n/g, '').trim() || '',
-                id: index + 1
-            };
+        // Wrap orphaned diff elements in lists with <li> tags
+        ['ul', 'ol'].forEach(listType => {
+            diffDoc.querySelectorAll(listType).forEach(list => {
+                Array.from(list.childNodes).forEach(child => {
+                    // If direct child is a diff element (not wrapped in <li>)
+                    if (child.nodeType === Node.ELEMENT_NODE) {
+                        const el = child as Element;
+                        if (el.matches('ins.diffins, del.diffdel, ins.diffmod, del.diffmod') &&
+                            el.parentElement?.tagName === listType.toUpperCase()) {
+
+                            const li = diffDoc.createElement('li');
+                            el.parentNode?.insertBefore(li, el);
+                            li.appendChild(el);
+                        }
+                    }
+                });
+            });
         });
 
-        uniqueElements.forEach(({ element, id }) => {
-            element.setAttribute('data-id', `${id}`);
+        // Wrap orphaned diff elements in block elements with <p> tags
+        ['div', 'section', 'article', 'aside', 'nav', 'main', 'header', 'footer'].forEach(containerType => {
+            diffDoc.querySelectorAll(containerType).forEach(container => {
+                Array.from(container.childNodes).forEach(child => {
+                    if (child.nodeType === Node.ELEMENT_NODE) {
+                        const el = child as Element;
+                        // If it's a diff element directly in a block container
+                        if (el.matches('ins.diffins, del.diffdel, ins.diffmod, del.diffmod') &&
+                            el.parentElement?.tagName === containerType.toUpperCase()) {
+
+                            const p = diffDoc.createElement('p');
+                            el.parentNode?.insertBefore(p, el);
+                            p.appendChild(el);
+                        }
+                    }
+                });
+            });
         });
-        /* 
+
+        // Group del.diffmod with ins.diffmod
+        diffDoc.querySelectorAll('del.diffmod').forEach(del => {
+            if (del.parentElement?.classList.contains('diff-group')) {
+                return;
+            }
+
+            const wrapper = diffDoc.createElement('span');
+            wrapper.classList.add('diff-group');
+
+            del.parentNode?.insertBefore(wrapper, del);
+            wrapper.appendChild(del);
+
+            // Collect ALL consecutive sibling ins.diffmod elements
+            let nextEl = wrapper.nextElementSibling;
+            while (nextEl?.matches('ins.diffmod')) {
+                const toMove = nextEl;
+                nextEl = nextEl.nextElementSibling;
+                wrapper.appendChild(toMove);
+            }
+
+            // If no ins.diffmod siblings found, look across block boundaries
+            if (!wrapper.querySelector('ins.diffmod')) {
+                // Search in next sibling blocks (up to 3 levels deep)
+                let searchNode: Element | null = del.parentElement;
+                let depth = 0;
+
+                while (searchNode && searchNode.tagName !== 'BODY' && depth < 3) {
+                    const nextBlock = searchNode.nextElementSibling;
+                    if (nextBlock) {
+                        // Look for first ins.diffmod in next block
+                        const firstIns = nextBlock.querySelector('ins.diffmod');
+                        if (firstIns) {
+                            // Only pair if it's a small change (heuristic to avoid pairing unrelated content)
+                            const insText = firstIns.textContent?.trim() || '';
+                            const delText = del.textContent?.trim() || '';
+
+                            // Pair if ins is small OR similar length to del (likely a word replacement)
+                            if (insText.length < 50 || Math.abs(insText.length - delText.length) < 20) {
+                                wrapper.appendChild(firstIns);
+                                break;
+                            }
+                        }
+                    }
+                    searchNode = searchNode.parentElement;
+                    depth++;
+                }
+            }
+        });
+
+        // Reclassify orphaned ins.diffmod as ins.diffins
+        diffDoc.querySelectorAll('ins.diffmod').forEach(ins => {
+            if (ins.parentElement?.classList.contains('diff-group')) {
+                return; // Skip
+            }
+            ins.classList.remove('diffmod');
+            ins.classList.add('diffins');
+        });
+
+        // Merge consecutive diff elements of the same type
+        ['ins.diffins', 'del.diffdel'].forEach(selector => {
+            let changed = true;
+            while (changed) {
+                changed = false;
+                diffDoc.querySelectorAll(selector).forEach(el => {
+                    const next = el.nextSibling;
+                    // Check if next sibling is the same type of diff element
+                    if (next && next.nodeType === Node.ELEMENT_NODE && (next as Element).matches(selector)) {
+                        // Merge: append next's content to current, then remove next
+                        while (next.firstChild) {
+                            el.appendChild(next.firstChild);
+                        }
+                        next.remove();
+                        changed = true;
+                    }
+                });
+            }
+        });
+
+        // Group diffmods and assign IDs
+        const uniqueElements = Array.from(diffDoc.querySelectorAll('ins.diffins, del.diffdel, span.diff-group, .updated-link'));
+
+        // Re-index after filtering
+        uniqueElements.forEach((element, index) => {
+            element.setAttribute('data-id', `${index + 1}`);
+        });
+
+        /*  Skipping due to noise
             const wrapWithOverlayWrapper = (el: Element, parentClass: string) => {
               const parent = el.parentElement;
               const dataId = parent?.getAttribute('data-id');
@@ -564,10 +706,10 @@ export class CompareRenderedService {
             }
             //link clicks
             if (target?.tagName === 'A') {
+                event.preventDefault();
                 const href = target.getAttribute('href') ?? '';
                 //anchor links
                 if (href.startsWith('#')) {
-                    event.preventDefault();
                     const sectionId = target.getAttribute('href')?.substring(1);
                     const targetSection = shadowRoot.getElementById(sectionId ?? '');
 
@@ -577,10 +719,6 @@ export class CompareRenderedService {
                             block: 'start',
                         });
                     }
-                }
-                //other links
-                if (!href.startsWith('#')) {
-                    event.preventDefault();
                 }
             }
             //diff clicks      
@@ -605,10 +743,10 @@ export class CompareRenderedService {
         };
 
         // Attach listener and return cleanup function
-        shadowRoot.addEventListener('click', clickHandler);
+        shadowRoot.addEventListener('click', clickHandler, true);
 
         return () => {
-            shadowRoot.removeEventListener('click', clickHandler);
+            shadowRoot.removeEventListener('click', clickHandler, true);
         };
     }
 

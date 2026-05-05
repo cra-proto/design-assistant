@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, computed, signal, effect } from '@angular/core';
+import { Component, inject, input, Output, EventEmitter, ViewChild, ElementRef, computed, signal, effect, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule, LocationStrategy } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
@@ -40,40 +40,133 @@ export interface ViewOption<T = string> {
     templateUrl: './compare-rendered.component.html',
     styleUrl: './compare-rendered.component.css'
 })
-export class CompareRenderedComponent implements OnChanges {
+export class CompareRenderedComponent implements AfterViewInit, OnDestroy {
     private compareRenderedService = inject(CompareRenderedService);
     private translate = inject(TranslateService);
     private locationStrategy = inject(LocationStrategy);
 
-    @Input() beforeContent: htmlProcessingResult | undefined;
-    @Input() afterContent: htmlProcessingResult | undefined;
+    // Inputs
+    beforeContent = input<htmlProcessingResult | undefined>();
+    afterContent = input<htmlProcessingResult | undefined>();
+    //@Input() beforeContent: htmlProcessingResult | undefined;
+    //@Input() afterContent: htmlProcessingResult | undefined;
 
-    getUrl() {
-        if (this.webSelectedView() === WebViewType.Original) {
-            return this.beforeContent?.url
-        }
-        else if (this.webSelectedView() === WebViewType.Modified) {
-            return this.afterContent?.url
-        }
-        else return null
-    }
+    // Outputs
+    @Output() contentChanged = new EventEmitter<{
+        beforeContent: htmlProcessingResult;
+        afterContent: htmlProcessingResult;
+    }>();
 
-    // Run diff when inputs change
-    async ngOnChanges(changes: SimpleChanges) {
-        if (changes['beforeContent'] || changes['afterContent']) {
-            const shadowRoot = this.shadowDOM();
+    // Get DOM elements from template
+    @ViewChild('liveContainer', { static: false }) liveContainer!: ElementRef;
+
+    // Signals
+    shadowDOM = signal<ShadowRoot | null>(null);
+
+    // Effects
+    constructor() {
+        effect(async () => {
             const viewType = this.webSelectedView();
+            const shadowRoot = this.shadowDOM();
+            const beforeContent = this.beforeContent();
+            const afterContent = this.afterContent();
             if (this.beforeContent && !this.afterContent) this.afterContent = this.beforeContent;
             if (!this.beforeContent && this.afterContent) this.beforeContent = this.afterContent;
-            if (this.beforeContent && this.afterContent && shadowRoot) {
+
+            if (beforeContent && afterContent && shadowRoot) {
                 await this.compareRenderedService.generateShadowDOMContent(
                     shadowRoot,
                     viewType,
-                    this.beforeContent.html,
-                    this.afterContent.html,
+                    beforeContent.html,
+                    afterContent.html,
                 );
+                //Click listener for ShadowDom
+                if (this.shadowClickHandler) {
+                    this.shadowClickHandler();
+                    console.log('Reset shadow click handler');
+                }
+                this.shadowClickHandler = this.compareRenderedService.handleDocumentClick(
+                    shadowRoot,
+                    (index: number) => {
+                        this.currentIndex = index;
+                    },
+                );
+                //Selection listener for ShadowDom
+                if (this.shadowSelectionHandler) {
+                    this.shadowSelectionHandler();
+                    console.log('Reset shadow selection handler');
+                }
+                this.shadowSelectionHandler =
+                    this.compareRenderedService.handleSelection(shadowRoot);
+
+                //Get DOM element with a data-id
+                this.elements = this.compareRenderedService.getDataIdElements(shadowRoot);
+                if (this.elements.length > 0) {
+                    this.focusOnIndex(this.currentIndex); //set initial focus to 1st element
+                    //this.isDisabled = true;
+                    //this.aiDisabled = 'Accept or reject changes first';
+                } else {
+                    //this.isDisabled = false;
+                    //this.aiDisabled = '';
+                }
             }
+
+
+        })
+    }
+
+    //Runs when view is initialized
+    ngAfterViewInit(): void {
+        const shadowRoot = this.compareRenderedService.initializeShadowDOM(
+            this.liveContainer.nativeElement,
+        );
+        if (shadowRoot) {
+            this.shadowDOM.set(shadowRoot);
+            console.log('Shadow DOM is initialized.');
         }
+    }
+
+    //Runs when component is destroyed
+    ngOnDestroy(): void {
+        if (this.shadowDOM) {
+            this.compareRenderedService.clearShadowDOM(this.shadowDOM()!);
+            this.shadowDOM.set(null);
+        }
+        if (this.shadowClickHandler) {
+            this.shadowClickHandler();
+        }
+        if (this.shadowSelectionHandler) {
+            this.shadowSelectionHandler();
+        }
+    }
+
+    //Web page view options
+    WebViewType = WebViewType;
+    webSelectedView = signal<WebViewType>(WebViewType.Diff);
+
+    get webViewOptions(): ViewOption<WebViewType>[] {
+        return [
+            {
+                label: `compare.pageOptions.${this.beforeContent()?.version ?? 'before'}`,
+                value: WebViewType.Original,
+                icon: 'pi pi-file',
+            },
+            {
+                label: 'compare.view.comparison',
+                value: WebViewType.Diff,
+                icon: 'pi pi-sort-alt',
+            },
+            {
+                label: `compare.pageOptions.${this.afterContent()?.version ?? 'after'}`,
+                value: WebViewType.Modified,
+                icon: 'pi pi-file-edit',
+            },
+        ];
+    }
+
+    //Change web page view
+    async onWebViewChange(viewType: WebViewType) {
+        this.webSelectedView.set(viewType);
     }
 
     /* START OF TOOLBAR FUNCTIONS */
@@ -157,53 +250,64 @@ export class CompareRenderedComponent implements OnChanges {
     }
 
     // 2. Accept
+    toolbarAccept(): void {
+        this.processDiffChange('accept');
+    }
 
-    acceptItems = [
-        {
-            label: 'Accept all',
-            icon: 'pi pi-check-circle',
-            command: () => {
-                //this.toolbarAcceptAll();
+    get acceptItems() {
+        return [
+            {
+                label: 'Accept all',
+                icon: 'pi pi-check-circle',
+                command: () => {
+                    //this.toolbarAcceptAll();
+                },
+                disabled: true,
             },
-        },
-        {
-            separator: true,
-        },
-        {
-            label: this.translate.instant('compare.button.undo'),
-            icon: 'pi pi-refresh',
-            command: () => {
-                //this.uploadState.undoLastChange();
+            {
+                separator: true,
             },
-            disabled: true,
-        },
-    ];
-    rejectItems = [
+            {
+                label: this.translate.instant('compare.button.undo'),
+                icon: 'pi pi-refresh',
+                command: () => {
+                    //this.uploadState.undoLastChange();
+                },
+                disabled: true,
+            },
+        ];
+    }
 
-        // 3. Reject
+    // 3. Reject
+    toolbarReject(): void {
+        this.processDiffChange('reject');
+    }
 
-        {
-            label: 'Reject all',
-            icon: 'pi pi-times-circle',
-            command: () => {
-                //this.toolbarRejectAll();
+    get rejectItems() {
+        return [
+            {
+                label: 'Reject all',
+                icon: 'pi pi-times-circle',
+                command: () => {
+                    //this.toolbarRejectAll();
+                },
+                disabled: true,
             },
-        },
-        {
-            separator: true,
-        },
-        {
-            label: this.translate.instant('compare.button.undo'),
-            icon: 'pi pi-refresh',
-            command: () => {
-                //this.uploadState.undoLastChange();
+            {
+                separator: true,
             },
-            disabled: true,
-        },
-    ];
+            {
+                label: this.translate.instant('compare.button.undo'),
+                icon: 'pi pi-refresh',
+                command: () => {
+                    //this.uploadState.undoLastChange();
+                },
+                disabled: true,
+            },
+        ];
+    }
 
     // 4. Legend
-
     readonly baseLegendItems = signal<{ text: string; colour: string; style: string; lineStyle?: string }[]>([
         { text: 'compare.rendered.legend.previousVersion', colour: '#F3A59D', style: 'highlight' },
         { text: 'compare.rendered.legend.updatedVersion', colour: '#83d5a8', style: 'highlight' },
@@ -225,8 +329,8 @@ export class CompareRenderedComponent implements OnChanges {
     get legendItems() {
         const view = this.webSelectedView();
         const items = this.baseLegendItems();
-        const beforeFlags = this.beforeContent?.found;
-        const afterFlags = this.afterContent?.found;
+        const beforeFlags = this.beforeContent()?.found;
+        const afterFlags = this.afterContent()?.found;
         return items
             .map((item) => {
 
@@ -271,7 +375,6 @@ export class CompareRenderedComponent implements OnChanges {
     };
 
     // 5. Before/After - Edit
-
     toggleEdit = false;
     async toolbarToggleEdit(view: WebViewType): Promise<void> {
         const shadowRoot = this.shadowDOM();
@@ -309,7 +412,6 @@ export class CompareRenderedComponent implements OnChanges {
     }
 
     // 6. Before/After - Copy
-
     toggleCopy = false;
     toolbarToggleCopy(view: WebViewType): void {
         const data = "test"
@@ -328,55 +430,21 @@ export class CompareRenderedComponent implements OnChanges {
             .catch((err) => console.error('Clipboard copy failed:', err));
     }
 
+    // 7. Before/After - Open URL
+    getUrl() {
+        if (this.webSelectedView() === WebViewType.Original) {
+            return this.beforeContent()?.url
+        }
+        else if (this.webSelectedView() === WebViewType.Modified) {
+            return this.afterContent()?.url
+        }
+        else return null
+    }
+
     /* END OF TOOLBAR FUNCTIONS */
 
 
-    constructor() {
-        effect(async () => {
-            const viewType = this.webSelectedView();
-            const shadowRoot = this.shadowDOM();
-            //console.log("[Web tab] received new data");
-            if (this.beforeContent && this.afterContent && shadowRoot) {
-                await this.compareRenderedService.generateShadowDOMContent(
-                    shadowRoot,
-                    viewType,
-                    this.beforeContent.html,
-                    this.afterContent.html,
-                );
-                //Click listener for ShadowDom
-                if (this.shadowClickHandler) {
-                    this.shadowClickHandler();
-                    console.log('Reset shadow click handler');
-                }
-                this.shadowClickHandler = this.compareRenderedService.handleDocumentClick(
-                    shadowRoot,
-                    (index: number) => {
-                        this.currentIndex = index;
-                    },
-                );
-                //Selection listener for ShadowDom
-                if (this.shadowSelectionHandler) {
-                    this.shadowSelectionHandler();
-                    console.log('Reset shadow selection handler');
-                }
-                this.shadowSelectionHandler =
-                    this.compareRenderedService.handleSelection(shadowRoot);
 
-                //Get DOM element with a data-id
-                this.elements = this.compareRenderedService.getDataIdElements(shadowRoot);
-                if (this.elements.length > 0) {
-                    this.focusOnIndex(this.currentIndex); //set initial focus to 1st element
-                    //this.isDisabled = true;
-                    //this.aiDisabled = 'Accept or reject changes first';
-                } else {
-                    //this.isDisabled = false;
-                    //this.aiDisabled = '';
-                }
-            }
-
-
-        })
-    }
     //this.toggleEdit = false;
     //Disable undo button
     /*
@@ -419,117 +487,14 @@ return this.uploadState.getUploadData(); // returns signal().value
 
 
 */
-    //Web view options
-    WebViewType = WebViewType;
-    webSelectedView = signal<WebViewType>(WebViewType.Diff);
-
-    get webViewOptions(): ViewOption<WebViewType>[] {
-        return [
-            {
-                label: `compare.pageOptions.${this.beforeContent?.version ?? 'before'}`,
-                value: WebViewType.Original,
-                icon: 'pi pi-file',
-            },
-            {
-                label: 'compare.view.comparison',
-                value: WebViewType.Diff,
-                icon: 'pi pi-sort-alt',
-            },
-            {
-                label: `compare.pageOptions.${this.afterContent?.version ?? 'after'}`,
-                value: WebViewType.Modified,
-                icon: 'pi pi-file-edit',
-            },
-        ];
-    }
 
 
 
-    //Change web view
-    async onWebViewChange(viewType: WebViewType) {
-        this.webSelectedView.set(viewType);
-    }
 
 
-
-    //Get DOM elements from template
-    @ViewChild('liveContainer', { static: false }) liveContainer!: ElementRef;
-
-    shadowDOM = signal<ShadowRoot | null>(null);
-    sourceContainerSignal = signal<ElementRef | null>(null);
-
-    //Runs when view is initialized
-    ngAfterViewInit(): void {
-        const shadowRoot = this.compareRenderedService.initializeShadowDOM(
-            this.liveContainer.nativeElement,
-        );
-        if (shadowRoot) {
-            this.shadowDOM.set(shadowRoot);
-            console.log('Shadow DOM is initialized.');
-        }
-    }
     /*
-        ngOnInit(): void {
-            this.observeDarkMode();
-    
-            //Translations
-            const undoText = this.translate.instant('page.compare.button.undo');
-            //Button array
-            this.acceptItems = [
-                {
-                    label: 'Accept all',
-                    icon: 'pi pi-check-circle',
-                    command: () => {
-                        this.toolbarAcceptAll();
-                    },
-                },
-                {
-                    separator: true,
-                },
-                {
-                    label: undoText,
-                    icon: 'pi pi-refresh',
-                    command: () => {
-                        this.uploadState.undoLastChange();
-                    },
-                    disabled: true,
-                },
-            ];
-            this.rejectItems = [
-                {
-                    label: 'Reject all',
-                    icon: 'pi pi-times-circle',
-                    command: () => {
-                        this.toolbarRejectAll();
-                    },
-                },
-                {
-                    separator: true,
-                },
-                {
-                    label: undoText,
-                    icon: 'pi pi-refresh',
-                    command: () => {
-                        this.uploadState.undoLastChange();
-                    },
-                    disabled: true,
-                },
-            ];
-        }
-        ngOnDestroy(): void {
-            if (this.shadowDOM) {
-                this.compareRenderedService.clearShadowDOM(this.shadowDOM()!);
-                this.shadowDOM.set(null);
-            }
-            this.sourceContainerSignal.set(null);
-            this.darkModeObserver?.disconnect();
-            if (this.shadowClickHandler) {
-                this.shadowClickHandler();
-            }
-            if (this.shadowSelectionHandler) {
-                this.shadowSelectionHandler();
-            }
-        }
+        
+        
     
         clearAll(event: Event) {
             console.log('Clicked reset');
@@ -603,29 +568,12 @@ return this.uploadState.getUploadData(); // returns signal().value
                 .catch((err) => console.error('Clipboard copy failed:', err));
         }
     
-        private darkModeObserver?: MutationObserver;
-        private observeDarkMode(): void {
-            this.darkModeObserver = new MutationObserver(() => {
-                this.sourceDiffService.loadPrismTheme();
-            });
-    
-            //Checks for any changes to classes on <html> ie. dark-mode
-            this.darkModeObserver.observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: ['class'],
-            });
-        }
+        
     
         */
 
 
-    toolbarAccept(): void {
-        this.processDiffChange('accept');
-    }
 
-    toolbarReject(): void {
-        this.processDiffChange('reject');
-    }
 
     processDiffChange(mode: 'accept' | 'reject'): void {
         //Get diff container
@@ -736,39 +684,22 @@ return this.uploadState.getUploadData(); // returns signal().value
             startId: null,
             endId: null,
         }; //reset selection
+
         //Merge with modified HTML
         const updatedHtml = diffContainer.innerHTML;
 
+        const beforeContent = this.beforeContent();
+        const afterContent = this.afterContent();
 
-        /*const data = this.uploadState.getUploadData();
-        if (!data) return;
-        this.uploadState.savePreviousUploadData(); //save previous data for undo button
-        if (mode === 'accept') {
-            this.uploadState.mergeOriginalData({
-                originalUrl: 'Change accepted',
-                originalHtml: updatedHtml,
-            });
-            const modHtml = data.modifiedHtml?.replace(
-                /<(\w+)([\s\S]*?)\s*\/>/g,
-                '<$1$2>',
-            ); //removes self-closing slash
-            this.uploadState.mergeModifiedData({
-                modifiedUrl: data.modifiedUrl!,
-                modifiedHtml: modHtml!,
-            });
-        } else {
-            this.uploadState.mergeModifiedData({
-                modifiedUrl: 'Change rejected',
-                modifiedHtml: updatedHtml,
-            });
-            const oriHtml = data.originalHtml?.replace(
-                /<(\w+)([\s\S]*?)\s*\/>/g,
-                '<$1$2>',
-            ); //removes self-closing slash
-            this.uploadState.mergeOriginalData({
-                originalUrl: data.originalUrl!,
-                originalHtml: oriHtml!,
-            });
-        }*/
+        if (!beforeContent || !afterContent) return;
+
+        this.contentChanged.emit({
+            beforeContent: mode === 'accept'
+                ? { ...beforeContent, html: updatedHtml, url: 'Change accepted' }
+                : beforeContent,
+            afterContent: mode === 'reject'
+                ? { ...afterContent, html: updatedHtml, url: 'Change rejected' }
+                : afterContent
+        });
     }
 }

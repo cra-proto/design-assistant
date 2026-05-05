@@ -343,4 +343,14 @@ export class CompareComponent {
     }
   }
 
+  // Handle accept/reject changes
+  onContentChanged(event: { beforeContent: htmlProcessingResult; afterContent: htmlProcessingResult }): void {
+    // Update your signals
+    this.compareService.originalHtml.set(event.beforeContent);
+    this.compareService.modifiedHtml.set(event.afterContent);
+
+    // TODO: Update cache so user doesn't lose progress when navigating to other pages in project
+    // this.compareService.setDiffCache(pageId, event.beforeContent, event.afterContent);
+  }
+
 }

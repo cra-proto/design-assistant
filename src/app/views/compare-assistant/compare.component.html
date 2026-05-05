@@ -40,8 +40,8 @@
       </div>
     </div>
     <div class="surface-card border-round-lg shadow-2 p-4 w-full xl:w-6 min-w-min">
-      <h2 class="text-2xl my-1">{{ 'compare.aiOptions._title' | translate }}</h2>
-      <p class="my-1">{{ "compare.aiOptions.description" | translate }}</p>
+      <h2 class="text-2xl my-1">{{ 'compare.tools._title' | translate }}</h2>
+      <p class="my-1">{{ "compare.tools.description" | translate }}</p>
 
       <div class="flex justify-content-between w-full gap-2 mt-4">
         <div class="flex gap-2">
@@ -87,13 +87,13 @@
     <p-tabs value="0" class="mt-3">
       <p-tablist>
         <p-tab value="0"><i class="pi pi-eye mr-1"></i>{{ 'compare.tab.rendered' | translate }}</p-tab>
-        <p-tab value="1"><i class="pi pi-code mr-1"></i>{{ 'compare.tab.source' | translate }}</p-tab>
+        <!--p-tab value="1"><i class="pi pi-code mr-1"></i>{{ 'compare.tab.source' | translate }}</p-tab-->
         <!--p-tab value="2"><i class="pi pi-exclamation-triangle mr-1"></i>{{ 'compare.tab.problems' | translate }}</p-tab-->
       </p-tablist>
       <p-tabpanels class="shadow-1">
         <!-- Rendered page -->
         <p-tabpanel value="0">
-          <aida-compare-rendered [beforeContent]="compareService.originalHtml()" [afterContent]="compareService.modifiedHtml()"></aida-compare-rendered>
+          <aida-compare-rendered [beforeContent]="compareService.originalHtml()" [afterContent]="compareService.modifiedHtml()" (contentChanged)="onContentChanged($event)"></aida-compare-rendered>
         </p-tabpanel>
         <!-- Source code -->
         <!--p-tabpanel value="1">
