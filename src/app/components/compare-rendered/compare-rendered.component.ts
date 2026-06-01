@@ -1,3 +1,7 @@
+// This component expects 2 inputs for the before & after content for the diff
+// It expects inputs in htmlProcessingResult format which includes information to populate the legend
+// Format your url or string content through the normalizeHTML function in html-normalization.service convert it to an htmlProcessingResult
+
 import { Component, inject, input, Output, EventEmitter, ViewChild, ElementRef, computed, signal, effect, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule, LocationStrategy } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
