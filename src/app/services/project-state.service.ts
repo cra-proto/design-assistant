@@ -638,10 +638,12 @@ export class ProjectStateService {
                     isMoved: data.status.isMoved,
                     isROT: data.status.isROT,
                     linksToPortal: data.status.linksToPortal,
-                    noindex: data.status.noindexEN && data.status.noindexFR ? 'both'
-                        : data.status.noindexEN ? 'en-only'
-                            : data.status.noindexFR ? 'fr-only'
-                                : 'none',
+                    noindex: data.status.noindexEN === 'to-reindex' || data.status.noindexFR === 'to-reindex' ? 'to-reindex'
+                        : data.status.noindexEN === 'to-deindex' || data.status.noindexFR === 'to-deindex' ? 'to-deindex'
+                            : data.status.noindexEN && data.status.noindexFR ? 'both'
+                                : data.status.noindexEN ? 'en-only'
+                                    : data.status.noindexFR ? 'fr-only'
+                                        : 'none',
                     archiveStatus: data.status.archiveStatus,
                     //Data
                     template: data.metadata?.template || '',
