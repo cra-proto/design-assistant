@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { PageMetadata, OppMetadata, BreadcrumbNode } from '../components/add-pages/add-pages.model';
+import { PageTemplate } from '../common/data.model';
 import { isPortalDomain } from '../common/portal-domains.config';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 @Injectable({ providedIn: 'root' })
 export class FetchService {
@@ -12,9 +14,12 @@ export class FetchService {
     `${environment.defaultOrg}.github.io`,
     "proto-cra.github.io",
     //"cra-design.github.io", //Currently blocked by browser because it looks like a phishing site
-    "cra-proto.github.io",
+    //"cra-proto.github.io", //Is currently cra-test-arc.canada.ca
+    "cra-test-arc.canada.ca",
     "test.canada.ca",
     //"gc-proto.github.io", //CORS error but redirects to test.canada.ca which works
+    "canada-preview.adobecqms.net",
+    "aleblanc3.github.io"
   ]);
   private getAllowedHosts(mode: "prod" | "proto" | "both"): Set<string> {
     const allowed = new Set<string>();
@@ -126,15 +131,16 @@ export class FetchService {
   ): Promise<Response> {
     url = this.validateHost(url, hostMode);
     if (delayBetweenRequests > 0) { await this.delay(delayBetweenRequests); }
-    return this.fetchWithRetry(url, "HEAD", retries, delay);
+    return this.fetchWithRetry(url, "HEAD", retries, delay, true);
   }
 
   public async fetchJSON(url: string, fields: string[]): Promise<Record<string, string>> {
-    const jsonUrl = url.replace('.html', '/jcr:content.json?nocache=true');
+    const date = new Date().toDateString;
+    const jsonUrl = url.replace('.html', `/jcr:content.json?nocache=${date}`);
     const result: Record<string, string> = {};
 
     try {
-      const response = await this.fetchWithRetry(jsonUrl, "GET", 3, "none");
+      const response = await this.fetchWithRetry(jsonUrl, "GET", 3, "none", true);
       const json = await response.json();
 
       for (const field of fields) {
@@ -268,53 +274,53 @@ export class FetchService {
     //Brochure page
     const isBrochure = doc.querySelector('.panel-heading.bg-primary') !== null;
 
-    let template = 'content'; // default
+    let template = PageTemplate.Content; // default
     if (hasSubway) {
-      template = 'subway';
+      template = PageTemplate.Subway;
     } else if (hasOldSubway) {
-      template = 'old subway';
+      template = PageTemplate.OldSubway;
     } else if (isNewsUrl) {
-      template = 'newsroom';
+      template = PageTemplate.Newsroom;
     } else if (isVideoTranscript) {
-      template = 'video transcript';
+      template = PageTemplate.VideoTranscript;
     } else if (isCampaignUrl) {
-      template = 'campaign';
+      template = PageTemplate.Campaign;
     } else if (isFormReadme) {
-      template = 'readme (form)';
+      template = PageTemplate.ReadmeForm;
     } else if (isPubReadme) {
-      template = 'readme (guide)';
+      template = PageTemplate.ReadmeGuide;
     } else if (isPub) {
-      template = 'guide';
+      template = PageTemplate.Guide;
     } else if (is5000g) {
-      template = 'guide (T1)';
+      template = PageTemplate.GuideT1;
     } else if (isT1Readme) {
-      template = 'readme (T1)';
+      template = PageTemplate.ReadmeT1;
     } else if (isT1Pub) {
-      template = 'guide (T1)';
+      template = PageTemplate.GuideT1;
     } else if (isTD1Readme) {
-      template = 'readme (TD1)';
+      template = PageTemplate.ReadmeTD1;
     } else if (isPayrollReadme) {
-      template = 'readme (payroll)';
+      template = PageTemplate.ReadmePayroll;
     } else if (isContactH1) {
-      template = 'contact';
+      template = PageTemplate.Contact;
     } else if (hasMostRequested || hasGcSrvinfo || hasDoormatComponent) {
-      template = 'topic';
+      template = PageTemplate.Topic;
     } else if (isOldTopic) {
-      template = 'old topic';
+      template = PageTemplate.OldTopic;
     } else if (isNavigational) {
-      template = 'navigation';
+      template = PageTemplate.Navigation;
     } else if (isBrochure) {
-      template = 'brochure';
+      template = PageTemplate.Brochure;
     } else if (isPdfDownload) {
-      template = 'pdf download';
+      template = PageTemplate.PdfDownload;
     } else if (isMultimedia) {
-      template = 'multimedia gallery';
+      template = PageTemplate.MultimediaGallery;
     } else if (isTaxtip) {
-      template = 'taxtip';
+      template = PageTemplate.Taxtip;
     } else if (isTFSMK) {
-      template = 'tax filing season media kit';
+      template = PageTemplate.TaxFilingSeasonMediaKit;
     } else if (isEnforcementNotice) {
-      template = 'enforcement notice';
+      template = PageTemplate.EnforcementNotice;
     }
 
     //Opposite language url
@@ -336,6 +342,33 @@ export class FetchService {
     const wordCount = words.length;
 
     return { doubleH1, h1, title, description, keywords, template, oppUrl, isArchived, linksToPortal, noindex, wordCount };
+  }
+
+  markForTranslation() {
+    marker('template.content');
+    marker('template.subway');
+    marker('template.oldSubway');
+    marker('template.newsroom');
+    marker('template.videoTranscript');
+    marker('template.campaign');
+    marker('template.readmeForm');
+    marker('template.readmeGuide');
+    marker('template.guide');
+    marker('template.guideT1');
+    marker('template.readmeT1');
+    marker('template.readmeTD1');
+    marker('template.readmePayroll');
+    marker('template.contact');
+    marker('template.topic');
+    marker('template.oldTopic');
+    marker('template.navigation');
+    marker('template.brochure');
+    marker('template.pdfDownload');
+    marker('template.multimediaGallery');
+    marker('template.taxtip');
+    marker('template.taxFilingSeasonMediaKit');
+    marker('template.enforcementNotice');
+    marker('template.freestyle');
   }
 
   public async getOppMetadata(url: string): Promise<OppMetadata> {
@@ -402,4 +435,73 @@ export class FetchService {
       .filter(href => new URL(href).origin === baseDomain);
     return [...new Set(links)];
   }
+
+  //Get preview content
+  public fetchPreview(targetUrl: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const previewUrl = `https://canada-preview.adobecqms.net/en/revenue-agency/web-services-test/amber/test.html?fetch=${encodeURIComponent(targetUrl)}`;
+      //const previewUrl = `https://aleblanc3.github.io/test/test.html?fetch=${encodeURIComponent(targetUrl)}`;
+
+      const popup = window.open(previewUrl, '_blank', 'width=1,height=1,left=9999,top=9999');
+      if (!popup) {
+        reject(new Error('Popup blocked. Please allow popups for this site.'));
+        return;
+      }
+      //Listen for response
+      const handler = (event: MessageEvent) => {
+        // Verify origin
+        if (event.origin !== 'https://canada-preview.adobecqms.net') return;
+        //if (event.origin !== 'https://aleblanc3.github.io') return;
+        // Cleanup
+        window.removeEventListener('message', handler);
+        clearTimeout(timeout);
+        popup.close();
+        // Handle response
+        if (event.data.success) {
+          resolve(event.data.html);
+        } else {
+          reject(new Error(event.data.error || 'Failed to fetch preview content'));
+        }
+      };
+      window.addEventListener('message', handler);
+      // Timeout after 10 seconds
+      const timeout = setTimeout(() => {
+        window.removeEventListener('message', handler);
+        popup.close();
+        reject(new Error('Timeout waiting for preview content'));
+      }, 10000);
+    });
+  }
+
+  fetchPreviewStatus(targetUrl: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const previewUrl = `https://canada-preview.adobecqms.net/en/revenue-agency/web-services-test/amber/test.html?fetch=${encodeURIComponent(targetUrl)}&check=true`;
+      const popup = window.open(previewUrl, '_blank', 'width=1,height=1,left=9999,top=9999');
+
+      if (!popup) {
+        resolve(false);
+        return;
+      }
+
+      const handler = (event: MessageEvent) => {
+        if (event.origin !== 'https://canada-preview.adobecqms.net') return;
+
+        window.removeEventListener('message', handler);
+        clearTimeout(timeout);
+        popup.close();
+
+        resolve(event.data.success || false);
+      };
+
+      window.addEventListener('message', handler);
+
+      const timeout = setTimeout(() => {
+        window.removeEventListener('message', handler);
+        popup.close();
+        resolve(false);
+      }, 5000);
+    });
+  }
+
 }
+

@@ -1,6 +1,6 @@
 {
   "name": "ai-design-assistant",
-  "version": "0.5.4",
+  "version": "0.5.6",
   "_versionFormat": "major.minor.patch",
   "scripts": {
     "start": "ng serve",
@@ -11,8 +11,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
-    "predeploy": "ng build --configuration production --base-href /ai-design-assistant/",
-    "deploy": "npx angular-cli-ghpages --dir=dist/ai-design-assistant/browser --no-silent --branch=gh-pages",
+    "predeploy": "ng build --configuration sandbox --base-href /design-assistant/",
+    "deploy": "npx angular-cli-ghpages --dir=dist/design-assistant/browser --no-silent --branch=gh-pages",
     "check": "node scripts/check-missing-translations.js en && node scripts/check-missing-translations.js fr",
     "compare": "node scripts/compare-translations.js en && node scripts/compare-translations.js fr",
     "i18n:extract": "ngx-translate-extract --input ./src --output ./public/i18n/en.json ./public/i18n/fr.json --sort --format json",
@@ -20,7 +20,13 @@
     "i18n:check": "npm run i18n:extract && npm run check",
     "i18n:compare": "npm run i18n:clean && npm run compare",
     "i18n:qa": "npm run i18n:extract && npm run i18n:clean && npm run check && npm run compare",
-    "checksize": "ng build --configuration production --base-href /ai-design-assistant/ --stats-json && node scripts/check-size.js"
+    "checksize": "ng build --configuration production --base-href /ai-design-assistant/ --stats-json && node scripts/check-size.js",
+    "install:lambdas": "npm-run-all install:lambda:*",
+    "install:lambda:airtable": "cd backend/functions/airtable && npm install",
+    "install:lambda:github-oauth": "cd backend/functions/github-oauth && npm install",
+    "install:lambda:openrouter": "cd backend/functions/openrouter && npm install",
+    "install:lambda:projects": "cd backend/functions/projects && npm install",
+    "postinstall": "npm run install:lambdas"
   },
   "private": true,
   "dependencies": {
@@ -72,6 +78,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "npm-run-all": "^4.1.5",
     "typescript": "~5.7.2",
     "typescript-eslint": "8.40.0"
   }

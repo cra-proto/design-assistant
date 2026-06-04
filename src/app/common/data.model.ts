@@ -28,6 +28,34 @@ export interface CurrentPhase {
     status: PhaseStatus;
 }
 
+//Templates
+export enum PageTemplate {
+    Content = 'template.content',
+    Subway = 'template.subway',
+    OldSubway = 'template.oldSubway',
+    Newsroom = 'template.newsroom',
+    VideoTranscript = 'template.videoTranscript',
+    Campaign = 'template.campaign',
+    ReadmeForm = 'template.readmeForm',
+    ReadmeGuide = 'template.readmeGuide',
+    Guide = 'template.guide',
+    GuideT1 = 'template.guideT1',
+    ReadmeT1 = 'template.readmeT1',
+    ReadmeTD1 = 'template.readmeTD1',
+    ReadmePayroll = 'template.readmePayroll',
+    Contact = 'template.contact',
+    Topic = 'template.topic',
+    OldTopic = 'template.oldTopic',
+    Navigation = 'template.navigation',
+    Brochure = 'template.brochure',
+    PdfDownload = 'template.pdfDownload',
+    MultimediaGallery = 'template.multimediaGallery',
+    Taxtip = 'template.taxtip',
+    TaxFilingSeasonMediaKit = 'template.taxFilingSeasonMediaKit',
+    EnforcementNotice = 'template.enforcementNotice',
+    Freestyle = 'template.freestyle'
+}
+
 //GitHub
 export interface GitHubUser {
     login: string;
@@ -52,7 +80,7 @@ export interface PageMeta {
     titleFR?: string;               // French Metadata title
     descriptionFR?: string;         // French Metadata description
     keywordsFR?: string;            // French Metadata keywords
-    template?: string;              // Determined based on page content & url pattern
+    template?: PageTemplate;        // Determined based on page content & url pattern
     task?: string[];                // Determined by comparing with task airtable data
     visits?: number;                // Determined by comparing with UPD data
     wordCount: number;              // Count of words on page
@@ -68,7 +96,7 @@ export interface PageMeta {
 }
 
 //AI metadata generation workflow
-export type MetadataReviewStatus = 'pending' | 'approved' | 'edited' | 'rejected';
+export type MetadataReviewStatus = 'pending' | 'edited' | 'noChange' | 'rejected' | 'approvedAI' | 'approvedEdits';
 
 export interface MetadataField {
     ai: string;           // What the AI suggested
@@ -98,8 +126,8 @@ export interface PageStatus {
     isMoved: boolean;                // True if current parent doesn't match baseline parent
     isROT: boolean;                  // True if user flags page as ROT (redundant, outdated, trivial)
     linksToPortal: boolean;          // True if page links to a portal
-    noindexEN: boolean;              // True if English page is not indexed for search
-    noindexFR: boolean;              // True if French page is not indexed for search
+    noindexEN: boolean | "to-reindex" | "to-deindex";              // True if English page is not indexed for search
+    noindexFR: boolean | "to-reindex" | "to-deindex";              // True if French page is not indexed for search
     archiveStatus: 'current' | 'archived' | 'to-archive' | 'unarchive' // current/archived is set during add pages step, user can toggle to-archive
     isContainer: boolean;            // True if page is a container page (used to group together pages for AI combine/split actions)
 }
@@ -145,7 +173,7 @@ export interface FlattenedTreeNode {
     isMoved: boolean;
     isROT: boolean;
     linksToPortal: boolean;
-    noindex: 'both' | 'en-only' | 'fr-only' | 'none';
+    noindex: 'both' | 'en-only' | 'fr-only' | 'none' | 'to-reindex' | 'to-deindex';
     archiveStatus: 'current' | 'archived' | 'to-archive' | 'unarchive'
     //Data
     template: string;
@@ -181,10 +209,11 @@ export type ColumnGroups = typeof COLUMN_GROUPS[number];
 export interface TableColumn {
     field: keyof FlattenedTreeNode;
     translationKey: string;
-    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive' | 'noindex' | 'date' | 'aiText' | 'upd';
+    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive' | 'noindex' | 'date' | 'aiText' | 'upd' | 'template';
     frozen?: boolean;
     group: ColumnGroups;
     visibleByDefault: boolean;
+    dataSection: string; //reference to how the data is nested in the TreeNode
 }
 
 export interface ColumnGroup {

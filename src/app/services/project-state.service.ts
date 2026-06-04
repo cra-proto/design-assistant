@@ -299,6 +299,23 @@ export class ProjectStateService {
         return urls;
     }
 
+    // Get all in-scope page titles and urls (for comparison dropdown)
+    getAllPages(lang: 'primary' | 'opposite' = 'primary'): { title: string; url: string }[] {
+        const pages: { title: string; url: string }[] = [];
+        const traverse = (nodes: TreeNode<ProjectTreeNodeData>[]) => {
+            for (const node of nodes) {
+                const url = lang === 'primary' ? node.data?.url : node.data?.metadata?.oppUrl;
+                const title = lang === 'primary' ? node.data?.h1 : node.data?.metadata?.oppTitle;
+                if (url && title && node.data?.status.inScope) {
+                    pages.push({ title, url });
+                }
+                if (node.children?.length) traverse(node.children);
+            }
+        };
+        traverse(this.project().projectData);
+        return pages;
+    }
+
     // Merge new pages into existing tree
     mergePages(newPages: TreeNode<ProjectTreeNodeData>[]) {
         const currentTree = this.project().projectData;
@@ -621,10 +638,12 @@ export class ProjectStateService {
                     isMoved: data.status.isMoved,
                     isROT: data.status.isROT,
                     linksToPortal: data.status.linksToPortal,
-                    noindex: data.status.noindexEN && data.status.noindexFR ? 'both'
-                        : data.status.noindexEN ? 'en-only'
-                            : data.status.noindexFR ? 'fr-only'
-                                : 'none',
+                    noindex: data.status.noindexEN === 'to-reindex' || data.status.noindexFR === 'to-reindex' ? 'to-reindex'
+                        : data.status.noindexEN === 'to-deindex' || data.status.noindexFR === 'to-deindex' ? 'to-deindex'
+                            : data.status.noindexEN && data.status.noindexFR ? 'both'
+                                : data.status.noindexEN ? 'en-only'
+                                    : data.status.noindexFR ? 'fr-only'
+                                        : 'none',
                     archiveStatus: data.status.archiveStatus,
                     //Data
                     template: data.metadata?.template || '',
@@ -706,51 +725,51 @@ export class ProjectStateService {
     getTreeTableColumns(): TableColumn[] {
         return [
             //Current Language
-            { field: 'h1', translationKey: 'inventory.header.h1', type: 'text', frozen: true, group: 'page', visibleByDefault: true },
-            { field: 'doubleH1', translationKey: 'inventory.header.doubleH1', type: 'text', group: 'page', visibleByDefault: false },
-            { field: 'url', translationKey: 'inventory.header.url', type: 'url', group: 'page', visibleByDefault: false },
+            { field: 'h1', translationKey: 'inventory.header.h1', type: 'text', frozen: true, group: 'page', visibleByDefault: true, dataSection: '' },
+            { field: 'doubleH1', translationKey: 'inventory.header.doubleH1', type: 'text', group: 'page', visibleByDefault: false, dataSection: '' },
+            { field: 'url', translationKey: 'inventory.header.url', type: 'url', group: 'page', visibleByDefault: false, dataSection: '' },
             //Opposite Language
-            { field: 'oppH1', translationKey: 'inventory.header.oppH1', type: 'text', group: 'oppPage', visibleByDefault: false },
-            { field: 'oppDoubleH1', translationKey: 'inventory.header.oppDoubleH1', type: 'text', group: 'oppPage', visibleByDefault: false },
-            { field: 'oppUrl', translationKey: 'inventory.header.oppUrl', type: 'url', group: 'oppPage', visibleByDefault: false },
+            { field: 'oppH1', translationKey: 'inventory.header.oppH1', type: 'text', group: 'oppPage', visibleByDefault: false, dataSection: 'metadata' },
+            { field: 'oppDoubleH1', translationKey: 'inventory.header.oppDoubleH1', type: 'text', group: 'oppPage', visibleByDefault: false, dataSection: 'metadata' },
+            { field: 'oppUrl', translationKey: 'inventory.header.oppUrl', type: 'url', group: 'oppPage', visibleByDefault: false, dataSection: 'metadata' },
             //GitHub
-            { field: 'prototypeUrl', translationKey: 'inventory.header.prototypeUrl', type: 'url', group: 'github', visibleByDefault: false },
+            { field: 'prototypeUrl', translationKey: 'inventory.header.prototypeUrl', type: 'url', group: 'github', visibleByDefault: false, dataSection: '' },
             //Status
-            { field: 'inScope', translationKey: 'inventory.header.inScope', type: 'boolean', group: 'status', visibleByDefault: true },
-            { field: 'isNew', translationKey: 'inventory.header.isNew', type: 'boolean', group: 'status', visibleByDefault: true },
-            { field: 'isMoved', translationKey: 'inventory.header.isMoved', type: 'boolean', group: 'status', visibleByDefault: true },
-            { field: 'isROT', translationKey: 'inventory.header.isROT', type: 'boolean', group: 'status', visibleByDefault: true },
-            { field: 'linksToPortal', translationKey: 'inventory.header.linksToPortal', type: 'boolean', group: 'status', visibleByDefault: true },
-            { field: 'archiveStatus', translationKey: 'inventory.header.archiveStatus', type: 'archive', group: 'status', visibleByDefault: true },
-            { field: 'noindex', translationKey: 'inventory.header.noindex', type: 'noindex', group: 'status', visibleByDefault: true },
+            { field: 'inScope', translationKey: 'inventory.header.inScope', type: 'boolean', group: 'status', visibleByDefault: true, dataSection: 'status' },
+            { field: 'isNew', translationKey: 'inventory.header.isNew', type: 'boolean', group: 'status', visibleByDefault: true, dataSection: 'status' },
+            { field: 'isMoved', translationKey: 'inventory.header.isMoved', type: 'boolean', group: 'status', visibleByDefault: true, dataSection: 'status' },
+            { field: 'isROT', translationKey: 'inventory.header.isROT', type: 'boolean', group: 'status', visibleByDefault: true, dataSection: 'status' },
+            { field: 'linksToPortal', translationKey: 'inventory.header.linksToPortal', type: 'boolean', group: 'status', visibleByDefault: true, dataSection: 'status' },
+            { field: 'archiveStatus', translationKey: 'inventory.header.archiveStatus', type: 'archive', group: 'status', visibleByDefault: true, dataSection: 'status' },
+            { field: 'noindex', translationKey: 'inventory.header.noindex', type: 'noindex', group: 'status', visibleByDefault: true, dataSection: 'status' },
             //Problems
-            { field: 'isOrphan', translationKey: 'inventory.header.isOrphan', type: 'boolean', group: 'problems', visibleByDefault: true },
+            { field: 'isOrphan', translationKey: 'inventory.header.isOrphan', type: 'boolean', group: 'problems', visibleByDefault: true, dataSection: 'status' },
             //ADD 404's!!!
             //Data
-            { field: 'template', translationKey: 'inventory.header.template', type: 'text', group: 'pageData', visibleByDefault: true },
-            { field: 'visits', translationKey: 'inventory.header.visits', type: 'number', group: 'pageData', visibleByDefault: true },
-            { field: 'wordCount', translationKey: 'inventory.header.wordCount', type: 'number', group: 'pageData', visibleByDefault: true },
-            { field: 'task', translationKey: 'inventory.header.task', type: 'array', group: 'pageData', visibleByDefault: false },
-            { field: 'lastModified', translationKey: 'inventory.header.lastModified', type: 'date', group: 'pageData', visibleByDefault: true },
-            { field: 'lastPublished', translationKey: 'inventory.header.lastPublished', type: 'date', group: 'pageData', visibleByDefault: false },
-            { field: 'updLink', translationKey: 'inventory.header.updLink', type: 'upd', group: 'pageData', visibleByDefault: false },
+            { field: 'template', translationKey: 'inventory.header.template', type: 'template', group: 'pageData', visibleByDefault: true, dataSection: 'metadata' },
+            { field: 'visits', translationKey: 'inventory.header.visits', type: 'number', group: 'pageData', visibleByDefault: true, dataSection: 'metadata' },
+            { field: 'wordCount', translationKey: 'inventory.header.wordCount', type: 'number', group: 'pageData', visibleByDefault: true, dataSection: 'metadata' },
+            { field: 'task', translationKey: 'inventory.header.task', type: 'array', group: 'pageData', visibleByDefault: false, dataSection: 'metadata' },
+            { field: 'lastModified', translationKey: 'inventory.header.lastModified', type: 'date', group: 'pageData', visibleByDefault: true, dataSection: 'metadata' },
+            { field: 'lastPublished', translationKey: 'inventory.header.lastPublished', type: 'date', group: 'pageData', visibleByDefault: false, dataSection: 'metadata' },
+            { field: 'updLink', translationKey: 'inventory.header.updLink', type: 'upd', group: 'pageData', visibleByDefault: false, dataSection: '' },
             //Owner
-            { field: 'owner', translationKey: 'inventory.header.owner', type: 'text', group: 'owner', visibleByDefault: true },
-            { field: 'email', translationKey: 'inventory.header.email', type: 'text', group: 'owner', visibleByDefault: false },
+            { field: 'owner', translationKey: 'inventory.header.owner', type: 'text', group: 'owner', visibleByDefault: true, dataSection: 'metadata' },
+            { field: 'email', translationKey: 'inventory.header.email', type: 'text', group: 'owner', visibleByDefault: false, dataSection: 'metadata' },
             //Metadata & AI metadata
-            { field: 'titleEN', translationKey: 'inventory.header.titleEN', type: 'text', group: 'metadata', visibleByDefault: false },
-            { field: 'titleFR', translationKey: 'inventory.header.titleFR', type: 'text', group: 'metadata', visibleByDefault: false },
-            { field: 'descriptionEN', translationKey: 'inventory.header.descriptionEN', type: 'longText', group: 'metadata', visibleByDefault: false },
-            { field: 'aiDescriptionEN', translationKey: 'inventory.header.ai.descriptionEN', type: 'aiText', group: 'metadata', visibleByDefault: false },
-            { field: 'descriptionFR', translationKey: 'inventory.header.descriptionFR', type: 'longText', group: 'metadata', visibleByDefault: false },
-            { field: 'aiDescriptionFR', translationKey: 'inventory.header.ai.descriptionFR', type: 'aiText', group: 'metadata', visibleByDefault: false },
-            { field: 'keywordsEN', translationKey: 'inventory.header.keywordsEN', type: 'longText', group: 'metadata', visibleByDefault: false },
-            { field: 'aiKeywordsEN', translationKey: 'inventory.header.ai.keywordsEN', type: 'aiText', group: 'metadata', visibleByDefault: false },
-            { field: 'keywordsFR', translationKey: 'inventory.header.keywordsFR', type: 'longText', group: 'metadata', visibleByDefault: false },
-            { field: 'aiKeywordsFR', translationKey: 'inventory.header.ai.keywordsFR', type: 'aiText', group: 'metadata', visibleByDefault: false },
+            { field: 'titleEN', translationKey: 'inventory.header.titleEN', type: 'text', group: 'metadata', visibleByDefault: false, dataSection: 'metadata' },
+            { field: 'titleFR', translationKey: 'inventory.header.titleFR', type: 'text', group: 'metadata', visibleByDefault: false, dataSection: 'metadata' },
+            { field: 'descriptionEN', translationKey: 'inventory.header.descriptionEN', type: 'longText', group: 'metadata', visibleByDefault: false, dataSection: 'metadata' },
+            { field: 'aiDescriptionEN', translationKey: 'inventory.header.ai.descriptionEN', type: 'aiText', group: 'metadata', visibleByDefault: false, dataSection: 'metadataReview.en' },
+            { field: 'descriptionFR', translationKey: 'inventory.header.descriptionFR', type: 'longText', group: 'metadata', visibleByDefault: false, dataSection: 'metadata' },
+            { field: 'aiDescriptionFR', translationKey: 'inventory.header.ai.descriptionFR', type: 'aiText', group: 'metadata', visibleByDefault: false, dataSection: 'metadataReview.fr' },
+            { field: 'keywordsEN', translationKey: 'inventory.header.keywordsEN', type: 'longText', group: 'metadata', visibleByDefault: false, dataSection: 'metadata' },
+            { field: 'aiKeywordsEN', translationKey: 'inventory.header.ai.keywordsEN', type: 'aiText', group: 'metadata', visibleByDefault: false, dataSection: 'metadataReview.en' },
+            { field: 'keywordsFR', translationKey: 'inventory.header.keywordsFR', type: 'longText', group: 'metadata', visibleByDefault: false, dataSection: 'metadata' },
+            { field: 'aiKeywordsFR', translationKey: 'inventory.header.ai.keywordsFR', type: 'aiText', group: 'metadata', visibleByDefault: false, dataSection: 'metadataReview.fr' },
             //AI Metadata
-            { field: 'aiModel', translationKey: 'inventory.header.ai.model', type: 'text', group: 'metadata', visibleByDefault: false },
-            { field: 'aiGeneratedAt', translationKey: 'inventory.header.ai.date', type: 'date', group: 'metadata', visibleByDefault: false },
+            { field: 'aiModel', translationKey: 'inventory.header.ai.model', type: 'text', group: 'metadata', visibleByDefault: false, dataSection: 'metadataReview' },
+            { field: 'aiGeneratedAt', translationKey: 'inventory.header.ai.date', type: 'date', group: 'metadata', visibleByDefault: false, dataSection: 'metadataReview' },
         ];
     }
 
@@ -920,7 +939,7 @@ export class ProjectStateService {
     }
 
     // Generate prototype URL from production URL
-    generatePrototypeUrl(productionUrl: string, type: 'current' | 'baseline' = 'current'): string {
+    generatePrototypeUrl(productionUrl: string, type: 'current' | 'baseline' | 'preview' = 'current'): string {
         const { owner, repo } = this.project().github;
         if (!owner || !repo) { return ''; }
         const isCRAproto = owner === 'cra-proto';
@@ -928,12 +947,16 @@ export class ProjectStateService {
         try {
             const url = new URL(productionUrl);
             const path = url.pathname; // e.g., /en/revenue-agency/services/tax/individuals.html
-            const repoSuffix = type === 'baseline' ? `${repo}-baseline` : repo;
-            let prototypeUrl = `https://${owner}.github.io/${repoSuffix}${path}`;
-            if (isCRAproto) { prototypeUrl = `https://cra-test-arc.canada.ca/${repoSuffix}${path}` }
-            else if (isGCproto) { prototypeUrl = `https://test.canada.ca/${repoSuffix}${path}` }
-
-            return prototypeUrl;
+            if (type === 'preview') {
+                return `https://canada-preview.adobecqms.net${path}`
+                //return `https://aleblanc3.github.io/test${path}`
+            } else {
+                const repoSuffix = type === 'baseline' ? `${repo}-baseline` : repo;
+                let prototypeUrl = `https://${owner}.github.io/${repoSuffix}${path}`;
+                if (isCRAproto) { prototypeUrl = `https://cra-test-arc.canada.ca/${repoSuffix}${path}` }
+                else if (isGCproto) { prototypeUrl = `https://test.canada.ca/${repoSuffix}${path}` }
+                return prototypeUrl;
+            }
         } catch (error) {
             console.error('Failed to generate prototype URL:', error);
             return '';

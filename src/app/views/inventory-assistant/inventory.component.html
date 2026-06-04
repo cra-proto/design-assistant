@@ -28,7 +28,7 @@
 
                 <!-- Top toolbar - View options -->
                 <div>
-                    <label class="mb-1 font-semibold block" for="views'">View:</label>
+                    <label class="mb-1 font-semibold block" for="views'">{{'common.view' | translate}}</label>
                     <div role="radiogroup" id="views">
                         <div *ngFor="let view of views" class="field-radiobutton">
                             <p-radioButton
@@ -143,7 +143,8 @@
 
         @if(projectState.selectedInventoryView === "table"){
         <p-table #dt [value]="tableData()" [(selection)]="selectedNodes" dataKey="url" selectionMode="multiple" size="small" stripedRows [scrollable]="false"
-                 (sortFunction)="customSort($event)" [customSort]="true" [paginator]="projectState.getProject().baselinePages > 50" [rows]="50" [rowsPerPageOptions]="[25, 50, 100, projectState.getProject().baselinePages]">
+                 (sortFunction)="customSort($event)" [customSort]="true"
+                 [paginator]="projectState.getProject().baselinePages > 50" [rows]="50" [rowsPerPageOptions]="[25, 50, 100, projectState.getProject().baselinePages]">
 
             <ng-template pTemplate="header">
                 <tr>
@@ -188,7 +189,7 @@
                 </tr>
             </ng-template>
 
-            <ng-template pTemplate="body" let-node let-rowIndex="rowIndex">
+            <ng-template pTemplate="body" let-node let-rowIndex="rowIndex" let-editing="editing">
                 <tr [pSelectableRow]="node" [pSelectableRowIndex]="rowIndex">
                     <!-- Frozen columns -->
                     <td class="w-4rem surface-card sticky-c"><p-tableCheckbox [value]="node" size="large" /></td>
@@ -198,14 +199,44 @@
 
                     <!-- Scrollable columns -->
                     @for(col of scrollableColumns; track col.field){
-                    <td [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border':''">
+                    <td [ngClass]="{ 'border-right-1': isLastInGroup(col.field), 'surface-border': isLastInGroup(col.field), 'hasMenu': hasContextMenu(col.type) }"
+                        (contextmenu)="onRightClick($event, node, col)" (touchstart)="onTouchStart($event, node, col)" (touchend)="onTouchEnd($event, node, col)"
+                        [pEditableColumn]="node.field" pEditableColumnField="template">
                         <!-- Text fields -->
                         @if(col.type === 'text'){
-                        {{ node[col.field] }}
+                        @if(isEditingInline(node, col) && col.group === 'owner') { TODO: add dropdown with text option }
+                        @else { {{ node[col.field] }} }
+                        }
+                        <!-- Dropdown fields -->
+                        @if(col.type === 'template'){
+                        @if(isEditingInline(node, col)) {
+                        <p-iftalabel class="w-10rem">
+                            <p-select [(ngModel)]="node[col.field]" inputId="template" [options]="templateOptions" optionLabel="label" optionValue="value" [filter]="true" filterBy="label" styleClass="w-full"
+                                      (onChange)="onTemplateSelect($event, node, col)">
+                                <ng-template #selectedItem let-selectedOption>
+                                    {{ selectedOption.label }}
+                                </ng-template>
+                                <ng-template let-template #item>
+                                    {{ template.label }}
+                                </ng-template>
+                            </p-select>
+                            <label for="template">{{ col.translationKey | translate }}</label>
+                        </p-iftalabel>
+                        }
+                        @else{ {{ node[col.field] | translate }} }
                         }
                         <!-- Array fields -->
                         @if(col.type === 'array'){
-                        <span [class.line-clamp-1]="!expandAllTasks" [pTooltip]="expandAllTasks ? null : node[col.field]" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0">{{ node[col.field].join(', ') }}</span>
+                        <div class="flex align-items-start gap-2">
+                            <span [class.line-clamp-1]="!isTaskExpanded(rowIndex, col.field)" [pTooltip]="expandAllTasks ? null : node[col.field]" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0">{{ node[col.field].join(', ') }}</span>
+                            @if(!expandAllTasks){
+                            <p-button [icon]="isTaskExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                                      text rounded size="small" styleClass="-mt-1"
+                                      (click)="toggleTaskCell(rowIndex, col.field)"
+                                      [pTooltip]="isTaskExpanded(rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
+                                      appendTo="body" showDelay="300" hideDelay="0" />
+                            }
+                        </div>
                         }
                         <!-- Long text fields (metadata, may need to refactor when we add the notes column) -->
                         @if(col.type === 'longText'){
@@ -217,7 +248,7 @@
                             </div>
                             @if(!expandAllMetadata){
                             <p-button [icon]="isMetadataExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                                      text rounded size="small"
+                                      text rounded size="small" styleClass="-mt-1"
                                       (click)="toggleMetadataCell(rowIndex, col.field)"
                                       [pTooltip]="isMetadataExpanded(rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
                                       appendTo="body" showDelay="300" hideDelay="0" />
@@ -227,20 +258,38 @@
                         <!-- AI text fields (metadata) -->
                         @if(col.type === 'aiText'){
                         @if(node[col.field]; as field){
-                        @if(field.status === 'rejected'){
+                        @if(field.status === 'rejected' || field.status === 'noChange'){
                         <div class="flex align-items-center gap-2">
                             <p-tag severity="danger" [value]="'common.rejected' | translate" />
                         </div>
                         } @else {
                         <div class="flex align-items-start gap-2">
-                            <div [class.line-clamp-3]="!isMetadataExpanded(rowIndex, col.field)">
-                                <p-tag [value]="field.status"
-                                       [severity]="field.status === 'edited' ? 'warn' : field.status === 'approved' ? 'success' : 'secondary'" />
-                                <p-tag [value]="field.status === 'edited' ? field.edited.length : field.ai.length" pTooltip="character count" appendTo="body" showDelay="300" hideDelay="0"
-                                       [severity]="field.length >= 10 && field.length <= 160 ? 'success' : 'danger'" class="mx-1" />
-                                {{ field.status === 'edited' ? field.edited : field.ai }}
+                            @if(isEditingMetadata(node, col, isEditing)) {
+                            <div class="flex flex-column gap-2">
+                                <div class="flex flex-row gap-2">
+                                    <p-tag [value]="'common.editing' | translate" class="capitalize" severity="primary" />
+                                    <p-tag [value]="field.edited.length" pTooltip="character count" appendTo="body" showDelay="300" hideDelay="0"
+                                           [severity]="field.edited.length >= 10 && field.edited.length <= 160 ? 'success' : 'danger'" class="mx-1" />
+                                </div>
+                                <p-iftalabel>
+                                    <textarea id="metadata" autoResize="true" rows="3" pTextarea [(ngModel)]="field.edited" (change)="updateMetadata(node, col)" (paste)="onPasteMetadata(node, col)" (blur)="onBlurMetadata()" class="min-w-max" fluid></textarea>
+                                    <label for="metadata">{{col.translationKey| translate}}</label>
+                                </p-iftalabel>
                             </div>
-                            <div class="flex flex-column gap-1">
+                            }
+                            @else {
+                            <div class="flex flex-column gap-2">
+                                <div class="flex flex-row gap-2">
+                                    <p-tag [value]="field.status.slice(0,8) === 'approved' ? ('common.approved' | translate) : ('common.'+field.status | translate)" class="capitalize"
+                                           [severity]="field.status === 'edited' ? 'primary' : field.status.slice(0,8) === 'approved' ? 'success' : 'secondary'" />
+                                    <p-tag [value]="field.status === 'edited' ? field.edited.length : field.ai.length" pTooltip="character count" appendTo="body" showDelay="300" hideDelay="0"
+                                           [severity]="field.status === 'edited' ? field.edited.length >= 10 && field.edited.length <= 160 ? 'success' : 'danger' : field.ai.length >= 10 && field.ai.length <= 160 ? 'success' : 'danger'" class="mx-1" />
+                                </div>
+                                <div [class.line-clamp-3]="!isMetadataExpanded(rowIndex, col.field)">
+                                    {{ field.status === 'edited' ? field.edited : field.status === 'approvedEdits' ? field.edited : field.ai }}
+                                </div>
+                            </div>
+                            <div class="flex flex-column gap-1 -mt-1">
                                 @if(!expandAllMetadata){
                                 <p-button [icon]="isMetadataExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                                           text rounded size="small"
@@ -249,6 +298,7 @@
                                           appendTo="body" showDelay="300" hideDelay="0" />
                                 }
                             </div>
+                            }
                         </div>
                         }
                         } @else {
@@ -268,7 +318,7 @@
                         }
                         <!-- Boolean fields -->
                         @if(col.type === 'boolean'){
-                        <i [class]="getBooleanIcon(getCellValue(node, col), col.field)" class="flex justify-content-center p-2"
+                        <i [class]="getBooleanIcon(getBooleanValue(node, col), col.field)" class="flex justify-content-center p-2"
                            [pTooltip]="getBooleanTooltip(node[col.field], col.field) | translate" tooltipPosition="top"
                            appendTo="body" showDelay="300" hideDelay="0"></i>
                         }
@@ -282,13 +332,13 @@
                         }
                         <!-- Archive field -->
                         @if(col.type === 'archive'){
-                        <i [class]="getArchiveStatusIcon(node, col)" class="flex justify-content-center p-2"
+                        <i [class]="getArchiveStatusIcon(getStringValue(node, col))" class="flex justify-content-center p-2"
                            [pTooltip]="getArchiveStatusTooltip(node, col) | translate" tooltipPosition="top"
                            appendTo="body" showDelay="300" hideDelay="0"></i>
                         }
                         <!-- Noindex field -->
                         @if(col.type === 'noindex'){
-                        <i [class]="getNoIndexIcon(node, col)" class="flex justify-content-center p-2"
+                        <i [class]="getNoIndexIcon(getStringValue(node, col))" class="flex justify-content-center p-2"
                            [pTooltip]="getNoIndexTooltip(node, col) | translate" tooltipPosition="top"
                            appendTo="body" showDelay="300" hideDelay="0"></i>
                         }
@@ -384,3 +434,5 @@
         </a>
     </ng-template>
 </p-menu>
+<!--Context Menus-->
+<p-contextMenu #menuContext [model]="itemsContext"></p-contextMenu>

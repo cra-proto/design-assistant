@@ -1,0 +1,109 @@
+<h1 id="wb-cont">{{ 'compare._title' | translate }}</h1>
+
+<div class="flex flex-column gap-3">
+  <div class="flex flex-column xl:flex-row gap-3 min-w-min">
+    <div class="surface-card border-round-lg shadow-2 p-4 w-full xl:w-6 min-w-min">
+      <h2 class="text-2xl my-1">{{ 'compare.pageOptions._title' | translate }}</h2>
+      <p class="my-1">{{ "compare.pageOptions.description" | translate }}</p>
+
+      <div class="flex flex-column lg:flex-row lg:align-items-center gap-2">
+        <!--Selection-->
+        <div class="flex flex-column text-color-secondary hover:text-primary max-w-max">
+          <span class="text-xs my-1">{{ 'compare.pageOptions.selection' | translate }}</span>
+          <p-iftalabel>
+            <p-select inputId="page" [options]="pageOptions" [ngModel]="compareService.selectedPage()" (ngModelChange)="onPageSelectionChange($event)"
+                      optionLabel="label" optionValue="value" class="w-20rem sm:w-27rem"
+                      [loading]="compareService.loading() || compareService.loadingAll()" loadingIcon="pi pi-spin pi-spinner" />
+            <label for="page">{{'compare.pageOptions.page' | translate}}</label>
+          </p-iftalabel>
+        </div>
+        <!--Versions-->
+        <div class="flex flex-column text-color-secondary hover:text-primary max-w-max">
+          <span class="text-xs my-1">{{ 'compare.pageOptions.versions' | translate }}</span>
+          <div class="flex flex-column sm:flex-row sm:align-content-center gap-1 sm:gap-3 lg:gap-2">
+            <!--Before-->
+            <p-iftalabel>
+              <p-select inputId="before" [options]="beforeOptions" [ngModel]="compareService.selectedBefore()" (ngModelChange)="onBeforeSelectionChange($event)"
+                        optionLabel="label" optionValue="value" class="w-20rem sm:w-13rem"
+                        [loading]="compareService.loading() || compareService.loadingAll() || compareService.loadingBefore()" loadingIcon="pi pi-spin pi-spinner" />
+              <label for="before">{{'compare.pageOptions.before' | translate}}</label>
+            </p-iftalabel>
+            <!--After-->
+            <p-iftalabel>
+              <p-select inputId="after" [options]="afterOptions" [ngModel]="compareService.selectedAfter()" (ngModelChange)="onAfterSelectionChange($event)"
+                        optionLabel="label" optionValue="value" class="w-20rem sm:w-13rem"
+                        [loading]="compareService.loading() || compareService.loadingAll() || compareService.loadingAfter()" loadingIcon="pi pi-spin pi-spinner" />
+              <label for="after">{{'compare.pageOptions.after' | translate}}</label>
+            </p-iftalabel>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="surface-card border-round-lg shadow-2 p-4 w-full xl:w-6 min-w-min">
+      <h2 class="text-2xl my-1">{{ 'compare.tools._title' | translate }}</h2>
+      <p class="my-1">{{ "compare.tools.description" | translate }}</p>
+
+      <div class="flex justify-content-between w-full gap-2 mt-4">
+        <div class="flex gap-2">
+          <!--p-button
+                    label="Send to GenAI"
+                    [icon]="isLoading ? 'pi pi-spinner pi-spin' : 'pi pi-comments'"
+                    severity="primary"
+                    (onClick)="sendToAI()"
+                    [pTooltip]="aiDisabled"
+                    showDelay="1000"
+                    hideDelay="300"
+                    [disabled]="!uploadData?.originalHtml || isLoading || isDisabled" />
+          <aida-ai-options
+                           (promptChange)="onPromptChange($event)"
+                           (aiChange)="onAiChange($event)"
+                           (aiSubmit)="sendToAI()"
+                           (customPrompt)="onAppendCustom($event)"
+                           (editPrompt)="onPrependLevel($event)" /-->
+        </div>
+        <div class="flex gap-2">
+          <!--p-button
+                    label="Share"
+                    icon="pi pi-share-alt"
+                    severity="secondary"
+                    (onClick)="shareLink()"
+                    *ngIf="canShare" /-->
+          <p-button
+                    label="Load all pages into cache"
+                    icon="pi pi-download"
+                    severity="success"
+                    (onClick)="this.setCacheForAll()"
+                    [loading]="compareService.loadingAll()" />
+          <p-button
+                    label="Reset cache"
+                    icon="pi pi-trash"
+                    severity="danger"
+                    (onClick)="this.compareService.clearCache()" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+    <p-tabs value="0" class="mt-3">
+      <p-tablist>
+        <p-tab value="0"><i class="pi pi-eye mr-1"></i>{{ 'compare.tab.rendered' | translate }}</p-tab>
+        <!--p-tab value="1"><i class="pi pi-code mr-1"></i>{{ 'compare.tab.source' | translate }}</p-tab-->
+        <!--p-tab value="2"><i class="pi pi-exclamation-triangle mr-1"></i>{{ 'compare.tab.problems' | translate }}</p-tab-->
+      </p-tablist>
+      <p-tabpanels class="shadow-1">
+        <!-- Rendered page -->
+        <p-tabpanel value="0">
+          <aida-compare-rendered [beforeContent]="compareService.originalHtml()" [afterContent]="compareService.modifiedHtml()" (contentChanged)="onContentChanged($event)"></aida-compare-rendered>
+        </p-tabpanel>
+        <!-- Source code -->
+        <!--p-tabpanel value="1">
+          <aida-compare-source [beforeContent]="compareService.originalHtml()" [afterContent]="compareService.modifiedHtml()"></aida-compare-source>
+        </p-tabpanel-->
+        <!-- Problems -->
+        <!--p-tabpanel value="2">
+          <aida-compare-problems [beforeContent]="compareService.originalHtml()" [afterContent]="compareService.modifiedHtml()"></aida-compare-problems>
+        </p-tabpanel-->
+      </p-tabpanels>
+    </p-tabs>
+  </div>
+</div>

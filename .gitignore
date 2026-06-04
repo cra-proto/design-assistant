@@ -46,6 +46,7 @@ testem.log
 /public/i18n/fr-clean.json
 /public/Task-Inventory-Dec2025.csv
 /public/upd-data-table_export_clean_2026-01-13.csv
+/scripts/preview.js
 
 # Python reference files
 /metadata-python

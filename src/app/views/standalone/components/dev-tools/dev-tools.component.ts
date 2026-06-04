@@ -13,7 +13,7 @@ import { ButtonModule } from 'primeng/button';
   template: `
     <h2>{{ 'dev._title' | translate}}</h2>
     <p [innerHTML]="'dev.description' | translate"></p>
-   
+    <p>TEST</p>
     <div class="grid py-2 px-4 lg:px-6">      
         <div class="col-12 md:col-6 lg:col-4">
           <a routerLink="/dev/color-generator" class="text-xl font-semibold">{{'dev.colors._title' | translate}}</a>
@@ -52,6 +52,7 @@ export class DevToolsComponent {
     marker('standalone._');
     marker('aiPrompt._');
     marker('importPage._');
+    marker('compare._');
     // Components
     marker('nav._');
     marker('export._');
