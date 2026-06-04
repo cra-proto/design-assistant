@@ -14,9 +14,12 @@ export class FetchService {
     `${environment.defaultOrg}.github.io`,
     "proto-cra.github.io",
     //"cra-design.github.io", //Currently blocked by browser because it looks like a phishing site
-    "cra-proto.github.io",
+    //"cra-proto.github.io", //Is currently cra-test-arc.canada.ca
+    "cra-test-arc.canada.ca",
     "test.canada.ca",
     //"gc-proto.github.io", //CORS error but redirects to test.canada.ca which works
+    "canada-preview.adobecqms.net",
+    "aleblanc3.github.io"
   ]);
   private getAllowedHosts(mode: "prod" | "proto" | "both"): Set<string> {
     const allowed = new Set<string>();
@@ -128,15 +131,16 @@ export class FetchService {
   ): Promise<Response> {
     url = this.validateHost(url, hostMode);
     if (delayBetweenRequests > 0) { await this.delay(delayBetweenRequests); }
-    return this.fetchWithRetry(url, "HEAD", retries, delay);
+    return this.fetchWithRetry(url, "HEAD", retries, delay, true);
   }
 
   public async fetchJSON(url: string, fields: string[]): Promise<Record<string, string>> {
-    const jsonUrl = url.replace('.html', '/jcr:content.json?nocache=true');
+    const date = new Date().toDateString;
+    const jsonUrl = url.replace('.html', `/jcr:content.json?nocache=${date}`);
     const result: Record<string, string> = {};
 
     try {
-      const response = await this.fetchWithRetry(jsonUrl, "GET", 3, "none");
+      const response = await this.fetchWithRetry(jsonUrl, "GET", 3, "none", true);
       const json = await response.json();
 
       for (const field of fields) {
@@ -431,4 +435,73 @@ export class FetchService {
       .filter(href => new URL(href).origin === baseDomain);
     return [...new Set(links)];
   }
+
+  //Get preview content
+  public fetchPreview(targetUrl: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const previewUrl = `https://canada-preview.adobecqms.net/en/revenue-agency/web-services-test/amber/test.html?fetch=${encodeURIComponent(targetUrl)}`;
+      //const previewUrl = `https://aleblanc3.github.io/test/test.html?fetch=${encodeURIComponent(targetUrl)}`;
+
+      const popup = window.open(previewUrl, '_blank', 'width=1,height=1,left=9999,top=9999');
+      if (!popup) {
+        reject(new Error('Popup blocked. Please allow popups for this site.'));
+        return;
+      }
+      //Listen for response
+      const handler = (event: MessageEvent) => {
+        // Verify origin
+        if (event.origin !== 'https://canada-preview.adobecqms.net') return;
+        //if (event.origin !== 'https://aleblanc3.github.io') return;
+        // Cleanup
+        window.removeEventListener('message', handler);
+        clearTimeout(timeout);
+        popup.close();
+        // Handle response
+        if (event.data.success) {
+          resolve(event.data.html);
+        } else {
+          reject(new Error(event.data.error || 'Failed to fetch preview content'));
+        }
+      };
+      window.addEventListener('message', handler);
+      // Timeout after 10 seconds
+      const timeout = setTimeout(() => {
+        window.removeEventListener('message', handler);
+        popup.close();
+        reject(new Error('Timeout waiting for preview content'));
+      }, 10000);
+    });
+  }
+
+  fetchPreviewStatus(targetUrl: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const previewUrl = `https://canada-preview.adobecqms.net/en/revenue-agency/web-services-test/amber/test.html?fetch=${encodeURIComponent(targetUrl)}&check=true`;
+      const popup = window.open(previewUrl, '_blank', 'width=1,height=1,left=9999,top=9999');
+
+      if (!popup) {
+        resolve(false);
+        return;
+      }
+
+      const handler = (event: MessageEvent) => {
+        if (event.origin !== 'https://canada-preview.adobecqms.net') return;
+
+        window.removeEventListener('message', handler);
+        clearTimeout(timeout);
+        popup.close();
+
+        resolve(event.data.success || false);
+      };
+
+      window.addEventListener('message', handler);
+
+      const timeout = setTimeout(() => {
+        window.removeEventListener('message', handler);
+        popup.close();
+        resolve(false);
+      }, 5000);
+    });
+  }
+
 }
+

@@ -299,6 +299,23 @@ export class ProjectStateService {
         return urls;
     }
 
+    // Get all in-scope page titles and urls (for comparison dropdown)
+    getAllPages(lang: 'primary' | 'opposite' = 'primary'): { title: string; url: string }[] {
+        const pages: { title: string; url: string }[] = [];
+        const traverse = (nodes: TreeNode<ProjectTreeNodeData>[]) => {
+            for (const node of nodes) {
+                const url = lang === 'primary' ? node.data?.url : node.data?.metadata?.oppUrl;
+                const title = lang === 'primary' ? node.data?.h1 : node.data?.metadata?.oppTitle;
+                if (url && title && node.data?.status.inScope) {
+                    pages.push({ title, url });
+                }
+                if (node.children?.length) traverse(node.children);
+            }
+        };
+        traverse(this.project().projectData);
+        return pages;
+    }
+
     // Merge new pages into existing tree
     mergePages(newPages: TreeNode<ProjectTreeNodeData>[]) {
         const currentTree = this.project().projectData;
@@ -621,10 +638,12 @@ export class ProjectStateService {
                     isMoved: data.status.isMoved,
                     isROT: data.status.isROT,
                     linksToPortal: data.status.linksToPortal,
-                    noindex: data.status.noindexEN && data.status.noindexFR ? 'both'
-                        : data.status.noindexEN ? 'en-only'
-                            : data.status.noindexFR ? 'fr-only'
-                                : 'none',
+                    noindex: data.status.noindexEN === 'to-reindex' || data.status.noindexFR === 'to-reindex' ? 'to-reindex'
+                        : data.status.noindexEN === 'to-deindex' || data.status.noindexFR === 'to-deindex' ? 'to-deindex'
+                            : data.status.noindexEN && data.status.noindexFR ? 'both'
+                                : data.status.noindexEN ? 'en-only'
+                                    : data.status.noindexFR ? 'fr-only'
+                                        : 'none',
                     archiveStatus: data.status.archiveStatus,
                     //Data
                     template: data.metadata?.template || '',
@@ -920,7 +939,7 @@ export class ProjectStateService {
     }
 
     // Generate prototype URL from production URL
-    generatePrototypeUrl(productionUrl: string, type: 'current' | 'baseline' = 'current'): string {
+    generatePrototypeUrl(productionUrl: string, type: 'current' | 'baseline' | 'preview' = 'current'): string {
         const { owner, repo } = this.project().github;
         if (!owner || !repo) { return ''; }
         const isCRAproto = owner === 'cra-proto';
@@ -928,12 +947,16 @@ export class ProjectStateService {
         try {
             const url = new URL(productionUrl);
             const path = url.pathname; // e.g., /en/revenue-agency/services/tax/individuals.html
-            const repoSuffix = type === 'baseline' ? `${repo}-baseline` : repo;
-            let prototypeUrl = `https://${owner}.github.io/${repoSuffix}${path}`;
-            if (isCRAproto) { prototypeUrl = `https://cra-test-arc.canada.ca/${repoSuffix}${path}` }
-            else if (isGCproto) { prototypeUrl = `https://test.canada.ca/${repoSuffix}${path}` }
-
-            return prototypeUrl;
+            if (type === 'preview') {
+                return `https://canada-preview.adobecqms.net${path}`
+                //return `https://aleblanc3.github.io/test${path}`
+            } else {
+                const repoSuffix = type === 'baseline' ? `${repo}-baseline` : repo;
+                let prototypeUrl = `https://${owner}.github.io/${repoSuffix}${path}`;
+                if (isCRAproto) { prototypeUrl = `https://cra-test-arc.canada.ca/${repoSuffix}${path}` }
+                else if (isGCproto) { prototypeUrl = `https://test.canada.ca/${repoSuffix}${path}` }
+                return prototypeUrl;
+            }
         } catch (error) {
             console.error('Failed to generate prototype URL:', error);
             return '';

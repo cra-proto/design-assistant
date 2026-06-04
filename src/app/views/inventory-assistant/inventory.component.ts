@@ -21,11 +21,12 @@ import { MenuModule } from 'primeng/menu';
 import { ConfirmationService, MenuItem, SortEvent } from 'primeng/api';
 import { ContextMenuModule, ContextMenu } from 'primeng/contextmenu';
 import { SelectModule, SelectChangeEvent } from 'primeng/select';
+import { TextareaModule } from 'primeng/textarea';
 
 //Components and models
 import { ExportProjectComponent } from '../../components/export-project/export-project.component';
 import { AddPagesComponent } from '../../components/add-pages/add-pages.component';
-import { FlattenedTreeNode, TableColumn, COLUMN_GROUPS, FIELD_FILTERS, PageTemplate } from '../../common/data.model';
+import { FlattenedTreeNode, TableColumn, COLUMN_GROUPS, FIELD_FILTERS, PageTemplate, MetadataField, MetadataReviewStatus, MetadataReview } from '../../common/data.model';
 import { IaTableComponent } from '../../components/ia-table/ia-table.component';
 import { InventoryPrompts } from '../../common/prompts/inventory.prompts';
 import { InventoryPromptKey } from '../../common/prompts/prompt.model';
@@ -49,7 +50,7 @@ interface ViewOption {
     selector: 'aida-inventory',
     imports: [CommonModule, FormsModule, TranslateModule,
         TableModule, ButtonModule, PopoverModule, TooltipModule,
-        ToolbarModule, IftaLabelModule, MultiSelectModule, SelectButtonModule, MenuModule, SelectModule,
+        ToolbarModule, IftaLabelModule, MultiSelectModule, SelectButtonModule, MenuModule, SelectModule, TextareaModule,
         TagModule, ToggleButtonModule, ConfirmDialogModule, ContextMenuModule,
         RadioButtonModule,
         ExportProjectComponent, AddPagesComponent, FindPagesComponent, IaTableComponent],
@@ -102,6 +103,7 @@ export class InventoryComponent implements OnInit {
     selectedGroups: string[] = []; // Multiselect group data
     unselectedGroups: string[] = []; // Multiselect group data
     expandedMetadataCells = new Set<string>(); // Tracks which individual metadata cells are expanded
+    expandedTaskCells = new Set<string>(); // Tracks which individual task cells are expanded
 
     // Booleans
     expandAllMetadata = false;
@@ -157,6 +159,8 @@ export class InventoryComponent implements OnInit {
         marker('inventory.tooltip.noindex.en-only');
         marker('inventory.tooltip.noindex.fr-only');
         marker('inventory.tooltip.noindex.both');
+        marker('inventory.tooltip.noindex.to-reindex');
+        marker('inventory.tooltip.noindex.to-deindex');
     }
 
     // Multiselect - column groups
@@ -430,6 +434,10 @@ export class InventoryComponent implements OnInit {
                 return 'pi pi-exclamation-triangle text-red-500';
             case 'both':
                 return 'pi pi-android text-orange-500';
+            case 'to-reindex':
+                return 'pi pi-minus text-orange-500';
+            case 'to-deindex':
+                return 'pi pi-android text-gray-500';
             default:
                 return 'pi pi-minus text-gray-400'; // fallback
         }
@@ -448,19 +456,19 @@ export class InventoryComponent implements OnInit {
         this.checkAutoExpandTasks();
     }
 
-    // Table - autoexpand metadata when it's the only visible group (NOT WORKING!)
+    // Table - autoexpand metadata when it's the only visible group (Works!)
     private checkAutoExpandMetadata() {
         const selectedGroups = new Set(this.scrollableColumns.map(col => col.group));
         this.expandAllMetadata = selectedGroups.size === 1 && selectedGroups.has('metadata');
     }
 
-    // Table - autoexpand urls when it's the only visible type (NOT WORKING!)
+    // Table - autoexpand urls when it's the only visible type (works!)
     private checkAutoExpandUrls() {
         const selectedTypes = new Set(this.scrollableColumns.map(col => col.type));
         this.expandAllUrls = selectedTypes.size === 1 && selectedTypes.has('url');
     }
 
-    // Table - autoexpand tasks when pageData is the only visible type (NOT WORKING!)
+    // Table - autoexpand tasks when pageData is the only visible type (works!)
     private checkAutoExpandTasks() {
         const selectedGroups = new Set(this.scrollableColumns.map(col => col.group));
         this.expandAllTasks = selectedGroups.size === 1 && selectedGroups.has('pageData');
@@ -469,6 +477,11 @@ export class InventoryComponent implements OnInit {
     // Table - check if metadata cell is expanded
     isMetadataExpanded(rowIndex: number, field: string): boolean {
         return this.expandAllMetadata || this.expandedMetadataCells.has(`${rowIndex}-${field}`);
+    }
+
+    // Table - check if task cell is expanded
+    isTaskExpanded(rowIndex: number, field: string): boolean {
+        return this.expandAllTasks || this.expandedTaskCells.has(`${rowIndex}-${field}`);
     }
 
     // Table - toggle individual metadata cell expansion
@@ -481,6 +494,16 @@ export class InventoryComponent implements OnInit {
         }
     }
 
+    // Table - toggle individual task cell expansion
+    toggleTaskCell(rowIndex: number, field: string) {
+        const key = `${rowIndex}-${field}`;
+        if (this.expandedTaskCells.has(key)) {
+            this.expandedTaskCells.delete(key);
+        } else {
+            this.expandedTaskCells.add(key);
+        }
+    }
+
     // Button - toggle expand/collapse for all metadata
     toggleExpandAllMetadata() {
         this.expandAllMetadata = !this.expandAllMetadata;
@@ -489,9 +512,22 @@ export class InventoryComponent implements OnInit {
         }
     }
 
+    // Button - toggle expand/collapse for all metadata
+    toggleExpandAllTasks() {
+        this.expandAllTasks = !this.expandAllTasks;
+        if (this.expandAllTasks) {
+            this.expandedTaskCells.clear(); // Clear individual expansions when expanding all
+        }
+    }
+
     // Table - check if any metadata columns are visible
     hasVisibleMetadata(): boolean {
         return this.scrollableColumns.some(col => col.group === 'metadata');
+    }
+
+    // Table - check if task column is visible
+    hasVisibleTasks(): boolean {
+        return this.scrollableColumns.some(col => col.field === 'task');
     }
 
     onDeleteSelected() {
@@ -902,6 +938,22 @@ export class InventoryComponent implements OnInit {
                     },
                 ]
             },
+            {
+                label: this.translate.instant('inventory.menu.tasks'),
+                items: [
+
+                    {
+                        label: this.expandAllTasks
+                            ? this.translate.instant('inventory.menu.tasks.collapseAll')
+                            : this.translate.instant('inventory.menu.tasks.expandAll'),
+                        icon: this.expandAllTasks ? 'pi pi-minus' : 'pi pi-plus',
+                        command: () => {
+                            this.toggleExpandAllTasks()
+                        },
+                        disabled: !this.hasVisibleTasks()
+                    },
+                ]
+            },
         ];
     }
 
@@ -960,7 +1012,7 @@ export class InventoryComponent implements OnInit {
     itemsContext: MenuItem[] = [];
 
     hasContextMenu(type: string): boolean {
-        return ['boolean', 'archive', 'noindex', 'template'].includes(type);
+        return ['boolean', 'archive', 'noindex', 'template', 'aiText'].includes(type);
     }
 
     private currentEditNode: FlattenedTreeNode | undefined;
@@ -982,7 +1034,7 @@ export class InventoryComponent implements OnInit {
 
     onRightClick(event: MouseEvent | TouchEvent, node: FlattenedTreeNode, col: TableColumn) {
         event.preventDefault();
-
+        this.isEditing = false;
         this.currentEditNode = node;
         this.currentEditCol = col;
 
@@ -1000,6 +1052,9 @@ export class InventoryComponent implements OnInit {
                 break;
             case 'template':
                 this.isEditingInline(node, col);
+                break;
+            case 'aiText':
+                this.updateAItext(event, node, col);
                 break;
             default:
                 return;
@@ -1028,7 +1083,12 @@ export class InventoryComponent implements OnInit {
         //NoIndex
         marker('inventory.contextMenu.noindex.none');
         marker('inventory.contextMenu.noindex.both');
-
+        marker('inventory.contextMenu.noindex.to-reindex');
+        marker('inventory.contextMenu.noindex.to-deindex');
+        //Common text       
+        marker('common.pending');
+        marker('common.edited');
+        marker('common.approved');
     }
     updateBoolean(event: MouseEvent | TouchEvent, node: FlattenedTreeNode, col: TableColumn) {
         const currentValue = this.getBooleanValue(node, col);
@@ -1097,16 +1157,30 @@ export class InventoryComponent implements OnInit {
 
         if (currentValue === 'both') {
             this.itemsContext.push({
-                label: this.translate.instant(`inventory.contextMenu.${col.field}.none`),
-                icon: this.getNoIndexIcon('none'),
-                command: () => this.saveValue(false),
+                label: this.translate.instant(`inventory.contextMenu.${col.field}.to-reindex`),
+                icon: this.getNoIndexIcon('to-reindex'),
+                command: () => this.saveValue('to-reindex'),
             });
         }
-        else if (currentValue === 'none') {
+        else if (currentValue === 'to-reindex') {
             this.itemsContext.push({
                 label: this.translate.instant(`inventory.contextMenu.${col.field}.both`),
                 icon: this.getNoIndexIcon('both'),
                 command: () => this.saveValue(true),
+            });
+        }
+        else if (currentValue === 'none') {
+            this.itemsContext.push({
+                label: this.translate.instant(`inventory.contextMenu.${col.field}.to-deindex`),
+                icon: this.getNoIndexIcon('to-deindex'),
+                command: () => this.saveValue('to-deindex'),
+            });
+        }
+        else if (currentValue === 'to-deindex') {
+            this.itemsContext.push({
+                label: this.translate.instant(`inventory.contextMenu.${col.field}.none`),
+                icon: this.getNoIndexIcon('none'),
+                command: () => this.saveValue(false),
             });
         }
 
@@ -1153,5 +1227,89 @@ export class InventoryComponent implements OnInit {
             treeNode.data[col.dataSection][col.field] = newValue;
             this.projectState.setModifiedDate();
         }
+    }
+
+    //Metadata context menu
+    updateAItext(event: MouseEvent | TouchEvent, node: FlattenedTreeNode, col: TableColumn) {
+        const currentField = node[col.field] as MetadataField;
+        if (!currentField) return;
+        const status = currentField.status
+        const ai = currentField.ai
+        const edited = currentField.edited
+
+        this.itemsContext = [
+            {
+                label: this.translate.instant(`common.edit`),
+                icon: 'pi pi-pencil text-primary',
+                command: () => { this.isEditing = true; this.isEditingMetadata(node, col, this.isEditing); if (!edited) { (node[col.field] as MetadataField).edited = ai } },
+            }
+        ];
+
+        if (status !== 'noChange') {
+            this.itemsContext.push({
+                label: this.translate.instant(`common.accept`),
+                icon: 'pi pi-check text-green-500',
+                command: () => status === 'edited' ? this.setStatus(node, col, 'approvedEdits') : this.setStatus(node, col, 'approvedAI'),
+            })
+            this.itemsContext.push({
+                label: this.translate.instant(`common.reject`),
+                icon: 'pi pi-trash text-red-500',
+                command: () => this.setStatus(node, col, 'rejected'),
+            })
+        }
+
+        if (status !== 'pending') {
+            this.itemsContext.push({
+                label: this.translate.instant(`common.undo`),
+                icon: 'pi pi-undo',
+                command: () => this.setStatus(node, col, 'pending'),
+            });
+        }
+
+        this.menuContext.show(event);
+    }
+
+    isEditing = false
+
+    isEditingMetadata(node: FlattenedTreeNode, col: TableColumn, editing: boolean = false) {
+        return this.currentEditNode === node && this.currentEditCol === col && editing === true;
+    }
+
+    setStatus(node: FlattenedTreeNode, col: TableColumn, status: MetadataReviewStatus) {
+        //Update FlattenedTreeNode
+        (node[col.field] as MetadataField).status = status;
+
+        //Update TreeNode
+        if (!node['aiGeneratedAt'] || !node['aiModel'] || !node['aiDescriptionEN'] || !node['aiKeywordsEN'] || !node['aiDescriptionFR'] || !node['aiKeywordsFR']) return;
+        const url = node['url'];
+        const review: MetadataReview = {
+            generatedAt: node['aiGeneratedAt'],
+            model: node['aiModel'],
+            en: {
+                description: node['aiDescriptionEN'],
+                keywords: node['aiKeywordsEN'],
+            },
+            fr: {
+                description: node['aiDescriptionFR'],
+                keywords: node['aiKeywordsFR'],
+            }
+        };
+        this.projectState.setMetadataReview(url, review);
+    }
+
+    updateMetadata(node: FlattenedTreeNode, col: TableColumn) {
+        const compareCol = col.field.slice(2).replace(/^./, c => c.toLowerCase());
+        const compareValue = (node as unknown as Record<string, unknown>)[compareCol] as string;
+        if ((node[col.field] as MetadataField).edited === compareValue) { this.setStatus(node, col, "noChange") }
+        else if ((node[col.field] as MetadataField).edited !== (node[col.field] as MetadataField).ai) { this.setStatus(node, col, "edited") }
+        else if ((node[col.field] as MetadataField).edited === (node[col.field] as MetadataField).ai) { this.setStatus(node, col, "pending") }
+    }
+
+    onPasteMetadata(node: FlattenedTreeNode, col: TableColumn) {
+        setTimeout(() => this.updateMetadata(node, col), 0);
+    }
+
+    onBlurMetadata() {
+        this.isEditing = false;
     }
 }

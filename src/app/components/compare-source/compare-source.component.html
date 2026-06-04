@@ -1,0 +1,18 @@
+<div class="flex flex-column text-color-secondary min-w-max">
+    <!--View options-->
+    <label class="mb-1 font-semibold block" for="views'">{{ 'common.view' | translate }}</label>
+    <div role="radiogroup" id="views" class="flex flex-row gap-3 my-1">
+        @for(view of sourceViewOptions; track view.value){
+        <div class="field-radiobutton">
+            <p-radioButton [inputId]="'show_' + view.value" [name]="view.value" [value]="view.value" size="large"
+                           [ngModel]="sourceSelectedView()" (ngModelChange)="onSourceViewChange($event)" />
+            <label [for]="'show_' + view.value" class="cursor-pointer font-semibold flex align-items-center gap-1">
+                <i [class]="view.icon"></i>
+                {{ view.label | translate }}
+            </label>
+        </div>
+        }
+    </div>
+    <!--Shadow DOM-->
+    <div #sourceContainer class="diff-container p-0" [ngClass]="sourceSelectedView()"></div>
+</div>

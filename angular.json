@@ -142,9 +142,12 @@
             },
             "development": {
               "buildTarget": "design-assistant:build:development"
+            },
+            "sandbox": {
+              "buildTarget": "design-assistant:build:sandbox"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "production"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n"

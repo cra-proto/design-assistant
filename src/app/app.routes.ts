@@ -11,6 +11,7 @@ import { ImportPageComponent } from './views/project-assistant/import-page.compo
 // Task Views
 import { IaDiagramComponent } from './components/ia-diagram/ia-diagram.component';
 import { InventoryComponent } from './views/inventory-assistant/inventory.component';
+import { CompareComponent } from './views/compare-assistant/compare.component';
 import { ExportGithubComponent } from './views/github-assistant/export-github.component';
 
 // Static pages
@@ -106,6 +107,11 @@ export const routes: Routes = [
         path: 'ia-diagram',
         component: IaDiagramComponent,
         title: 'iaDiagram._title',
+    },
+    {
+        path: 'compare',
+        component: CompareComponent,
+        title: 'Compare._title',
     },
     /*{
          path: 'page-assistant/compare',
