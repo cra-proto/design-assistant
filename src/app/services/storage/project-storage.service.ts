@@ -181,7 +181,7 @@ export class ProjectStorageService {
     }
 
     // Remove circular TreeNode references from TreeNodes
-    private removeParents(nodes: TreeNode[]): TreeNode[] {
+    removeParents(nodes: TreeNode[]): TreeNode[] {
         return nodes.map(node => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { parent, ...rest } = node;
@@ -190,6 +190,16 @@ export class ProjectStorageService {
                 children: node.children ? this.removeParents(node.children) : []
             };
         });
+    }
+
+    // Add parent references back
+    rebuildParents(nodes: TreeNode[], parent: TreeNode | undefined): void {
+        for (const node of nodes) {
+            node.parent = parent;
+            if (node.children?.length) {
+                this.rebuildParents(node.children, node);
+            }
+        }
     }
 
     // Update list of local projects in localStorage
@@ -279,6 +289,9 @@ export class ProjectStorageService {
                 console.error('Failed to load project');
                 return null;
             }
+
+            // Add parent references back
+            this.rebuildParents(project.projectData, undefined)
 
             // Set as active project
             this.setActiveProject(key, storageType);
