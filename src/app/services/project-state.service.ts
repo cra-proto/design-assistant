@@ -391,7 +391,7 @@ export class ProjectStateService {
         const currentProject = this.project();
         return {
             ...currentProject,
-            projectData: this.removeParents(currentProject.projectData)
+            projectData: this.projectStorageService.removeParents(currentProject.projectData)
         };
     }
 
@@ -468,53 +468,6 @@ export class ProjectStateService {
         return true; // No save needed
     }
 
-
-    // Load from localStorage
-    loadFromLocalStorage(projectKey?: string): boolean {
-        let key = projectKey;
-
-        // If no key provided, load most recent project
-        if (!key) {
-            const projects: ProjectMetadata[] = JSON.parse(localStorage.getItem('savedProjects') || '[]');
-            if (projects.length === 0) {
-                console.warn('No projects found in localStorage');
-                return false;
-            }
-            key = projects[0].key;
-        }
-
-        const saved = localStorage.getItem(key);
-        if (!saved) {
-            console.warn(`No project found for key: ${key}`);
-            return false;
-        }
-
-        try {
-            const project: Project = JSON.parse(saved);
-
-            // Version check
-            if (project.version !== appVersion) {
-                console.warn(`Project version (${project.version}) differs from app version (${appVersion}). Some features may not work correctly.`);
-                //return false;
-            }
-
-            // Convert date strings back to Date objects
-            project.created = new Date(project.created);
-            project.lastModified = new Date(project.lastModified);
-            project.lastSaved = new Date(project.lastSaved);
-            project.lastExported = project.lastExported ? new Date(project.lastExported) : null;
-
-            this.project.set(project);
-            this.saveStatus.set('saved'); // Just loaded, no changes yet
-
-            console.log('Project loaded from localStorage:', key);
-            return true;
-        } catch (error) {
-            console.error('Failed to load project from localStorage:', error);
-            return false;
-        }
-    }
-
     // Export as JSON
     exportProjectAsJson() {
         const project = this.getProjectToSave();
@@ -555,27 +508,6 @@ export class ProjectStateService {
         } catch (error) {
             console.error('Failed to import project:', error);
             return false;
-        }
-    }
-
-    // Remove circular parent references for serialization
-    private removeParents(nodes: TreeNode<ProjectTreeNodeData>[]): TreeNode<ProjectTreeNodeData>[] {
-        return nodes.map(node => {
-            const { parent, ...rest } = node;
-            return {
-                ...rest,
-                children: node.children ? this.removeParents(node.children) : []
-            };
-        });
-    }
-
-    // Add parent references back
-    private rebuildParents(nodes: TreeNode[], parent: TreeNode | undefined): void {
-        for (const node of nodes) {
-            node.parent = parent;
-            if (node.children?.length) {
-                this.rebuildParents(node.children, node);
-            }
         }
     }
 
@@ -1216,16 +1148,26 @@ export class ProjectStateService {
     }
 
     // Restore moved pages to their original position and remove new pages
-    getBaselineTree(nodes: TreeNode[]): TreeNode[] {
+    getBaselineTree(nodes: TreeNode[], mode: 'full' | 'custom' = 'full'): TreeNode[] {
         // Clone so we don't edit the working copy if the IA tree
         const clonedTree = structuredClone(nodes);
-        this.rebuildParents(clonedTree, undefined);
+        this.projectStorageService.rebuildParents(clonedTree, undefined);
 
-        // Check for moved nodes and keep processing until no more are found
+        // Restore root node if it was moved
+        if (mode === 'full') {
+            const root = this.findNodeWhere(clonedTree, n => n.data?.originalParent == null);
+            if (root?.parent) {
+                root.parent.children = root.parent.children?.filter(c => c !== root) ?? [];
+                root.parent = undefined;
+                clonedTree.unshift(root);
+            }
+        }
+
+        // Check for moved nodes and keep processing until no more are found        
         let hasMovedNodes = true;
         while (hasMovedNodes) {
             const movedNodes: Array<{ node: TreeNode, originalParentUrl: string }> = [];
-            this.collectMovedNodes(clonedTree, movedNodes);
+            this.collectMovedNodes(clonedTree, movedNodes, true, mode);
 
             if (movedNodes.length === 0) {
                 hasMovedNodes = false;
@@ -1253,17 +1195,34 @@ export class ProjectStateService {
     getFinalTree(nodes: TreeNode[]): TreeNode[] {
         // Clone so we don't edit the working copy if the IA tree
         const clonedTree = structuredClone(nodes);
-        this.rebuildParents(clonedTree, undefined);
+        this.projectStorageService.rebuildParents(clonedTree, undefined);
         // Remove ROT
         this.removeROTPages(clonedTree);
         return clonedTree;
     }
 
-    private collectMovedNodes(nodes: TreeNode[], movedNodes: Array<{ node: TreeNode, originalParentUrl: string }>): void {
+    // Remove collapsed or hidden pages
+    getDisplayTree(nodes: TreeNode[], collapsedUrls: Set<string>, hiddenUrls: Set<string>): TreeNode[] {
+        const clonedTree = structuredClone(nodes);
+        this.projectStorageService.rebuildParents(clonedTree, undefined);
+        if (hiddenUrls.size > 0) this.applyHiddenState(clonedTree, hiddenUrls);
+        if (collapsedUrls.size > 0) this.applyCollapsedState(clonedTree, collapsedUrls);
+        return clonedTree;
+    }
+
+    private collectMovedNodes(nodes: TreeNode[], movedNodes: Array<{ node: TreeNode, originalParentUrl: string }>, isTopLevel = false, mode: 'full' | 'custom' = 'full'): void {
         for (let i = nodes.length - 1; i >= 0; i--) {
             const node = nodes[i];
             const currentParentUrl = node.parent?.data?.url ?? '';
             const originalParentUrl = node.data?.originalParent ?? '';
+
+            // Skip moving top level node for custom trees
+            if (isTopLevel && mode === 'custom' && i === 0) {
+                if (node.children?.length) {
+                    this.collectMovedNodes(node.children, movedNodes, false, mode);
+                }
+                continue;
+            }
 
             // Check if this node has been moved
             if (currentParentUrl !== originalParentUrl) {
@@ -1302,4 +1261,40 @@ export class ProjectStateService {
         }
     }
 
+    private findNodeWhere(nodes: TreeNode[], condition: (node: TreeNode) => boolean): TreeNode | null {
+        for (const node of nodes) {
+            if (condition(node)) return node;
+            if (node.children?.length) {
+                const found = this.findNodeWhere(node.children, condition);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
+    private applyCollapsedState(nodes: TreeNode[], collapsedUrls: Set<string>): void {
+        for (const node of nodes) {
+            if (collapsedUrls.has(node.data?.url)) {
+                node.data.collapsedChildren = node.children ?? [];
+                node.children = [];
+            } else if (node.children?.length) {
+                this.applyCollapsedState(node.children, collapsedUrls);
+            }
+        }
+    }
+
+    private applyHiddenState(nodes: TreeNode[], hiddenUrls: Set<string>): void {
+        for (let i = nodes.length - 1; i >= 0; i--) {
+            const node = nodes[i];
+            if (hiddenUrls.has(node.data?.url)) {
+                if (node.parent) {
+                    node.parent.data.hiddenChildrenUrls = node.parent.data.hiddenChildrenUrls ?? [];
+                    node.parent.data.hiddenChildrenUrls.push(node.data.url);
+                }
+                nodes.splice(i, 1);
+            } else if (node.children?.length) {
+                this.applyHiddenState(node.children, hiddenUrls);
+            }
+        }
+    }
 }

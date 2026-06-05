@@ -12,7 +12,7 @@
                             [options]="viewOptions" [(ngModel)]="selectedView" (onChange)="changeView()" />
         </div>
         <!--IA Diagram-->
-        <p-organization-chart [value]="projectTree()" styleClass="mt-2">
+        <p-organization-chart [value]="projectTree()">
             <ng-template let-node pTemplate="default">
                 <!--ORPHAN STATUS-->
                 @if(node.data.status.isOrphan){
@@ -21,8 +21,11 @@
                 </div>
                 }
                 <!--PAGE-->
+                <p-button (click)="onMenuClick($event, node)" icon="pi pi-cog" size="small" text class="absolute top-0 right-0 -mt-1 -mr-1" />
                 <p><a [href]="node.data.url" target="_blank" [innerHTML]="node.data.h1"></a></p>
             </ng-template>
         </p-organization-chart>
     </div>
 </div>
+<!--Context Menu-->
+<p-menu #menu [model]="items" [popup]="true" />
