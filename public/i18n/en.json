@@ -503,7 +503,7 @@
 	"inventory.tooltip.noindex.fr-only": "Only French is not indexed",
 	"inventory.tooltip.noindex.none": "Indexed",
 	"inventory.tooltip.noindex.to-deindex": "To be de-indexed",
-	"inventory.tooltip.noindex.to-reindex": "To be re-indexed",
+	"inventory.tooltip.noindex.to-reindex": "To be indexed",
 	"inventory.view.table": "Content inventory",
 	"inventory.view.tree": "Page move",
 	"nav._": "------------------------------NAVIGATION------------------------------",

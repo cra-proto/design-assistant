@@ -409,7 +409,7 @@
 	"inventory.contextMenu.noindex.both": "Définir en noindex",
 	"inventory.contextMenu.noindex.none": "Définir comme indexé",
 	"inventory.contextMenu.noindex.to-deindex": "Définir pour désindexation",
-	"inventory.contextMenu.noindex.to-reindex": "Définir pour réindexation",
+	"inventory.contextMenu.noindex.to-reindex": "Définir pour indexation",
 	"inventory.delete._title": "Confirmer la suppression",
 	"inventory.delete.baselineHeading": "Supprimer ces pages de référence?",
 	"inventory.delete.childPagesWarning": "La suppression de {{deleteCount}} page(s) supprimera également {{childCount}} page(s) enfant(s).",
