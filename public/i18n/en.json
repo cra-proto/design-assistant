@@ -372,6 +372,7 @@
 	"iaDiagram.menu.showHiddenNodes": "Show hidden children",
 	"iaDiagram.menu.viewAsRoot": "View as root",
 	"iaDiagram.menu.viewFullTree": "View full IA tree",
+	"iaDiagram.tooltip.hiddenPages": "{{number}} child pages are hidden",
 	"iaDiagram.tooltip.orphan": "No link from parent page",
 	"iaDiagram.view.baseline": "Baseline",
 	"iaDiagram.view.changes": "Changes",
