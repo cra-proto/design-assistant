@@ -9,7 +9,6 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { MenuModule, Menu } from 'primeng/menu';
 import { TreeNode, MenuItem } from 'primeng/api';
-import { BadgeModule } from 'primeng/badge';
 
 // Services
 import { ProjectStateService } from '../../services/project-state.service';
@@ -20,7 +19,7 @@ import { TreeNodeStyleService } from '../../services/treenode-style.service';
   selector: 'aida-ia-diagram',
   imports: [TranslateModule, FormsModule,
     OrganizationChartModule, ButtonModule, TooltipModule, SelectButtonModule,
-    MenuModule, BadgeModule
+    MenuModule
   ],
   templateUrl: './ia-diagram.component.html',
   styleUrl: './ia-diagram.component.css'
