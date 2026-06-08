@@ -23,13 +23,13 @@
                 <!--PAGE-->
                 <p-button (click)="onMenuClick($event, node)" icon="pi pi-cog" size="small" text class="absolute top-0 right-0 -mt-1 -mr-1" />
                 <p><a [href]="node.data.url" target="_blank" [innerHTML]="node.data.h1"></a></p>
-                @if(node.data.hiddenChildrenUrls?.length){
-                <span class="pi pi-eye-slash text-xl text-color-secondary opacity-70 absolute bottom-0 right-0 mb-1 mr-2"
-                      pBadge [value]="node.data.hiddenChildrenUrls?.length" badgeSize="small" severity="info"></span>
-                }
-                @else if(node.data.collapsedChildren?.length){
+                @if(node.data.collapsedChildren?.length){
                 <i class="pi pi-eye-slash text-xl text-color-secondary opacity-70 absolute bottom-0 right-0 mb-1 mr-2"
                    pBadge [value]="node.data.collapsedChildren?.length" badgeSize="small" severity="info"></i>
+                }
+                @else if(node.data.hiddenChildrenUrls?.length){
+                <span class="pi pi-eye-slash text-xl text-color-secondary opacity-70 absolute bottom-0 right-0 mb-1 mr-2"
+                      pBadge [value]="node.data.hiddenChildrenUrls?.length" badgeSize="small" severity="info"></span>
                 }
             </ng-template>
         </p-organization-chart>
