@@ -63,8 +63,9 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
     const corsHeaders = getCorsHeaders();
 
     const {
-        projectId, org, userId, pageUrl,
-        model, promptConfig,
+        projectId, pageUrl,
+        org, userId,
+        model, promptConfig, generatedAt,
         originalDescEN, originalDescFR, originalKeywordsEN, originalKeywordsFR,
         aiDescEN, aiDescFR, aiKeywordsEN, aiKeywordsFR,
         finalDescEN, finalDescFR, finalKeywordsEN, finalKeywordsFR,
@@ -83,7 +84,7 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
         ? await getOrCreatePromptVersion(promptConfig)
         : null;
 
-    const timestamp = new Date().toISOString();
+    const timestamp = generatedAt ?? new Date().toISOString();
 
     await docClient.send(new PutCommand({
         TableName: USAGE_TABLE,
@@ -105,7 +106,7 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
             finalKeywordsEN, finalKeywordsFR,
             statusDescEN, statusDescFR,
             statusKeywordsEN, statusKeywordsFR,
-            lastUpdated: timestamp
+            lastUpdated: new Date().toISOString()
         }
     }));
 
