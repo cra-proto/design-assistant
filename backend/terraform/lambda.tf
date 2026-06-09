@@ -188,7 +188,9 @@ resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
         ]
         Resource = [
           aws_dynamodb_table.projects.arn,
-          "${aws_dynamodb_table.projects.arn}/index/*"
+          "${aws_dynamodb_table.projects.arn}/index/*",
+          aws_dynamodb_table.usage.arn,
+          aws_dynamodb_table.prompts.arn,
         ]
       }
     ]
@@ -407,4 +409,56 @@ resource "aws_lambda_permission" "openrouter_function_invoke" {
 output "openrouter_function_url" {
   description = "Direct Lambda Function URL for OpenRouter"
   value       = aws_lambda_function_url.openrouter.function_url
+}
+
+# Usage Lambda Function
+resource "aws_lambda_function" "usage" {
+  filename         = "${path.module}/../functions/usage/lambda.zip"
+  function_name    = "${var.app_name}-${var.environment}-usage"
+  role             = aws_iam_role.lambda_role.arn
+  handler          = "index.handler"
+  source_code_hash = filebase64sha256("${path.module}/../functions/usage/lambda.zip")
+  runtime          = "nodejs22.x"
+  timeout          = 30
+
+  environment {
+    variables = {
+      USAGE_TABLE_NAME   = aws_dynamodb_table.usage.name
+      PROMPTS_TABLE_NAME = aws_dynamodb_table.prompts.name
+      ALLOWED_ORIGINS    = join(",", var.allowed_origins)
+    }
+  }
+}
+
+# Lambda Function URL for Usage
+resource "aws_lambda_function_url" "usage" {
+  function_name      = aws_lambda_function.usage.function_name
+  authorization_type = "NONE"
+
+  cors {
+    allow_origins = var.allowed_origins
+    allow_methods = ["POST"]
+    allow_headers = ["content-type"]
+    max_age       = 86400
+  }
+}
+
+resource "aws_lambda_permission" "usage_function_url" {
+  statement_id           = "AllowPublicFunctionURLInvoke"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.usage.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+}
+
+resource "aws_lambda_permission" "usage_function_invoke" {
+  statement_id  = "AllowPublicInvokeFunction"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.usage.function_name
+  principal     = "*"
+}
+
+output "usage_function_url" {
+  description = "Direct Lambda Function URL for Usage tracking"
+  value       = aws_lambda_function_url.usage.function_url
 }

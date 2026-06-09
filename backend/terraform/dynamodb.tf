@@ -1,3 +1,4 @@
+# Table #1 - Projects
 resource "aws_dynamodb_table" "projects" {
   name           = "${var.app_name}-projects"
   billing_mode   = "PAY_PER_REQUEST"
@@ -31,6 +32,54 @@ resource "aws_dynamodb_table" "projects" {
     enabled = true
   }
   
+  tags = {
+    Environment = var.environment
+    Project     = var.app_name
+  }
+}
+
+# Table #2 - Usage statistics
+resource "aws_dynamodb_table" "usage" {
+  name         = "${var.app_name}-usage"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "pk"
+  range_key    = "sk"
+
+  attribute {
+    name = "pk"
+    type = "S"
+  }
+
+  attribute {
+    name = "sk"
+    type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  tags = {
+    Environment = var.environment
+    Project     = var.app_name
+  }
+}
+
+# Table #3 - AI prompt versions
+resource "aws_dynamodb_table" "prompts" {
+  name         = "${var.app_name}-prompts"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "promptHash"
+
+  attribute {
+    name = "promptHash"
+    type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
   tags = {
     Environment = var.environment
     Project     = var.app_name

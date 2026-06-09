@@ -32,7 +32,7 @@ export class BreadcrumbValidationService {
       if (!url) continue;
 
       try {
-        const doc = await this.fetchService.fetchContent(url, "prod", 3, "random");
+        const doc = await this.fetchService.fetchContent(url, "prod", 3, "none");
 
         //Get breadcrumb
         const breadcrumb = this.fetchService.getBreadcrumb(doc, "https://www.canada.ca");
@@ -146,7 +146,7 @@ export class BreadcrumbValidationService {
 
         try {
 
-          const doc = await this.fetchService.fetchContent(parent.url, "prod", 3, "random");
+          const doc = await this.fetchService.fetchContent(parent.url, "prod", 3, "none");
           const metadata = this.fetchService.extractPageMetadata(doc, parent.url);
           this.metadataCache.set(parent.url, metadata);
 
@@ -257,7 +257,7 @@ export class BreadcrumbValidationService {
           if (crumb.url) {
             try {
               console.warn("Missing metadata. Starting new fetch.");
-              const doc = await this.fetchService.fetchContent(crumb.url, "prod", 3, "random");
+              const doc = await this.fetchService.fetchContent(crumb.url, "prod", 3, "none");
               metadata = this.fetchService.extractPageMetadata(doc, crumb.url);
               this.metadataCache.set(crumb.url, metadata);
             } catch (error) {

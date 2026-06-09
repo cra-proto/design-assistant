@@ -204,7 +204,7 @@
                         [pEditableColumn]="node.field" pEditableColumnField="template">
                         <!-- Text fields -->
                         @if(col.type === 'text'){
-                        @if(isEditingInline(node, col) && col.group === 'owner') { TEST }
+                        @if(isEditingInline(node, col) && col.group === 'owner') { TODO: add dropdown with text option }
                         @else { {{ node[col.field] }} }
                         }
                         <!-- Dropdown fields -->
@@ -227,7 +227,16 @@
                         }
                         <!-- Array fields -->
                         @if(col.type === 'array'){
-                        <span [class.line-clamp-1]="!expandAllTasks" [pTooltip]="expandAllTasks ? null : node[col.field]" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0">{{ node[col.field].join(', ') }}</span>
+                        <div class="flex align-items-start gap-2">
+                            <span [class.line-clamp-1]="!isTaskExpanded(rowIndex, col.field)" [pTooltip]="expandAllTasks ? null : node[col.field]" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0">{{ node[col.field].join(', ') }}</span>
+                            @if(!expandAllTasks){
+                            <p-button [icon]="isTaskExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                                      text rounded size="small" styleClass="-mt-1"
+                                      (click)="toggleTaskCell(rowIndex, col.field)"
+                                      [pTooltip]="isTaskExpanded(rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
+                                      appendTo="body" showDelay="300" hideDelay="0" />
+                            }
+                        </div>
                         }
                         <!-- Long text fields (metadata, may need to refactor when we add the notes column) -->
                         @if(col.type === 'longText'){
@@ -239,7 +248,7 @@
                             </div>
                             @if(!expandAllMetadata){
                             <p-button [icon]="isMetadataExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                                      text rounded size="small"
+                                      text rounded size="small" styleClass="-mt-1"
                                       (click)="toggleMetadataCell(rowIndex, col.field)"
                                       [pTooltip]="isMetadataExpanded(rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
                                       appendTo="body" showDelay="300" hideDelay="0" />
@@ -249,20 +258,38 @@
                         <!-- AI text fields (metadata) -->
                         @if(col.type === 'aiText'){
                         @if(node[col.field]; as field){
-                        @if(field.status === 'rejected'){
+                        @if(field.status === 'rejected' || field.status === 'noChange'){
                         <div class="flex align-items-center gap-2">
                             <p-tag severity="danger" [value]="'common.rejected' | translate" />
                         </div>
                         } @else {
                         <div class="flex align-items-start gap-2">
-                            <div [class.line-clamp-3]="!isMetadataExpanded(rowIndex, col.field)">
-                                <p-tag [value]="field.status"
-                                       [severity]="field.status === 'edited' ? 'warn' : field.status === 'approved' ? 'success' : 'secondary'" />
-                                <p-tag [value]="field.status === 'edited' ? field.edited.length : field.ai.length" pTooltip="character count" appendTo="body" showDelay="300" hideDelay="0"
-                                       [severity]="field.length >= 10 && field.length <= 160 ? 'success' : 'danger'" class="mx-1" />
-                                {{ field.status === 'edited' ? field.edited : field.ai }}
+                            @if(isEditingMetadata(node, col, isEditing)) {
+                            <div class="flex flex-column gap-2">
+                                <div class="flex flex-row gap-2">
+                                    <p-tag [value]="'common.editing' | translate" class="capitalize" severity="primary" />
+                                    <p-tag [value]="field.edited.length" pTooltip="character count" appendTo="body" showDelay="300" hideDelay="0"
+                                           [severity]="field.edited.length >= 10 && field.edited.length <= 160 ? 'success' : 'danger'" class="mx-1" />
+                                </div>
+                                <p-iftalabel>
+                                    <textarea id="metadata" autoResize="true" rows="3" pTextarea [(ngModel)]="field.edited" (change)="updateMetadata(node, col)" (paste)="onPasteMetadata(node, col)" (blur)="onBlurMetadata()" class="min-w-max" fluid></textarea>
+                                    <label for="metadata">{{col.translationKey| translate}}</label>
+                                </p-iftalabel>
                             </div>
-                            <div class="flex flex-column gap-1">
+                            }
+                            @else {
+                            <div class="flex flex-column gap-2">
+                                <div class="flex flex-row gap-2">
+                                    <p-tag [value]="field.status.slice(0,8) === 'approved' ? ('common.approved' | translate) : ('common.'+field.status | translate)" class="capitalize"
+                                           [severity]="field.status === 'edited' ? 'primary' : field.status.slice(0,8) === 'approved' ? 'success' : 'secondary'" />
+                                    <p-tag [value]="field.status === 'edited' ? field.edited.length : field.ai.length" pTooltip="character count" appendTo="body" showDelay="300" hideDelay="0"
+                                           [severity]="field.status === 'edited' ? field.edited.length >= 10 && field.edited.length <= 160 ? 'success' : 'danger' : field.ai.length >= 10 && field.ai.length <= 160 ? 'success' : 'danger'" class="mx-1" />
+                                </div>
+                                <div [class.line-clamp-3]="!isMetadataExpanded(rowIndex, col.field)">
+                                    {{ field.status === 'edited' ? field.edited : field.status === 'approvedEdits' ? field.edited : field.ai }}
+                                </div>
+                            </div>
+                            <div class="flex flex-column gap-1 -mt-1">
                                 @if(!expandAllMetadata){
                                 <p-button [icon]="isMetadataExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                                           text rounded size="small"
@@ -271,6 +298,7 @@
                                           appendTo="body" showDelay="300" hideDelay="0" />
                                 }
                             </div>
+                            }
                         </div>
                         }
                         } @else {
@@ -351,10 +379,10 @@
 
     <!--Add & Find pages-->
     <div class="flex md:flex-row flex-column gap-3 sticky-horizontal">
-        <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-6 w-full">
+        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:mb-3 lg:w-6 min-w-min">
             <aida-add-pages />
         </div>
-        <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-6 w-full">
+        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:mb-3 lg:w-6 min-w-min">
             <aida-find-pages />
         </div>
     </div>

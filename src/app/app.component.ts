@@ -39,6 +39,7 @@ export class AppComponent implements OnInit {
     effect(() => {
       const user = this.exportGitHubService.user();
       if (user) {
+        localStorage.setItem('userId', user.login);
         this.collaboratorService.addCurrentUserToLocalProjects(user).then(() => {
           this.loadProject();
         });

@@ -96,7 +96,7 @@ export interface PageMeta {
 }
 
 //AI metadata generation workflow
-export type MetadataReviewStatus = 'pending' | 'approved' | 'edited' | 'rejected';
+export type MetadataReviewStatus = 'pending' | 'edited' | 'noChange' | 'rejected' | 'approvedAI' | 'approvedEdits';
 
 export interface MetadataField {
     ai: string;           // What the AI suggested
@@ -126,8 +126,8 @@ export interface PageStatus {
     isMoved: boolean;                // True if current parent doesn't match baseline parent
     isROT: boolean;                  // True if user flags page as ROT (redundant, outdated, trivial)
     linksToPortal: boolean;          // True if page links to a portal
-    noindexEN: boolean;              // True if English page is not indexed for search
-    noindexFR: boolean;              // True if French page is not indexed for search
+    noindexEN: boolean | "to-reindex" | "to-deindex";              // True if English page is not indexed for search
+    noindexFR: boolean | "to-reindex" | "to-deindex";              // True if French page is not indexed for search
     archiveStatus: 'current' | 'archived' | 'to-archive' | 'unarchive' // current/archived is set during add pages step, user can toggle to-archive
     isContainer: boolean;            // True if page is a container page (used to group together pages for AI combine/split actions)
 }
@@ -173,7 +173,7 @@ export interface FlattenedTreeNode {
     isMoved: boolean;
     isROT: boolean;
     linksToPortal: boolean;
-    noindex: 'both' | 'en-only' | 'fr-only' | 'none';
+    noindex: 'both' | 'en-only' | 'fr-only' | 'none' | 'to-reindex' | 'to-deindex';
     archiveStatus: 'current' | 'archived' | 'to-archive' | 'unarchive'
     //Data
     template: string;

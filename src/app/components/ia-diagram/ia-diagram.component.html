@@ -12,7 +12,7 @@
                             [options]="viewOptions" [(ngModel)]="selectedView" (onChange)="changeView()" />
         </div>
         <!--IA Diagram-->
-        <p-organization-chart [value]="projectTree()" styleClass="mt-2">
+        <p-organization-chart [value]="projectTree()">
             <ng-template let-node pTemplate="default">
                 <!--ORPHAN STATUS-->
                 @if(node.data.status.isOrphan){
@@ -21,8 +21,15 @@
                 </div>
                 }
                 <!--PAGE-->
+                <p-button (click)="onMenuClick($event, node)" icon="pi pi-cog" size="small" text class="absolute top-0 right-0 -mt-1 -mr-1" />
                 <p><a [href]="node.data.url" target="_blank" [innerHTML]="node.data.h1"></a></p>
+                @if(node.data.collapsedChildren?.length || node.data.hiddenChildrenUrls?.length){
+                <i class="pi pi-eye-slash text-sm text-color-secondary opacity-70 absolute bottom-0 right-0 mb-1 mr-2"
+                   [pTooltip]="'iaDiagram.tooltip.hiddenPages' | translate: {number: node.data.collapsedChildren?.length + node.data.hiddenChildrenUrls?.length}" tooltipPosition="top" tooltipStyleClass="z-200"></i>
+                }
             </ng-template>
         </p-organization-chart>
     </div>
 </div>
+<!--Context Menu-->
+<p-menu #menu [model]="items" [popup]="true" />
