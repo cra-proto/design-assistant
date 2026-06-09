@@ -11,6 +11,7 @@ import { CollaboratorService } from './collaborator.service';
 import { FetchService } from './fetch.service';
 import { AirtableService } from './airtable.service';
 import { UpdService } from './upd.service';
+import { UsageService } from './usage.service';
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
 
@@ -34,6 +35,7 @@ export class ProjectStateService {
     private fetchService = inject(FetchService);
     private airtableService = inject(AirtableService);
     private updService = inject(UpdService);
+    private usageService = inject(UsageService);
 
     // Main project state
     private project = signal<Project>({
@@ -197,7 +199,7 @@ export class ProjectStateService {
         }
     }
 
-    setMetadataReview(url: string, review: MetadataReview): void {
+    setMetadataReview(url: string, review: MetadataReview, promptConfig?: object): void {
         const tree = this.getProjectTree();
         const node = this.findNodeByUrl(tree, url);
 
@@ -208,6 +210,17 @@ export class ProjectStateService {
                 lastModified: new Date(),
                 projectData: [...p.projectData]
             }));
+            this.usageService.trackMetadata(
+                this.project().id,
+                this.project().org ?? 'DEFAULT',
+                url,
+                node.data.metadata?.description,
+                node.data.metadata?.descriptionFR,
+                node.data.metadata?.keywords,
+                node.data.metadata?.keywordsFR,
+                review,
+                promptConfig ?? {}
+            );
         }
     }
 
