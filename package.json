@@ -26,6 +26,7 @@
     "install:lambda:github-oauth": "cd backend/functions/github-oauth && npm install",
     "install:lambda:openrouter": "cd backend/functions/openrouter && npm install",
     "install:lambda:projects": "cd backend/functions/projects && npm install",
+    "install:lambda:usage": "cd backend/functions/usage && npm install",
     "postinstall": "npm run install:lambdas"
   },
   "private": true,

@@ -129,6 +129,24 @@ jobs:
         with:
           terraform_version: 1.13.5
 
+      - name: Build Lambda Usage function
+        working-directory: backend/functions/usage
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+       
+      - name: Upload Usage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: usage-lambda
+          path: backend/functions/usage/lambda.zip
+          retention-days: 1
+
       - name: Terraform Init
         working-directory: backend/terraform
         run: terraform init
