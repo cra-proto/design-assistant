@@ -116,12 +116,67 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
     };
 }
 
+async function getUsageStats(): Promise<APIGatewayProxyResult> {
+    const corsHeaders = getCorsHeaders();
+
+    const result = await docClient.send(new ScanCommand({
+        TableName: USAGE_TABLE
+    }));
+
+    const items = result.Items ?? [];
+
+    // Aggregate stats
+    const uniqueUrls = new Set(items.map(i => i.pageUrl)).size;
+    const totalGenerations = items.length;
+
+    // Status counts across all 4 fields
+    const statusFields = ['statusDescEN', 'statusDescFR', 'statusKeywordsEN', 'statusKeywordsFR'];
+    const statusCounts: Record<string, number> = {};
+    for (const item of items) {
+        for (const field of statusFields) {
+            const status = item[field];
+            if (status) statusCounts[status] = (statusCounts[status] ?? 0) + 1;
+        }
+    }
+
+    // Model breakdown
+    const modelCounts: Record<string, number> = {};
+    for (const item of items) {
+        if (item.model) modelCounts[item.model] = (modelCounts[item.model] ?? 0) + 1;
+    }
+
+    // Prompt version breakdown
+    const promptCounts: Record<string, number> = {};
+    for (const item of items) {
+        if (item.promptVersion != null) {
+            const key = `v${item.promptVersion}`;
+            promptCounts[key] = (promptCounts[key] ?? 0) + 1;
+        }
+    }
+
+    return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({
+            totalGenerations,
+            uniqueUrls,
+            statusCounts,
+            modelCounts,
+            promptCounts
+        })
+    };
+}
+
 export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
     const corsHeaders = getCorsHeaders();
     const httpMethod = event.requestContext?.http?.method || event.httpMethod;
 
     if (httpMethod === 'OPTIONS') {
         return { statusCode: 200, headers: corsHeaders, body: '' };
+    }
+
+    if (httpMethod === 'GET') {
+        return getUsageStats();
     }
 
     if (httpMethod !== 'POST') {
@@ -155,3 +210,4 @@ export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
         };
     }
 };
+
