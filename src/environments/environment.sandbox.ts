@@ -5,7 +5,7 @@ export const environment = { // Same infrastructure as development, only differe
     dynamodbFunctionUrl: 'https://chi2rsccsm5tsbq3dzqez735gu0pxnlj.lambda-url.ca-central-1.on.aws/',
     airtableFunctionUrl: 'https://i7vbe2ntgsh26rvibknsi4zuia0rmpyn.lambda-url.ca-central-1.on.aws/',
     openrouterFunctionUrl: 'https://lh3cjcmhvvekco7nkioztgxnxq0pcisv.lambda-url.ca-central-1.on.aws/',
-    usageFunctionUrl: '',
+    usageFunctionUrl: 'https://at4w23fcyv7ila65il3ov2auey0nycfx.lambda-url.ca-central-1.on.aws/',
     defaultOrg: 'cra-proto',
     templateOrg: 'cra-proto', //for accessing core-prototype
 };
