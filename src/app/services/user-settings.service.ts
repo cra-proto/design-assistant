@@ -28,6 +28,12 @@ export class UserSettingsService {
   private colorSchemeKey = 'color-scheme';
   colorScheme = signal<ColorScheme>(this.getStoredColorScheme());
 
+  // Toolbox visibility (used by sidebar, undecided if we should surface in user settings)
+  toolbox = signal<string | null>(localStorage.getItem('myToolbox'));
+
+  // User
+  public userId = signal<string>(this.getOrCreateUserId());
+
   constructor() {
     // Language
     this.translate.addLangs(['en', 'fr']);
@@ -115,7 +121,13 @@ export class UserSettingsService {
     updatePreset(preset);
   }
 
-  // Toolbox visibility (used by sidebar, undecided if we should surface in user settings)
-  toolbox = signal<string | null>(localStorage.getItem('myToolbox'));
+  // UserId
+  private getOrCreateUserId(): string {
+    const stored = localStorage.getItem('userId');
+    if (stored) return stored;
+    const id = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    localStorage.setItem('userId', id);
+    return id;
+  }
 
 }
