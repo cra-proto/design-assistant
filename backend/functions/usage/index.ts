@@ -155,6 +155,19 @@ async function getUsageStats(): Promise<APIGatewayProxyResult> {
         }
     }
 
+    // Status breakdown per model+prompt combo
+    const comboCounts: Record<string, Record<string, number>> = {};
+    for (const item of items) {
+        const comboKey = `${item.model ?? 'unknown'} / prompt v${item.promptVersion ?? '?'}`;
+        if (!comboCounts[comboKey]) comboCounts[comboKey] = {};
+        for (const field of statusFields) {
+            const status = item[field];
+            if (status) {
+                comboCounts[comboKey][status] = (comboCounts[comboKey][status] ?? 0) + 1;
+            }
+        }
+    }
+
     return {
         statusCode: 200,
         headers: corsHeaders,
@@ -163,7 +176,9 @@ async function getUsageStats(): Promise<APIGatewayProxyResult> {
             uniqueUrls,
             statusCounts,
             modelCounts,
-            promptCounts
+            promptCounts,
+            comboCounts,
+            items
         })
     };
 }
