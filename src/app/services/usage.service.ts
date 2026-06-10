@@ -33,7 +33,7 @@ export class UsageService {
                     pageUrl,
                     model: review.model,
                     promptConfig,
-                    generatedAt: review.generatedAt.toISOString(),
+                    generatedAt: new Date(review.generatedAt).toISOString(),
                     originalDescEN,
                     originalDescFR,
                     originalKeywordsEN,

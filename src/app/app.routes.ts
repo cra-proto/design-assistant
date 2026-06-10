@@ -152,6 +152,11 @@ export const routes: Routes = [
         title: 'dev._title',
     },
     {
+        path: 'dev/monitoring',
+        loadComponent: () => import('./views/standalone/components/dev-tools/usage-monitoring/usage-monitoring.component').then(m => m.UsageMonitoringComponent),
+        title: 'dev.usage._title',
+    },
+    {
         path: 'dev/color-generator',
         loadComponent: () => import('./views/standalone/components/dev-tools/color-generator/color-generator.component').then(m => m.ColorGeneratorComponent),
         title: 'dev.colors._title',
