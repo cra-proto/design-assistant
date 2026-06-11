@@ -15,6 +15,7 @@ export class UsageService {
     async trackMetadata(
         projectId: string,
         org: string,
+        storageType: string,
         pageUrl: string,
         originalDescEN: string | undefined,
         originalDescFR: string | undefined,
@@ -29,6 +30,7 @@ export class UsageService {
                     feature: 'metadata',
                     projectId,
                     org,
+                    storageType,
                     userId: this.settingsService.userId(),
                     pageUrl,
                     model: review.model,
