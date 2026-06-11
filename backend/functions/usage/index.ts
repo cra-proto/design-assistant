@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import * as crypto from 'crypto';
 
@@ -63,8 +63,9 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
     const corsHeaders = getCorsHeaders();
 
     const {
+        isUpdate,
         projectId, pageUrl,
-        org, storageType, userId,
+        orgId, storageType, userId,
         model, promptConfig, generatedAt,
         originalDescEN, originalDescFR, originalKeywordsEN, originalKeywordsFR,
         aiDescEN, aiDescFR, aiKeywordsEN, aiKeywordsFR,
@@ -80,41 +81,76 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
         };
     }
 
-    const promptVersion = promptConfig
-        ? await getOrCreatePromptVersion(promptConfig)
-        : null;
-
     const timestamp = generatedAt ?? new Date().toISOString();
 
-    await docClient.send(new PutCommand({
-        TableName: USAGE_TABLE,
-        Item: {
-            pk: `metadata#${projectId}`,
-            sk: `${pageUrl}#${timestamp}`,
-            feature: 'metadata',
-            projectId,
-            org: org ?? 'DEFAULT',
-            storageType: storageType ?? 'local',
-            userId: userId ?? 'anonymous',
-            pageUrl,
-            model,
-            promptVersion,
-            originalDescEN, originalDescFR,
-            originalKeywordsEN, originalKeywordsFR,
-            aiDescEN, aiDescFR,
-            aiKeywordsEN, aiKeywordsFR,
-            finalDescEN, finalDescFR,
-            finalKeywordsEN, finalKeywordsFR,
-            statusDescEN, statusDescFR,
-            statusKeywordsEN, statusKeywordsFR,
-            lastUpdated: new Date().toISOString()
-        }
-    }));
+    if (isUpdate) {
+        await docClient.send(new UpdateCommand({
+            TableName: USAGE_TABLE,
+            Key: {
+                pk: `metadata#${projectId}`,
+                sk: `${pageUrl}#${timestamp}`
+            },
+            UpdateExpression: `SET 
+        orgId = :orgId,
+        storageType = :storageType,
+        statusDescEN = :statusDescEN,
+        statusDescFR = :statusDescFR,
+        statusKeywordsEN = :statusKeywordsEN,
+        statusKeywordsFR = :statusKeywordsFR,
+        finalDescEN = :finalDescEN,
+        finalDescFR = :finalDescFR,
+        finalKeywordsEN = :finalKeywordsEN,
+        finalKeywordsFR = :finalKeywordsFR,
+        lastUpdated = :lastUpdated`,
+            ExpressionAttributeValues: {
+                ':orgId': orgId ?? 'DEFAULT',
+                ':storageType': storageType ?? 'local',
+                ':statusDescEN': statusDescEN,
+                ':statusDescFR': statusDescFR,
+                ':statusKeywordsEN': statusKeywordsEN,
+                ':statusKeywordsFR': statusKeywordsFR,
+                ':finalDescEN': finalDescEN,
+                ':finalDescFR': finalDescFR,
+                ':finalKeywordsEN': finalKeywordsEN,
+                ':finalKeywordsFR': finalKeywordsFR,
+                ':lastUpdated': new Date().toISOString()
+            }
+        }));
+    } else {
+        const promptVersion = promptConfig
+            ? await getOrCreatePromptVersion(promptConfig)
+            : null;
+
+        await docClient.send(new PutCommand({
+            TableName: USAGE_TABLE,
+            Item: {
+                pk: `metadata#${projectId}`,
+                sk: `${pageUrl}#${timestamp}`,
+                feature: 'metadata',
+                projectId,
+                orgId: orgId ?? 'DEFAULT',
+                storageType: storageType ?? 'local',
+                userId: userId ?? 'anonymous',
+                pageUrl,
+                model,
+                promptVersion,
+                originalDescEN, originalDescFR,
+                originalKeywordsEN, originalKeywordsFR,
+                aiDescEN, aiDescFR,
+                aiKeywordsEN, aiKeywordsFR,
+                finalDescEN, finalDescFR,
+                finalKeywordsEN, finalKeywordsFR,
+                statusDescEN, statusDescFR,
+                statusKeywordsEN, statusKeywordsFR,
+                lastUpdated: new Date().toISOString()
+            }
+        }));
+    }
 
     return {
         statusCode: 200,
         headers: corsHeaders,
-        body: JSON.stringify({ message: 'Usage tracked successfully', promptVersion })
+        body: JSON.stringify({ message: 'Usage tracked successfully', projectId })
     };
 }
 
@@ -149,7 +185,7 @@ async function getUsageStats(): Promise<APIGatewayProxyResult> {
 
 
     // Orgs
-    const uniqueOrgCount = new Set(items.map(i => i.org)).size;
+    const uniqueOrgCount = new Set(items.map(i => i.orgId)).size;
 
     return {
         statusCode: 200,
@@ -188,6 +224,52 @@ async function getFeatureItems(feature: string): Promise<APIGatewayProxyResult> 
     };
 }
 
+async function updateUserId(body: any): Promise<APIGatewayProxyResult> {
+    const corsHeaders = getCorsHeaders();
+    const { tempUserId, githubUserId } = body;
+
+    if (!tempUserId || !githubUserId) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ error: 'tempUserId and githubUserId are required' })
+        };
+    }
+
+    // Scan for all records with tempUserId
+    const result = await docClient.send(new ScanCommand({
+        TableName: USAGE_TABLE,
+        FilterExpression: 'userId = :tempUserId',
+        ExpressionAttributeValues: { ':tempUserId': tempUserId }
+    }));
+
+    const items = result.Items ?? [];
+
+    if (items.length === 0) {
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'No records found for this user', updated: 0 })
+        };
+    }
+
+    // Update each matching record
+    await Promise.all(items.map(item =>
+        docClient.send(new UpdateCommand({
+            TableName: USAGE_TABLE,
+            Key: { pk: item.pk, sk: item.sk },
+            UpdateExpression: 'SET userId = :githubUserId',
+            ExpressionAttributeValues: { ':githubUserId': githubUserId }
+        }))
+    ));
+
+    return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({ message: 'User ID updated successfully', updated: items.length })
+    };
+}
+
 export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
     const corsHeaders = getCorsHeaders();
     const httpMethod = event.requestContext?.http?.method || event.httpMethod;
@@ -217,6 +299,8 @@ export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
         const feature = body.feature;
 
         switch (feature) {
+            case 'update-user':
+                return updateUserId(body);
             case 'metadata':
                 return trackMetadata(body);
             default:

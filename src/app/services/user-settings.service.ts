@@ -130,4 +130,9 @@ export class UserSettingsService {
     return id;
   }
 
+  setUserId(id: string): void {
+    localStorage.setItem('userId', id);
+    this.userId.set(id);
+  }
+
 }

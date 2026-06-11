@@ -26,32 +26,12 @@
             @if(loading()) { <p-skeleton styleClass="h-4rem w-full" /> }
             @else {
             <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.uniqueUsersTotal ?? 0 }}</p>
-            <div class="flex gap-3 mt-1">
+            <div class="flex justify-content-center gap-3 mt-1">
                 <span class="text-xs text-600">
                     <i class="pi pi-github mr-1"></i>{{ stats()?.uniqueUsersGitHub ?? 0 }} {{ 'dev.monitoring.totalUsers.authenticated' | translate }}
                 </span>
                 <span class="text-xs text-600">
                     <i class="pi pi-user mr-1"></i>{{ stats()?.uniqueUsersAnonymous ?? 0 }} {{ 'dev.monitoring.totalUsers.anonymous' | translate }}
-                </span>
-            </div>
-            }
-        </div>
-
-        <!-- Total AI calls -->
-        <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
-            <div class="flex align-items-center gap-2 mb-2">
-                <i class="pi pi-sparkles text-primary text-xl"></i>
-                <span class="text-600 text-sm">{{ 'dev.monitoring.totalGenerations' | translate }}</span>
-            </div>
-            @if(loading()) { <p-skeleton styleClass="h-4rem w-full" /> }
-            @else {
-            <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.totalGenerations ?? 0 }}</p>
-            <div class="flex gap-3 mt-1">
-                <span class="text-xs text-600">
-                    <i class="pi pi-list mr-1"></i>{{ stats()?.metadataGenerations ?? 0 }} {{ 'dev.monitoring.totalGenerations.metadata' | translate }}
-                </span>
-                <span class="text-xs text-600">
-                    <i class="pi pi-file mr-1"></i>{{ stats()?.pageGenerations ?? 0 }} {{ 'dev.monitoring.totalGenerations.page' | translate }}
                 </span>
             </div>
             }
@@ -66,7 +46,7 @@
             @if(loading()) { <p-skeleton styleClass="h-4rem w-full" /> }
             @else {
             <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.uniqueProjects ?? 0 }}</p>
-            <div class="flex gap-3 mt-1">
+            <div class="flex justify-content-center gap-3 mt-1">
                 <span class="text-xs text-600">
                     <i class="pi pi-cloud mr-1"></i>{{ stats()?.cloudProjects ?? 0 }} {{ 'dev.monitoring.totalProjects.cloud' | translate }}
                 </span>
@@ -86,7 +66,7 @@
             @if(loading()) { <p-skeleton styleClass="h-4rem w-full" /> }
             @else {
             <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.uniqueUrls ?? 0 }}</p>
-            <div class="flex gap-3 mt-1">
+            <div class="flex justify-content-center gap-3 mt-1">
                 <span class="text-xs text-600">
                     <i class="pi pi-globe mr-1"></i>{{ stats()?.enUrls ?? 0 }} {{ 'dev.monitoring.totalPages.english' | translate }}
                 </span>
@@ -97,25 +77,45 @@
             }
         </div>
 
+        <!-- Total AI calls -->
+        <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+            <div class="flex align-items-center gap-2 mb-2">
+                <i class="pi pi-sparkles text-primary text-xl"></i>
+                <span class="text-600 text-sm">{{ 'dev.monitoring.totalGenerations' | translate }}</span>
+            </div>
+            @if(loading()) { <p-skeleton styleClass="h-4rem w-full" /> }
+            @else {
+            <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.totalGenerations ?? 0 }}</p>
+            <div class="flex justify-content-center gap-3 mt-1">
+                <span class="text-xs text-600">
+                    <i class="pi pi-list mr-1"></i>{{ stats()?.metadataGenerations ?? 0 }} {{ 'dev.monitoring.totalGenerations.metadata' | translate }}
+                </span>
+                <span class="text-xs text-600">
+                    <i class="pi pi-file mr-1"></i>{{ stats()?.pageGenerations ?? 0 }} {{ 'dev.monitoring.totalGenerations.page' | translate }}
+                </span>
+            </div>
+            }
+        </div>
+
     </div>
 
     <!-- Feature stats section -->
-    <div class="surface-card border-round-lg shadow-2 p-4">
+    <div class="surface-card border-round-lg shadow-2 p-4 min-w-min">
 
         <!-- Feature header & buttons -->
         <div class="flex flex-column md:flex-row justify-content-between align-items-start md:align-items-center gap-3 mb-4">
             <div class="flex align-items-center gap-2">
                 <i class="pi pi-chart-pie text-primary text-xl"></i>
-                <h2 class="text-lg font-semibold text-900 m-0">{{ 'dev.monitoring.feature' | translate: {feature: selectedFeature()} }}</h2>
+                <h2 class="text-lg font-semibold text-900 m-0">{{ 'dev.monitoring.feature' | translate: {feature: selectedFeatureLabel()} }}</h2>
             </div>
             <div class="flex flex-column md:flex-row align-items-start md:align-items-center gap-2">
                 <!-- Switch between metadata, page, and problems -->
-                <p-selectbutton [options]="featureOptions" optionLabel="label" optionValue="value"
+                <p-selectbutton [options]="featureOptions()" optionLabel="label" optionValue="value"
                                 [ngModel]="selectedFeature()" (ngModelChange)="onFeatureChange($event)" />
                 <!-- Toggle between single & A/B views -->
                 <p-togglebutton [ngModel]="compareMode()" (ngModelChange)="compareMode.set($event)"
                                 [onLabel]="'dev.monitoring.feature.single' | translate" [offLabel]="'dev.monitoring.feature.ab' | translate"
-                                [onIcon]="'pi pi-chart-pie'" [offIcon]="'pi pi-chart-pie'" class="w-10rem" />
+                                [onIcon]="'pi pi-chart-pie'" [offIcon]="'pi pi-chart-pie'" class="w-11rem" />
             </div>
         </div>
 
@@ -146,23 +146,23 @@
             <!-- Donut A (always shown) -->
             <div class="flex flex-column gap-3 flex-1">
                 <!-- Filters -->
-                <div class="flex flex-column md:flex-row gap-2">
+                <div class="flex flex-column md:flex-row gap-1">
                     <p-iftalabel class="flex-1">
                         <p-select id="fieldA" [options]="fieldOptions()" [ngModel]="filterA().field"
                                   (ngModelChange)="updateFilterA('field', $event)"
-                                  optionLabel="label" optionValue="value" styleClass="w-full" />
+                                  optionLabel="label" optionValue="value" styleClass="w-full max-w-15rem" />
                         <label for="fieldA" class="text-xs text-600">{{ selectedFeature() === 'metadata' ? ('dev.monitoring.filter.field' | translate) : ('dev.monitoring.filter.promptType' | translate)}}</label>
                     </p-iftalabel>
                     <p-iftalabel class="flex-1">
                         <p-select id="modelA" [options]="modelOptions()" [ngModel]="filterA().model"
                                   (ngModelChange)="updateFilterA('model', $event)"
-                                  optionLabel="label" optionValue="value" styleClass="w-full" />
+                                  optionLabel="label" optionValue="value" styleClass="w-full max-w-15rem" />
                         <label for="modelA" class="text-xs text-600">{{'dev.monitoring.filter.model' | translate}}</label>
                     </p-iftalabel>
                     <p-iftalabel class="flex-1">
                         <p-select id="promptA" [options]="promptOptions()" [ngModel]="filterA().promptVersion"
                                   (ngModelChange)="updateFilterA('promptVersion', $event)"
-                                  optionLabel="label" optionValue="value" styleClass="w-full" />
+                                  optionLabel="label" optionValue="value" styleClass="w-full max-w-15rem" />
                         <label for="promptA" class="text-xs text-600">{{'dev.monitoring.filter.promptVersion' | translate}}</label>
                     </p-iftalabel>
                 </div>
@@ -203,19 +203,19 @@
                     <p-iftalabel class="flex-1">
                         <p-select id="fieldB" [options]="fieldOptions()" [ngModel]="filterB().field"
                                   (ngModelChange)="updateFilterB('field', $event)"
-                                  optionLabel="label" optionValue="value" styleClass="w-full" />
+                                  optionLabel="label" optionValue="value" styleClass="w-full max-w-15rem" />
                         <label for="fieldB" class="text-xs text-600">{{ selectedFeature() === 'metadata' ? ('dev.monitoring.filter.field' | translate) : ('dev.monitoring.filter.promptType' | translate)}}</label>
                     </p-iftalabel>
                     <p-iftalabel class="flex-1">
                         <p-select id="modelB" [options]="modelOptions()" [ngModel]="filterB().model"
                                   (ngModelChange)="updateFilterB('model', $event)"
-                                  optionLabel="label" optionValue="value" styleClass="w-full" />
+                                  optionLabel="label" optionValue="value" styleClass="w-full max-w-15rem" />
                         <label for="modelB" class="text-xs text-600">{{'dev.monitoring.filter.model' | translate}}</label>
                     </p-iftalabel>
                     <p-iftalabel class="flex-1">
                         <p-select id="promptB" [options]="promptOptions()" [ngModel]="filterB().promptVersion"
                                   (ngModelChange)="updateFilterB('promptVersion', $event)"
-                                  optionLabel="label" optionValue="value" styleClass="w-full" />
+                                  optionLabel="label" optionValue="value" styleClass="w-full max-w-15rem" />
                         <label for="promptB" class="text-xs text-600">{{'dev.monitoring.filter.promptVersion' | translate}}</label>
                     </p-iftalabel>
                 </div>
