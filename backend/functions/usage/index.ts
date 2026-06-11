@@ -64,7 +64,7 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
 
     const {
         projectId, pageUrl,
-        org, userId,
+        org, storageType, userId,
         model, promptConfig, generatedAt,
         originalDescEN, originalDescFR, originalKeywordsEN, originalKeywordsFR,
         aiDescEN, aiDescFR, aiKeywordsEN, aiKeywordsFR,
@@ -94,6 +94,7 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
             feature: 'metadata',
             projectId,
             org: org ?? 'DEFAULT',
+            storageType: storageType ?? 'local',
             userId: userId ?? 'anonymous',
             pageUrl,
             model,
@@ -126,60 +127,64 @@ async function getUsageStats(): Promise<APIGatewayProxyResult> {
 
     const items = result.Items ?? [];
 
-    // Aggregate stats
-    const uniqueUrls = new Set(items.map(i => i.pageUrl)).size;
+    // Users
+    const uniqueUsersTotal = new Set(items.map(i => i.userId)).size;
+    const uniqueUsersGitHub = new Set(items.filter(i => !i.userId?.startsWith('user_')).map(i => i.userId)).size;
+    const uniqueUsersAnonymous = new Set(items.filter(i => i.userId?.startsWith('user_')).map(i => i.userId)).size;
+
+    // Generations by feature
     const totalGenerations = items.length;
+    const metadataGenerations = items.filter(i => i.pk?.startsWith('metadata#')).length;
+    const pageGenerations = items.filter(i => i.pk?.startsWith('page#')).length;
 
-    // Status counts across all 4 fields
-    const statusFields = ['statusDescEN', 'statusDescFR', 'statusKeywordsEN', 'statusKeywordsFR'];
-    const statusCounts: Record<string, number> = {};
-    for (const item of items) {
-        for (const field of statusFields) {
-            const status = item[field];
-            if (status) statusCounts[status] = (statusCounts[status] ?? 0) + 1;
-        }
-    }
+    // Projects
+    const uniqueProjects = new Set(items.map(i => i.pk?.split('#')[1])).size;
+    const localProjects = new Set(items.filter(i => i.storageType === 'local').map(i => i.pk?.split('#')[1])).size;
+    const cloudProjects = new Set(items.filter(i => i.storageType === 'cloud').map(i => i.pk?.split('#')[1])).size;
 
-    // Model breakdown
-    const modelCounts: Record<string, number> = {};
-    for (const item of items) {
-        if (item.model) modelCounts[item.model] = (modelCounts[item.model] ?? 0) + 1;
-    }
+    // URLs
+    const uniqueUrls = new Set(items.map(i => i.pageUrl)).size;
+    const enUrls = new Set(items.filter(i => i.pageUrl?.includes('/en/')).map(i => i.pageUrl)).size;
+    const frUrls = new Set(items.filter(i => i.pageUrl?.includes('/fr/')).map(i => i.pageUrl)).size;
 
-    // Prompt version breakdown
-    const promptCounts: Record<string, number> = {};
-    for (const item of items) {
-        if (item.promptVersion != null) {
-            const key = `v${item.promptVersion}`;
-            promptCounts[key] = (promptCounts[key] ?? 0) + 1;
-        }
-    }
 
-    // Status breakdown per model+prompt combo
-    const comboCounts: Record<string, Record<string, number>> = {};
-    for (const item of items) {
-        const comboKey = `${item.model ?? 'unknown'} / prompt v${item.promptVersion ?? '?'}`;
-        if (!comboCounts[comboKey]) comboCounts[comboKey] = {};
-        for (const field of statusFields) {
-            const status = item[field];
-            if (status) {
-                comboCounts[comboKey][status] = (comboCounts[comboKey][status] ?? 0) + 1;
-            }
-        }
-    }
+    // Orgs
+    const uniqueOrgCount = new Set(items.map(i => i.org)).size;
 
     return {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({
+            uniqueUsersTotal,
+            uniqueUsersGitHub,
+            uniqueUsersAnonymous,
             totalGenerations,
+            metadataGenerations,
+            pageGenerations,
+            uniqueProjects,
+            localProjects,
+            cloudProjects,
             uniqueUrls,
-            statusCounts,
-            modelCounts,
-            promptCounts,
-            comboCounts,
-            items
+            enUrls,
+            frUrls,
+            uniqueOrgCount,
         })
+    };
+}
+
+async function getFeatureItems(feature: string): Promise<APIGatewayProxyResult> {
+    const corsHeaders = getCorsHeaders();
+
+    const result = await docClient.send(new ScanCommand({
+        TableName: USAGE_TABLE,
+        FilterExpression: 'feature = :feature',
+        ExpressionAttributeValues: { ':feature': feature }
+    }));
+
+    return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({ items: result.Items ?? [] })
     };
 }
 
@@ -192,6 +197,10 @@ export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
     }
 
     if (httpMethod === 'GET') {
+        const feature = event.queryStringParameters?.feature;
+        if (feature) {
+            return getFeatureItems(feature);
+        }
         return getUsageStats();
     }
 

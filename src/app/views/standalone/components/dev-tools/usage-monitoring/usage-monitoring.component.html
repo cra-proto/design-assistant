@@ -1,0 +1,277 @@
+<h1 id="wb-cont">{{ 'dev.monitoring._title' | translate }}</h1>
+
+<div class="flex flex-column gap-3">
+
+    <!-- Error (global stats) -->
+    @if(error()) {
+    <div class="surface-card border-round-lg shadow-2 p-4 flex align-items-center gap-3">
+        <i class="pi pi-exclamation-triangle text-red-500 text-2xl"></i>
+        <div>
+            <p class="font-semibold m-0">{{ 'dev.monitoring.loadError' | translate }}</p>
+            <p class="text-600 text-sm m-0">{{ error() }}</p>
+        </div>
+        <p-button [label]="'common.retry' | translate" icon="pi pi-refresh" size="small" outlined class="ml-auto" (onClick)="load()" />
+    </div>
+    }
+
+    <!-- Top stats row -->
+    <div class="flex flex-column md:flex-row gap-3">
+
+        <!-- Users -->
+        <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+            <div class="flex align-items-center gap-2 mb-2">
+                <i class="pi pi-users text-primary text-xl"></i>
+                <span class="text-600 text-sm">{{ 'dev.monitoring.totalUsers' | translate }}</span>
+            </div>
+            @if(loading()) { <p-skeleton styleClass="h-4rem w-full" /> }
+            @else {
+            <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.uniqueUsersTotal ?? 0 }}</p>
+            <div class="flex gap-3 mt-1">
+                <span class="text-xs text-600">
+                    <i class="pi pi-github mr-1"></i>{{ stats()?.uniqueUsersGitHub ?? 0 }} {{ 'dev.monitoring.totalUsers.authenticated' | translate }}
+                </span>
+                <span class="text-xs text-600">
+                    <i class="pi pi-user mr-1"></i>{{ stats()?.uniqueUsersAnonymous ?? 0 }} {{ 'dev.monitoring.totalUsers.anonymous' | translate }}
+                </span>
+            </div>
+            }
+        </div>
+
+        <!-- Total AI calls -->
+        <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+            <div class="flex align-items-center gap-2 mb-2">
+                <i class="pi pi-sparkles text-primary text-xl"></i>
+                <span class="text-600 text-sm">{{ 'dev.monitoring.totalGenerations' | translate }}</span>
+            </div>
+            @if(loading()) { <p-skeleton styleClass="h-4rem w-full" /> }
+            @else {
+            <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.totalGenerations ?? 0 }}</p>
+            <div class="flex gap-3 mt-1">
+                <span class="text-xs text-600">
+                    <i class="pi pi-list mr-1"></i>{{ stats()?.metadataGenerations ?? 0 }} {{ 'dev.monitoring.totalGenerations.metadata' | translate }}
+                </span>
+                <span class="text-xs text-600">
+                    <i class="pi pi-file mr-1"></i>{{ stats()?.pageGenerations ?? 0 }} {{ 'dev.monitoring.totalGenerations.page' | translate }}
+                </span>
+            </div>
+            }
+        </div>
+
+        <!-- Unique projects -->
+        <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+            <div class="flex align-items-center gap-2 mb-2">
+                <i class="pi pi-folder text-primary text-xl"></i>
+                <span class="text-600 text-sm">{{ 'dev.monitoring.totalProjects' | translate }}</span>
+            </div>
+            @if(loading()) { <p-skeleton styleClass="h-4rem w-full" /> }
+            @else {
+            <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.uniqueProjects ?? 0 }}</p>
+            <div class="flex gap-3 mt-1">
+                <span class="text-xs text-600">
+                    <i class="pi pi-cloud mr-1"></i>{{ stats()?.cloudProjects ?? 0 }} {{ 'dev.monitoring.totalProjects.cloud' | translate }}
+                </span>
+                <span class="text-xs text-600">
+                    <i class="pi pi-desktop mr-1"></i>{{ stats()?.localProjects ?? 0 }} {{ 'dev.monitoring.totalProjects.local' | translate }}
+                </span>
+            </div>
+            }
+        </div>
+
+        <!-- Unique pages -->
+        <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+            <div class="flex align-items-center gap-2 mb-2">
+                <i class="pi pi-link text-primary text-xl"></i>
+                <span class="text-600 text-sm">{{ 'dev.monitoring.totalPages' | translate }}</span>
+            </div>
+            @if(loading()) { <p-skeleton styleClass="h-4rem w-full" /> }
+            @else {
+            <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.uniqueUrls ?? 0 }}</p>
+            <div class="flex gap-3 mt-1">
+                <span class="text-xs text-600">
+                    <i class="pi pi-globe mr-1"></i>{{ stats()?.enUrls ?? 0 }} {{ 'dev.monitoring.totalPages.english' | translate }}
+                </span>
+                <span class="text-xs text-600">
+                    <i class="pi pi-globe mr-1"></i>{{ stats()?.frUrls ?? 0 }} {{ 'dev.monitoring.totalPages.french' | translate }}
+                </span>
+            </div>
+            }
+        </div>
+
+    </div>
+
+    <!-- Feature stats section -->
+    <div class="surface-card border-round-lg shadow-2 p-4">
+
+        <!-- Feature header & buttons -->
+        <div class="flex flex-column md:flex-row justify-content-between align-items-start md:align-items-center gap-3 mb-4">
+            <div class="flex align-items-center gap-2">
+                <i class="pi pi-chart-pie text-primary text-xl"></i>
+                <h2 class="text-lg font-semibold text-900 m-0">{{ 'dev.monitoring.feature' | translate: {feature: selectedFeature()} }}</h2>
+            </div>
+            <div class="flex flex-column md:flex-row align-items-start md:align-items-center gap-2">
+                <!-- Switch between metadata, page, and problems -->
+                <p-selectbutton [options]="featureOptions" optionLabel="label" optionValue="value"
+                                [ngModel]="selectedFeature()" (ngModelChange)="onFeatureChange($event)" />
+                <!-- Toggle between single & A/B views -->
+                <p-togglebutton [ngModel]="compareMode()" (ngModelChange)="compareMode.set($event)"
+                                [onLabel]="'dev.monitoring.feature.single' | translate" [offLabel]="'dev.monitoring.feature.ab' | translate"
+                                [onIcon]="'pi pi-chart-pie'" [offIcon]="'pi pi-chart-pie'" class="w-10rem" />
+            </div>
+        </div>
+
+        <!-- Feature load error -->
+        @if(featureItemsError()) {
+        <div class="bg-red-50 border-round-lg shadow-2 p-4 flex align-items-center gap-3 mb-3">
+            <i class="pi pi-exclamation-triangle text-red-500 text-2xl"></i>
+            <div>
+                <p class="font-semibold m-0">{{ 'dev.monitoring.loadError' | translate }}</p>
+                <p class="text-600 text-sm m-0">{{ featureItemsError() }}</p>
+            </div>
+            <p-button [label]="'common.retry' | translate" icon="pi pi-refresh" size="small" outlined class="ml-auto" (onClick)="loadFeature(selectedFeature())" />
+        </div>
+        }
+
+        @if(loading() || featureItemsLoading()) {
+        <div class="flex flex-row gap-3 w-full">
+            <div class="flex-1">
+                <p-skeleton styleClass="h-20rem" />
+            </div>
+            <div class="flex-1">
+                <p-skeleton styleClass="h-20rem" />
+            </div>
+        </div>
+        } @else {
+        <div class="flex flex-column lg:flex-row gap-4">
+
+            <!-- Donut A (always shown) -->
+            <div class="flex flex-column gap-3 flex-1">
+                <!-- Filters -->
+                <div class="flex flex-column md:flex-row gap-2">
+                    <p-iftalabel class="flex-1">
+                        <p-select id="fieldA" [options]="fieldOptions()" [ngModel]="filterA().field"
+                                  (ngModelChange)="updateFilterA('field', $event)"
+                                  optionLabel="label" optionValue="value" styleClass="w-full" />
+                        <label for="fieldA" class="text-xs text-600">{{ selectedFeature() === 'metadata' ? ('dev.monitoring.filter.field' | translate) : ('dev.monitoring.filter.promptType' | translate)}}</label>
+                    </p-iftalabel>
+                    <p-iftalabel class="flex-1">
+                        <p-select id="modelA" [options]="modelOptions()" [ngModel]="filterA().model"
+                                  (ngModelChange)="updateFilterA('model', $event)"
+                                  optionLabel="label" optionValue="value" styleClass="w-full" />
+                        <label for="modelA" class="text-xs text-600">{{'dev.monitoring.filter.model' | translate}}</label>
+                    </p-iftalabel>
+                    <p-iftalabel class="flex-1">
+                        <p-select id="promptA" [options]="promptOptions()" [ngModel]="filterA().promptVersion"
+                                  (ngModelChange)="updateFilterA('promptVersion', $event)"
+                                  optionLabel="label" optionValue="value" styleClass="w-full" />
+                        <label for="promptA" class="text-xs text-600">{{'dev.monitoring.filter.promptVersion' | translate}}</label>
+                    </p-iftalabel>
+                </div>
+                <!-- Chart -->
+                @if(chartDataA().labels.length > 0) {
+                <div class="relative flex justify-content-center">
+                    <p-chart type="doughnut" [data]="chartDataA()" [options]="chartOptions" style="width: 280px" />
+                    @if(compareMode()) {
+                    <div class="absolute flex align-items-center justify-content-center"
+                         style="top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
+                        <span class="text-4xl font-bold text-primary">A</span>
+                    </div>
+                    }
+                </div>
+                <div class="flex flex-wrap gap-2 justify-content-center">
+                    @for(item of chartDataA().legendItems; track item.label) {
+                    <div class="flex align-items-center gap-1">
+                        <span class="border-circle w-1rem h-1rem flex-shrink-0" [style.background]="item.color"></span>
+                        <span class="text-xs text-700">{{ item.label | translate }} ({{ item.count }})</span>
+                    </div>
+                    }
+                </div>
+                } @else {
+                <div class="flex align-items-center justify-content-center h-10rem text-600 text-sm">
+                    {{ 'dev.monitoring.noData' | translate }}
+                </div>
+                }
+            </div>
+
+            <p-divider layout="vertical" styleClass="hidden lg:flex" />
+            <p-divider styleClass="flex lg:hidden" />
+
+            <!-- Donut B (compare mode only) -->
+            @if(compareMode()) {
+            <div class="flex flex-column gap-3 flex-1">
+                <!-- Filters -->
+                <div class="flex flex-column md:flex-row gap-2">
+                    <p-iftalabel class="flex-1">
+                        <p-select id="fieldB" [options]="fieldOptions()" [ngModel]="filterB().field"
+                                  (ngModelChange)="updateFilterB('field', $event)"
+                                  optionLabel="label" optionValue="value" styleClass="w-full" />
+                        <label for="fieldB" class="text-xs text-600">{{ selectedFeature() === 'metadata' ? ('dev.monitoring.filter.field' | translate) : ('dev.monitoring.filter.promptType' | translate)}}</label>
+                    </p-iftalabel>
+                    <p-iftalabel class="flex-1">
+                        <p-select id="modelB" [options]="modelOptions()" [ngModel]="filterB().model"
+                                  (ngModelChange)="updateFilterB('model', $event)"
+                                  optionLabel="label" optionValue="value" styleClass="w-full" />
+                        <label for="modelB" class="text-xs text-600">{{'dev.monitoring.filter.model' | translate}}</label>
+                    </p-iftalabel>
+                    <p-iftalabel class="flex-1">
+                        <p-select id="promptB" [options]="promptOptions()" [ngModel]="filterB().promptVersion"
+                                  (ngModelChange)="updateFilterB('promptVersion', $event)"
+                                  optionLabel="label" optionValue="value" styleClass="w-full" />
+                        <label for="promptB" class="text-xs text-600">{{'dev.monitoring.filter.promptVersion' | translate}}</label>
+                    </p-iftalabel>
+                </div>
+                <!-- Chart -->
+                @if(chartDataB().labels.length > 0) {
+                <div class="relative flex justify-content-center">
+                    <p-chart type="doughnut" [data]="chartDataB()" [options]="chartOptions" style="width: 280px" />
+                    <div class="absolute flex align-items-center justify-content-center"
+                         style="top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
+                        <span class="text-4xl font-bold text-primary">B</span>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 justify-content-center">
+                    @for(item of chartDataB().legendItems; track item.label) {
+                    <div class="flex align-items-center gap-1">
+                        <span class="border-circle w-1rem h-1rem flex-shrink-0" [style.background]="item.color"></span>
+                        <span class="text-xs text-700">{{ item.label | translate }} ({{ item.count }})</span>
+                    </div>
+                    }
+                </div>
+                } @else {
+                <div class="flex align-items-center justify-content-center h-10rem text-600 text-sm">
+                    {{ 'dev.monitoring.noData' | translate }}
+                </div>
+                }
+            </div>
+            }
+
+            <!-- Summary stats (single mode only) -->
+            @if(!compareMode()) {
+            <div class="flex flex-column gap-2 flex-1">
+                <p class="text-sm font-semibold text-600 m-0 mb-1">{{ 'dev.monitoring.feature.breakdown' | translate }}</p>
+                @for(item of summaryStats(); track item.label) {
+                <div class="flex align-items-center gap-2">
+                    <span class="border-circle w-1rem h-1rem flex-shrink-0" [style.background]="item.color"></span>
+                    <span class="text-sm text-700 flex-1">{{ item.label | translate }}</span>
+                    <span class="text-sm font-bold text-900">{{ item.count }}</span>
+                    <span class="text-xs text-400 w-3rem text-right">{{ item.percent / 100 | percent:'1.0-0':(currentLang() === 'fr' ? 'fr-CA' : 'en-CA') }}</span>
+                </div>
+                }
+                @if(selectedFeature() === 'metadata') {
+                <p-divider />
+                <div class="flex justify-content-between text-sm text-600">
+                    <span>{{ 'dev.monitoring.resultsReviewed' | translate }}</span>
+                    <span class="font-bold text-900">{{ totalFieldsReviewed() }} / {{ totalFields() }}</span>
+                </div>
+                }
+            </div>
+            }
+
+        </div>}
+
+        <!-- Refresh -->
+        <div class="flex justify-content-end mt-3">
+            <p-button [label]="'common.refresh' | translate" icon="pi pi-refresh" size="small" outlined
+                      (onClick)="load()" [loading]="loading()" />
+        </div>
+
+    </div>

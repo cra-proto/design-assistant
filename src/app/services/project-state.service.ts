@@ -213,6 +213,7 @@ export class ProjectStateService {
             this.usageService.trackMetadata(
                 this.project().id,
                 this.project().org ?? 'DEFAULT',
+                this.project().storageType,
                 url,
                 node.data.metadata?.description,
                 node.data.metadata?.descriptionFR,
