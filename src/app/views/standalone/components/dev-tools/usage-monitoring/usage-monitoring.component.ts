@@ -1,29 +1,45 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { TranslateModule } from '@ngx-translate/core';
-import { environment } from '../../../../../../environments/environment';
-import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
-import { CardModule } from 'primeng/card';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { TagModule } from 'primeng/tag';
+//PrimeNG Components
 import { SkeletonModule } from 'primeng/skeleton';
 import { DividerModule } from 'primeng/divider';
 import { ButtonModule } from 'primeng/button';
-import { TooltipModule } from 'primeng/tooltip';
-import { ChartModule } from 'primeng/chart';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { ToggleButtonModule } from 'primeng/togglebutton';
 import { SelectModule } from 'primeng/select';
+import { ChartModule } from 'primeng/chart';
+import { IftaLabelModule } from 'primeng/iftalabel';
+
+//Services
+import { environment } from '../../../../../../environments/environment';
+import { UserSettingsService } from '../../../../../services/user-settings.service';
 
 interface UsageStats {
+    uniqueUsersTotal: number;
+    uniqueUsersGitHub: number;
+    uniqueUsersAnonymous: number;
+
     totalGenerations: number;
+    metadataGenerations: number;
+    pageGenerations: number;
+
+    uniqueProjects: number;
+    localProjects: number;
+    cloudProjects: number;
+
     uniqueUrls: number;
-    statusCounts: Record<string, number>;
-    modelCounts: Record<string, number>;
-    promptCounts: Record<string, number>;
-    comboCounts: Record<string, Record<string, number>>;
+    enUrls: number;
+    frUrls: number;
+
+    uniqueOrgCount: number;
+}
+
+interface FeatureItems {
     items: UsageRecord[];
 }
 
@@ -36,6 +52,7 @@ interface UsageRecord {
     userId: string;
     pageUrl: string;
     model: string;
+    promptType?: string;
     promptVersion: number;
     generatedAt: string;
     statusDescEN: string;
@@ -56,16 +73,7 @@ interface SelectOption {
     value: string;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; hoverColor: string }> = {
-    approvedAI: { label: 'Approved AI', color: '#22c55e', hoverColor: '#16a34a' },
-    approvedEdits: { label: 'Approved Edited', color: '#3b82f6', hoverColor: '#2563eb' },
-    edited: { label: 'Edited', color: '#06b6d4', hoverColor: '#0891b2' },
-    pending: { label: 'Pending', color: '#f59e0b', hoverColor: '#d97706' },
-    rejected: { label: 'Rejected', color: '#ef4444', hoverColor: '#dc2626' },
-    noChange: { label: 'No Change', color: '#94a3b8', hoverColor: '#64748b' },
-};
-
-const FIELD_OPTIONS: SelectOption[] = [
+const METADATA_FIELD_OPTIONS: SelectOption[] = [
     { label: 'All fields', value: 'all' },
     { label: 'EN description', value: 'statusDescEN' },
     { label: 'FR description', value: 'statusDescFR' },
@@ -73,100 +81,52 @@ const FIELD_OPTIONS: SelectOption[] = [
     { label: 'FR keywords', value: 'statusKeywordsFR' },
 ];
 
+const FEATURE_OPTIONS: SelectOption[] = [
+    { label: 'Metadata', value: 'metadata' },
+    { label: 'Page', value: 'page' },     // uncomment when ready
+    // { label: 'Problems', value: 'problems' }, // uncomment when ready
+];
+
+const STATUS_FIELDS: Record<string, string[]> = {
+    metadata: ['statusDescEN', 'statusDescFR', 'statusKeywordsEN', 'statusKeywordsFR'],
+    // page: ['statusAccepted', 'statusRejected'],     // update when ready
+    // problems: ['statusAccepted', 'statusRejected'], // update when ready
+};
+
 @Component({
     selector: 'aida-usage-monitoring',
     imports: [
         CommonModule, FormsModule, TranslateModule,
-        CardModule, ProgressBarModule, TagModule,
-        SkeletonModule, DividerModule, ButtonModule, TooltipModule,
-        ChartModule, SelectModule
+        SkeletonModule, DividerModule, ButtonModule, SelectButtonModule, ToggleButtonModule, SelectModule, IftaLabelModule,
+        ChartModule,
     ],
     templateUrl: 'usage-monitoring.component.html',
 })
 export class UsageMonitoringComponent implements OnInit {
     private http = inject(HttpClient);
+    private settingsService = inject(UserSettingsService);
+    currentLang = this.settingsService.currentLang;
 
+    // Global stats (always loaded)
     stats = signal<UsageStats | null>(null);
     loading = signal(true);
     error = signal<string | null>(null);
 
-    markForTranslation() {
-    }
+    // Feature items (loaded per feature)
+    featureItems = signal<UsageRecord[]>([]);
+    featureItemsLoading = signal(false);
+    featureItemsError = signal<string | null>(null);
 
-    private readonly statusConfig: Record<string, { label: string, severity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' }> = {
-        approvedAI: { label: 'Approved AI', severity: 'success' },
-        approvedEdits: { label: 'Approved Edited', severity: 'info' },
-        edited: { label: 'Edited', severity: 'info' },
-        pending: { label: 'Pending', severity: 'warn' },
-        rejected: { label: 'Rejected', severity: 'danger' },
-        noChange: { label: 'No Change', severity: 'secondary' },
-    };
+    // Feature switcher
+    featureOptions = FEATURE_OPTIONS;
+    selectedFeature = signal<string>('metadata');
 
-    /*
-    totalFields = computed(() => {
-        const counts = this.stats()?.statusCounts ?? {};
-        return Object.values(counts).reduce((a, b) => a + b, 0);
-    });
+    // View mode: single donut + stats, or A/B compare
+    compareMode = signal<boolean>(false);
 
-    totalFieldsReviewed = computed(() => {
-        const counts = this.stats()?.statusCounts ?? {};
-        return Object.entries(counts)
-            .filter(([k]) => k !== 'pending')
-            .reduce((a, [, v]) => a + v, 0);
-    });
-
-    */
-    statusRows = computed(() => {
-        const counts = this.stats()?.statusCounts ?? {};
-        const total = this.totalFields();
-        return Object.entries(counts).map(([key, count]) => ({
-            key,
-            label: this.statusConfig[key]?.label ?? key,
-            severity: this.statusConfig[key]?.severity ?? 'secondary',
-            count,
-            percent: total > 0 ? Math.round(count / total * 100) : 0
-        })).sort((a, b) => b.count - a.count);
-    });
-
-    modelRows = computed(() =>
-        Object.entries(this.stats()?.modelCounts ?? {})
-            .map(([name, count]) => ({ name, count }))
-            .sort((a, b) => b.count - a.count)
-    );
-
-    promptRows = computed(() =>
-        Object.entries(this.stats()?.promptCounts ?? {})
-            .map(([version, count]) => ({ version, count }))
-            .sort((a, b) => b.count - a.count)
-    );
-
-    objectKeys = Object.keys;
-
-    async ngOnInit() {
-        await this.load();
-    }
-
-    async load() {
-        this.loading.set(true);
-        this.error.set(null);
-        try {
-            const result = await firstValueFrom(
-                this.http.get<UsageStats>(environment.usageFunctionUrl)
-            );
-            this.stats.set(result);
-        } catch (err: any) {
-            this.error.set(err?.message ?? 'Unknown error');
-        } finally {
-            this.loading.set(false);
-        }
-    }
-
-    // Test donut chart
-    fieldOptions = FIELD_OPTIONS;
-
-    // Filter state for each donut — default to meaningful comparison
+    // Filter state for each donut — TODO: default to meaningful comparison
     filterA = signal<DonutFilter>({ field: 'all', model: 'all', promptVersion: 'all' });
-    filterB = signal<DonutFilter>({ field: 'statusDescEN', model: 'all', promptVersion: 'all' });
+    filterB = signal<DonutFilter>({ field: 'all', model: 'all', promptVersion: 'all' });
 
     chartOptions = {
         cutout: '65%',
@@ -175,9 +135,26 @@ export class UsageMonitoringComponent implements OnInit {
         }
     };
 
-    // Dynamic dropdown options derived from data
+    private getColour(variable: string): string {
+        return getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+    }
+    statusConfig: Record<string, { label: string; color: string; hoverColor: string }> = {};
+
+    // Field or prompt type options — metadata uses hardcoded fields & page/problems uses promptType column
+    fieldOptions = computed<SelectOption[]>(() => {
+        if (this.selectedFeature() === 'metadata') {
+            return METADATA_FIELD_OPTIONS;
+        }
+        // For page/problems: derive from promptType column
+        const types = [...new Set(this.featureItems().map(i => i.promptType).filter(Boolean))] as string[];
+        return [
+            { label: 'All prompt types', value: 'all' },
+            ...types.map(t => ({ label: t, value: t }))
+        ];
+    });
+
     modelOptions = computed<SelectOption[]>(() => {
-        const models = Object.keys(this.stats()?.modelCounts ?? {});
+        const models = [...new Set(this.featureItems().map(i => i.model).filter(Boolean))];
         return [
             { label: 'All models', value: 'all' },
             ...models.map(m => ({ label: m, value: m }))
@@ -185,40 +162,72 @@ export class UsageMonitoringComponent implements OnInit {
     });
 
     promptOptions = computed<SelectOption[]>(() => {
-        const versions = Object.keys(this.stats()?.promptCounts ?? {});
+        const versions = [...new Set(this.featureItems().map(i => `v${i.promptVersion}`).filter(Boolean))];
         return [
             { label: 'All versions', value: 'all' },
             ...versions.map(v => ({ label: `Prompt ${v}`, value: v }))
         ];
     });
 
-    totalFields = computed(() =>
-        Object.values(this.stats()?.statusCounts ?? {}).reduce((a, b) => a + b, 0)
-    );
+    // Feature-specific status field resolution
+    private getStatusFields(fieldFilter: string): string[] {
+        const feature = this.selectedFeature();
+        const allFields = STATUS_FIELDS[feature] ?? [];
+        if (feature === 'metadata' && fieldFilter !== 'all') {
+            return [fieldFilter];
+        }
+        return allFields;
+    }
 
-    totalFieldsReviewed = computed(() =>
-        Object.entries(this.stats()?.statusCounts ?? {})
-            .filter(([k]) => k !== 'pending')
-            .reduce((a, [, v]) => a + v, 0)
-    );
+    // Total reviewable fields for current feature
+    totalFields = computed(() => {
+        const items = this.featureItems();
+        const statusFields = STATUS_FIELDS[this.selectedFeature()] ?? [];
+        return items.reduce((total, item) =>
+            total + statusFields.filter(f => (item as any)[f]).length, 0);
+    });
 
+    totalFieldsReviewed = computed(() => {
+        const items = this.featureItems();
+        const statusFields = STATUS_FIELDS[this.selectedFeature()] ?? [];
+        return items.reduce((total, item) =>
+            total + statusFields.filter(f => {
+                const v = (item as any)[f];
+                return v && v !== 'pending';
+            }).length, 0);
+    });
+
+    // Single donut uses filterA
     chartDataA = computed(() => this.buildChartData(this.filterA()));
     chartDataB = computed(() => this.buildChartData(this.filterB()));
 
-    private buildChartData(filter: DonutFilter) {
-        const items = this.stats()?.items ?? [];
+    // Summary stats for single mode — status breakdown as list
+    summaryStats = computed(() => {
+        const data = this.chartDataA();
+        const total = data.legendItems.reduce((sum, i) => sum + i.count, 0);
+        return data.legendItems.map(item => ({
+            ...item,
+            percent: total > 0 ? Math.round(item.count / total * 100) : 0
+        }));
+    });
 
-        // Apply filters
+    private buildChartData(filter: DonutFilter) {
+        const items = this.featureItems();
+        const isMetadata = this.selectedFeature() === 'metadata';
+
         const filtered = items.filter(item => {
             if (filter.model !== 'all' && item.model !== filter.model) return false;
             if (filter.promptVersion !== 'all' && `v${item.promptVersion}` !== filter.promptVersion) return false;
+            // For page/problems: filter by promptType using the field filter
+            if (!isMetadata && filter.field !== 'all' && item.promptType !== filter.field) return false;
             return true;
         });
 
-        // Collect status values for selected field(s)
-        const statusFields = filter.field === 'all'
-            ? ['statusDescEN', 'statusDescFR', 'statusKeywordsEN', 'statusKeywordsFR']
-            : [filter.field];
+        const statusFields = isMetadata
+            ? (filter.field === 'all'
+                ? ['statusDescEN', 'statusDescFR', 'statusKeywordsEN', 'statusKeywordsFR']
+                : [filter.field])
+            : ['statusDescEN', 'statusDescFR', 'statusKeywordsEN', 'statusKeywordsFR'];
 
         const counts: Record<string, number> = {};
         for (const item of filtered) {
@@ -231,15 +240,15 @@ export class UsageMonitoringComponent implements OnInit {
         const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
 
         return {
-            labels: entries.map(([k]) => STATUS_CONFIG[k]?.label ?? k),
+            labels: entries.map(([k]) => this.statusConfig[k]?.label ?? k),
             datasets: [{
                 data: entries.map(([, v]) => v),
-                backgroundColor: entries.map(([k]) => STATUS_CONFIG[k]?.color ?? '#94a3b8'),
-                hoverBackgroundColor: entries.map(([k]) => STATUS_CONFIG[k]?.hoverColor ?? '#64748b'),
+                backgroundColor: entries.map(([k]) => this.statusConfig[k]?.color ?? '#94a3b8'),
+                hoverBackgroundColor: entries.map(([k]) => this.statusConfig[k]?.hoverColor ?? '#64748b'),
             }],
             legendItems: entries.map(([k, v]) => ({
-                label: STATUS_CONFIG[k]?.label ?? k,
-                color: STATUS_CONFIG[k]?.color ?? '#94a3b8',
+                label: this.statusConfig[k]?.label ?? k,
+                color: this.statusConfig[k]?.color ?? '#94a3b8',
                 count: v
             }))
         };
@@ -252,4 +261,59 @@ export class UsageMonitoringComponent implements OnInit {
     updateFilterB(key: keyof DonutFilter, value: string) {
         this.filterB.update(f => ({ ...f, [key]: value }));
     }
+
+    // Reset filters when feature changes
+    onFeatureChange(feature: string) {
+        this.selectedFeature.set(feature);
+        this.filterA.set({ field: 'all', model: 'all', promptVersion: 'all' });
+        this.filterB.set({ field: 'all', model: 'all', promptVersion: 'all' });
+        this.loadFeature(feature);
+    }
+
+    async ngOnInit() {
+        this.statusConfig = {
+            approvedAI: { label: 'Approved AI', color: this.getColour('--p-green-400'), hoverColor: this.getColour('--p-green-500') },
+            approvedEdits: { label: 'Approved Edited', color: this.getColour('--p-blue-400'), hoverColor: this.getColour('--p-blue-500') },
+            edited: { label: 'Edited', color: this.getColour('--p-cyan-400'), hoverColor: this.getColour('--p-cyan-500') },
+            pending: { label: 'Pending', color: this.getColour('--p-surface-200'), hoverColor: this.getColour('--p-surface-300') },
+            rejected: { label: 'Rejected', color: this.getColour('--p-red-400'), hoverColor: this.getColour('--p-red-500') },
+            noChange: { label: 'No Change', color: this.getColour('--p-slate-200'), hoverColor: this.getColour('--p-slate-300') },
+        };
+        await this.load();
+    }
+
+    // Load global stats + default feature items
+    async load() {
+        this.loading.set(true);
+        this.error.set(null);
+        try {
+            const [statsResult, itemsResult] = await Promise.all([
+                firstValueFrom(this.http.get<UsageStats>(environment.usageFunctionUrl)),
+                firstValueFrom(this.http.get<FeatureItems>(`${environment.usageFunctionUrl}?feature=${this.selectedFeature()}`))
+            ]);
+            this.stats.set(statsResult);
+            this.featureItems.set(itemsResult.items);
+        } catch (err: any) {
+            this.error.set(err?.message ?? 'Unknown error');
+        } finally {
+            this.loading.set(false);
+        }
+    }
+
+    // Load items for a specific feature on demand
+    async loadFeature(feature: string) {
+        this.featureItemsLoading.set(true);
+        this.featureItemsError.set(null);
+        try {
+            const result = await firstValueFrom(
+                this.http.get<FeatureItems>(`${environment.usageFunctionUrl}?feature=${feature}`)
+            );
+            this.featureItems.set(result.items);
+        } catch (err: any) {
+            this.featureItemsError.set(err?.message ?? 'Unknown error');
+        } finally {
+            this.featureItemsLoading.set(false);
+        }
+    }
+
 }
