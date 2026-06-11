@@ -14,7 +14,7 @@ export class UsageService {
 
     async trackMetadata(
         projectId: string,
-        org: string,
+        orgId: string,
         storageType: string,
         pageUrl: string,
         originalDescEN: string | undefined,
@@ -22,14 +22,16 @@ export class UsageService {
         originalKeywordsEN: string[] | undefined,
         originalKeywordsFR: string[] | undefined,
         review: MetadataReview,
-        promptConfig: object
+        promptConfig: object,
+        isUpdate: boolean = false
     ): Promise<void> {
         try {
             await firstValueFrom(
                 this.http.post(this.apiUrl, {
+                    isUpdate,
                     feature: 'metadata',
                     projectId,
-                    org,
+                    orgId,
                     storageType,
                     userId: this.settingsService.userId(),
                     pageUrl,
@@ -56,6 +58,20 @@ export class UsageService {
             );
         } catch (error) {
             console.warn('Usage tracking failed silently:', error);
+        }
+    }
+
+    async updateUserId(tempUserId: string, githubUserId: string): Promise<void> {
+        try {
+            await firstValueFrom(
+                this.http.post(this.apiUrl, {
+                    feature: 'update-user',
+                    tempUserId,
+                    githubUserId
+                })
+            );
+        } catch (error) {
+            console.warn('User ID update failed silently:', error);
         }
     }
 }

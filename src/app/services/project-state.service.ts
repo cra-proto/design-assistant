@@ -220,7 +220,8 @@ export class ProjectStateService {
                 node.data.metadata?.keywords,
                 node.data.metadata?.keywordsFR,
                 review,
-                promptConfig ?? {}
+                promptConfig ?? {},
+                !promptConfig
             );
         }
     }
