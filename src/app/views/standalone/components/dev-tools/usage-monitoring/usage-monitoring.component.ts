@@ -4,8 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { RouterLink } from '@angular/router';
 
 //PrimeNG Components
+import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { SkeletonModule } from 'primeng/skeleton';
 import { DividerModule } from 'primeng/divider';
 import { ButtonModule } from 'primeng/button';
@@ -77,8 +79,8 @@ const STATUS_FIELDS: Record<string, string[]> = {
 @Component({
     selector: 'aida-usage-monitoring',
     imports: [
-        CommonModule, FormsModule, TranslateModule,
-        SkeletonModule, DividerModule, ButtonModule, SelectButtonModule, ToggleButtonModule, SelectModule, IftaLabelModule,
+        CommonModule, FormsModule, TranslateModule, RouterLink,
+        BreadcrumbModule, SkeletonModule, DividerModule, ButtonModule, SelectButtonModule, ToggleButtonModule, SelectModule, IftaLabelModule,
         ChartModule,
     ],
     templateUrl: 'usage-monitoring.component.html',
@@ -88,6 +90,9 @@ export class UsageMonitoringComponent implements OnInit {
     private http = inject(HttpClient);
     private settingsService = inject(UserSettingsService);
     currentLang = this.settingsService.currentLang;
+
+    // Breadcrumbs
+    breadcrumbs = [{ label: 'dev._title', route: '/dev' }, { label: 'dev.monitoring._title' }]
 
     // Global stats (always loaded)
     stats = signal<UsageStats | null>(null);
