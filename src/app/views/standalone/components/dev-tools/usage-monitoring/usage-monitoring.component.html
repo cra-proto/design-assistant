@@ -165,6 +165,12 @@
                                   optionLabel="label" optionValue="value" styleClass="w-full max-w-15rem" />
                         <label for="promptA" class="text-xs text-600">{{'dev.monitoring.filter.promptVersion' | translate}}</label>
                     </p-iftalabel>
+                    <p-iftalabel class="flex-1">
+                        <p-select id="userA" [options]="userOptions()" [ngModel]="filterA().userId"
+                                  (ngModelChange)="updateFilterA('userId', $event)"
+                                  optionLabel="label" optionValue="value" styleClass="w-full max-w-15rem" />
+                        <label for="userA" class="text-xs text-600">{{'dev.monitoring.filter.userId' | translate}}</label>
+                    </p-iftalabel>
                 </div>
                 <!-- Chart -->
                 @if(chartDataA().labels.length > 0) {
@@ -217,6 +223,12 @@
                                   (ngModelChange)="updateFilterB('promptVersion', $event)"
                                   optionLabel="label" optionValue="value" styleClass="w-full max-w-15rem" />
                         <label for="promptB" class="text-xs text-600">{{'dev.monitoring.filter.promptVersion' | translate}}</label>
+                    </p-iftalabel>
+                    <p-iftalabel class="flex-1">
+                        <p-select id="userB" [options]="userOptions()" [ngModel]="filterB().userId"
+                                  (ngModelChange)="updateFilterB('userId', $event)"
+                                  optionLabel="label" optionValue="value" styleClass="w-full max-w-15rem" />
+                        <label for="userB" class="text-xs text-600">{{'dev.monitoring.filter.userId' | translate}}</label>
                     </p-iftalabel>
                 </div>
                 <!-- Chart -->

@@ -20,7 +20,7 @@ import { SelectItem } from 'primeng/api';
 import { environment } from '../../../../../../environments/environment';
 import { UserSettingsService } from '../../../../../services/user-settings.service';
 
-//TODO: update anonymous users after login, make sure prompt versions are hashed correctly
+//TODO: Add option to filter by user
 
 interface UsageStats {
     uniqueUsersTotal: number;
@@ -65,6 +65,7 @@ interface DonutFilter {
     field: string;
     model: string;
     promptVersion: string;
+    userId: string;
 }
 
 const STATUS_FIELDS: Record<string, string[]> = {
@@ -121,8 +122,9 @@ export class UsageMonitoringComponent implements OnInit {
     compareMode = signal<boolean>(false);
 
     // Filter state for each donut — TODO: default to meaningful comparison
-    filterA = signal<DonutFilter>({ field: 'all', model: 'all', promptVersion: 'all' });
-    filterB = signal<DonutFilter>({ field: 'all', model: 'all', promptVersion: 'all' });
+    filterA = signal<DonutFilter>({ field: 'all', model: 'all', promptVersion: 'all', userId: 'all' });
+    filterB = signal<DonutFilter>({ field: 'all', model: 'all', promptVersion: 'all', userId: 'all' });
+
 
     updateFilterA(key: keyof DonutFilter, value: string) {
         this.filterA.update(f => ({ ...f, [key]: value }));
@@ -134,8 +136,8 @@ export class UsageMonitoringComponent implements OnInit {
 
     onFeatureChange(feature: string) {
         this.selectedFeature.set(feature);
-        this.filterA.set({ field: 'all', model: 'all', promptVersion: 'all' });
-        this.filterB.set({ field: 'all', model: 'all', promptVersion: 'all' });
+        this.filterA.set({ field: 'all', model: 'all', promptVersion: 'all', userId: 'all' });
+        this.filterB.set({ field: 'all', model: 'all', promptVersion: 'all', userId: 'all' });
         this.loadFeature(feature);
     }
 
@@ -186,6 +188,16 @@ export class UsageMonitoringComponent implements OnInit {
         return [
             { label: this.translate.instant('dev.monitoring.filter.allVersions'), value: 'all' },
             ...versions.map(v => ({ label: `${this.translate.instant('dev.monitoring.filter.prompt')} ${v}`, value: v }))
+        ];
+    });
+
+    // Filter - userId options
+    userOptions = computed<SelectItem[]>(() => {
+        this.currentLang();
+        const users = [...new Set(this.featureItems().map(i => i.userId).filter(Boolean))];
+        return [
+            { label: this.translate.instant('dev.monitoring.filter.allUsers'), value: 'all' },
+            ...users.map(m => ({ label: m, value: m }))
         ];
     });
 
