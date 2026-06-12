@@ -69,9 +69,11 @@ export class BookmarkletComponent {
             `}else if(isCanadaCa){` +
             `const path=currentUrl.replace(/^https:\\/\\/.*?canada\\.ca/,'');` +
             `window.location.href='https://github.com/'+owner+'/'+repo+'/blob/main'+path;` +
-            // Fallback → root of my repo
+            // Fallback → index of my repo
             `}else{` +
-            `window.location.href='https://github.com/'+owner+'/'+repo;` +
+            `if(owner==='cra-proto'){window.location.href='https://cra-test-arc.canada.ca/'+repo}` +
+            `else if(owner==='gc-proto'){window.location.href='https://test.canada.ca/'+repo}` +
+            `else{window.location.href='https://'+owner+'.github.io/'+repo}` +
             `}` +
             `})();`;
         return this.sanitizer.bypassSecurityTrustUrl(js);
