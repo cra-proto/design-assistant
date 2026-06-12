@@ -60,9 +60,6 @@ export class AddPagesComponent implements OnInit {
 
     translate = inject(TranslateService);
 
-    //iaRelationship = inject(IaRelationshipService);
-    //iaTree = inject(IaTreeService);
-
     private fetchService = inject(FetchService);
     confirmationService = inject(ConfirmationService);
 

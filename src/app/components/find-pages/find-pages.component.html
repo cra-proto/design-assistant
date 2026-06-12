@@ -1,11 +1,23 @@
 <h2 class="text-2xl my-1">{{"findPages._title" | translate}}</h2>
-<!--p class="text-color-secondary">{{"findPages.description" | translate}}</p-->
+<p class="text-color-secondary">{{"findPages.description" | translate}}</p>
 
-<!--Find pages by task-->
-<aida-get-task-urls />
+<p-tabs value="0">
+    <p-tablist>
+        <p-tab value="0">{{"findPages.task._nav" | translate }}</p-tab>
+        <p-tab value="1">{{"findPages.findChildren._nav" | translate }}</p-tab>
+    </p-tablist>
+    <p-tabpanels class="p-0">
+        <!--Find pages by task-->
+        <p-tabpanel value="0">
+            <aida-get-task-urls />
+        </p-tabpanel>
+        <!--Find child pages-->
+        <p-tabpanel value="1">
+            <aida-get-child-pages />
+        </p-tabpanel>
+    </p-tabpanels>
+</p-tabs>
 
-<!--Find child pages-->
-<aida-get-child-pages />
 
 <!--Find pages by keyword or regex (grep search/regex helper)-->
 

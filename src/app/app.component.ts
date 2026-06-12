@@ -14,6 +14,7 @@ import { ExportGitHubService } from './services/github/export-github.service';
 import { CollaboratorService } from './services/collaborator.service';
 import { CloudStorageService } from './services/storage/cloud-storage.service';
 import { UserSettingsService } from './services/user-settings.service';
+import { UsageService } from './services/usage.service';
 
 @Component({
   selector: 'aida-root',
@@ -33,12 +34,18 @@ export class AppComponent implements OnInit {
   private exportGitHubService = inject(ExportGitHubService);
   private collaboratorService = inject(CollaboratorService);
   private settingsService = inject(UserSettingsService);
+  private usageService = inject(UsageService)
 
   constructor() {
     // Auto-add current user as collaborator when they sign in
     effect(() => {
       const user = this.exportGitHubService.user();
       if (user) {
+        const tempUserId = this.settingsService.userId();
+        this.settingsService.setUserId(user.id.toString());
+        if (tempUserId.startsWith('user_')) {
+          this.usageService.updateUserId(tempUserId, user.id.toString());
+        }
         this.collaboratorService.addCurrentUserToLocalProjects(user).then(() => {
           this.loadProject();
         });

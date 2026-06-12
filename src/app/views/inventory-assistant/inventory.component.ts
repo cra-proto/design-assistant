@@ -804,7 +804,7 @@ export class InventoryComponent implements OnInit {
                         description: { ai: parsed.fr.description, status: 'pending' },
                         keywords: { ai: parsed.fr.keywords, status: 'pending' },
                     },
-                });
+                }, InventoryPrompts[InventoryPromptKey.Metadata]);
             } catch (error) {
                 console.warn(`Skipping ${node.url} — could not parse AI response`, error);
                 continue;
