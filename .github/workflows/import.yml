@@ -1,21 +1,26 @@
-name: Terraform Import
+name: Terraform Import DynamoDB
 
 on:
   workflow_dispatch:
     inputs:
-      confirm:
-        description: 'Type "import" to confirm'
+      environment:
+        description: 'Environment to import into'
         required: true
+        type: choice
+        options:
+          - dev
+          - production
 
 jobs:
   import:
-    if: github.event.inputs.confirm == 'import'
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -25,13 +30,19 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
 
       - name: Terraform Init
+        working-directory: backend/terraform
         run: terraform init
-        working-directory: ./your-terraform-dir
+
+      - name: Select Terraform Workspace
+        working-directory: backend/terraform
+        run: terraform workspace select ${{ inputs.environment }}
 
       - name: Import DynamoDB tables
-        working-directory: ./your-terraform-dir
+        working-directory: backend/terraform
         run: |
-          terraform import aws_dynamodb_table.usage design-assistant-usage || echo "usage already imported"
-          terraform import aws_dynamodb_table.prompts design-assistant-prompts || echo "prompts already imported"
+          terraform import -var-file="${{ inputs.environment }}.tfvars" aws_dynamodb_table.usage design-assistant-usage || echo "usage already imported"
+          terraform import -var-file="${{ inputs.environment }}.tfvars" aws_dynamodb_table.prompts design-assistant-prompts || echo "prompts already imported"
