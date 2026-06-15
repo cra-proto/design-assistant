@@ -154,6 +154,52 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
     };
 }
 
+// Track export usage
+async function trackExport(body: any): Promise<APIGatewayProxyResult> {
+    const corsHeaders = getCorsHeaders();
+
+    const {
+        projectId,
+        orgId, storageType, userId,
+        repo, exportTarget, exportLanguage,
+        pageCountEN, pageCountFR
+    } = body;
+
+    if (!projectId || !repo) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ error: 'projectId and repo are required' })
+        };
+    }
+
+    const timestamp = new Date().toISOString();
+
+    await docClient.send(new PutCommand({
+        TableName: USAGE_TABLE,
+        Item: {
+            pk: `export#${projectId}`,
+            sk: timestamp,
+            feature: 'export',
+            projectId,
+            orgId: orgId ?? 'DEFAULT',
+            storageType: storageType ?? 'local',
+            userId: userId ?? 'anonymous',
+            repo,
+            exportTarget,
+            pageCountEN: pageCountEN ?? 0,
+            pageCountFR: pageCountFR ?? 0,
+            lastUpdated: timestamp
+        }
+    }));
+
+    return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({ message: 'Export tracked successfully' })
+    };
+}
+
 async function getUsageStats(): Promise<APIGatewayProxyResult> {
     const corsHeaders = getCorsHeaders();
 
@@ -168,21 +214,31 @@ async function getUsageStats(): Promise<APIGatewayProxyResult> {
     const uniqueUsersGitHub = new Set(items.filter(i => !i.userId?.startsWith('user_')).map(i => i.userId)).size;
     const uniqueUsersAnonymous = new Set(items.filter(i => i.userId?.startsWith('user_')).map(i => i.userId)).size;
 
-    // Generations by feature
-    const totalGenerations = items.length;
-    const metadataGenerations = items.filter(i => i.pk?.startsWith('metadata#')).length;
-    const pageGenerations = items.filter(i => i.pk?.startsWith('page#')).length;
-
     // Projects
-    const uniqueProjects = new Set(items.map(i => i.pk?.split('#')[1])).size;
+    const uniqueProjects = new Set(items.filter(i => i.pk?.includes('#')).map(i => i.pk?.split('#')[1])).size;
     const localProjects = new Set(items.filter(i => i.storageType === 'local').map(i => i.pk?.split('#')[1])).size;
     const cloudProjects = new Set(items.filter(i => i.storageType === 'cloud').map(i => i.pk?.split('#')[1])).size;
 
-    // URLs
-    const uniqueUrls = new Set(items.map(i => i.pageUrl)).size;
+    // URLs with AI assisted edits
+    const uniqueUrls = new Set(items.filter(i => i.pageUrl).map(i => i.pageUrl)).size;
     const enUrls = new Set(items.filter(i => i.pageUrl?.includes('/en/')).map(i => i.pageUrl)).size;
     const frUrls = new Set(items.filter(i => i.pageUrl?.includes('/fr/')).map(i => i.pageUrl)).size;
 
+    // Generations by feature
+    const totalGenerations = items.filter(i => i.pk?.startsWith('metadata#') || i.pk?.startsWith('page#')).length;
+    const metadataGenerations = items.filter(i => i.pk?.startsWith('metadata#')).length;
+    const pageGenerations = items.filter(i => i.pk?.startsWith('page#')).length;
+
+    // GitHub exports
+    const exportItems = items.filter(i => i.pk?.startsWith('export#'));
+    const exportCount = exportItems.length;
+    const enPageCount = exportItems.reduce((sum, i) => sum + (i.pageCountEN ?? 0), 0);
+    const frPageCount = exportItems.reduce((sum, i) => sum + (i.pageCountFR ?? 0), 0);
+
+    // Repos
+    const uniqueRepos = new Set(items.filter(i => i.repo).map(i => i.repo)).size;
+    const prototypeRepos = new Set(items.filter(i => i.exportTarget === 'prototype' && i.repo).map(i => i.repo)).size;
+    const baselineRepos = new Set(items.filter(i => i.exportTarget === 'baseline' && i.repo).map(i => i.repo)).size;
 
     // Orgs
     const uniqueOrgCount = new Set(items.map(i => i.orgId)).size;
@@ -194,15 +250,21 @@ async function getUsageStats(): Promise<APIGatewayProxyResult> {
             uniqueUsersTotal,
             uniqueUsersGitHub,
             uniqueUsersAnonymous,
-            totalGenerations,
-            metadataGenerations,
-            pageGenerations,
             uniqueProjects,
             localProjects,
             cloudProjects,
             uniqueUrls,
             enUrls,
             frUrls,
+            totalGenerations,
+            metadataGenerations,
+            pageGenerations,
+            exportCount,
+            enPageCount,
+            frPageCount,
+            uniqueRepos,
+            prototypeRepos,
+            baselineRepos,
             uniqueOrgCount,
         })
     };
@@ -303,6 +365,8 @@ export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
                 return updateUserId(body);
             case 'metadata':
                 return trackMetadata(body);
+            case 'export':
+                return trackExport(body);
             default:
                 return {
                     statusCode: 400,

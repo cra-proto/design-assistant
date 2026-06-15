@@ -74,4 +74,32 @@ export class UsageService {
             console.warn('User ID update failed silently:', error);
         }
     }
+
+    async trackExport(
+        projectId: string,
+        orgId: string,
+        storageType: string,
+        repo: string,
+        exportTarget: string,
+        pageCountEN: number,
+        pageCountFR: number
+    ): Promise<void> {
+        try {
+            await firstValueFrom(
+                this.http.post(this.apiUrl, {
+                    feature: 'export',
+                    projectId,
+                    orgId,
+                    storageType,
+                    userId: this.settingsService.userId(),
+                    repo,
+                    exportTarget,
+                    pageCountEN,
+                    pageCountFR
+                })
+            );
+        } catch (error) {
+            console.warn('Export tracking failed silently:', error);
+        }
+    }
 }
