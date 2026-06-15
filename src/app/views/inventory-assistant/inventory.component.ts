@@ -104,11 +104,13 @@ export class InventoryComponent implements OnInit {
     unselectedGroups: string[] = []; // Multiselect group data
     expandedMetadataCells = new Set<string>(); // Tracks which individual metadata cells are expanded
     expandedTaskCells = new Set<string>(); // Tracks which individual task cells are expanded
+    expandedNoteCells = new Set<string>(); // Tracks which individual note cells are expanded
 
     // Booleans
     expandAllMetadata = false;
     expandAllUrls = false;
     expandAllTasks = false;
+    expandAllNotes = false;
 
     // Local storage key for loading previous table settings
     private readonly COLUMN_KEY = 'inventoryColumnVisibility';
@@ -133,6 +135,7 @@ export class InventoryComponent implements OnInit {
         marker('inventory.columnGroups.oppPage');
         marker('inventory.columnGroups.github');
         marker('inventory.columnGroups.status');
+        marker('inventory.columnGroups.notes');
         marker('inventory.columnGroups.problems');
         marker('inventory.columnGroups.pageData');
         marker('inventory.columnGroups.owner');
@@ -454,6 +457,7 @@ export class InventoryComponent implements OnInit {
         this.checkAutoExpandMetadata();
         this.checkAutoExpandUrls();
         this.checkAutoExpandTasks();
+        this.checkAutoExpandNotes();
     }
 
     // Table - autoexpand metadata when it's the only visible group (Works!)
@@ -474,6 +478,12 @@ export class InventoryComponent implements OnInit {
         this.expandAllTasks = selectedGroups.size === 1 && selectedGroups.has('pageData');
     }
 
+    // Table - autoexpand tasks when pageData is the only visible type (works!)
+    private checkAutoExpandNotes() {
+        const selectedGroups = new Set(this.scrollableColumns.map(col => col.group));
+        this.expandAllNotes = selectedGroups.size === 1 && selectedGroups.has('notes');
+    }
+
     // Table - check if metadata cell is expanded
     isMetadataExpanded(rowIndex: number, field: string): boolean {
         return this.expandAllMetadata || this.expandedMetadataCells.has(`${rowIndex}-${field}`);
@@ -482,6 +492,11 @@ export class InventoryComponent implements OnInit {
     // Table - check if task cell is expanded
     isTaskExpanded(rowIndex: number, field: string): boolean {
         return this.expandAllTasks || this.expandedTaskCells.has(`${rowIndex}-${field}`);
+    }
+
+    // Table - check if notes cell is expanded
+    isNotesExpanded(rowIndex: number, field: string): boolean {
+        return this.expandAllNotes || this.expandedNoteCells.has(`${rowIndex}-${field}`);
     }
 
     // Table - toggle individual metadata cell expansion
@@ -504,6 +519,16 @@ export class InventoryComponent implements OnInit {
         }
     }
 
+    // Table - toggle individual note cell expansion
+    toggleNoteCell(rowIndex: number, field: string) {
+        const key = `${rowIndex}-${field}`;
+        if (this.expandedNoteCells.has(key)) {
+            this.expandedNoteCells.delete(key);
+        } else {
+            this.expandedNoteCells.add(key);
+        }
+    }
+
     // Button - toggle expand/collapse for all metadata
     toggleExpandAllMetadata() {
         this.expandAllMetadata = !this.expandAllMetadata;
@@ -512,11 +537,19 @@ export class InventoryComponent implements OnInit {
         }
     }
 
-    // Button - toggle expand/collapse for all metadata
+    // Button - toggle expand/collapse for all tasks
     toggleExpandAllTasks() {
         this.expandAllTasks = !this.expandAllTasks;
         if (this.expandAllTasks) {
             this.expandedTaskCells.clear(); // Clear individual expansions when expanding all
+        }
+    }
+
+    // Button - toggle expand/collapse for all notes
+    toggleExpandAllNotes() {
+        this.expandAllNotes = !this.expandAllNotes;
+        if (this.expandAllNotes) {
+            this.expandedNoteCells.clear(); // Clear individual expansions when expanding all
         }
     }
 
@@ -528,6 +561,11 @@ export class InventoryComponent implements OnInit {
     // Table - check if task column is visible
     hasVisibleTasks(): boolean {
         return this.scrollableColumns.some(col => col.field === 'task');
+    }
+
+    // Table - check if notes column is visible
+    hasVisibleNotes(): boolean {
+        return this.scrollableColumns.some(col => col.group === 'notes');
     }
 
     onDeleteSelected() {
@@ -954,6 +992,22 @@ export class InventoryComponent implements OnInit {
                     },
                 ]
             },
+            {
+                label: this.translate.instant('inventory.menu.notes'),
+                items: [
+
+                    {
+                        label: this.expandAllNotes
+                            ? this.translate.instant('inventory.menu.notes.collapseAll')
+                            : this.translate.instant('inventory.menu.notes.expandAll'),
+                        icon: this.expandAllNotes ? 'pi pi-minus' : 'pi pi-plus',
+                        command: () => {
+                            this.toggleExpandAllNotes()
+                        },
+                        disabled: !this.hasVisibleNotes()
+                    },
+                ]
+            },
         ];
     }
 
@@ -1012,7 +1066,7 @@ export class InventoryComponent implements OnInit {
     itemsContext: MenuItem[] = [];
 
     hasContextMenu(type: string): boolean {
-        return ['boolean', 'archive', 'noindex', 'template', 'aiText'].includes(type);
+        return ['boolean', 'archive', 'noindex', 'template', 'aiText', 'textArea'].includes(type);
     }
 
     private currentEditNode: FlattenedTreeNode | undefined;
@@ -1030,6 +1084,12 @@ export class InventoryComponent implements OnInit {
             clearTimeout(this.touchTimer);
             this.touchTimer = null;
         }
+    }
+
+    // End editing when clicking outside of cell
+    onLeftClick(node: FlattenedTreeNode, col: TableColumn) {
+        if (node !== this.currentEditNode) { this.currentEditNode = undefined; }
+        if (col !== this.currentEditCol) { this.currentEditCol = undefined; }
     }
 
     onRightClick(event: MouseEvent | TouchEvent, node: FlattenedTreeNode, col: TableColumn) {
@@ -1051,6 +1111,9 @@ export class InventoryComponent implements OnInit {
                 this.updateNoIndex(event, node, col);
                 break;
             case 'template':
+                this.isEditingInline(node, col);
+                break;
+            case 'textArea':
                 this.isEditingInline(node, col);
                 break;
             case 'aiText':
@@ -1192,13 +1255,15 @@ export class InventoryComponent implements OnInit {
             const field = this.currentEditCol.field;
             const section = this.currentEditCol.dataSection;
             const node = this.projectState.findNodeByUrl(this.projectState.getProjectTree(), this.currentEditNode.url, 'primary');
-            const currentValue = node?.data[section][field]
+            const currentValue = node?.data[section]?.[field];
             if (node && field === 'noindex') {
+                node.data[section] ??= {};
                 node.data[section].noindexEN = newValue;
                 node.data[section].noindexFR = newValue;
                 this.projectState.setModifiedDate();
             }
             if (node && currentValue !== newValue) {
+                node.data[section] ??= {};
                 node.data[section][field] = newValue;
                 this.projectState.setModifiedDate();
             }
@@ -1222,7 +1287,7 @@ export class InventoryComponent implements OnInit {
     onTemplateSelect(event: SelectChangeEvent, node: FlattenedTreeNode, col: TableColumn) {
         const treeNode = this.projectState.findNodeByUrl(this.projectState.getProjectTree(), node.url, 'primary');
         const newValue = this.getStringValue(node, col);
-        const currentValue = treeNode?.data[col.dataSection][col.field]
+        const currentValue = treeNode?.data[col.dataSection]?.[col.field];
         if (treeNode && currentValue !== newValue) {
             treeNode.data[col.dataSection][col.field] = newValue;
             this.projectState.setModifiedDate();
@@ -1312,4 +1377,5 @@ export class InventoryComponent implements OnInit {
     onBlurMetadata() {
         this.isEditing = false;
     }
+
 }

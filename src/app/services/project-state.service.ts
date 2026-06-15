@@ -592,6 +592,9 @@ export class ProjectStateService {
                                     : data.status.noindexFR ? 'fr-only'
                                         : 'none',
                     archiveStatus: data.status.archiveStatus,
+                    //Notes
+                    problem: data.notes?.problem || '',
+                    solution: data.notes?.solution || '',
                     //Data
                     template: data.metadata?.template || '',
                     task: data.metadata?.task || [],
@@ -644,6 +647,8 @@ export class ProjectStateService {
         marker('inventory.header.isROT');
         marker('inventory.header.linksToPortal');
         marker('inventory.header.archiveStatus');
+        marker('inventory.header.problem');
+        marker('inventory.header.solution');
         marker('inventory.header.noindex');
         marker('inventory.header.owner');
         marker('inventory.header.email');
@@ -689,6 +694,9 @@ export class ProjectStateService {
             { field: 'linksToPortal', translationKey: 'inventory.header.linksToPortal', type: 'boolean', group: 'status', visibleByDefault: true, dataSection: 'status' },
             { field: 'archiveStatus', translationKey: 'inventory.header.archiveStatus', type: 'archive', group: 'status', visibleByDefault: true, dataSection: 'status' },
             { field: 'noindex', translationKey: 'inventory.header.noindex', type: 'noindex', group: 'status', visibleByDefault: true, dataSection: 'status' },
+            //Notes
+            { field: 'problem', translationKey: 'inventory.header.problem', type: 'textArea', group: 'notes', visibleByDefault: false, dataSection: 'notes' },
+            { field: 'solution', translationKey: 'inventory.header.solution', type: 'textArea', group: 'notes', visibleByDefault: false, dataSection: 'notes' },
             //Problems
             { field: 'isOrphan', translationKey: 'inventory.header.isOrphan', type: 'boolean', group: 'problems', visibleByDefault: true, dataSection: 'status' },
             //ADD 404's!!!
