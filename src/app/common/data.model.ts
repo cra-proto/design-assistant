@@ -144,6 +144,12 @@ export interface PageProblem {
     linkText?: string;
 }
 
+//Page notes
+export interface PageNotes {
+    problem: string;
+    solution: string;
+}
+
 export interface ProjectTreeNodeData {
     h1: string;
     doubleH1: string;
@@ -152,7 +158,8 @@ export interface ProjectTreeNodeData {
     status: PageStatus;
     metadata?: PageMeta;
     metadataReview?: MetadataReview;   // AI generated metadata workflow
-    problem?: PageProblem
+    problem?: PageProblem;
+    notes?: PageNotes;
 }
 
 export interface FlattenedTreeNode {
@@ -175,6 +182,9 @@ export interface FlattenedTreeNode {
     linksToPortal: boolean;
     noindex: 'both' | 'en-only' | 'fr-only' | 'none' | 'to-reindex' | 'to-deindex';
     archiveStatus: 'current' | 'archived' | 'to-archive' | 'unarchive'
+    //Notes
+    problem: string,
+    solution: string,
     //Data
     template: string;
     task: string[];
@@ -203,13 +213,13 @@ export interface FlattenedTreeNode {
 }
 
 export const FIELD_FILTERS = ['isNew', 'isMoved', 'isROT', 'linksToPortal', 'archiveStatus', 'noindex', 'isOrphan'] as const;
-export const COLUMN_GROUPS = ['page', 'oppPage', 'github', 'status', 'problems', 'pageData', 'owner', 'metadata'] as const;
+export const COLUMN_GROUPS = ['page', 'oppPage', 'github', 'status', 'notes', 'problems', 'pageData', 'owner', 'metadata'] as const;
 export type ColumnGroups = typeof COLUMN_GROUPS[number];
 
 export interface TableColumn {
     field: keyof FlattenedTreeNode;
     translationKey: string;
-    type: 'text' | 'longText' | 'array' | 'url' | 'boolean' | 'number' | 'archive' | 'noindex' | 'date' | 'aiText' | 'upd' | 'template';
+    type: 'text' | 'longText' | 'textArea' | 'array' | 'url' | 'boolean' | 'number' | 'archive' | 'noindex' | 'date' | 'aiText' | 'upd' | 'template';
     frozen?: boolean;
     group: ColumnGroups;
     visibleByDefault: boolean;
