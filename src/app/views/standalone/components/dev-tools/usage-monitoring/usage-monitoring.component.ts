@@ -41,6 +41,14 @@ interface UsageStats {
     enUrls: number;
     frUrls: number;
 
+    exportCount: number;
+    enPageCount: number;
+    frPageCount: number;
+
+    uniqueRepos: number;
+    prototypeRepos: number;
+    baselineRepos: number;
+
     uniqueOrgCount: number;
 }
 

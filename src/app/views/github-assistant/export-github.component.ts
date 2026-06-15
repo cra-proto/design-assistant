@@ -25,6 +25,7 @@ import { FetchService } from '../../services/fetch.service';
 import { GitHubAuthService } from '../../services/github/github-auth.service';
 import { UserSettingsService } from '../../services/user-settings.service';
 import { environment } from '../../../environments/environment';
+import { UsageService } from '../../services/usage.service';
 
 //Components
 import { SetupRepoComponent } from '../../components/setup-repo/setup-repo.component';
@@ -93,6 +94,7 @@ export class ExportGithubComponent implements OnInit {
   public translate = inject(TranslateService);
   private settingsService = inject(UserSettingsService);
   private router = inject(Router)
+  private usageService = inject(UsageService);
 
   defaultOrg = environment.defaultOrg;
 
@@ -437,6 +439,9 @@ export class ExportGithubComponent implements OnInit {
     setTimeout(() => { this.exportProgress.set({ step: 'common.complete', progress: 100 }); }, 1000);
     console.log("Page export complete.");
     this.projectState.setExportDate();
+    const pageCountEN = exportPages.filter(p => p.path.startsWith('en/')).length;
+    const pageCountFR = exportPages.filter(p => p.path.startsWith('fr/')).length;
+    this.usageService.trackExport(this.projectData().id, this.projectData().org ?? 'DEFAULT', this.projectData().storageType, `${owner}/${repo}`, this.selectedExportTarget, pageCountEN, pageCountFR);
     setTimeout(() => this.exportProgress.set(null), 5000);
     this.compareFiles();
   }
