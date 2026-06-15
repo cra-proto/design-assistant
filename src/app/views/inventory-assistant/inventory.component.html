@@ -103,19 +103,19 @@
                     <p>{{selectedNodes.length}} pages selected</p>
 
                     <!-- Bulk actions toolbar - Refresh data -->
-                    <p-button label="Refresh" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
+                    <p-button [label]="'common.refresh' | translate" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
                               (onClick)="updateRefreshMenu(); menuRefresh.toggle($event)"></p-button>
 
                     <!-- Bulk actions toolbar - Toggle page statuses -->
-                    <p-button label="Status" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
+                    <p-button [label]="'common.filters' | translate" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
                               (onClick)="updateStatusMenu(); menuStatus.toggle($event)"></p-button>
 
                     <!-- Bulk actions toolbar - Generate metadata -->
-                    <p-button label="Metadata" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
+                    <p-button [label]="'common.actions' | translate" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
                               (onClick)="updateMetadataMenu(); menuMetadata.toggle($event)" [loading]="openRouterService.state().loading"></p-button>
 
                     <!-- Bulk actions toolbar - Delete pages -->
-                    <p-button label="Delete" icon="pi pi-chevron-down" iconPos="right" severity="danger" outlined styleClass="secondary-outline"
+                    <p-button [label]="'common.delete' | translate" icon="pi pi-chevron-down" iconPos="right" severity="danger" outlined styleClass="secondary-outline"
                               (onClick)="updateDeleteMenu(); menuDelete.toggle($event)"></p-button>
 
                 </div>
@@ -200,7 +200,7 @@
                     <!-- Scrollable columns -->
                     @for(col of scrollableColumns; track col.field){
                     <td [ngClass]="{ 'border-right-1': isLastInGroup(col.field), 'surface-border': isLastInGroup(col.field), 'hasMenu': hasContextMenu(col.type) }"
-                        (contextmenu)="onRightClick($event, node, col)" (touchstart)="onTouchStart($event, node, col)" (touchend)="onTouchEnd($event, node, col)"
+                        (contextmenu)="onRightClick($event, node, col)" (touchstart)="onTouchStart($event, node, col)" (touchend)="onTouchEnd($event, node, col)" (click)="onLeftClick(node, col)"
                         [pEditableColumn]="node.field" pEditableColumnField="template">
                         <!-- Text fields -->
                         @if(col.type === 'text'){
@@ -252,6 +252,29 @@
                                       (click)="toggleMetadataCell(rowIndex, col.field)"
                                       [pTooltip]="isMetadataExpanded(rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
                                       appendTo="body" showDelay="300" hideDelay="0" />
+                            }
+                        </div>
+                        }
+                        <!-- Textarea fields (notes) -->
+                        @if(col.type === 'textArea'){
+                        <div class="flex align-items-start gap-2">
+                            @if(isEditingInline(node, col)) {
+                            <p-iftalabel>
+                                <textarea id="note" autoResize="true" rows="3" pTextarea [(ngModel)]="node[col.field]" class="min-w-max" fluid
+                                          (change)="saveValue(node[col.field])"></textarea>
+                                <label for="note">{{col.translationKey| translate}}</label>
+                            </p-iftalabel>
+                            } @else {
+                            <div [class.line-clamp-3]="!isNotesExpanded(rowIndex, col.field)">
+                                {{ node[col.field] }}
+                            </div>
+                            @if(!expandAllNotes && node[col.field].length > 10){
+                            <p-button [icon]="isNotesExpanded(rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                                      text rounded size="small" styleClass="-mt-1"
+                                      (click)="toggleNoteCell(rowIndex, col.field)"
+                                      [pTooltip]="isNotesExpanded(rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
+                                      appendTo="body" showDelay="300" hideDelay="0" />
+                            }
                             }
                         </div>
                         }

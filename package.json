@@ -1,6 +1,6 @@
 {
   "name": "ai-design-assistant",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "_versionFormat": "major.minor.patch",
   "scripts": {
     "start": "ng serve",
