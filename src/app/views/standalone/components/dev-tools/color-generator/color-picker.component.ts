@@ -34,16 +34,20 @@ export interface ContrastTest {
                 <p-colorPicker [(ngModel)]="currentColor" (onChange)="onColorChange()" appendTo="body"/>
             </p-inputgroup-addon>
                 <input type="text" pInputText [(ngModel)]="currentColor" (change)="onColorChange()" placeholder="#000000" />
-           <p-inputgroup-addon *ngIf="showReset">
+           @if(showReset){
+                <p-inputgroup-addon>
                 <p-button label="Reset" size="small" text severity="secondary" class="w-full h-full" (onClick)="reset()" />
-            </p-inputgroup-addon>
+                </p-inputgroup-addon>
+            }
         </p-inputgroup>
       </div>
     </div>
 
       <!-- Contrast Tests -->
-      <div class="text-xs" *ngIf="contrastTests && contrastTests.length > 0">
-        <div *ngFor="let test of contrastTests" class="flex align-items-center justify-content-between">
+       @if(contrastTests && contrastTests.length > 0){
+      <div class="text-xs">
+        @for(test of contrastTests; track test.shade){
+        <div class="flex align-items-center justify-content-between">
           <span>{{ test.shade }} vs {{ test.textColorName }}:</span>
           <div class="flex align-items-center gap-2">
             <span class="font-semibold">{{ getContrastRatio(test) }}</span>
@@ -55,7 +59,9 @@ export interface ContrastTest {
             </span>
           </div>
         </div>
+        }
       </div>
+      }
   `
 })
 export class ColorPickerComponent implements OnInit, OnChanges {
@@ -103,9 +109,9 @@ export class ColorPickerComponent implements OnInit, OnChanges {
             const cssVar = `--p-${colorName}-${shade}`;
             const color = root.getPropertyValue(cssVar).trim();
 
-            if (color && color.startsWith('#')) {
+            if (color?.startsWith('#')) {
                 shades[shade] = color;
-            } else if (color && color.startsWith('rgb')) {
+            } else if (color?.startsWith('rgb')) {
                 shades[shade] = ColorConverter.rgbStringToHex(color);
             }
         });

@@ -2,7 +2,7 @@
 // It expects inputs in htmlProcessingResult format which includes information to populate the legend
 // Format your url or string content through the normalizeHTML function in html-normalization.service convert it to an htmlProcessingResult
 
-import { Component, inject, input, Output, EventEmitter, ViewChild, ElementRef, computed, signal, effect, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, inject, input, Output, EventEmitter, ViewChild, ElementRef, signal, effect, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule, LocationStrategy } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';

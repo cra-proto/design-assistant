@@ -53,7 +53,7 @@ export class CopyPresetComponent {
         const shades = this.customShades;
 
         // Helper to format shade with comment
-        const formatShade = (shade: number, hex: string, colorKey: string, colorName: string): string => {
+        const formatShade = (shade: number, hex: string): string => {
             let comment = '';
 
             if (shade === 400) {
@@ -72,7 +72,7 @@ export class CopyPresetComponent {
         // Generate primary semantic color
         const primaryShades = shades['primary'] || this.getDefaultShades('primary');
         const primaryLines = Object.entries(primaryShades)
-            .map(([shade, hex]) => formatShade(Number(shade), hex, 'primary', 'primary'))
+            .map(([shade, hex]) => formatShade(Number(shade), hex))
             .join('\n');
 
         // Generate primitive colors
@@ -89,7 +89,7 @@ export class CopyPresetComponent {
         const primitiveSections = primitiveColors.map(({ key, name }) => {
             const colorShades = shades[key] || this.getDefaultShades(key);
             const lines = Object.entries(colorShades)
-                .map(([shade, hex]) => formatShade(Number(shade), hex, key, name))
+                .map(([shade, hex]) => formatShade(Number(shade), hex))
                 .join('\n');
 
             return `        ${key}: { // ${name}\n${lines}\n        }`;

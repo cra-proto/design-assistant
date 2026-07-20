@@ -51,8 +51,8 @@ export class MailtoService {
             viewport: `${window.innerWidth}x${window.innerHeight}`,
             language: navigator.language,
             currentUrl: window.location.href,
-            memory: (performance as any).memory?.usedJSHeapSize
-                ? `${Math.round((performance as any).memory.usedJSHeapSize / 1048576)}MB`
+            memory: (performance as any).memory?.usedJSHeapSize // eslint-disable-line @typescript-eslint/no-explicit-any
+                ? `${Math.round((performance as any).memory.usedJSHeapSize / 1048576)}MB` // eslint-disable-line @typescript-eslint/no-explicit-any
                 : 'N/A',
             storageUsed: `${Math.round(JSON.stringify(localStorage).length / 1024)}KB`,
             date: new Date().toISOString(),

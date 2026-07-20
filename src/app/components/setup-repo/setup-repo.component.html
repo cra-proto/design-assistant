@@ -1,29 +1,53 @@
-<h2 class="text-2xl my-1">{{'project.github._title' | translate}}</h2>
+<h2 class="text-2xl my-1">{{'project.repo._title' | translate}}</h2>
 <div class="flex flex-column gap-2">
-    <div class="flex flex-column gap-1">
+    <!--Repo Storage-->
+    <p-selectbutton [options]="repoOptions" optionValue="value" [(ngModel)]="projectRepo" [unselectable]="true" styleClass="w-full">
+        <ng-template #item let-item>
+            <i [class]="item.icon"></i>
+            <span class="ml-1">{{ item.name | translate }}</span>
+        </ng-template>
+    </p-selectbutton>
+
+    <h3 class="text-xl my-1">
+        @if(projectRepo === 'github'){{{'project.github._title' | translate}}}
+        @else{{{'project.repo.local' | translate}}}
+    </h3>
+
+    <div class="flex flex-column gap-2">
+        @if(projectRepo === 'github'){
+        <div class="flex flex-column gap-1">
+            <p-iftalabel>
+                <input type="text" id="owner" pInputText [(ngModel)]="gitHubOwner" pSize="small" fluid (blur)="updateOwner();updateRepoList()" maxlength="39" [pKeyFilter]="ownerFilter" [ngClass]="{ 'ng-invalid ng-dirty': ownerError }" />
+                <label for="owner">{{'project.github.label.owner' | translate}}</label>
+            </p-iftalabel>
+            @if(ownerError){
+            <p-message severity="error" variant="simple" size="small">{{ownerError.key | translate:ownerError.params}}</p-message>
+            }
+        </div>
+        }
         <p-iftalabel>
-            <input type="text" id="owner" pInputText [(ngModel)]="gitHubOwner" pSize="small" fluid (blur)="updateOwner();updateRepoList()" maxlength="39" [pKeyFilter]="ownerFilter" [ngClass]="{ 'ng-invalid ng-dirty': ownerError }" />
-            <label for="owner">{{'project.github.label.owner' | translate}}</label>
+            <p-autocomplete [(ngModel)]="gitHubRepo"
+                            (input)="onRepoInput()" (onBlur)="onRepoBlur()" (onSelect)="onRepoSelect($event)"
+                            [suggestions]="filteredRepos" (completeMethod)="filterRepos($event);"
+                            id="repo" [dropdown]=true pSize="small" maxlength="100" [pKeyFilter]="repoFilter" fluid />
+            <label for="repo">{{'project.github.label.repo' | translate}}</label>
         </p-iftalabel>
-        @if(ownerError){
-        <p-message severity="error" variant="simple" size="small">{{ownerError.key | translate:ownerError.params}}</p-message>
+        @if(projectRepo === 'github'){
+        <p-iftalabel>
+            <input type="text" id="branch" pInputText [(ngModel)]="gitHubBranch" pSize="small" fluid (blur)="updateBranch()" [pKeyFilter]="branchFilter" />
+            <label for="branch">{{'project.github.label.branch' | translate}}</label>
+        </p-iftalabel>
+        }
+        @if(projectRepo === 'local'){
+        <p-message severity="info" variant="simple" size="small" icon="pi pi-info-circle">
+            {{'project.repo.local.message' | translate}}
+        </p-message>
+        }
+        @if(mode === "baseline"){
+        <div class="flex align-items-center gap-2 mt-1">
+            <p-checkbox [(ngModel)]="gitHubBaseline" inputId="baseline" [binary]="true" size="large" [disabled]="!gitHubRepo" />
+            <label for="baseline" class="text-lg">{{'project.github.label.baseline' | translate}}</label>
+        </div>
         }
     </div>
-    <p-iftalabel>
-        <p-autocomplete [(ngModel)]="gitHubRepo"
-                        (input)="onRepoInput()" (onBlur)="onRepoBlur()" (onSelect)="onRepoSelect($event)"
-                        [suggestions]="filteredRepos" (completeMethod)="filterRepos($event);"
-                        id="repo" [dropdown]=true pSize="small" maxlength="100" [pKeyFilter]="repoFilter" fluid />
-        <label for="repo">{{'project.github.label.repo' | translate}}</label>
-    </p-iftalabel>
-    <p-iftalabel>
-        <input type="text" id="branch" pInputText [(ngModel)]="gitHubBranch" pSize="small" fluid (blur)="updateBranch()" [pKeyFilter]="branchFilter" />
-        <label for="branch">{{'project.github.label.branch' | translate}}</label>
-    </p-iftalabel>
-    @if(mode === "baseline"){
-    <div class="flex align-items-center gap-2 mt-1">
-        <p-checkbox [(ngModel)]="gitHubBaseline" inputId="baseline" [binary]="true" size="large" [disabled]="!gitHubRepo" />
-        <label for="baseline" class="text-lg">{{'project.github.label.baseline' | translate}}</label>
-    </div>
-    }
 </div>

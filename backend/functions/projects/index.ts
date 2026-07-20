@@ -59,6 +59,7 @@ interface Project {
         hasBaselineRepo: boolean;
     };
     storageType: string;
+    repoType: string;
     org: string; // Cloud-set variable for project filtering
     content: string; // JSON stringified projectData TreeNode[] (if filesize becomes an issue, replace with reference to S3 bucket)
 }
@@ -132,6 +133,7 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
             collaborators: item.collaborators || [],
             github: item.github,
             storageType: 'cloud',
+            repoType: item.repoType,
             org: item.org || 'DEFAULT',
         })) || [];
 
@@ -267,6 +269,7 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
             })) || [],
             github: projectData.github,
             storageType: 'cloud',
+            repoType: projectData.repoType,
             org: validateOrg(projectData.org),
             content: JSON.stringify(projectData), // Store the entire project state
         };

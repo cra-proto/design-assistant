@@ -65,7 +65,7 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
     const {
         isUpdate,
         projectId, pageUrl,
-        orgId, storageType, userId,
+        orgId, storageType, repoType, userId,
         model, promptConfig, generatedAt,
         originalDescEN, originalDescFR, originalKeywordsEN, originalKeywordsFR,
         aiDescEN, aiDescFR, aiKeywordsEN, aiKeywordsFR,
@@ -93,6 +93,7 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
             UpdateExpression: `SET 
         orgId = :orgId,
         storageType = :storageType,
+        repoType = :repoType,
         statusDescEN = :statusDescEN,
         statusDescFR = :statusDescFR,
         statusKeywordsEN = :statusKeywordsEN,
@@ -105,6 +106,7 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
             ExpressionAttributeValues: {
                 ':orgId': orgId ?? 'DEFAULT',
                 ':storageType': storageType ?? 'local',
+                ':repoType': repoType ?? 'github',
                 ':statusDescEN': statusDescEN,
                 ':statusDescFR': statusDescFR,
                 ':statusKeywordsEN': statusKeywordsEN,
@@ -130,6 +132,7 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
                 projectId,
                 orgId: orgId ?? 'DEFAULT',
                 storageType: storageType ?? 'local',
+                repoType: storageType ?? 'github',
                 userId: userId ?? 'anonymous',
                 pageUrl,
                 model,
@@ -160,7 +163,7 @@ async function trackExport(body: any): Promise<APIGatewayProxyResult> {
 
     const {
         projectId,
-        orgId, storageType, userId,
+        orgId, storageType, repoType, userId,
         repo, exportTarget, exportLanguage,
         pageCountEN, pageCountFR
     } = body;
@@ -184,6 +187,7 @@ async function trackExport(body: any): Promise<APIGatewayProxyResult> {
             projectId,
             orgId: orgId ?? 'DEFAULT',
             storageType: storageType ?? 'local',
+            repoType: storageType ?? 'github',
             userId: userId ?? 'anonymous',
             repo,
             exportTarget,
@@ -229,16 +233,27 @@ async function getUsageStats(): Promise<APIGatewayProxyResult> {
     const metadataGenerations = items.filter(i => i.pk?.startsWith('metadata#')).length;
     const pageGenerations = items.filter(i => i.pk?.startsWith('page#')).length;
 
-    // GitHub exports
-    const exportItems = items.filter(i => i.pk?.startsWith('export#'));
-    const exportCount = exportItems.length;
-    const enPageCount = exportItems.reduce((sum, i) => sum + (i.pageCountEN ?? 0), 0);
-    const frPageCount = exportItems.reduce((sum, i) => sum + (i.pageCountFR ?? 0), 0);
+    // GitHub exports (repoType is 'github' or undefined for old data)
+    const githubExportItems = items.filter(i => i.pk?.startsWith('export#') && i.repoType !== 'local');
+    const exportCountGit = githubExportItems.length;
+    const enPageCountGit = githubExportItems.reduce((sum, i) => sum + (i.pageCountEN ?? 0), 0);
+    const frPageCountGit = githubExportItems.reduce((sum, i) => sum + (i.pageCountFR ?? 0), 0);
 
-    // Repos
-    const uniqueRepos = new Set(items.filter(i => i.repo).map(i => i.repo)).size;
-    const prototypeRepos = new Set(items.filter(i => i.exportTarget === 'prototype' && i.repo).map(i => i.repo)).size;
-    const baselineRepos = new Set(items.filter(i => i.exportTarget === 'baseline' && i.repo).map(i => i.repo)).size;
+    // GitHub Repos
+    const uniqueReposGit = new Set(githubExportItems.filter(i => i.repo).map(i => i.repo)).size;
+    const prototypeReposGit = new Set(githubExportItems.filter(i => i.exportTarget === 'prototype' && i.repo).map(i => i.repo)).size;
+    const baselineReposGit = new Set(githubExportItems.filter(i => i.exportTarget === 'baseline' && i.repo).map(i => i.repo)).size;
+
+    // Local exports
+    const localExportItems = items.filter(i => i.pk?.startsWith('export#') && i.repoType === 'local');
+    const exportCountLocal = localExportItems.length;
+    const enPageCountLocal = localExportItems.reduce((sum, i) => sum + (i.pageCountEN ?? 0), 0);
+    const frPageCountLocal = localExportItems.reduce((sum, i) => sum + (i.pageCountFR ?? 0), 0);
+
+    // Local Repos
+    const uniqueReposLocal = new Set(localExportItems.filter(i => i.repo).map(i => i.repo)).size;
+    const prototypeReposLocal = new Set(localExportItems.filter(i => i.exportTarget === 'prototype' && i.repo).map(i => i.repo)).size;
+    const baselineReposLocal = new Set(localExportItems.filter(i => i.exportTarget === 'baseline' && i.repo).map(i => i.repo)).size;
 
     // Orgs
     const uniqueOrgCount = new Set(items.map(i => i.orgId)).size;
@@ -259,12 +274,18 @@ async function getUsageStats(): Promise<APIGatewayProxyResult> {
             totalGenerations,
             metadataGenerations,
             pageGenerations,
-            exportCount,
-            enPageCount,
-            frPageCount,
-            uniqueRepos,
-            prototypeRepos,
-            baselineRepos,
+            exportCountGit,
+            enPageCountGit,
+            frPageCountGit,
+            uniqueReposGit,
+            prototypeReposGit,
+            baselineReposGit,
+            exportCountLocal,
+            enPageCountLocal,
+            frPageCountLocal,
+            uniqueReposLocal,
+            prototypeReposLocal,
+            baselineReposLocal,
             uniqueOrgCount,
         })
     };

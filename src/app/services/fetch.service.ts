@@ -1,12 +1,61 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { PageMetadata, OppMetadata, BreadcrumbNode } from '../components/add-pages/add-pages.model';
 import { PageTemplate } from '../common/data.model';
 import { isPortalDomain } from '../common/portal-domains.config';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
+import rs from 'text-readability';
+import { TranslateService } from '@ngx-translate/core';
+
+export interface JsonMetadata {
+  owner?: string;                 // jrc:content.json gcContributor
+  email?: string;                 // jrc:content.json gcBranch
+  lastPublished?: string;         // jrc:content.json gcLastPublished
+  lastModified?: string;          // jrc:content.json cq:lastModified
+  isFreestyle?: boolean           // jrc:content.json cq:template
+}
+
+export interface PageMetadata {
+  oppUrl: string;
+  h1?: string;
+  doubleH1?: string;
+  //Content
+  contentHash?: string;    // Hash of normalized page HTML at last crawl
+  lastChecked?: string;    // ISO string of fetch date
+  githubSha?: string;      // SHA of last GitHub export
+  //Metadata
+  title?: string;            // metadata title
+  description?: string;      // metadata description
+  keywords?: string;         // metadata keywords    
+  //Status
+  noindex?: boolean;         // True if page is not indexed for search
+  isArchived: boolean;       // True if page has archive banner
+  linksToPortal: boolean;    // True if page links to a portal
+  hasChatbot: boolean;       // True if page has chatbot
+  //Data
+  parentPath?: string;           // For page move detection
+  wordCount?: number;        // Count of words on page
+  linkCount?: number;        // Count of links on page
+  template?: PageTemplate;   // Determined based on page content & url pattern
+  links?: string[]
+  fleschKincaid: number;
+  gunningFog: number;
+  phoneNumbers: string[];
+}
+
+export interface BreadcrumbNode {
+  label: string;            // link text
+  url: string;              // link
+  inScope?: boolean;        // true = user-added page, false = page added from breadcrumb for context
+  iaOrphan?: boolean;       // true = IA orphan, false = link found on parent
+  icon?: string;            // represents status of link from parent to child
+  iconTooltip?: string;     // explanation for icon
+  linkTooltip?: string;     // explanation for color/boldness of label
+  styleClass?: string;      // for the label (used to set color and/or bold)
+}
 
 @Injectable({ providedIn: 'root' })
 export class FetchService {
+  private translate = inject(TranslateService);
 
   //Block unknown hosts
   private prodHost = "www.canada.ca";
@@ -152,6 +201,23 @@ export class FetchService {
     return result;
   }
 
+  public async fetchPageJSON(url: string): Promise<JsonMetadata> {
+    const fields = ['gcContributor', 'gcBranch', 'gcLastPublished', 'gcModifiedIsOverridden', 'gcModifiedOverride', 'cq:lastModified', 'cq:template'];
+    const data = await this.fetchJSON(url, fields);
+
+    return {
+      owner: data['gcContributor'] ?? undefined,
+      email: data['gcBranch'] ?? undefined,
+      lastPublished: data['gcLastPublished'] ? data['gcLastPublished'] : undefined,
+      lastModified: data['gcModifiedIsOverridden'] === 'true' && data['gcModifiedOverride']
+        ? data['gcModifiedOverride']
+        : data['cq:lastModified']
+          ? data['cq:lastModified']
+          : undefined,
+      isFreestyle: data['cq:template']?.includes('freestyle') ?? false,
+    };
+  }
+
   //only delays on development build
   public async simulateDelay(delay: number | 'random' | 'none' = 'none'): Promise<void> {
     if (environment.production || delay === 'none') return;
@@ -183,7 +249,16 @@ export class FetchService {
   }
 
   // Extracts metadata from an HTML document
-  public extractPageMetadata(doc: Document, url: string): PageMetadata {
+  public async extractPageMetadata(doc: Document, url: string): Promise<PageMetadata> {
+    //Opposite language url
+    const htmlLang = doc.documentElement.getAttribute('lang');
+    const metaLang = doc.querySelector('meta[name="dcterms.language"]')?.getAttribute('content');
+    const normalizedMetaLang = metaLang === 'eng' ? 'en' : metaLang === 'fra' ? 'fr' : null;
+    const urlLang = url.includes('/en/') ? 'en' : url.includes('/fr/') ? 'fr' : null;
+    const currentLang = htmlLang || normalizedMetaLang || urlLang || 'en'; // default to en
+    const oppLang = currentLang === 'en' ? 'fr' : 'en';
+    const oppUrl = doc.querySelector(`link[rel="alternate"][hreflang="${oppLang}"]`)?.getAttribute('href') || '';
+
     // Get H1 (or double H1)
     const h1Elements = Array.from(doc.querySelectorAll('h1')).filter(h1 => !h1.classList.contains('wb-inv'));
     const h1Texts = h1Elements.map(e => e.textContent?.trim()).filter(Boolean);
@@ -198,17 +273,38 @@ export class FetchService {
       h1 = h1Texts.slice(1).join('<br>');
     }
 
+    // Content hash
+    const mainContent = doc.querySelector('main')?.innerHTML ?? '';
+    const contentHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(mainContent))
+      .then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''));
+    const lastChecked = new Date().toISOString()
+
     // Get metadata
     const title = doc.querySelector('meta[name="dcterms.title"]')?.getAttribute('content') || '';
     const description = doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
-    const keywords = doc.querySelector('meta[name="keywords"]')?.getAttribute('content') || '';
+    const keywords = doc.querySelector('meta[name="keywords"]')?.getAttribute('content') || doc.querySelector('data[id="pageKeywords"]')?.getAttribute('value') || '';
+
+    //Index status
+    const robotsContent = doc.querySelector('meta[name="robots"]')?.getAttribute('content') || '';
+    const noindex = robotsContent.includes('noindex');
 
     // Get archive status
     const isArchived = doc.querySelector('.gc-archv') !== null;
-    console.log('Is archived?' + isArchived)
 
     // Get portal link status
     const linksToPortal = Array.from(doc.querySelectorAll('a')).some(link => isPortalDomain(link.href));
+
+    //Has ChatBot
+    const hasChatbot = !!doc.querySelector('chatbot');
+
+    //Parent URL
+    const parentUrl = this.getBreadcrumb(doc, url)?.at(-1)?.url;
+    const parentPath = parentUrl ? this.generatePath(parentUrl) : undefined;
+
+    //Word count
+    const text = doc.querySelector('main')?.textContent || '';
+    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+    const wordCount = words.length;
 
     // Get template
     const hasSubway = doc.querySelector('.gc-subway') !== null;
@@ -261,9 +357,9 @@ export class FetchService {
     const mainElement = doc.querySelector('main');
     const mainText = mainElement?.innerText.trim() ?? '';
     const mainLinks = mainElement?.querySelectorAll('a') ?? [];
+    const linkCount = mainLinks.length ?? 0;
     const linkText = Array.from(mainLinks).map(a => a.innerText.trim()).join('');
     const isNavigational = mainText.length > 0 && (linkText.length / mainText.length) >= 0.7;
-    console.log('Percent links: ' + linkText.length / mainText.length);
     //PDF download pages
     const hasPdfDownloadLink = doc.querySelector('a[href$=".pdf"].btn.stretched-link') !== null;
     const hasThumbnailContainer = doc.querySelector('.thumbnail') !== null;
@@ -323,25 +419,15 @@ export class FetchService {
       template = PageTemplate.EnforcementNotice;
     }
 
-    //Opposite language url
-    const htmlLang = doc.documentElement.getAttribute('lang');
-    const metaLang = doc.querySelector('meta[name="dcterms.language"]')?.getAttribute('content');
-    const normalizedMetaLang = metaLang === 'eng' ? 'en' : metaLang === 'fra' ? 'fr' : null;
-    const urlLang = url.includes('/en/') ? 'en' : url.includes('/fr/') ? 'fr' : null;
-    const currentLang = htmlLang || normalizedMetaLang || urlLang || 'en'; // default to en
-    const oppLang = currentLang === 'en' ? 'fr' : 'en';
-    const oppUrl = doc.querySelector(`link[rel="alternate"][hreflang="${oppLang}"]`)?.getAttribute('href') || '';
+    const links = this.getLinks(doc, url);
 
-    //Index status
-    const robotsContent = doc.querySelector('meta[name="robots"]')?.getAttribute('content') || '';
-    const noindex = robotsContent.includes('noindex');
+    const { fleschKincaid, gunningFog } = this.getReadability(doc);
 
-    //Word count
-    const text = doc.querySelector('main')?.textContent || '';
-    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
-    const wordCount = words.length;
+    // Phone numbers
+    const phoneRegex = /(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}/g;
+    const phoneNumbers = [...new Set(mainText.match(phoneRegex) ?? [])].map(n => n.trim());
 
-    return { doubleH1, h1, title, description, keywords, template, oppUrl, isArchived, linksToPortal, noindex, wordCount };
+    return { oppUrl, h1, doubleH1, contentHash, lastChecked, title, description, keywords, noindex, isArchived, linksToPortal, hasChatbot, parentPath, wordCount, linkCount, template, links, fleschKincaid, gunningFog, phoneNumbers };
   }
 
   markForTranslation() {
@@ -369,30 +455,6 @@ export class FetchService {
     marker('template.taxFilingSeasonMediaKit');
     marker('template.enforcementNotice');
     marker('template.freestyle');
-  }
-
-  public async getOppMetadata(url: string): Promise<OppMetadata> {
-    const doc = await this.fetchContent(url, "prod", 3, "none", true);
-    // Get H1 (or double H1)
-    const h1Elements = Array.from(doc.querySelectorAll('h1')).filter(h1 => !h1.classList.contains('wb-inv'));
-    const h1Texts = h1Elements.map(e => e.textContent?.trim()).filter(Boolean);
-
-    let doubleH1 = doc.querySelector('hgroup p:has(+ h1)')?.innerHTML || doc.querySelector('p.lead:has(+ h1)')?.innerHTML || '';
-    let h1 = '';
-
-    if (h1Texts.length === 1) {
-      h1 = h1Texts[0] ?? '';
-    } else if (h1Texts.length > 1) {
-      doubleH1 = h1Texts[0] ?? '';
-      h1 = h1Texts.slice(1).join('<br>');
-    }
-    // Get Metadata
-    const title = doc.querySelector('meta[name="dcterms.title"]')?.getAttribute('content') || '';
-    const description = doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
-    const keywords = doc.querySelector('meta[name="keywords"]')?.getAttribute('content') || '';
-    const robotsContent = doc.querySelector('meta[name="robots"]')?.getAttribute('content') || '';
-    const noindex = robotsContent.includes('noindex');
-    return { h1, doubleH1, title, description, keywords, noindex };
   }
 
   //Get breadcrumb
@@ -501,6 +563,106 @@ export class FetchService {
         resolve(false);
       }, 5000);
     });
+  }
+
+  // Generate other URLs from Canada.ca URL
+  generateOtherUrl(productionUrl: string, type: 'prototype' | 'baseline' | 'preview' = 'prototype', owner: string, repo: string): string {
+    if (!productionUrl || !owner || !repo) { return ''; }
+    const isCRAproto = owner === 'cra-proto';
+    const isGCproto = owner === 'gc-proto';
+    try {
+      const url = new URL(productionUrl);
+      const path = url.pathname; // e.g., /en/revenue-agency/services/tax/individuals.html
+      if (type === 'preview') {
+        return `https://canada-preview.adobecqms.net${path}`
+      } else {
+        const repoSuffix = type === 'baseline' ? `${repo}-baseline` : repo;
+        let prototypeUrl = `https://${owner}.github.io/${repoSuffix}${path}`;
+        if (isCRAproto) { prototypeUrl = `https://cra-test-arc.canada.ca/${repoSuffix}${path}` }
+        else if (isGCproto) { prototypeUrl = `https://test.canada.ca/${repoSuffix}${path}` }
+        return prototypeUrl;
+      }
+    } catch (error) {
+      console.error('Failed to generate prototype URL:', error);
+      return '';
+    }
+  }
+
+  getReadability(doc: Document): { fleschKincaid: number, gunningFog: number } {
+
+
+    // Remove fieldflow & other hard to score elements
+    doc.querySelectorAll('.wb-fieldflow, .wb-fieldflow-sub, .pagedetails, script, nav, style').forEach(el => el.remove());
+
+    // Add periods to end of list items if missing
+    doc.querySelectorAll('li').forEach(el => {
+      const text = el.textContent?.trim() ?? '';
+      if (text && !text.match(/[.!?]$/)) {
+        el.textContent = text + '.';
+      }
+    });
+
+    // Add periods to end of headings if missing
+    doc.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(el => {
+      const text = el.textContent?.trim() ?? '';
+      if (text && !text.match(/[.!?]$/)) {
+        el.textContent = text + '.';
+      }
+    });
+
+    // Strip all HTML
+    const text = doc.querySelector('main')?.textContent?.trim() ?? doc.body?.innerText ?? doc.body?.textContent ?? '';
+    const cleanText = text.replace(/\s+/g, ' ').trim();
+
+    // Get grade (unlike FK, GF doesn't penalize acronyms and capitalized program names so may better represent grade level of the things we can control)
+    const fleschKincaid = rs.fleschKincaidGrade(cleanText);
+    const gunningFog = rs.gunningFog(cleanText);
+
+    return { fleschKincaid, gunningFog }
+  }
+
+  //Get relative path
+  generatePath(url: string): string {
+    const isLocal = url.includes('cra-ut.isvcs.net');
+    const isGithub = url.includes('cra-test-arc.canada.ca') || url.includes('test.canada.ca') || url.includes('github.io');
+    const slice = isLocal ? 4 : isGithub ? 2 : 1;
+    try {
+      return (new URL(url).pathname).split('/').slice(slice).join('/');
+    } catch {
+      return url;
+    }
+  }
+
+  //Generate url for specific version
+  generateUrl(path: string, version: 'live' | 'prototype' | 'baseline' | 'preview' | 'ut' | 'ut-base' | 'upd' = 'live', owner?: string, repo?: string): string {
+    const repoDomain = owner === 'cra-proto' ? 'https://cra-test-arc.canada.ca' : owner === 'gc-proto' ? 'https://test.canada.ca' : `https://${owner}.github.io`
+    switch (version) {
+      case 'live':
+        return `https://www.canada.ca/${path}`
+      case 'prototype':
+        return `${repoDomain}/${repo}/${path}`
+      case 'baseline':
+        return `${repoDomain}/${repo}-baseline/${path}`
+      case 'preview':
+        return `https://canada-preview.adobecqms.net/${path}`
+      case 'ut':
+        return `http://cra-ut.isvcs.net/test/aida/${repo}/${path}`
+      case 'ut-base':
+        return `http://cra-ut.isvcs.net/test/aida/${repo}-baseline/${path}`
+      case 'upd': {
+        const currentLang = this.translate.currentLang?.startsWith('fr') ? '&lang=FR' : '';
+        return `https://cra-arc.alpha.canada.ca/en/pages?url=https://www.canada.ca/${path}${currentLang}`
+      }
+      default:
+        return `https://www.canada.ca/${path}`
+    }
+  }
+
+  //Get url language
+  getLang(url: string): 'en' | 'fr' | null {
+    if (url.includes('/en/') || url.endsWith('en.html') || url.startsWith('en/')) return 'en';
+    else if (url.includes('/fr/') || url.endsWith('fr.html') || url.startsWith('fr/')) return 'fr';
+    else return null
   }
 
 }

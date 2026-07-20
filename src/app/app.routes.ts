@@ -3,32 +3,33 @@ import { inject } from '@angular/core';
 import { environment } from '../environments/environment';
 
 // Project views
-import { DashboardComponent } from './views/project-assistant/dashboard.component';
-import { SwitchProjectComponent } from './views/project-assistant/switch-project.component';
-import { EditProjectComponent } from './views/project-assistant/edit-project.component';
-import { ImportPageComponent } from './views/project-assistant/import-page.component';
+import { DashboardComponent } from './views/project/dashboard/dashboard.component';
+import { SwitchProjectComponent } from './views/project/switch-project/switch-project.component';
+import { EditProjectComponent } from './views/project/edit-project/edit-project.component';
+import { ImportPageComponent } from './views/project/import-page/import-page.component';
 
 // Task Views
+import { InventoryComponent } from './views/task/manage-inventory/inventory.component';
+import { CompareComponent } from './views/task/compare-versions/compare.component';
+import { ExportComponent } from './views/task/export-pages/export.component';
+
 import { IaDiagramComponent } from './components/ia-diagram/ia-diagram.component';
-import { InventoryComponent } from './views/inventory-assistant/inventory.component';
-import { CompareComponent } from './views/compare-assistant/compare.component';
-import { ExportGithubComponent } from './views/github-assistant/export-github.component';
 
 // Static pages
-import { NotFoundComponent } from './views/404/not-found.component';
-import { AboutComponent } from './views/about-us/about.component';
-import { HelpComponent } from './views/help/help.component';
+import { NotFoundComponent } from './views/static/404/not-found.component';
+import { AboutComponent } from './views/static/about-us/about.component';
+import { HelpComponent } from './views/static/help/help.component';
+
+// Standalone tools
+import { StandaloneComponent } from './views/standalone/standalone.component';
 
 // Authentication
-import { GithubConnectComponent } from './components/sign-in/github-connect.component';
-import { AuthCallbackComponent } from './components/sign-in/auth-callback.component';
-
-// Dev tools & standalone - LAZY LOAD THESE!
-import { StandaloneComponent } from './views/standalone/standalone.component';
+import { AuthCallbackComponent } from './components/sign-in/auth-callback/auth-callback.component';
 
 // Project Storage (for route guards)
 import { ProjectStorageService } from './services/storage/project-storage.service';
 import { ProjectStateService } from './services/project-state.service';
+
 
 //Route guards
 export const landingGuard = () => {
@@ -84,19 +85,14 @@ export const routes: Routes = [
         title: 'importPage._title',
     },
     {
-        path: 'auth/login',
-        component: GithubConnectComponent,
-        title: 'app._title',
-    },
-    {
         path: 'auth/callback',
         component: AuthCallbackComponent,
         title: 'app._title',
     },
     {
-        path: 'export-github',
-        component: ExportGithubComponent,
-        title: 'github._nav',
+        path: 'export-pages',
+        component: ExportComponent,
+        title: 'exportPages._nav',
     },
     {
         path: 'inventory',

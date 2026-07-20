@@ -1,0 +1,57 @@
+import { Component, inject, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
+import { RouterLink } from "@angular/router";
+
+//PrimeNG modules
+import { ButtonModule } from 'primeng/button';
+import { DrawerModule } from 'primeng/drawer';
+import { MessageModule } from 'primeng/message';
+
+//Custom components and services
+import { ProjectStateService } from '../../../services/project-state.service';
+import { IaDiagramService } from '../../../components/ia-diagram/ia-diagram.service';
+import { SetupProjectComponent } from '../../../components/setup-project/setup-project.component';
+import { SetupRepoComponent } from '../../../components/setup-repo/setup-repo.component';
+import { AddCollaboratorsComponent } from '../../../components/add-collaborators/add-collaborators.component';
+import { FindPagesComponent } from '../../../components/find-pages/find-pages.component';
+import { AddUrlsComponent } from '../../../components/add-urls/add-urls.component';
+
+@Component({
+  selector: 'aida-edit-project',
+  imports: [
+    CommonModule, FormsModule, TranslateModule, RouterLink,
+    SetupProjectComponent, SetupRepoComponent, AddCollaboratorsComponent, FindPagesComponent, AddUrlsComponent,
+    DrawerModule, ButtonModule, MessageModule
+  ],
+  templateUrl: './edit-project.component.html',
+  styles: ``
+})
+export class EditProjectComponent {
+  public projectState = inject(ProjectStateService);
+  iaDiagram = inject(IaDiagramService);
+
+  //Check if project is named and has repo
+  get hasName(): boolean {
+    const name = this.projectState.getProject().projectName;
+    return !!name;
+  }
+
+  get hasRepo(): boolean {
+    const repo = this.projectState.getProject().github.repo;
+    return !!repo;
+  }
+
+  lang = this.projectState.detectPrimaryLanguage();
+
+  //Todo: Collaborators management
+  collaborators = this.projectState.getProject().collaborators;
+
+  //UI elements
+  inScopePageCount = computed(() => this.projectState.getProject().inScopePages);
+  showUrls = false;
+  showIA = false;
+  showBreadcrumb = false;
+
+}

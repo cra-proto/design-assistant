@@ -61,8 +61,6 @@ export class UserSettingsComponent {
     ];
 
     markForTranslation() {
-        marker('common.language.english');
-        marker('common.language.french');
         marker('settings.theme.light');
         marker('settings.theme.dark');
         marker('settings.theme.default');

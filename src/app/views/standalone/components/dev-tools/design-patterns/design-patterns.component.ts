@@ -17,13 +17,52 @@ import { TooltipModule } from "primeng/tooltip";
 
 import { UserSettingsService } from '../../../../../services/user-settings.service';
 
-interface CodeExample {
+interface CodeExample<T = PreviewConfig> {
     label: string;
     code: string;
     description?: string;
     previewType: 'message' | 'buttons' | 'card' | 'input';
-    previewConfig?: any;
+    previewConfig?: T;
 }
+
+interface MessagePreviewConfig {
+    severity: 'info' | 'success' | 'warn' | 'error';
+    icon?: string;
+    text: string;
+    variant?: 'outlined' | 'text' | 'simple';
+    size?: 'small' | 'large' | undefined;
+}
+
+interface ButtonConfig {
+    label?: string;
+    icon?: string;
+    severity?: 'primary' | 'secondary' | 'danger';
+    outlined?: boolean;
+    text?: boolean;
+    rounded?: boolean;
+    styleClass?: string;
+    tooltip?: string;
+}
+
+interface ButtonPreviewConfig {
+    type: string;
+    buttons: ButtonConfig[];
+}
+
+interface CardPreviewConfig {
+    type: 'standard' | 'hover';
+    content: string;
+}
+
+interface InputPreviewConfig {
+    type: 'text' | 'textarea' | 'select';
+    id: string;
+    label: string;
+    model: string;
+    rows?: number;
+}
+
+type PreviewConfig = MessagePreviewConfig | ButtonPreviewConfig | CardPreviewConfig | InputPreviewConfig;
 
 @Component({
     selector: 'aida-design-patterns',
@@ -78,7 +117,7 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
 
     }
 
-    public messageExamples: CodeExample[] = [
+    public messageExamples: CodeExample<MessagePreviewConfig>[] = [
         {
             label: 'Info',
             code: `<p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'dev.patterns.message.info' | translate" />`,
@@ -137,7 +176,7 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
         }
     ];
 
-    public buttonExamples: CodeExample[] = [
+    public buttonExamples: CodeExample<ButtonPreviewConfig>[] = [
         {
             label: 'Primary & Secondary Outline',
             code: `<div class="flex gap-2">
@@ -149,7 +188,7 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
             previewConfig: {
                 type: 'primary-secondary',
                 buttons: [
-                    { label: 'common.save', icon: 'pi pi-check' },
+                    { label: 'common.save', icon: 'pi pi-check', severity: 'primary' },
                     { label: 'common.cancel', icon: 'pi pi-times', severity: 'secondary', outlined: true, styleClass: 'secondary-outline' }
                 ]
             }
@@ -178,7 +217,7 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
             previewConfig: {
                 type: 'task',
                 buttons: [
-                    { label: 'dev.patterns.button.taskLabel', icon: 'pi pi-cog', outlined: true, styleClass: 'secondary-outline' }
+                    { label: 'dev.patterns.button.taskLabel', icon: 'pi pi-cog', severity: 'secondary', outlined: true, styleClass: 'secondary-outline' }
                 ]
             }
         },
@@ -202,7 +241,7 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
         }
     ];
 
-    public cardExamples: CodeExample[] = [
+    public cardExamples: CodeExample<CardPreviewConfig>[] = [
         {
             label: 'Card',
             code: `<div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
@@ -229,7 +268,7 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
         }
     ];
 
-    public inputExamples: CodeExample[] = [
+    public inputExamples: CodeExample<InputPreviewConfig>[] = [
         {
             label: 'Input Text with IFTA Label',
             code: `<p-iftaLabel>

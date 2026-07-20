@@ -75,7 +75,7 @@ export class UpdService {
      */
     async refreshData(): Promise<UpdPageData[]> {
         this.clearCache();
-        return this.fetchData(true);
+        return await this.fetchData(true);
     }
 
     /**

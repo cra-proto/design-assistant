@@ -71,9 +71,12 @@ export class DevToolsComponent {
     marker('feedback._');
     //Other
     marker('common._');
-    marker('common.no');
-    marker('common.save');
-    marker('common.delete');
+    marker('common.complete');
     marker('common.cra');
+    marker('common.edited');
+    marker('common.error');
+    marker('common.pending');
+    marker('common.no');
+    marker('common.yes');
   }
 }

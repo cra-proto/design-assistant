@@ -1,7 +1,6 @@
 import { Component, inject, computed } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
-import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { marker } from '@colsen1991/ngx-translate-extract-marker';
+import { DomSanitizer } from '@angular/platform-browser';
 
 //Services
 import { ProjectStateService } from '../../services/project-state.service';

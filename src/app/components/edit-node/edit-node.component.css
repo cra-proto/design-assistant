@@ -1,0 +1,32 @@
+:host ::ng-deep .p-message-content {
+    width: 100%;
+    justify-content: space-between;
+}
+
+:host ::ng-deep .p-message-text {
+    flex: 1;
+    justify-content: space-between;
+}
+
+:host ::ng-deep .p-textarea {
+    color: var(--p-inputtext-color) !important;
+    background: var(--p-inputtext-background) !important;
+
+}
+
+:host ::ng-deep .p-textarea:disabled {
+    opacity: 1 !important;
+    background: var(--p-inputtext-disabled-background) !important;
+    color: var(--p-inputtext-disabled-color) !important;
+}
+
+:host ::ng-deep .p-select {
+    color: var(--p-inputtext-color) !important;
+    background: var(--p-inputtext-background) !important;
+}
+
+:host ::ng-deep .p-select.p-disabled {
+    opacity: 1 !important;
+    background: var(--p-inputtext-disabled-background) !important;
+    color: var(--p-inputtext-disabled-color) !important;
+}

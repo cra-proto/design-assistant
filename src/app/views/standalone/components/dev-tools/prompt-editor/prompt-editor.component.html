@@ -166,3 +166,14 @@
 @if(aiState().respondingModel){
 <small>Answered by: {{ aiState().respondingModel }}</small>
 }
+
+@if(hasChanges()){
+<!--Review-->
+<h2 class="my-1">Review changes</h2>
+<div id="diff-container"></div>
+<!--Export-->
+<p-fieldset legend="Full File Preview" [toggleable]="true" [collapsed]="true" styleClass="secondary-outline mb-3">
+    <pre #filePreview><code class="language-typescript">{{ rebuildPromptFile(tabs[selectedTab].tool, tabs[selectedTab].prompts) }}</code></pre>
+</p-fieldset>
+<p-button [label]="'dev.prompts.button.openPR' | translate" icon="pi pi-send" disabled />
+}

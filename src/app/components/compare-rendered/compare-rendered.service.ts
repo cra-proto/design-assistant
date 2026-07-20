@@ -197,7 +197,7 @@ export class CompareRenderedService {
         if (element && !element.shadowRoot) {
             return element.attachShadow({ mode: 'open' });
         }
-        return element?.shadowRoot || null;
+        return element?.shadowRoot ?? null;
     }
 
     //Clear shadowDom content

@@ -23,7 +23,7 @@ export class UsageService {
         originalKeywordsFR: string[] | undefined,
         review: MetadataReview,
         promptConfig: object,
-        isUpdate: boolean = false
+        isUpdate = false
     ): Promise<void> {
         try {
             await firstValueFrom(
@@ -79,6 +79,7 @@ export class UsageService {
         projectId: string,
         orgId: string,
         storageType: string,
+        repoType: string,
         repo: string,
         exportTarget: string,
         pageCountEN: number,
@@ -91,6 +92,7 @@ export class UsageService {
                     projectId,
                     orgId,
                     storageType,
+                    repoType,
                     userId: this.settingsService.userId(),
                     repo,
                     exportTarget,

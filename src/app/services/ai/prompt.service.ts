@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { PromptConfig, RoleKey, OutputKey, RubricKey } from '../../common/prompts/prompt.model';
+import { PromptConfig, OutputKey, RubricKey } from '../../common/prompts/prompt.model';
 import { RoleFragment, OutputFragment, RubricFragment } from '../../common/prompts/shared.prompts';
 
 @Injectable({ providedIn: 'root' })

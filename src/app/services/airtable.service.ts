@@ -77,7 +77,7 @@ export class AirtableService {
      */
     async refreshData(): Promise<TransformedTask[]> {
         this.clearCache();
-        return this.fetchTasks(true);
+        return await this.fetchTasks(true);
     }
 
     /**

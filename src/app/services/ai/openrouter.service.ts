@@ -83,8 +83,8 @@ export class OpenRouterService {
 
             return response;
 
-        } catch (error: any) {
-            const message = error?.error?.error ?? error?.message ?? 'Unknown error';
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Unknown error';
             this.state.set({ loading: false, error: message, respondingModel: null });
             throw error;
         }

@@ -13,14 +13,6 @@ export interface GitHubFileRequest {
   sha?: string;    // needed when overwriting
 }
 
-interface MermaidNode {
-  id: string;
-  h1: string;
-  url: string;
-  inScope: boolean;
-  children: MermaidNode[];
-}
-
 @Injectable({ providedIn: 'root' })
 export class ExportGitHubService {
   private fetchService = inject(FetchService);
@@ -73,20 +65,20 @@ export class ExportGitHubService {
   }
 
   // PAT - user (fallback access when OAuth not available)
-  private mapGitHubUser(patUser: any): GitHubUser {
+  private mapGitHubUser(patUser: unknown): GitHubUser {
+    const user = patUser as Record<string, unknown>;
     return {
-      login: patUser.login,
-      id: patUser.id,
-      avatar_url: patUser.avatar_url,
-      name: patUser.name,
-      email: patUser.email
+      login: user['login'] as string,
+      id: user['id'] as number,
+      avatar_url: user['avatar_url'] as string,
+      name: user['name'] as string,
+      email: user['email'] as string
     };
   }
 
   // Validate PAT
   public async validatePAT() {
     const token = this.pat;
-    console.log('Validating: ' + token);
     try {
       // Step 1: Validate token by calling /user endpoint
       const userResponse = await fetch('https://api.github.com/user', {
@@ -103,8 +95,10 @@ export class ExportGitHubService {
         const user = await userResponse.json();
         this.patUser.set(this.mapGitHubUser(user));
         sessionStorage.setItem(this.PAT_USER_STORAGE_KEY, JSON.stringify(user));
+        console.log('patUser set:', this.patUser());
+        console.log('user computed:', this.user());
       }
-    } catch (error) {
+    } catch {
       console.log('Network error validating token')
     }
   }
@@ -130,10 +124,8 @@ export class ExportGitHubService {
       }
 
       const user = await userResponse.json();
-      //if (!this.authService.isAuthenticated()) {
-      //  this.patUser.set(this.mapGitHubUser(user));
-      //}
-      const tokenScopes = userResponse.headers.get('x-oauth-scopes')?.split(',').map(s => s.trim()) || []; //Will be empty if using PAT
+
+      const tokenScopes = userResponse.headers.get('x-oauth-scopes')?.split(',').map(s => s.trim()) ?? []; //Will be empty if using PAT
 
       // Step 2: Check if repo exists (and get permissions if it does)
       const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
@@ -217,7 +209,7 @@ export class ExportGitHubService {
       else {
         return { valid: false, error: `Error checking repo: ${repoResponse.status}` };
       }
-    } catch (error) {
+    } catch {
       return { valid: false, error: 'Network error validating token' };
     }
   }
@@ -239,8 +231,8 @@ export class ExportGitHubService {
 
   //TODO: replace this with version from html-normalization service
   private async formatHtmlWithPrettier(html: string): Promise<string> {
-    if (!(navigator as any).languages) {
-      (navigator as any).languages = ['en']; // fallback locale
+    if (!navigator.languages?.length) {
+      Object.assign(navigator, { languages: ['en'] });
     }
 
     try {
@@ -387,10 +379,10 @@ export class ExportGitHubService {
       // Fix relative URLs
       mainEl.querySelectorAll<HTMLElement>("*").forEach(el => {
         for (const attr of Array.from(el.attributes)) {
-          if (attr.value && attr.value.includes('"/')) {
+          if (attr?.value.includes('"/')) {
             attr.value = attr.value.replace(/"\//g, '"https://www.canada.ca/');
           }
-          if (attr.value && attr.value.startsWith("/")) {
+          if (attr?.value.startsWith("/")) {
             attr.value = `https://www.canada.ca${attr.value}`;
           }
         }
@@ -399,6 +391,7 @@ export class ExportGitHubService {
       // Change layout for atypical H1's or full width banners (most requested etc.)
       const h1s = doc.querySelectorAll("h1");
       const hasSubway = doc.querySelector(".gc-subway");
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       const hasLeadAboveH1 = h1s[0]?.previousElementSibling?.matches("p.lead") || !!h1s[0]?.previousElementSibling?.querySelector?.("p.lead");
       const hasHgroup = doc.querySelector("hgroup");
       if (
@@ -433,18 +426,15 @@ export class ExportGitHubService {
     return frontMatter;
   }
 
-  public formatNewPageAsJekyll(node: TreeNode, breadcrumbs: { title: string; link: string }[], owner: string, repo: string, lang: 'primary' | 'opposite' = 'primary'): string {
+  public formatNewPageAsJekyll(node: TreeNode, breadcrumbs: { title: string; link: string }[], owner: string, repo: string, lang: 'en' | 'fr' = 'en', version: 'prototype' | 'baseline' = 'prototype'): string {
     //Get URL
-    const url = lang === 'primary' ? node.data?.url : node.data?.metadata?.oppUrl;
-    const altLangPage = lang === 'primary' ? node.data?.metadata?.oppUrl || "" : node.data?.url || "";
-
-    // Determine language from URL
-    const pageLang = url.includes('/fr/') ? 'fr' : 'en';
+    const url = node.data.live?.[lang].url
+    const altLangPage = lang === 'en' ? node.data.live?.fr.url || "" : node.data.live?.en.url || "";
 
     // Extract metadata from node
-    const title = lang === 'primary' ? node.data.h1 || "" : node.data.metadata.oppTitle || "";
-    const description = pageLang === "en" ? node.data.metadata?.descriptionEN || "" : node.data.metadata?.descriptionFR || "";
-    const keywords = pageLang === "en" ? node.data.metadata?.keywordsEN || "" : node.data.metadata?.keywordsFR || "";
+    const title = node.data[version][lang].h1 || "";
+    const description = node.data[version][lang].desciption || "";
+    const keywords = node.data[version][lang].keywords || "";
     const dateModified = new Date().toISOString().split('T')[0];
     const limitedWidth = "\r\npageclass: cnt-wdth-lmtd"
 
@@ -453,12 +443,12 @@ export class ExportGitHubService {
       : "  []";
 
     // Sign in button based on language
-    const auth = pageLang === "en"
+    const auth = lang === "en"
       ? `auth:\r\n  type: "contextual"\r\n  label: "Sign in"\r\n  labelExtended: "CRA sign in"\r\n  link: "https://www.canada.ca/en/revenue-agency/services/e-services/cra-login-services.html"`
       : `auth:\r\n  type: "contextual"\r\n  label: "Se connecter"\r\n  labelExtended: "Se connecter à l'ARC"\r\n  link: "https://www.canada.ca/fr/agence-revenu/services/services-electroniques/services-ouverture-session-arc.html"`;
 
     // French overrides
-    const fra = pageLang === "en"
+    const fra = lang === "en"
       ? ''
       : `\r\nlang: fr\r\nfeedbackPath: https://www.canada.ca/etc/designs/canada/wet-boew/assets/feedback/page-feedback-fr.html\r\nprivacyUrl: https://www.canada.ca/fr/agence-revenu/organisation/avis-confidentialite.html\r\ntermsURL: https://www.canada.ca/fr/transparence/avis.html\r\nsitemenuPath: https://www.canada.ca/content/dam/canada/sitemenu/sitemenu-v2-fr.html\r\ncontextualFooter:\r\n  title: "Agence du revenu du Canada (ARC)"\r\n  links:\r\n    - text: "Contacter l'ARCA"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/coordonnees.html"\r\n    - text: "Mettre à jour vos renseignements"\r\n      url: "https://www.canada.ca/fr/agence-revenu/services/mettre-a-jour-renseignements-arc.html"\r\n    - text: "À propos de l'ARC"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/a-propos-agence-revenu-canada-arc.html"`
 
@@ -498,7 +488,7 @@ creator:
 # Custom settings
 developerOptions: false
 devOptionsLocStore: "gitCRATemplateDevOptions"
-exitByURL: true
+exitByURL: false
 exitPage:
   en: "/${repo}/source/exit-intent-e.html"
   fr: "/${repo}/source/exit-intent-f.html"
@@ -573,7 +563,7 @@ noFooterMain: true
 <div class="mrgn-tp-md">
     <div class="row">
         <ul class="toc lst-spcd col-md-12">
-            <li class="col-md-4 col-sm-6"><a class="list-group-item active" data-exit="false" href="https://github.com/${owner}/${repo}/tree/main">GitHub repository</a></li>
+            <li class="col-md-4 col-sm-6"><a class="list-group-item active" data-exit="false" href="{{ site.github.repository_url }}">GitHub repository</a></li>
         </ul>
     </div>
 </div>
@@ -747,7 +737,8 @@ ${mermaidChart}
         const destPath = urlParts.slice(4).join("/"); // everything after /main/
 
         // Check if user wants to export this file
-        if (!templateFilesToExport.includes(destPath)) {
+        const includesAllowed = templateFilesToExport.includes('_includes/*') && destPath.startsWith('_includes/');
+        if (!templateFilesToExport.includes(destPath) && !includesAllowed) {
           console.log(`Skipping ${destPath} - not in export list`);
           continue;
         }
@@ -930,12 +921,7 @@ ${mermaidChart}
   }
 
   //Check for existing files in a repo
-  public async getRepoTree(
-    owner: string,
-    repo: string,
-    branch: string,
-    token?: string
-  ): Promise<Map<string, string>> {
+  public async getRepoTree(owner: string, repo: string, branch: string, token?: string): Promise<Map<string, string>> {
     const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`;
 
     const headers: Record<string, string> = {}; //fallback if token not provided
@@ -1015,10 +1001,14 @@ ${mermaidChart}
     return response.json();
   }
 
-  private generateMermaidChart(treeNodes: TreeNode[]): string {
+  private generateMermaidChart(treeNodes: TreeNode[], version: 'prototype' | 'baseline' = 'prototype'): string {
     if (!treeNodes || treeNodes.length === 0) {
       return 'flowchart TD;\n    A[No pages in project]';
     }
+
+    // Check lang
+    const firstUrl = treeNodes[0].data?.url || '';
+    const lang = firstUrl.includes('/fr/') || firstUrl.includes('/fr.html') ? 'fr' : 'en';
 
     let nodeCounter = 1;
     const nodeDefinitions: string[] = [];
@@ -1032,13 +1022,13 @@ ${mermaidChart}
     // Recursive function to traverse tree and build mermaid data
     const traverse = (node: TreeNode, parentId?: string): void => {
       const nodeId = `node${nodeCounter++}`;
-      const h1 = node.data?.h1 || 'Untitled';
-      const url = node.data?.url || '';
+      const h1 = node.data[version][lang].h1 || 'Untitled';
+      const url = node.data[version][lang].url || '';
       const inScope = node.data?.status?.inScope || false;
-      const isOrphan = node.data?.status?.isOrphan || false;
       const isRot = node.data?.status?.isRot || false;
       const isNew = node.data?.status?.isNew || false;
       const isMoved = node.data?.status?.isMoved || false;
+      const isOrphan = node.data[version][lang].isOrphan || false;
 
       // Define the node with its label
       nodeDefinitions.push(`    ${nodeId}(${this.sanitizeMermaidLabel(h1)})`);
@@ -1114,6 +1104,24 @@ ${mermaidChart}
       .replace(/\[/g, '#91;')
       .replace(/\]/g, '#93;')
       .trim();
+  }
+
+  // Get last modified date
+  public async getLastModified(url: string, owner: string, repo: string, branch: string, token?: string): Promise<string | undefined> {
+    try {
+      const headers: Record<string, string> = {}; //fallback if token not provided
+      if (token) headers['Authorization'] = `token ${token}`;
+
+      const filePath = new URL(url).pathname;
+
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?path=${filePath}&sha=${branch}&per_page=1`, { headers });
+
+      const commits = await response.json();
+      return commits[0]?.commit?.committer?.date ?? undefined;
+
+    } catch {
+      return undefined;
+    }
   }
 
   // Pull request method for prompt updates

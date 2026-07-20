@@ -58,7 +58,7 @@ export class GitHubAuthService {
   /**
    * Initiate GitHub OAuth flow by calling backend to get authorization URL
    */
-  async login(scopes: string[] = ['repo', 'user']): Promise<void> {
+  async login(): Promise<void> {
     try {
       // Store current URL to return here after login
       const currentUrl = this.router.url;

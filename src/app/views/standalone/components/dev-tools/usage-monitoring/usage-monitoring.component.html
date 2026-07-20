@@ -108,41 +108,81 @@
             }
         </div>
 
-        <!-- Export Count -->
+        <!-- GitHub Export Count -->
         <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
             <div class="flex align-items-center gap-2 mb-2">
                 <i class="pi pi-file-export text-primary text-xl"></i>
-                <span class="text-600 text-sm">{{ 'dev.monitoring.totalExports' | translate }}</span>
+                <span class="text-600 text-sm">{{ 'dev.monitoring.totalExportsGit' | translate }}</span>
             </div>
             @if(loading()) { <p-skeleton styleClass="h-4rem w-full" /> }
             @else {
-            <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.exportCount ?? 0 }}</p>
+            <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.exportCountGit ?? 0 }}</p>
             <div class="flex justify-content-center gap-3 mt-1">
                 <span class="text-xs text-600">
-                    <i class="pi pi-globe mr-1"></i>{{ stats()?.enPageCount ?? 0 }} {{ 'common.language.englishPages' | translate }}
+                    <i class="pi pi-globe mr-1"></i>{{ stats()?.enPageCountGit ?? 0 }} {{ 'common.language.englishPages' | translate }}
                 </span>
                 <span class="text-xs text-600">
-                    <i class="pi pi-globe mr-1"></i>{{ stats()?.frPageCount ?? 0 }} {{ 'common.language.frenchPages' | translate }}
+                    <i class="pi pi-globe mr-1"></i>{{ stats()?.frPageCountGit ?? 0 }} {{ 'common.language.frenchPages' | translate }}
                 </span>
             </div>
             }
         </div>
 
-        <!-- Repo Count -->
+        <!-- GitHub Repo Count -->
         <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
             <div class="flex align-items-center gap-2 mb-2">
                 <i class="pi pi-github text-primary text-xl"></i>
-                <span class="text-600 text-sm">{{ 'dev.monitoring.totalRepos' | translate }}</span>
+                <span class="text-600 text-sm">{{ 'dev.monitoring.totalReposGit' | translate }}</span>
             </div>
             @if(loading()) { <p-skeleton styleClass="h-4rem w-full" /> }
             @else {
-            <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.uniqueRepos ?? 0 }}</p>
+            <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.uniqueReposGit ?? 0 }}</p>
             <div class="flex justify-content-center gap-3 mt-1">
                 <span class="text-xs text-600">
-                    <i class="pi pi-list mr-1"></i>{{ stats()?.prototypeRepos ?? 0 }} {{ 'dev.monitoring.totalRepos.prototype' | translate }}
+                    <i class="pi pi-list-check mr-1"></i>{{ stats()?.prototypeReposGit ?? 0 }} {{ 'dev.monitoring.totalRepos.prototype' | translate }}
                 </span>
                 <span class="text-xs text-600">
-                    <i class="pi pi-sitemap mr-1"></i>{{ stats()?.baselineRepos ?? 0 }} {{ 'dev.monitoring.totalRepos.baseline' | translate }}
+                    <i class="pi pi-sitemap mr-1"></i>{{ stats()?.baselineReposGit ?? 0 }} {{ 'dev.monitoring.totalRepos.baseline' | translate }}
+                </span>
+            </div>
+            }
+        </div>
+
+        <!-- Local Export Count -->
+        <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+            <div class="flex align-items-center gap-2 mb-2">
+                <i class="pi pi-file-export text-primary text-xl"></i>
+                <span class="text-600 text-sm">{{ 'dev.monitoring.totalExportsLocal' | translate }}</span>
+            </div>
+            @if(loading()) { <p-skeleton styleClass="h-4rem w-full" /> }
+            @else {
+            <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.exportCountLocal ?? 0 }}</p>
+            <div class="flex justify-content-center gap-3 mt-1">
+                <span class="text-xs text-600">
+                    <i class="pi pi-globe mr-1"></i>{{ stats()?.enPageCountLocal ?? 0 }} {{ 'common.language.englishPages' | translate }}
+                </span>
+                <span class="text-xs text-600">
+                    <i class="pi pi-globe mr-1"></i>{{ stats()?.frPageCountLocal ?? 0 }} {{ 'common.language.frenchPages' | translate }}
+                </span>
+            </div>
+            }
+        </div>
+
+        <!-- Local Repo Count -->
+        <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+            <div class="flex align-items-center gap-2 mb-2">
+                <i class="pi pi-folder-plus text-primary text-xl"></i>
+                <span class="text-600 text-sm">{{ 'dev.monitoring.totalReposLocal' | translate }}</span>
+            </div>
+            @if(loading()) { <p-skeleton styleClass="h-4rem w-full" /> }
+            @else {
+            <p class="text-4xl font-bold text-900 text-center m-0">{{ stats()?.uniqueReposLocal ?? 0 }}</p>
+            <div class="flex justify-content-center gap-3 mt-1">
+                <span class="text-xs text-600">
+                    <i class="pi pi-list-check mr-1"></i>{{ stats()?.prototypeReposLocal ?? 0 }} {{ 'dev.monitoring.totalRepos.prototype' | translate }}
+                </span>
+                <span class="text-xs text-600">
+                    <i class="pi pi-sitemap mr-1"></i>{{ stats()?.baselineReposLocal ?? 0 }} {{ 'dev.monitoring.totalRepos.baseline' | translate }}
                 </span>
             </div>
             }

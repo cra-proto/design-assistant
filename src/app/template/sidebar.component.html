@@ -57,10 +57,10 @@
             <span class="material-icons text-2xl">checklist_rtl</span>
             <span class="hidden md:inline text-md">{{ 'inventory._nav' | translate }}</span>
           </a>
-          <a [routerLink]="['/export-github']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
+          <a [routerLink]="['/export-pages']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
              class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
             <span class="material-icons-outlined text-2xl">drive_folder_upload</span>
-            <span class="hidden md:inline text-md">{{ 'github._nav' | translate }}</span>
+            <span class="hidden md:inline text-md">{{ 'exportPages._nav' | translate }}</span>
           </a>
           @if(sandbox){
           <a [routerLink]="['/compare']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"

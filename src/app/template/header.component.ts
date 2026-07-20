@@ -10,7 +10,7 @@ import { DividerModule } from 'primeng/divider';
 import { MessageService } from 'primeng/api'
 
 // Custom
-import { GithubConnectComponent } from "../components/sign-in/github-connect.component";
+import { SignInButtonComponent } from "../components/sign-in/sign-in-button/sign-in-button.component";
 import { ProjectStateService } from '../services/project-state.service';
 import { UserSettingsService } from '../services/user-settings.service';
 import { environment } from '../../environments/environment';
@@ -19,7 +19,7 @@ import { environment } from '../../environments/environment';
   selector: 'aida-header',
   imports: [CommonModule, TranslateModule,
     ButtonModule, DividerModule, ToastModule,
-    GithubConnectComponent,
+    SignInButtonComponent,
   ],
   template: `
 <header>
@@ -35,7 +35,7 @@ import { environment } from '../../environments/environment';
           text rounded size="small" styleClass="white-space-nowrap -mr-2" />
         <p-divider layout="vertical" styleClass="mx-0" />
         }
-        <aida-github-connect />
+        <aida-sign-in-button />
         <p-button (onClick)="settingsService.toggle()" rounded outlined size="small" severity="secondary" [icon]="settingsService.icon()" styleClass="darkmode-toggle secondary-outline" ariaLabel="Toggle between dark and light mode" />
         <p-button (onClick)="settingsService.toggleLanguage();" rounded text styleClass="underline text-blue-500 hover:text-blue-400 nohover -ml-2" severity="secondary" [ariaLabel]="'_app.oppLang' | translate" >
           <span class="hidden sm:inline w-3rem">{{ '_app.oppLang' | translate }}</span>

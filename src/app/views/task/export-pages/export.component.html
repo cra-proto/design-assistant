@@ -1,0 +1,266 @@
+<h1 id="wb-cont">{{ repoType() === 'github' ? ('exportPages.github._title' | translate) : ('exportPages.zip._title' | translate) }}</h1>
+
+<!-- Authentication Banner -->
+@if (!exportGitHubService.token() && !authService.isAuthenticated() && repoType() === 'github'){
+<p-message severity="info" styleClass="mb-2 sticky top-0 z-2">
+    <div class="flex align-items-center gap-2">
+        <i class="pi pi-info-circle font-bold"></i>
+        <span>{{'exportPages.github.warningMessage' | translate}}</span>
+    </div>
+</p-message>
+}
+<div class="flex lg:flex-row flex-column gap-3 min-w-min">
+    <!--Connect Card 4-->
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-8 w-full min-w-min">
+        <!--Header & Settings-->
+        <div class="flex flex-column lg:flex-row justify-content-between align-items-start">
+            <div class="flex flex-column">
+                <h2 class="text-2xl my-1">{{ 'exportPages.settings._title' | translate }}</h2>
+                <p class="my-1">{{ 'exportPages.settings.description.' + selectedExportTarget | translate }}</p>
+                <div class="flex flex-column xl:flex-row gap-2 xl:gap-5">
+                    <!-- Repository Info Row -->
+                    <div class="flex flex-row gap-5">
+                        @if(repoType() === 'github'){
+                        <div>
+                            <label for="owner" class="text-xs font-semibold">{{ 'project.github.label.owner' | translate }}</label>
+                            <p id="owner" class="text-color-secondary text-sm my-0">{{ projectData().github.owner }}</p>
+                        </div>
+                        }
+                        <div>
+                            <label for="repo" class="text-xs font-semibold">{{ 'project.github.label.repo' | translate }}</label>
+                            <p id="repo" class="text-color-secondary text-sm my-0">{{ projectData().github.repo }}{{(selectedExportTarget === 'baseline')?'-baseline':''}}</p>
+                        </div>
+                        @if(repoType() === 'github'){
+                        <div>
+                            <label for="branch" class="text-xs font-semibold">{{ 'project.github.label.branch' | translate }}</label>
+                            <p id="branch" class="text-color-secondary text-sm my-0">{{ projectData().github.branch }}</p>
+                        </div>
+                        }
+                    </div>
+                    <div class="flex flex-row flex-wrap row-gap-2 column-gap-5">
+                        <!--Choose export language-->
+                        <div class="flex flex-column hover:text-primary">
+                            <label for="export-language" class="text-xs font-semibold xl:my-1">{{ 'exportPages.settings.exportLanguage' | translate }}</label>
+                            <p-selectButton id="export-language" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
+                                            [options]="exportLanguageOptions" [(ngModel)]="selectedExportLanguage" (onChange)="compareFiles()" />
+                        </div>
+                        <!--Choose export type-->
+                        @if (projectData().github.hasBaselineRepo) {
+                        <div class="flex flex-column hover:text-primary">
+                            <label for="export-type" class="text-xs font-semibold xl:my-1">{{ 'exportPages.settings.exportVersion' | translate }}</label>
+                            <p-selectButton id="export-type" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
+                                            [options]="exportTargetOptions" [(ngModel)]="selectedExportTarget" (onChange)="compareFiles()" />
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3 lg:mt-0 flex flex-row lg:flex-column gap-2">
+                @if(hasRepoConfig()){
+                <p-button
+                          [label]="'exportPages.settings.changeButton' | translate"
+                          icon="pi pi-cog"
+                          outlined
+                          size="small"
+                          styleClass="secondary-outline w-full"
+                          (click)="settingsOverlay.toggle($event)" />
+                <p-popover #settingsOverlay styleClass="w-full lg:w-30rem">
+                    <aida-setup-repo mode="baseline" />
+                    @if (projectData().github.hasBaselineRepo) {
+                    <div class="flex flex-column align-items-stretch mt-3">
+                        <label for="export-type" class="text-sm font-semibold">{{ 'exportPages.settings.exportVersion' | translate }}</label>
+                        <p-selectButton id="export-type"
+                                        [options]="exportTargetOptions"
+                                        [(ngModel)]="selectedExportTarget"
+                                        (onChange)="compareFiles()"
+                                        allowEmpty="false"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        styleClass="secondary-outline max-h-3rem">
+                            <ng-template #item let-item>
+                                {{ item.label | translate }}
+                            </ng-template>
+                        </p-selectButton>
+                    </div>
+                    }
+                </p-popover>
+                }
+                @if(repoType() === 'github'){
+                <p-button
+                          [label]="'exportPages.github.openRepo' | translate"
+                          icon="pi pi-external-link"
+                          outlined
+                          size="small"
+                          styleClass="secondary-outline w-full"
+                          (onClick)="openRepo()" />
+                }
+            </div>
+        </div>
+        @if(repoType() === 'github'){
+        <aida-sign-in-banner />
+        }
+
+    </div>
+    <!--GitHub settings (only visible if not configured)-->
+    @if(!hasRepoConfig()){
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full min-w-min">
+        <aida-setup-repo />
+        @if (projectData().github.hasBaselineRepo) {
+        <div class="flex flex-column align-items-stretch mt-3">
+            <label for="export-type" class="text-sm font-semibold">{{ 'exportPages.settings.exportVersion' | translate }}</label>
+            <p-selectButton id="export-type"
+                            [options]="exportTargetOptions"
+                            [(ngModel)]="selectedExportTarget"
+                            (onChange)="compareFiles()"
+                            allowEmpty="false"
+                            optionLabel="label"
+                            optionValue="value"
+                            styleClass="secondary-outline max-h-3rem" />
+        </div>
+        }
+    </div>
+    }
+    @else{
+    <!--Stats Card (only visible if GitHub repo is configured)-->
+    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full min-w-min">
+        <h2 class="text-2xl my-1">{{ 'exportPages.data' | translate }}</h2>
+        <!-- Last Export Date -->
+        <div class="p-3 mb-3 text-center">
+            <div class="text-600 text-sm opacity-90">{{ repoType() === 'github' ? ('exportPages.data.lastExported' | translate) : ('exportPages.data.lastDownloaded' | translate)}}</div>
+            <div class="text-primary text-xl font-semibold">
+                @if (repoType() === 'github' && projectData().lastExported && (projectData().lastExported?.getTime() ?? 0)> 0) {
+                {{ projectData().lastExported | date:'mediumDate' }}, {{ projectData().lastExported | date:'shortTime' }}
+                }
+                @else if (repoType() === 'local' && projectData().lastDownloaded && (projectData().lastDownloaded?.getTime() ?? 0)> 0) {
+                {{ projectData().lastDownloaded | date:'mediumDate' }}, {{ projectData().lastDownloaded | date:'shortTime' }}
+                }
+                @else{ {{ 'common.never' | translate }} }
+            </div>
+        </div>
+        <p-divider />
+
+        <!-- Total pages -->
+        <div class="text-center">
+            <div class="flex flex-row justify-content-around">
+                <div>
+                    <div class="text-5xl font-bold text-primary mb-1">
+                        {{ projectFileCount() }}
+                    </div>
+                    <div class="text-600 text-sm">
+                        {{ selectedExportTarget === 'prototype' ? ('exportPages.data.inScope' | translate) : ('exportPages.data.baseline' | translate) }}
+                    </div>
+                </div>
+                <div>
+                    <div class="text-5xl font-bold text-primary mb-1">
+                        {{ templateFileCount() }}
+                    </div>
+                    <div class="text-600 text-sm">
+                        {{ 'exportPages.data.jekyll' | translate }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+</div>
+
+<!-- Export file table-->
+<div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0 min-w-min">
+    <h2 class="text-2xl my-1">{{'exportPages.export._title' | translate}}</h2>
+    <p class="my-1">{{ repoType() === 'github' ? ('exportPages.export.github.description' | translate) : ('exportPages.export.zip.description' | translate) }}</p>
+    <!--Project files-->
+    <p-table [value]="projectTable()" size="small">
+        <ng-template pTemplate="header" stripedRows>
+            <tr>
+                <th>{{'common.path' | translate}}</th>
+                <th><span class="flex flex-row align-items-center gap-2">
+                        {{'common.status' | translate}}
+                        <p-button icon="pi pi-angle-double-right" pTooltip="Skip all" tooltipPosition="top" size="small" severity="secondary" (onClick)="setAll('skip', 'project')" />
+                        <p-button icon="pi pi-sync" pTooltip="Update all" tooltipPosition="top" size="small" severity="primary" (onClick)="setAll('export', 'project')" />
+                    </span>
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-file>
+            <tr>
+                <td>{{ file.path }}</td>
+                <td>
+                    <p-chip [label]="file.status | translate"
+                            [icon]="getIcon(file.status)"
+                            [class]="'cursor-pointer font-bold center-chip w-10rem p-1 ' + getBgAndText(file.status)"
+                            (click)="(file.status === ExportStatus.AddToProject || file.status === ExportStatus.OppLanguage) ? addToProject(file) : toggleUpdate(file)" />
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <!--Template files-->
+    <p-panel [header]="'exportPages.export.templateFiles' | translate:{count: templateFileCount()}"
+             [toggleable]="true" [collapsed]="true" styleClass="mt-4">
+        <p-table [value]="templateTable()" size="small">
+            <ng-template pTemplate="header" stripedRows>
+                <tr>
+                    <th>{{'common.path' | translate}}</th>
+                    <th><span class="flex flex-row align-items-center gap-2">
+                            {{'common.status' | translate}}
+                            <p-button icon="pi pi-angle-double-right" pTooltip="Skip all" tooltipPosition="top" size="small" severity="secondary" (onClick)="setAll('skip', 'template')" />
+                            <p-button icon="pi pi-sync" pTooltip="Update all" tooltipPosition="top" size="small" severity="primary" (onClick)="setAll('export', 'template')" />
+                        </span>
+                    </th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-file>
+                <tr>
+                    <td>{{ file.path }}</td>
+                    <td>
+                        <p-chip [label]="file.status | translate"
+                                [icon]="getIcon(file.status)"
+                                [class]="'cursor-pointer font-bold center-chip w-9rem p-1 ' + getBgAndText(file.status)"
+                                (click)="(file.status !== ExportStatus.AddToProject) && toggleUpdate(file)" />
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </p-panel>
+
+    <!--Export button-->
+    @if(repoType() === 'github'){
+    <p-button styleClass="my-3" icon="pi pi-github" [label]="'exportPages.export.button.github' | translate" severity="primary"
+              (onClick)="exportProjectToGitHub()"
+              [disabled]="projectFileCount() === 0 || !exportGitHubService.token() || !gitHubData().repo"
+              [loading]="exportProgress()" />
+    }
+    @else{
+    <p-button styleClass="my-3" icon="pi pi-file-export" [label]="'exportPages.export.button.zip' | translate" severity="primary"
+              (onClick)="exportToFile()"
+              [disabled]="projectFileCount() === 0 || !gitHubData().repo"
+              [loading]="exportProgress()" />
+    }
+    @if (filesTable().length) {
+    <span class="text-color-secondary">
+        {{ 'exportPages.export.count' | translate:{ New: newCount(), Updated: updatedCount()} }}
+    </span>
+    }
+    @if(exportProgress(); as progress) {
+    <!--Progress-->
+    <p-progressbar [value]="progress.progress" styleClass="h-2rem centered-label">
+        <ng-template #content>
+            <span class="text-white" [innerHTML]="progress.step | translate"></span>
+        </ng-template>
+    </p-progressbar>
+    }
+    @if (exportMessage()) {
+    <p-message
+               [severity]="exportMessage()!.severity"
+               [text]="exportMessage()!.text"
+               styleClass="mt-2" />
+    }
+
+</div>
+
+@if(hasRepoConfig() && repoType() === 'github'){
+<!-- Bookmarklet-->
+<div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0 min-w-min">
+    <aida-bookmarklet />
+</div>
+}

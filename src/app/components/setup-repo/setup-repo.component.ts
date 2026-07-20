@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, effect, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 //PrimeNG modules
@@ -11,6 +11,7 @@ import { AutoCompleteModule, AutoCompleteCompleteEvent, AutoCompleteSelectEvent 
 import { CheckboxModule } from 'primeng/checkbox';
 import { KeyFilterModule } from 'primeng/keyfilter';
 import { MessageModule } from 'primeng/message';
+import { SelectButtonModule } from 'primeng/selectbutton';
 
 //Custom components and services
 import { ProjectStateService } from '../../services/project-state.service';
@@ -23,7 +24,7 @@ type RepoMode = 'default' | 'baseline';
   selector: 'aida-setup-repo',
   imports: [
     CommonModule, FormsModule, TranslateModule,
-    InputTextModule, IftaLabelModule, CheckboxModule, AutoCompleteModule, KeyFilterModule, MessageModule,
+    InputTextModule, IftaLabelModule, CheckboxModule, AutoCompleteModule, KeyFilterModule, MessageModule, SelectButtonModule
   ],
   templateUrl: './setup-repo.component.html',
   styles: ``
@@ -31,9 +32,25 @@ type RepoMode = 'default' | 'baseline';
 export class SetupRepoComponent implements OnInit {
   private projectState = inject(ProjectStateService);
   private exportGitHubService = inject(ExportGitHubService);
+  private translate = inject(TranslateService);
+
   defaultOrg = environment.defaultOrg
 
   @Input() mode: RepoMode = 'default';
+
+
+  //Local or GitHub content repository
+  get projectRepo(): 'local' | 'github' {
+    return this.projectData.repoType ?? 'github';
+  }
+  set projectRepo(value: 'local' | 'github') {
+    this.projectState.setRepoType(value);
+  }
+  repoOptions = [
+    { name: 'project.repo.storage.github', value: 'github' as const, icon: 'pi pi-github' },
+    { name: 'project.repo.storage.local', value: 'local' as const, icon: 'pi pi-folder' },
+  ];
+
 
   constructor() {
     // Refresh gitHubRepo when there are changes to project name (for initial sync fxn)
@@ -132,6 +149,8 @@ export class SetupRepoComponent implements OnInit {
   markForTranslation() {
     marker('project.github.error.ownerNotFound');
     marker('project.github.error.loadFailed');
+    marker('project.repo.storage.local');
+    marker('project.repo.storage.github');
   }
 
   //Filters repo list for autocomplete (starts with, then includes)

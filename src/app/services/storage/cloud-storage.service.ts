@@ -172,7 +172,7 @@ export class CloudStorageService {
                 })),
             };
 
-            console.log('Saving project to cloud:', payload.key, 'with org:', org);
+            //console.log('Saving project to cloud:', payload.key, 'with org:', org);
 
             const url = projectId ? `${this.API_URL}/${projectId}` : this.API_URL;
             const method = projectId ? 'PUT' : 'POST';

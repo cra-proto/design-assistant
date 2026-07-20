@@ -1,0 +1,86 @@
+<h2 class="text-2xl mt-3 mb-1">{{connectionStatus() === 'connected' ? ('github.connected' | translate) : ('github.connect' | translate) }}</h2>
+<div class="flex flex-column gap-3">
+    <!--Sign in options -->
+    @if (!exportGitHubService.token()) {
+    <p class="my-0">{{ 'github.connect.description' | translate }}</p>
+    <!-- Option 1: OAuth Sign In -->
+    <div class="flex flex-column lg:flex-row gap-2">
+        <div class="flex-1 border-left-3 surface-border p-3 text-center">
+
+            <i class="pi pi-github text-6xl text-900 mb-3"></i>
+            <p class="font-semibold my-0">{{ 'github.connect.option1.title' | translate }}</p>
+            <p class="text-sm text-color-secondary my-2">{{ 'github.connect.option1.description' | translate }}</p>
+            <p-button
+                      icon="pi pi-github"
+                      label="{{ 'github.connect.option1.button' | translate }}"
+                      (onClick)="authService.login()"
+                      styleClass="w-full" />
+
+        </div>
+        <p-divider layout="horizontal" class="lg:hidden uppercase">{{ 'common.or' | translate }}</p-divider>
+        <p-divider layout="vertical" class="hidden lg:flex uppercase">{{ 'common.or' | translate }}</p-divider>
+        <!-- Option 2: Personal Access Token -->
+        <div class="flex-1 border-left-3 surface-border lg:border-none p-3 text-center">
+            <i class="pi pi-key text-6xl text-900 mb-3"></i>
+            <p class="font-semibold my-0">{{ 'github.connect.option2.title' | translate }}</p>
+            <p class="text-sm text-color-secondary my-2">{{ 'github.connect.option2.description' | translate }}</p>
+            <aida-pat [validateOnBlur]="true" />
+        </div>
+    </div>
+    } @else {
+    <!--Connection Status-->
+    <div [class]="getBgClasses()">
+        <i [class]="getStatusIcons()"></i>
+        <div class="flex-1">
+            @if (connectionStatus() === 'checking') {
+            <p [class]="getTitleClasses()" [innerHtml]="'github.connect.checking' | translate"></p>
+            <p class="text-sm text-color-secondary my-0">{{ 'github.connect.checking.details' | translate }}</p>
+            }
+            @if (connectionStatus() === 'connected') {
+            <div class="flex flex-row gap-2 justify-content-between">
+                <div>
+                    <p [class]="getTitleClasses()">{{ 'github.connect.connected' | translate }}</p>
+                    @if (authService.isAuthenticated()) {
+                    <p class="text-sm text-color-secondary my-0">
+                        {{ 'github.connect.connected.oauth' | translate:{ User: username()} }}
+                    </p>
+                    } @else {
+                    <p class="text-sm text-color-secondary my-0">
+                        {{ 'github.connect.connected.pat' | translate:{ User: username()} }}
+                    </p>
+                    }
+                    @if(showDisclaimer()) {
+                    <p class="text-xs text-color-secondary my-0">{{ 'github.connect.unverified' | translate:{ User: username()} }}a</p>
+                    }
+                </div>
+                @if(showDisclaimer()) {
+                <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="exportGitHubService.clearPAT()" styleClass="secondary-outline white-space-nowrap" />
+                }
+            </div>
+            }
+            @if (connectionStatus() === 'warning') {
+            <div class="flex flex-row gap-2 justify-content-between">
+                <div>
+                    <p [class]="getTitleClasses()">{{ 'github.connect.warning' | translate }}</p>
+                    <p class="text-sm text-color-secondary my-0">{{ 'github.connect.warning.details' | translate }}</p>
+                </div>
+                @if (!authService.isAuthenticated()) {
+                <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="exportGitHubService.clearPAT()" styleClass="secondary-outline white-space-nowrap" />
+                }
+            </div>
+            }
+            @if (connectionStatus() === 'error' || connectionStatus() === 'missing') {
+            <div class="flex flex-row gap-2 justify-content-between">
+                <div>
+                    <p [class]="getTitleClasses()">{{ 'github.connect.error' | translate }}</p>
+                    <p class="text-sm text-color-secondary my-0">{{ 'github.connect.error.details' | translate }}</p>
+                </div>
+                @if (!authService.isAuthenticated()) {
+                <p-button [label]="'github.connect.clearToken' | translate" icon="pi pi-times" outlined severity="secondary" size="small" (onClick)="exportGitHubService.clearPAT()" styleClass="secondary-outline white-space-nowrap" />
+                }
+            </div>
+            }
+        </div>
+    </div>
+    }
+</div>

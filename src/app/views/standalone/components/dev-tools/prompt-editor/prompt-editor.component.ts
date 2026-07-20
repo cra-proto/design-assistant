@@ -44,7 +44,7 @@ interface PromptEntry {
 interface TabConfig {
     title: string;
     value: number;
-    prompts?: PromptEntry[];
+    prompts: PromptEntry[];
     fragments?: { key: string; label: string; data: PromptEntry[] }[];
     tool: string;
     original: string;
@@ -72,11 +72,13 @@ export class PromptEditorComponent {
 
     constructor() {
         effect(() => {
-            const isDarkMode = this.settingsService.darkMode();
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const isDarkMode = this.settingsService.darkMode(); //watching for changes to dark mode to update diff theme
             this.updateDiff();
         });
         effect(() => {
-            const tab = this.selectedTab;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const tab = this.selectedTab; //watching for changes to selected tab
             this.updateDiff();
         });
     }
@@ -187,7 +189,7 @@ export class PromptEditorComponent {
     // Tabs
     selectedTab = 0;
     tabs: TabConfig[] = [
-        { title: 'aiPrompt.shared._title', value: 0, fragments: this.fragments, tool: "Shared", original: this.rebuildSharedFile() },
+        //{ title: 'aiPrompt.shared._title', value: 0, fragments: this.fragments, tool: "Shared", original: this.rebuildSharedFile() },
         { title: 'aiPrompt.inventory._title', value: 1, prompts: this.inventoryPrompts, tool: "Inventory", original: this.rebuildPromptFile('Inventory', this.inventoryPrompts) },
         { title: 'aiPrompt.pages._title', value: 2, prompts: this.pagePrompts, tool: "Page", original: this.rebuildPromptFile('Page', this.pagePrompts) },
         { title: 'aiPrompt.problems._title', value: 3, prompts: this.problemPrompts, tool: "Problem", original: this.rebuildPromptFile('Problem', this.problemPrompts) }
@@ -208,10 +210,6 @@ export class PromptEditorComponent {
         marker('dev.prompts.button.openPR');
     }
 
-    rebuildSharedFile() { return "" }
-    rebuildPromptFile(tool: string, prompts: PromptEntry[]) { return "" }
-    updateDiff() { }
-
     //For testing
     readonly aiState = this.openRouterService.state;
     aiPrompt = this.aiPromptService.composePrompt(InventoryPrompts[InventoryPromptKey.Metadata]);
@@ -230,5 +228,153 @@ export class PromptEditorComponent {
             InventoryPrompts[InventoryPromptKey.Metadata],
             this.description
         );
+    }
+
+    //TODO: test this
+    // Rebuild prompt file
+    rebuildPromptFile(tool: string, prompts: PromptEntry[]) {
+        const updatedPrompts = prompts
+            .map(p => ` [${tool}PromptKey.${p.enumKey}]: \`${p.promptText}\`,`)
+            .join('\n');
+
+        return `import { ${tool}PromptKey } from './prompt.model'\nexport const ${tool}Prompts: Record<${tool}PromptKey, string> = {\n${updatedPrompts}\n};`;
+    }
+
+    rebuildSharedFile(): string {
+        const roleEntries = this.roleFragment
+            .map(p => ` [RoleKey.${p.enumKey}]: \`${p.promptText}\`,`)
+            .join('\n');
+
+        const outputEntries = this.outputFragment
+            .map(p => ` [OutputKey.${p.enumKey}]: \`${p.promptText}\`,`)
+            .join('\n');
+
+        const rubricEntries = this.rubricFragment
+            .map(p => ` [RubricKey.${p.enumKey}]: \`${p.promptText}\`,`)
+            .join('\n');
+
+        return `import { RoleKey, OutputKey, RubricKey } from './prompt.model'
+
+    export const RoleFragment: Record<RoleKey, string> = {
+        ${roleEntries}
+        }
+
+        export const OutputFragment: Record<OutputKey, string> = {
+            ${outputEntries}
+            }
+
+            export const RubricFragment: Record<RubricKey, string> = {
+                ${rubricEntries}
+                }`;
+    }
+
+    // Tracks if changes have been made to current tab
+    hasChanges(): boolean {
+        const tab = this.tabs[this.selectedTab];
+        const updatedContent = this.rebuildPromptFile(tab.tool, tab.prompts);
+        const originalContent = tab.original;
+        return updatedContent !== originalContent;
+    }
+
+    // Open pull request
+    pullRequestUrl: string | null = null
+    async openPullRequest(tool: string, prompts: PromptEntry[]) {
+        const content = this.rebuildPromptFile(tool, prompts);
+        const toolLC = tool.toLowerCase();
+        try {
+            const result = await this.exportGitHubService.createPullRequestForPrompts(
+                toolLC,
+                `src/app/common/prompts/${toolLC}.prompts.ts`,
+                `${toolLC}.prompts.ts`,
+                content
+            );
+            this.pullRequestUrl = result.prUrl
+        } catch (error) {
+            console.error('Failed to create PR:', error);
+        }
+    }
+
+    // Update prompts diff
+    async updateDiff() {
+        // Lazy load both modules
+        const [{ createPatch }, { Diff2HtmlUI }] = await Promise.all([
+            import('diff'),
+            import('diff2html/lib/ui/js/diff2html-ui-slim'),
+        ]);
+        const tab = this.tabs[this.selectedTab];
+        const updatedContent = this.rebuildPromptFile(tab.tool, tab.prompts);
+        const originalContent = tab.original;
+
+        // Create the patch
+        const patch = createPatch(
+            `${tab.tool.toLowerCase()}.prompts.ts`,
+            originalContent,
+            updatedContent,
+        );
+
+        // Render it
+        const config: Diff2HtmlUIConfig = {
+            drawFileList: false,
+            matching: 'words',
+            outputFormat: 'line-by-line', // or 'side-by-side'
+            highlight: true,
+            colorScheme: this.settingsService.darkMode() ? ColorSchemeType.DARK : ColorSchemeType.LIGHT
+        };
+
+        const diff2htmlUi = new Diff2HtmlUI(
+            document.getElementById('diff-container')!,
+            patch,
+            config
+        );
+
+        diff2htmlUi.draw();
+        this.highlightFilePreview();
+    }
+
+    // Highlight code for export preview
+    @ViewChild('filePreview') filePreview?: ElementRef<HTMLPreElement>;
+    async highlightFilePreview(): Promise<void> {
+        if (!this.filePreview) return;
+
+        try {
+            const { default: Prism } = await import('prismjs');
+            await import('prismjs/components/prism-typescript');
+
+            this.loadPrismTheme(this.settingsService.darkMode());
+
+            const pre = this.filePreview.nativeElement;
+            const codeBlock = pre.querySelector('code');
+
+            if (codeBlock) {
+                pre.className = ''; // Clear pre classes
+                pre.removeAttribute('data-highlighted');
+                pre.removeAttribute('tabindex');
+                codeBlock.className = 'language-typescript';
+                codeBlock.textContent = this.rebuildPromptFile(
+                    this.tabs[this.selectedTab].tool,
+                    this.tabs[this.selectedTab].prompts
+                );
+                Prism.highlightElement(codeBlock);
+            }
+        } catch (error) {
+            console.error('Failed to load Prism:', error);
+        }
+    }
+
+    // Load light/dark prism theme
+    private loadPrismTheme(isDarkMode: boolean): void {
+        const existingLink = document.getElementById('prism-theme') as HTMLLinkElement;
+        const newHref = isDarkMode ? 'css/prism-okaidia.min.css' : 'css/prism.min.css';
+
+        if (existingLink) {
+            if (existingLink.href.endsWith(newHref)) return;
+            existingLink.href = newHref;
+        } else {
+            const link = document.createElement('link');
+            link.id = 'prism-theme';
+            link.rel = 'stylesheet';
+            link.href = newHref;
+            document.head.appendChild(link);
+        }
     }
 }

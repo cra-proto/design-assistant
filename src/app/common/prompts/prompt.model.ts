@@ -1,5 +1,6 @@
 import { marker } from "@colsen1991/ngx-translate-extract-marker";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function markForTranslation() {
     marker('aiPrompt.role.none');
     marker('aiPrompt.role.contentDesigner');

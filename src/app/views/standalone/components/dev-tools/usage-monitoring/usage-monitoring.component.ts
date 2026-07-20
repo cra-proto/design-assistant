@@ -41,13 +41,21 @@ interface UsageStats {
     enUrls: number;
     frUrls: number;
 
-    exportCount: number;
-    enPageCount: number;
-    frPageCount: number;
+    exportCountGit: number;
+    enPageCountGit: number;
+    frPageCountGit: number;
 
-    uniqueRepos: number;
-    prototypeRepos: number;
-    baselineRepos: number;
+    uniqueReposGit: number;
+    prototypeReposGit: number;
+    baselineReposGit: number;
+
+    exportCountLocal: number;
+    enPageCountLocal: number;
+    frPageCountLocal: number;
+
+    uniqueReposLocal: number;
+    prototypeReposLocal: number;
+    baselineReposLocal: number;
 
     uniqueOrgCount: number;
 }
@@ -78,7 +86,7 @@ interface DonutFilter {
     userId: string;
 }
 
-const STATUS_FIELDS: Record<string, string[]> = {
+const STATUS_FIELDS: Record<string, (keyof UsageRecord)[]> = {
     metadata: ['statusDescEN', 'statusDescFR', 'statusKeywordsEN', 'statusKeywordsFR'],
     // page: ['statusAccepted', 'statusRejected'],     // update when ready
     // problems: ['statusAccepted', 'statusRejected'], // update when ready
@@ -234,7 +242,7 @@ export class UsageMonitoringComponent implements OnInit {
         const counts: Record<string, number> = {};
         for (const item of filtered) {
             for (const field of statusFields) {
-                const status = (item as any)[field];
+                const status = item[field as keyof UsageRecord];
                 if (status) counts[status] = (counts[status] ?? 0) + 1;
             }
         }
@@ -304,8 +312,8 @@ export class UsageMonitoringComponent implements OnInit {
             ]);
             this.stats.set(statsResult);
             this.featureItems.set(itemsResult.items);
-        } catch (err: any) {
-            this.error.set(err?.message ?? 'Unknown error');
+        } catch (err: unknown) {
+            this.error.set(err instanceof Error ? err.message : 'Unknown error');
         } finally {
             this.loading.set(false);
         }
@@ -320,8 +328,8 @@ export class UsageMonitoringComponent implements OnInit {
                 this.http.get<{ items: UsageRecord[] }>(`${environment.usageFunctionUrl}?feature=${feature}`)
             );
             this.featureItems.set(result.items);
-        } catch (err: any) {
-            this.featureItemsError.set(err?.message ?? 'Unknown error');
+        } catch (err: unknown) {
+            this.featureItemsError.set(err instanceof Error ? err.message : 'Unknown error');
         } finally {
             this.featureItemsLoading.set(false);
         }
@@ -342,7 +350,7 @@ export class UsageMonitoringComponent implements OnInit {
         const items = this.featureItems();
         const statusFields = STATUS_FIELDS[this.selectedFeature()] ?? [];
         return items.reduce((total, item) =>
-            total + statusFields.filter(f => (item as any)[f]).length, 0);
+            total + statusFields.filter(f => item[f]).length, 0);
     });
 
     totalFieldsReviewed = computed(() => {
@@ -350,7 +358,7 @@ export class UsageMonitoringComponent implements OnInit {
         const statusFields = STATUS_FIELDS[this.selectedFeature()] ?? [];
         return items.reduce((total, item) =>
             total + statusFields.filter(f => {
-                const v = (item as any)[f];
+                const v = item[f];
                 return v && v !== 'pending';
             }).length, 0);
     });

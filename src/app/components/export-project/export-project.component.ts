@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
-import { marker } from '@colsen1991/ngx-translate-extract-marker';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 
 //PrimeNG modules
@@ -21,52 +20,59 @@ import { ProjectStateService } from '../../services/project-state.service';
     styles: ``
 })
 export class ExportProjectComponent {
+    private translate = inject(TranslateService)
     private projectState = inject(ProjectStateService);
     private router = inject(Router);
 
-    markForTranslation() {
-        marker('export.github');
-        marker('export.csv.inventory');
-        marker('export.csv.tree');
-        marker('export.json');
+
+    get exportItems(): MenuItem[] {
+        return [
+            {
+                label: this.translate.instant('export.github'),
+                icon: 'pi pi-github',
+                command: () => {
+                    this.projectState.getProject().repoType = 'github';
+                    this.router.navigate(['/export-pages']);
+                },
+            },
+            {
+                label: this.translate.instant('export.html'),
+                icon: 'pi pi-link',
+                command: () => {
+                    this.projectState.getProject().repoType = 'local';
+                    this.router.navigate(['/export-pages']);
+                },
+            },
+            {
+                separator: true,
+            },
+            {
+                label: this.translate.instant('export.csv.inventory'),
+                icon: 'pi pi-list-check',
+                command: () => {
+                    this.projectState.exportTreeAsCsv();
+                },
+                disabled: false,
+            },
+            {
+                label: this.translate.instant('export.csv.tree'),
+                icon: 'pi pi-align-right',
+                command: () => {
+                    this.projectState.exportAsTreeCsv()
+                },
+                disabled: false,
+            },
+            {
+                separator: true,
+            },
+            {
+                label: this.translate.instant('export.json'),
+                icon: 'pi pi-code',
+                command: () => {
+                    this.projectState.exportProjectAsJson();
+                },
+                disabled: false,
+            },
+        ];
     }
-    exportItems: MenuItem[] = [
-        {
-            label: 'export.github',
-            icon: 'pi pi-github',
-            command: () => {
-                this.router.navigate(['/export-github']);
-            },
-        },
-        {
-            separator: true,
-        },
-        {
-            label: 'export.csv.inventory',
-            icon: 'pi pi-list-check',
-            command: () => {
-                this.projectState.exportTreeAsCsv();
-            },
-            disabled: false,
-        },
-        {
-            label: 'export.csv.tree',
-            icon: 'pi pi-align-right',
-            command: () => {
-                this.projectState.exportAsTreeCsv()
-            },
-            disabled: false,
-        },
-        {
-            separator: true,
-        },
-        {
-            label: 'export.json',
-            icon: 'pi pi-code',
-            command: () => {
-                this.projectState.exportProjectAsJson();
-            },
-            disabled: false,
-        },
-    ];
 }
