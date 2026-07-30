@@ -93,7 +93,6 @@ export class ExportComponent implements OnInit {
   public projectCache = inject(ProjectCacheService);
 
   defaultOrg = environment.defaultOrg;
-  prod = environment.production
   readonly ExportStatus = ExportStatus;
 
   //Signals

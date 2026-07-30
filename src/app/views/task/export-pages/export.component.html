@@ -45,7 +45,7 @@
                                             [options]="exportLanguageOptions" [(ngModel)]="selectedExportLanguage" (onChange)="compareFiles()" />
                         </div>
                         <!--Choose export source-->
-                        @if(exportSourceOptions.length > 1 && !prod){
+                        @if(exportSourceOptions.length > 1){
                         <div class="flex flex-column hover:text-primary">
                             <label for="export-source" class="text-xs font-semibold xl:my-1">{{ 'exportPages.settings.exportSource' | translate }}</label>
                             <p-selectButton id="export-source" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
