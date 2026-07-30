@@ -1,7 +1,10 @@
 import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+
+//Services
 import { ProjectStateService } from '../services/project-state.service';
+import { ProjectCacheService } from '../services/project-cache.service';
 import { MailtoService } from '../services/mailto.service';
 import { environment } from '../../environments/environment';
 
@@ -13,10 +16,12 @@ import { environment } from '../../environments/environment';
   styles: ``
 })
 export class SidebarComponent {
+  private projectState = inject(ProjectStateService);
+  public projectCache = inject(ProjectCacheService);
+  public mailtoService = inject(MailtoService);
+
   public production = environment.production;
   public sandbox = environment.sandbox;
-  public mailtoService = inject(MailtoService);
-  private projectState = inject(ProjectStateService);
 
   get projectLoaded(): boolean {
     const name = this.projectState.getProject().projectName;

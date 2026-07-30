@@ -7,12 +7,14 @@ export const CDTS_TEMPLATE_ENG = `<!DOCTYPE html>
         <title>{{TITLE}}</title>
         <meta content="width=device-width, initial-scale=1" name="viewport">
         <link rel="schema.dcterms" href="https://purl.org/dc/terms/">
+        <link rel="alternate" hreflang="fr" href="{{ALTLINK}}"/>
         <!-- Meta data -->
         <meta name="description" content="{{DESCRIPTION}}">
         <meta name="keywords" content="{{KEYWORDS}}">
         <meta name="author" content="Canada Revenue Agency">
         <meta name="dcterms.creator" content="Canada Revenue Agency">
         <meta name="robots" content="{{ROBOTS}}">
+        <meta name="dcterms.subject" content="{{SUBJECT}}">
         <meta name="dcterms.language" title="ISO639-2/T" content="eng">
         <meta name="dcterms.audience" content="general public">
         <meta name="dcterms.spatial" content="Canada">
@@ -87,7 +89,7 @@ export const CDTS_TEMPLATE_ENG = `<!DOCTYPE html>
                             </div>
                         </div>
                         <dl id="wb-dtmd">
-                            <dt>Date modified:</dt>
+                            <dt>Date modified:&#160</dt>
                             <dd><time property="dateModified">{{MODIFIED}}</time></dd>
                         </dl>
                     </section>
@@ -142,7 +144,7 @@ export const CDTS_TEMPLATE_ENG = `<!DOCTYPE html>
         <script src="{{DEPTH}}source/scripts/external-link-detour.js"></script>
         {{SCRIPTS}}
     </body>
-</html>`
+</html>`;
 
 export const CDTS_TEMPLATE_FRA = `<!DOCTYPE html>
 <html class="no-js" dir="ltr" lang="fr" xmlns="https://www.w3.org/1999/xhtml">
@@ -153,12 +155,14 @@ export const CDTS_TEMPLATE_FRA = `<!DOCTYPE html>
         <title>{{TITLE}}</title>
         <meta content="width=device-width, initial-scale=1" name="viewport">
         <link rel="schema.dcterms" href="https://purl.org/dc/terms/">
+        <link rel="alternate" hreflang="en" href="{{ALTLINK}}"/>
         <!-- Meta data -->
         <meta name="description" content="{{DESCRIPTION}}">
         <meta name="keywords" content="{{KEYWORDS}}">
         <meta name="author" content="Agence du revenu du Canada">
         <meta name="dcterms.creator" content="Agence du revenu du Canada">
         <meta name="robots" content="{{ROBOTS}}">
+        <meta name="dcterms.subject" content="{{SUBJECT}}">
         <meta name="dcterms.language" title="ISO639-2/T" content="fra">
         <meta name="dcterms.audience" content="general public">
         <meta name="dcterms.spatial" content="Canada">
@@ -233,7 +237,7 @@ export const CDTS_TEMPLATE_FRA = `<!DOCTYPE html>
                             </div>
                         </div>
                         <dl id="wb-dtmd">
-                            <dt>Date de modification :</dt>
+                            <dt>Date de modification&#160;:&#160;</dt>
                             <dd><time property="dateModified">{{MODIFIED}}</time></dd>
                         </dl>
                     </section>
@@ -288,7 +292,7 @@ export const CDTS_TEMPLATE_FRA = `<!DOCTYPE html>
         <script src="{{DEPTH}}source/scripts/external-link-detour.js"></script>
         {{SCRIPTS}}
     </body>
-</html>`
+</html>`;
 
 export const EXIT_PAGE_TEMPLATE_ENG = `<!DOCTYPE html>
 <html class="no-js" lang="en" dir="ltr">
@@ -407,6 +411,274 @@ export const EXIT_PAGE_TEMPLATE_FRA = `<!DOCTYPE html>
 <script src="https://www.canada.ca/etc/designs/canada/wet-boew/js/theme.min.js"></script>
 <script src="{{DEPTH}}source/scripts/external-link-detour.js"></script>
 <script src="https://cra-test-arc.canada.ca/core-prototype/source/scripts/exit-page.js"></script>
+</body>
+</html>`;
+
+export const INDEX_PAGE_TEMPLATE_ENG = `<!DOCTYPE html>
+<html class="no-js" lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<title>Repository sitemap</title>
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<meta name="dcterms.language" content="eng">
+<meta name="robots" content="noindex, nofollow">
+<link rel="shortcut icon" href="https://www.canada.ca/etc/designs/canada/cdts/gcweb/v5_0_4/wet-boew/assets/favicon.ico" >
+<link rel="stylesheet" href="https://www.canada.ca/etc/designs/canada/wet-boew/css/theme.min.css">
+<link rel="stylesheet" href="https://cra-test-arc.canada.ca/core-prototype/source/css/testing-banner.css">
+<style>
+  .link-context-menu {
+    position: fixed;
+    z-index: 1000;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    min-width: 180px;
+    padding: 4px 0;
+    font-size: 14px;
+  }
+  .link-context-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 6px 12px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font: inherit;
+  }
+  .link-context-menu button:hover,
+  .link-context-menu button:focus {
+    background: #f0f0f0;
+    outline: none;
+  }
+</style>
+</head>
+<body vocab="http://schema.org/" typeof="WebPage">
+<nav><ul id="wb-tphp">
+    <li class="wb-slc"><a class="wb-sl" href="#wb-cont">Skip to main content</a></li>
+</ul></nav>
+<header>
+    <div id="wb-bnr" class="container"><div class="row">
+        <div class="brand col-xs-9 col-sm-5 col-md-4" property="publisher" typeof="GovernmentOrganization">
+            <a href="https://www.canada.ca/en.html" property="url">
+                <img src="https://www.canada.ca/etc/designs/canada/wet-boew/assets/sig-blk-en.svg" alt="Government of Canada" property="logo">
+            </a>
+        </div>
+    </div></div>
+</header>
+<main class="container" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+    <h1 property="name" id="wb-cont">Repository sitemap ({{REPO}})</h1>
+    
+    {{CONTENT}}
+
+    <div id="linkContextMenu" class="link-context-menu" hidden></div>
+
+    <section class="pagedetails">
+        <h2 class="wb-inv">Page details</h2>
+        <dl id="wb-dtmd"><dt>Date modified:&#160;</dt><dd><time property="dateModified">{{MODIFIED}}</time></dd></dl>
+    </section>
+</main>
+<footer id="wb-info">
+    <div class="gc-sub-footer"><div class="container d-flex align-items-center">
+        <nav><ul>
+            <li><a href="https://www.canada.ca/en/transparency/terms.html">Terms and conditions</a></li>
+            <li><a href="https://www.canada.ca/en/revenue-agency/corporate/privacy-notice.html">Privacy</a></li>
+        </ul></nav>
+        <div class="wtrmrk align-self-end">
+            <img src="https://www.canada.ca/etc/designs/canada/wet-boew/assets/wmms-blk.svg" alt="Symbol of the Government of Canada">
+        </div>
+    </div></div>
+</footer>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha384-rY/jv8mMhqDabXSo+UCggqKtdmBfd3qC2/KvyTDNQ6PcUJXaxK1tMepoQda4g5vB" crossorigin="anonymous"></script>
+<script src="https://www.canada.ca/etc/designs/canada/wet-boew/js/wet-boew.min.js"></script>
+<script src="https://www.canada.ca/etc/designs/canada/wet-boew/js/theme.min.js"></script>
+<script>
+  (function () {
+    const menu = document.getElementById('linkContextMenu');
+
+    document.addEventListener('contextmenu', function (e) {
+      const link = e.target.closest('a[data-versions]');
+      if (!link) return;
+
+      e.preventDefault();
+
+      let versions;
+      try {
+        versions = JSON.parse(link.dataset.versions);
+      } catch (err) {
+        return;
+      }
+
+      menu.innerHTML = '';
+      versions.forEach(function (v) {
+        const btn = document.createElement('button');
+        btn.textContent = v.label;
+        btn.addEventListener('click', function () {
+          window.open(v.href, '_blank', 'noopener');
+          closeMenu();
+        });
+        menu.appendChild(btn);
+      });
+
+      menu.style.left = e.clientX + 'px';
+      menu.style.top = e.clientY + 'px';
+      menu.hidden = false;
+
+      const rect = menu.getBoundingClientRect();
+      if (rect.right > window.innerWidth) {
+        menu.style.left = (window.innerWidth - rect.width - 8) + 'px';
+      }
+      if (rect.bottom > window.innerHeight) {
+        menu.style.top = (window.innerHeight - rect.height - 8) + 'px';
+      }
+    });
+
+    document.addEventListener('click', closeMenu);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeMenu();
+    });
+    window.addEventListener('scroll', closeMenu, { passive: true });
+
+    function closeMenu() {
+      menu.hidden = true;
+    }
+  })();
+</script>
+</body>
+</html>`;
+
+export const INDEX_PAGE_TEMPLATE_FRA = `<!DOCTYPE html>
+<html class="no-js" lang="fr" dir="ltr">
+<head>
+<meta charset="utf-8">
+<title>Plan du site du répertoire</title>
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<meta name="dcterms.language" content="fra">
+<meta name="robots" content="noindex, nofollow">
+<link rel="shortcut icon" href="https://www.canada.ca/etc/designs/canada/cdts/gcweb/v5_0_4/wet-boew/assets/favicon.ico">
+<link rel="stylesheet" href="https://www.canada.ca/etc/designs/canada/wet-boew/css/theme.min.css">
+<link rel="stylesheet" href="https://cra-test-arc.canada.ca/core-prototype/source/css/testing-banner.css">
+<style>
+  .link-context-menu {
+    position: fixed;
+    z-index: 1000;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    min-width: 180px;
+    padding: 4px 0;
+    font-size: 14px;
+  }
+  .link-context-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 6px 12px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font: inherit;
+  }
+  .link-context-menu button:hover,
+  .link-context-menu button:focus {
+    background: #f0f0f0;
+    outline: none;
+  }
+</style>
+</head>
+<body vocab="http://schema.org/" typeof="WebPage">
+<nav><ul id="wb-tphp">
+    <li class="wb-slc"><a class="wb-sl" href="#wb-cont">Passer au contenu principal</a></li>
+</ul></nav>
+<header>
+    <div id="wb-bnr" class="container"><div class="row">
+        <div class="brand col-xs-9 col-sm-5 col-md-4" property="publisher" typeof="GovernmentOrganization">
+            <a href="https://www.canada.ca/fr.html" property="url">
+                <img src="https://www.canada.ca/etc/designs/canada/wet-boew/assets/sig-blk-fr.svg" alt="Gouvernement du Canada" property="logo">
+            </a>
+        </div>
+    </div></div>
+</header>
+<main class="container" property="mainContentOfPage" resource="#wb-main" typeof="WebPageElement">
+    <h1 property="name" id="wb-cont">Plan du site du répertoire ({{REPO}})</h1>
+    
+    {{CONTENT}}
+
+    <div id="linkContextMenu" class="link-context-menu" hidden></div>
+
+    <section class="pagedetails">
+        <h2 class="wb-inv">Détails de la page</h2>
+        <dl id="wb-dtmd"><dt>Date de modification&#160;:&#160;</dt><dd><time property="dateModified">{{MODIFIED}}</time></dd></dl>
+    </section>
+</main>
+<footer id="wb-info">
+    <div class="gc-sub-footer"><div class="container d-flex align-items-center">
+        <nav><ul>
+            <li><a href="https://www.canada.ca/fr/transparence/avis.html">Avis</a></li>
+            <li><a href="https://www.canada.ca/fr/agence-revenu/organisation/avis-confidentialite.html">Confidentialité</a></li>
+        </ul></nav>
+        <div class="wtrmrk align-self-end">
+            <img src="https://www.canada.ca/etc/designs/canada/wet-boew/assets/wmms-blk.svg" alt="Symbole du gouvernement du Canada">
+        </div>
+    </div></div>
+</footer>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha384-rY/jv8mMhqDabXSo+UCggqKtdmBfd3qC2/KvyTDNQ6PcUJXaxK1tMepoQda4g5vB" crossorigin="anonymous"></script>
+<script src="https://www.canada.ca/etc/designs/canada/wet-boew/js/wet-boew.min.js"></script>
+<script src="https://www.canada.ca/etc/designs/canada/wet-boew/js/theme.min.js"></script>
+<script>
+  (function () {
+    const menu = document.getElementById('linkContextMenu');
+
+    document.addEventListener('contextmenu', function (e) {
+      const link = e.target.closest('a[data-versions]');
+      if (!link) return;
+
+      e.preventDefault();
+
+      let versions;
+      try {
+        versions = JSON.parse(link.dataset.versions);
+      } catch (err) {
+        return;
+      }
+
+      menu.innerHTML = '';
+      versions.forEach(function (v) {
+        const btn = document.createElement('button');
+        btn.textContent = v.label;
+        btn.addEventListener('click', function () {
+          window.open(v.href, '_blank', 'noopener');
+          closeMenu();
+        });
+        menu.appendChild(btn);
+      });
+
+      menu.style.left = e.clientX + 'px';
+      menu.style.top = e.clientY + 'px';
+      menu.hidden = false;
+
+      const rect = menu.getBoundingClientRect();
+      if (rect.right > window.innerWidth) {
+        menu.style.left = (window.innerWidth - rect.width - 8) + 'px';
+      }
+      if (rect.bottom > window.innerHeight) {
+        menu.style.top = (window.innerHeight - rect.height - 8) + 'px';
+      }
+    });
+
+    document.addEventListener('click', closeMenu);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeMenu();
+    });
+    window.addEventListener('scroll', closeMenu, { passive: true });
+
+    function closeMenu() {
+      menu.hidden = true;
+    }
+  })();
+</script>
 </body>
 </html>`;
 

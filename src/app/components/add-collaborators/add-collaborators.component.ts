@@ -15,7 +15,7 @@ import { KeyFilterModule } from 'primeng/keyfilter';
 import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 
-import { CollaboratorService } from '../../services/collaborator.service';
+import { CollaboratorService } from '../../services/github/collaborator.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { ExportGitHubService } from '../../services/github/export-github.service';
 import { GitHubUser } from '../../common/data.model';

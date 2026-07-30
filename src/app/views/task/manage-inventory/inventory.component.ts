@@ -256,6 +256,7 @@ export class InventoryComponent implements OnInit {
         const visibleInGroup = group.items
             .filter((item: SelectItem) => {
                 const col = this.allColumns().find(c => c.field === item.value);
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 return col?.frozen || this.selectedColumnFields.includes(item.value);
             })
             .map((item: SelectItem) => item.value);
@@ -530,10 +531,11 @@ export class InventoryComponent implements OnInit {
     // 1. Refresh (prototype or live data)
     async refreshData(version: 'live' | 'prototype') {
         if (!this.selectedNodes.length) return;
+        const urlVersion = version === 'live' ? 'live' : this.projectState.getProject().repoType === 'github' ? 'protoGH' : 'protoUT'
         this.projectState.refreshing.update(r => ({ ...r, [version]: true }));
         for (const node of this.selectedNodes) {
             const treeNode = this.projectState.findNodeByPath(this.projectState.getProjectTree(), node.enPath, "en");
-            if (treeNode) await this.projectState.refreshNode(treeNode, version)
+            if (treeNode) await this.projectState.refreshNode(treeNode, urlVersion)
         }
         this.projectState.refreshing.update(r => ({ ...r, [version]: false }));
     }
@@ -541,11 +543,11 @@ export class InventoryComponent implements OnInit {
     // 2. AI metadata generation
     async generateMetadata(mode: "live" | "prototype" = "live") {
         if (!this.selectedNodes.length) return;
-
+        const urlVersion = mode === 'live' ? 'live' : this.projectState.getProject().repoType === 'github' ? 'protoGH' : 'protoUT'
         for (const node of this.selectedNodes) {
             // Set URLs to fetch
-            const enUrl = this.fetchService.generateUrl(node.enPath, mode, this.github.owner, this.github.repo)
-            const frUrl = this.fetchService.generateUrl(node.frPath, mode, this.github.owner, this.github.repo)
+            const enUrl = this.fetchService.generateUrl(node.enPath, urlVersion, this.github.owner, this.github.repo)
+            const frUrl = this.fetchService.generateUrl(node.frPath, urlVersion, this.github.owner, this.github.repo)
 
             if (!enUrl && !frUrl) {
                 console.warn(`Skipping ${enUrl} — missing EN & FR URLs`);
@@ -557,11 +559,15 @@ export class InventoryComponent implements OnInit {
             let frMain: string | null = null;
             try {
                 if (enUrl) {
-                    const enDoc = await this.fetchService.fetchContent(enUrl, 'prod', 3, 'none', true);
+                    const enDoc = urlVersion !== 'protoUT'
+                        ? await this.fetchService.fetchContent(enUrl, 'prod', 3, 'none', true)
+                        : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(enUrl));
                     enMain = enDoc.querySelector('main')?.innerHTML ?? enDoc.body.innerHTML;
                 }
                 if (frUrl) {
-                    const frDoc = await this.fetchService.fetchContent(frUrl, 'prod', 3, 'none', true);
+                    const frDoc = urlVersion !== 'protoUT'
+                        ? await this.fetchService.fetchContent(frUrl, 'prod', 3, 'none', true)
+                        : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(frUrl));
                     frMain = frDoc.querySelector('main')?.innerHTML ?? frDoc.body.innerHTML;
                 }
             } catch (error) {
@@ -876,10 +882,13 @@ export class InventoryComponent implements OnInit {
             }
             case 'newTab': {
                 if (path) {
+                    const repoType = this.projectState.getProject().repoType;
+                    const protoVersion = repoType === 'github' ? 'protoGH' : 'protoUT';
+                    const baseVersion = repoType === 'github' ? 'baseGH' : 'baseUT';
                     const liveUrl = this.fetchService.generateUrl(path, "live");
                     const previewUrl = this.fetchService.generateUrl(path, "preview");
-                    const prototypeUrl = this.fetchService.generateUrl(path, "prototype", this.github.owner, this.github.repo);
-                    const baselineUrl = this.fetchService.generateUrl(path, "baseline", this.github.owner, this.github.repo);
+                    const prototypeUrl = this.fetchService.generateUrl(path, protoVersion, this.github.owner, this.github.repo);
+                    const baselineUrl = this.fetchService.generateUrl(path, baseVersion, this.github.owner, this.github.repo);
                     this.itemsDropdown = [
                         {
                             label: this.translate.instant('common.openNewTab'),

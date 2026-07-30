@@ -21,6 +21,7 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 //Services
 import { ProjectStateService } from '../../services/project-state.service';
 import { TreeNodeData } from '../../common/data.model';
+import { urlVersion } from '../../services/fetch.service';
 
 @Component({
     selector: 'aida-edit-node',
@@ -86,8 +87,14 @@ export class EditNodeComponent {
     }
     async refresh() {
         const version = this.selectedVersion();
+        const repoType = this.projectState.getProject().repoType === 'github' ? 'GH' : 'UT'
+        const urlVersion: urlVersion = version === 'live'
+            ? 'live'
+            : version === 'prototype'
+                ? `proto${repoType}`
+                : `base${repoType}`
         this.projectState.refreshing.update(r => ({ ...r, [version]: true }));
-        await this.projectState.refreshNode(this.node(), version);
+        await this.projectState.refreshNode(this.node(), urlVersion);
         this.projectState.refreshing.update(r => ({ ...r, [version]: false }));
         this.hasChanges.set(true);
     }

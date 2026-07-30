@@ -328,18 +328,35 @@ export class ExportGitHubService {
     const mainEl = doc.querySelector("main");
     let pageContent = "";
 
-    // Custom styles and scripts
+    // Preserve custom styles
     const styles = Array.from(doc.querySelectorAll("style"))
       .map(s => `<style>${s.textContent}</style>`)
       .join('\r\n');
+
+    // Preserve custom scripts (except pageBottom() and duplicates)
+    const seenScripts = new Set<string>();
+    const defVarPattern = /^\s*var\s+(defTop|defPreFooter|defFooter)\b/;
     const scripts = Array.from(doc.querySelectorAll("body script:not([src])"))
-      .map(s => `<script>${s.textContent}</script>`)
+      .map(script => script.textContent ?? '')
+      .filter(text => text.replace(/\s+/g, '') !== '_satellite.pageBottom();')
+      .filter(text => !defVarPattern.test(text))
+      .filter(text => {
+        const normalized = text.replace(/\s+/g, '');
+        if (seenScripts.has(normalized)) return false;
+        seenScripts.add(normalized);
+        return true;
+      })
+      .map(text => `<script>${text}</script>`)
       .join('\r\n');
 
     if (mainEl) {
       // Remove page details
-      mainEl.querySelectorAll("section.pagedetails").forEach(s => s.remove());
-      mainEl.querySelectorAll("div.pagedetails").forEach(d => d.remove());
+      mainEl.querySelectorAll("section.pagedetails").forEach(section => section.remove());
+      mainEl.querySelectorAll("div.pagedetails").forEach(div => div.remove());
+
+      // Remove scripts
+      mainEl.querySelectorAll("script").forEach(script => script.remove());
+      mainEl.querySelectorAll('div[id="def-preFooter"]').forEach(div => div.remove());
 
       // Flatten AEM mws wrappers
       mainEl.querySelectorAll('div[class^="mws"]').forEach(div => {
@@ -1091,7 +1108,7 @@ ${mermaidChart}
       chart += `\n    class ${isMovedNodes.join(',')} ismoved`;
     }
 
-    console.log(chart)
+    //console.log(chart)
     return chart;
   }
 

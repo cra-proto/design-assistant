@@ -1,0 +1,48 @@
+<div class="flex flex-row flex-wrap align-items-end gap-2">
+
+    <!--Choose language-->
+    @if(showLang()){
+    <div class="flex flex-column hover:text-primary">
+        <label for="language" class="text-xs font-semibold xl:my-1">{{ 'common.language' | translate }}</label>
+        <p-selectButton id="language" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
+                        [options]="languageOptions" [ngModel]="projectCache.selectedLang()" (ngModelChange)="projectCache.selectedLang.set($event)" />
+    </div>
+    }
+
+    <!--Choose scope-->
+    @if(showScope()){
+    <div class="flex flex-column hover:text-primary">
+        <label for="scope" class="text-xs font-semibold xl:my-1">{{ 'common.scope' | translate }}</label>
+        <p-selectButton id="scope" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
+                        [options]="scopeOptions" [ngModel]="projectCache.selectedScope()" (ngModelChange)="projectCache.selectedScope.set($event)" />
+    </div>
+    }
+
+    <!--Choose version-->
+    @if (showVersion() && !isPrototype()) {
+    <div class="flex flex-column hover:text-primary">
+        <label for="version" class="text-xs font-semibold xl:my-1">{{ 'common.version' | translate }}</label>
+        <p-selectButton id="version" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
+                        [options]="versionOptions" [ngModel]="projectCache.selectedVersion()" (ngModelChange)="projectCache.selectedVersion.set($event)" />
+    </div>
+    }
+
+    <!--Choose source-->
+    @if (showSource()) {
+    <div class="flex flex-column hover:text-primary">
+        <label for="source" class="text-xs font-semibold xl:my-1">{{ 'common.source' | translate }}</label>
+        <p-selectButton id="source" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
+                        [options]="sourceOptions" [ngModel]="projectCache.selectedSource()" (ngModelChange)="projectCache.selectedSource.set($event)" />
+    </div>
+    }
+
+    <!--Choose IA view-->
+    @if (showViewIA()) {
+    <div class="flex flex-column hover:text-primary">
+        <label for="viewIA" class="text-xs font-semibold xl:my-1">{{ 'common.view' | translate }}</label>
+        <p-selectButton id="viewIA" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
+                        [options]="viewIAOptions" [ngModel]="projectCache.selectedViewIA()" (ngModelChange)="projectCache.selectedViewIA.set($event)" />
+    </div>
+    }
+
+</div>

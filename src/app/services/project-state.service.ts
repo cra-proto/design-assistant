@@ -7,11 +7,11 @@ import { version as appVersion } from '../../../package.json'
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { ProjectStorageService } from '../services/storage/project-storage.service';
-import { CollaboratorService } from './collaborator.service';
-import { FetchService } from './fetch.service';
-import { AirtableService } from './airtable.service';
-import { UpdService } from './upd.service';
-import { VanityService } from './vanity.service';
+import { CollaboratorService } from './github/collaborator.service';
+import { FetchService, urlVersion } from './fetch.service';
+import { AirtableService } from './data-sources/airtable.service';
+import { UpdService } from './data-sources/upd.service';
+import { VanityService } from './data-sources/vanity.service';
 import { UsageService } from './usage.service';
 import { ExportGitHubService } from './github/export-github.service';
 
@@ -80,7 +80,7 @@ export class ProjectStateService {
     private readonly AUTO_SAVE_DELAY = 10000; // 30 seconds
     private readonly MAX_UNSAVED_DURATION = 5 * 60 * 1000 // 5 minutes
 
-    // Loading states
+    // Loading states for project versions
     readonly refreshing = signal<{ prototype: boolean; live: boolean; baseline: boolean }>({
         prototype: false,
         live: false,
@@ -244,6 +244,14 @@ export class ProjectStateService {
         }));
     }
 
+    setDownloadDate(): void {
+        this.project.update(p => ({
+            ...p,
+            lastModified: new Date(),
+            lastDownloaded: new Date()
+        }));
+    }
+
     setModifiedDate(): void {
         this.project.update(p => ({
             ...p,
@@ -310,18 +318,62 @@ export class ProjectStateService {
     }
 
     // TODO: refactor getAllUrls and getAllPages to use new data structure
-    getAllPages(lang: 'en' | 'fr', version: 'prototype' | 'live' | 'baseline' = 'prototype', scope: 'all' | 'inScope' = 'all'): { label: string; path: string; url: string }[] {
+    getAllPages(lang: 'en' | 'fr', urlVersion: urlVersion = 'protoGH', scope: 'all' | 'inScope' = 'all'): { label: string; path: string; url: string }[] {
+        const version = urlVersion.startsWith('proto') ? 'prototype' : urlVersion.startsWith('base') ? 'baseline' : 'live'
         const pages: { label: string; path: string; url: string }[] = [];
         const traverse = (nodes: TreeNode<TreeNodeData>[]) => {
             for (const node of nodes) {
                 const path = node.data?.path?.[lang] ?? '';
                 const h1 = node.data?.[version]?.[lang]?.h1;
-                const url = this.fetchService.generateUrl(path, version, this.project().github.owner, this.project().github.repo)
+                const url = this.fetchService.generateUrl(path, urlVersion, this.project().github.owner, this.project().github.repo)
                 if (scope === 'inScope' && path && h1 && url && node.data?.status.inScope) {
                     pages.push({ label: h1, path: path, url: url });
                 }
                 else if (scope === 'all' && path && h1 && url) {
                     pages.push({ label: h1, path: path, url: url });
+                }
+                if (node.children?.length) traverse(node.children);
+            }
+        };
+        traverse(this.project().projectData);
+        return pages;
+    }
+
+    getPairedPages(urlVersion: urlVersion = 'protoGH', scope: 'all' | 'inScope' = 'all'): { en: { label: string; path: string; url: string; group: string }, fr: { label: string; path: string; url: string; group: string }, status: string }[] {
+        console.log("UPDATE", urlVersion)
+        const version = urlVersion.startsWith('proto') ? 'prototype' : urlVersion.startsWith('base') ? 'baseline' : 'live'
+        const pages: { en: { label: string; path: string; url: string; group: string }, fr: { label: string; path: string; url: string; group: string }, status: string }[] = [];
+        const traverse = (nodes: TreeNode<TreeNodeData>[]) => {
+            for (const node of nodes) {
+                const enPath = node.data?.path?.en ?? '';
+                const enH1 = node.data?.[version]?.en?.h1;
+                const enSection = node.data?.[version]?.en?.doubleH1 ?? '';
+                const enUrl = this.fetchService.generateUrl(enPath, urlVersion, this.project().github.owner, this.project().github.repo)
+                const frPath = node.data?.path?.fr ?? '';
+                const frH1 = node.data?.[version]?.fr?.h1;
+                const frSection = node.data?.[version]?.fr?.doubleH1 ?? '';
+                const frUrl = this.fetchService.generateUrl(frPath, urlVersion, this.project().github.owner, this.project().github.repo)
+                const status = !node.data?.status.inScope ? "isBaseline" : node.data?.status.isNew ? "isNew" : node.data?.status.isROT ? "isROT" : node.data?.status.isMoved ? "isMoved" : "";
+                if (scope === 'inScope' && node.data?.status?.inScope && enPath && enH1 && enUrl && frPath && frH1 && frUrl) {
+                    pages.push({
+                        en: { label: enH1, path: enPath, url: enUrl, group: enSection },
+                        fr: { label: frH1, path: frPath, url: frUrl, group: frSection },
+                        status: status
+                    });
+                }
+                else if (scope === 'all' && enPath && enH1 && enUrl && frPath && frH1 && frUrl) {
+                    pages.push({
+                        en: { label: enH1, path: enPath, url: enUrl, group: enSection },
+                        fr: { label: frH1, path: frPath, url: frUrl, group: frSection },
+                        status: status
+                    });
+                }
+                else {
+                    console.log({
+                        en: { label: enH1, path: enPath, url: enUrl, group: enSection },
+                        fr: { label: frH1, path: frPath, url: frUrl, group: frSection },
+                        status: status
+                    });
                 }
                 if (node.children?.length) traverse(node.children);
             }
@@ -756,79 +808,112 @@ export class ProjectStateService {
     exportTreeAsCsv() {
         const tree = this.project().projectData;
         const rows: string[] = [];
+        const lang = this.detectPrimaryLanguage();
 
         // Headers
         rows.push([
-            //Current language
-            'Page title (h1)',
-            'Section title (double h1)',
-            'URL',
-            //Opposite language
-            'Opposite language title',
-            'Opposite language URL',
-            //GitHub
-            'Prototype Url',
+            //English
+            this.translate.instant('inventory.header.enH1'),
+            this.translate.instant('inventory.header.enDoubleH1'),
+            this.translate.instant('inventory.header.enPath'),
+            this.translate.instant('inventory.header.enVanity'),
+            //French
+            this.translate.instant('inventory.header.frH1'),
+            this.translate.instant('inventory.header.frPath'),
+            this.translate.instant('inventory.header.frDoubleH1'),
+            this.translate.instant('inventory.header.frVanity'),
             //Status
-            'In Scope',
-            'Is Orphan',
-            'Is New',
-            'Is Moved',
-            'Is ROT',
-            'Portal link',
-            'Archived',
-            //Owner
-            'Owner',
-            'Email',
+            this.translate.instant('inventory.header.inScope'),
+            this.translate.instant('inventory.header.isNew'),
+            this.translate.instant('inventory.header.isMoved'),
+            this.translate.instant('inventory.header.isROT'),
+            this.translate.instant('inventory.header.archiveStatus'),
+            this.translate.instant('inventory.header.noindex'),
+            //Notes
+            this.translate.instant('inventory.header.issue'),
+            this.translate.instant('inventory.header.solution'),
             //Data
-            'Template',
-            'Task',
-            'Visits (last 52 weeks)',
+            this.translate.instant('inventory.header.template'),
+            this.translate.instant('inventory.header.linksToPortal'),
+            this.translate.instant('inventory.header.hasChatbot'),
+            this.translate.instant('inventory.header.task'),
+            this.translate.instant('inventory.header.visits'),
+            this.translate.instant('common.readability.gradeLevel'),
+            this.translate.instant('inventory.header.wordCount'),
+            this.translate.instant('inventory.header.linkCount'),
+            this.translate.instant('inventory.header.lastModified'),
+            this.translate.instant('inventory.header.lastPublished'),
+            //Owner
+            this.translate.instant('inventory.header.owner'),
+            this.translate.instant('inventory.header.email'),
             //Metadata
-            'Title',
-            'Description',
-            'Keywords',
+            this.translate.instant('inventory.header.titleEN'),
+            this.translate.instant('inventory.header.titleFR'),
+            this.translate.instant('inventory.header.descriptionEN'),
+            this.translate.instant('inventory.header.descriptionFR'),
+            this.translate.instant('inventory.header.keywordsEN'),
+            this.translate.instant('inventory.header.keywordsFR'),
             //Move info
-            'Original Parent URL',
+            this.translate.instant('inventory.header.originalParentEN'),
+            this.translate.instant('inventory.header.newParentEN'),
+            this.translate.instant('inventory.header.originalParentFR'),
+            this.translate.instant('inventory.header.newParentFR'),
         ].join(','));
 
-        const walk = (nodes: TreeNode<ProjectTreeNodeData>[]) => {
+        const walk = (nodes: TreeNode<TreeNodeData>[]) => {
             for (const node of nodes) {
                 const data = node.data;
                 if (!data) continue;
+                const yes = this.translate.instant('common.yes');
+                const no = this.translate.instant('common.no');
 
                 rows.push([
-                    //Current language
-                    data.h1 ?? '',
-                    data.doubleH1 ?? '',
-                    data.url ?? '',
-                    //Opposite language
-                    `"${data.metadata?.oppTitle ?? ''}"`,
-                    data.metadata?.oppUrl ?? '',
-                    //GitHub
-                    //this.generatePrototypeUrl(data.url),
+                    //English
+                    JSON.stringify(data.prototype?.en?.h1 ?? ''),
+                    JSON.stringify(data.prototype?.en?.doubleH1 ?? ''),
+                    data.path?.en ?? '',
+                    JSON.stringify(data.vanity?.en?.join('; ') ?? ''),
+                    //French
+                    JSON.stringify(data.prototype?.fr?.h1 ?? ''),
+                    JSON.stringify(data.prototype?.fr?.doubleH1 ?? ''),
+                    data.path?.fr ?? '',
+                    JSON.stringify(data.vanity?.fr?.join('; ') ?? ''),
                     //Status
-                    data.status.inScope ? 'Yes' : 'No',
-                    data.status.isOrphan ? 'Yes' : 'No',
-                    data.status.isNew ? 'Yes' : 'No',
-                    data.status.isMoved ? 'Yes' : 'No',
-                    data.status.isROT ? 'Yes' : 'No',
-                    data.status.linksToPortal ? 'Yes' : 'No',
-                    data.status.archiveStatus ?? '',
-                    //Problems
-                    //Owner
-                    data.metadata?.owner ?? '',
-                    data.metadata?.email ?? '',
+                    data.status?.inScope ? yes : no,
+                    data.status?.isNew ? yes : no,
+                    data.status?.isMoved ? yes : no,
+                    data.status?.isROT ? yes : no,
+                    (data.prototype?.en?.isArchived || data.prototype?.fr?.isArchived) ? yes : no,
+                    (data.prototype?.en?.noindex || data.prototype?.fr?.noindex) ? yes : no,
+                    //Notes
+                    JSON.stringify(data.notes?.issue ?? ''),
+                    JSON.stringify(data.notes?.solution ?? ''),
                     //Data
-                    data.metadata?.template ?? '',
-                    data.metadata?.task ?? '',
-                    data.metadata?.visits ?? '',
+                    this.translate.instant(data.prototype?.[lang]?.template ?? ''),
+                    (data.prototype?.en?.linksToPortal || data.prototype?.fr?.linksToPortal) ? yes : no,
+                    (data.prototype?.en?.hasChatbot || data.prototype?.fr?.hasChatbot) ? yes : no,
+                    JSON.stringify(data.task?.[lang]?.join('; ') ?? ''),
+                    data.visits?.[lang] ?? -1,
+                    Math.min(data.prototype?.[lang]?.fleschKincaid ?? -1, data.prototype?.[lang]?.gunningFog ?? -1),
+                    data.prototype?.[lang]?.wordCount ?? -1,
+                    data.prototype?.[lang]?.linkCount ?? -1,
+                    data.live?.[lang]?.lastModified ? new Date(data.live[lang].lastModified).toISOString().slice(0, 10) : '',
+                    data.live?.[lang]?.lastPublished ? new Date(data.live[lang].lastPublished).toISOString().slice(0, 10) : '',
+                    //Owner
+                    JSON.stringify(data.prototype?.[lang]?.owner ?? ''),
+                    JSON.stringify(data.prototype?.[lang]?.email ?? ''),
                     //Metadata
-                    data.metadata?.title ?? '',
-                    data.metadata?.description ?? '',
-                    data.metadata?.keywords ?? '',
+                    JSON.stringify(data.prototype?.en?.title ?? ''),
+                    JSON.stringify(data.prototype?.fr?.title ?? ''),
+                    JSON.stringify(data.prototype?.en?.description ?? ''),
+                    JSON.stringify(data.prototype?.fr?.description ?? ''),
+                    JSON.stringify(data.prototype?.en?.keywords ?? ''),
+                    JSON.stringify(data.prototype?.fr?.keywords ?? ''),
                     //Move info
-                    data.originalParent ?? '',
-
+                    (data.prototype?.en?.parentPath !== data.live?.en?.parentPath) ? data.live?.en?.parentPath ?? '' : '',
+                    (data.prototype?.en?.parentPath !== data.live?.en?.parentPath) ? data.prototype?.en?.parentPath ?? '' : '',
+                    (data.prototype?.fr?.parentPath !== data.live?.fr?.parentPath) ? data.live?.fr?.parentPath ?? '' : '',
+                    (data.prototype?.fr?.parentPath !== data.live?.fr?.parentPath) ? data.prototype?.fr?.parentPath ?? '' : '',
                 ].join(','));
 
                 if (node.children?.length) {
@@ -839,7 +924,8 @@ export class ProjectStateService {
 
         walk(tree);
 
-        const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
 
         const proj = this.project();
@@ -855,9 +941,10 @@ export class ProjectStateService {
     //For tree testing in Optimal Workshop or similar tools
     exportAsTreeCsv() {
         const tree = this.project().projectData;
+        const lang = this.detectPrimaryLanguage();
 
         // Calculate max depth
-        const getMaxDepth = (nodes: TreeNode<ProjectTreeNodeData>[], depth = 0): number => {
+        const getMaxDepth = (nodes: TreeNode<TreeNodeData>[], depth = 0): number => {
             let maxDepth = depth;
             for (const node of nodes) {
                 if (node.children?.length) {
@@ -886,14 +973,14 @@ export class ProjectStateService {
         rows.push(headers.join(','));
 
         // Walk tree and build rows
-        const walk = (nodes: TreeNode<ProjectTreeNodeData>[], depth: number) => {
+        const walk = (nodes: TreeNode<TreeNodeData>[], depth: number) => {
             for (const node of nodes) {
                 const data = node.data;
                 if (!data) continue;
 
                 // Create a row with empty cells up to current depth
                 const row: string[] = new Array(maxDepth + 1).fill('');
-                row[depth] = `"${data.h1 ?? ''}"`;
+                row[depth] = `"${data.prototype?.[lang].h1 ?? ''}"`;
 
                 rows.push(row.join(','));
 
@@ -905,7 +992,7 @@ export class ProjectStateService {
 
         walk(tree, 0);
 
-        const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob([rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
 
         const proj = this.project();
@@ -1107,8 +1194,10 @@ export class ProjectStateService {
         return breadcrumbs;
     }
 
-    public async refreshNode(node: TreeNode, version: 'live' | 'prototype' | 'baseline', fetchLive = false) {
-        const source = fetchLive ? 'live' : version;
+    public async refreshNode(node: TreeNode, urlVersion: urlVersion, fetchLive = false) {
+        const version = urlVersion.startsWith('proto') ? 'prototype' : urlVersion.startsWith('base') ? 'baseline' : 'live'
+        const source = fetchLive ? 'live' : urlVersion;
+        const sourceType = source.endsWith('UT') ? 'local' : source.endsWith('GH') ? 'github' : 'live'
         const data = node.data as TreeNodeData;
         const { owner, repo, branch } = this.project().github;
         // URLs to fetch content from
@@ -1126,7 +1215,9 @@ export class ProjectStateService {
         // Fetch EN
         if (enUrl) {
             try {
-                const doc = await this.fetchService.fetchContent(enUrl, "both", 2, "none");
+                const doc = sourceType !== 'local'
+                    ? await this.fetchService.fetchContent(enUrl, "both", 2, "none")
+                    : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(enUrl));
                 const pageData = await this.fetchService.extractPageMetadata(doc, enUrl);
 
                 const jsonData = await (async () => {
@@ -1136,7 +1227,13 @@ export class ProjectStateService {
 
                 const parentUrl = pageData.parentPath ? this.fetchService.generateUrl(pageData.parentPath, source, owner, repo) : undefined;
                 const parentDoc = await (async () => {
-                    try { return parentUrl ? await this.fetchService.fetchContent(parentUrl, "both", 2, "none") : undefined; }
+                    try {
+                        return (parentUrl && sourceType !== 'local')
+                            ? await this.fetchService.fetchContent(parentUrl, "both", 2, "none")
+                            : (parentUrl && sourceType !== 'local')
+                                ? this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(parentUrl))
+                                : undefined;
+                    }
                     catch { return undefined; }
                 })();
                 const parentLinks = parentDoc && liveEnUrl ? this.fetchService.getLinks(parentDoc, liveEnUrl) : undefined;
@@ -1188,7 +1285,9 @@ export class ProjectStateService {
         // Fetch FR
         if (frUrl) {
             try {
-                const doc = await this.fetchService.fetchContent(frUrl, "both", 2, "none");
+                const doc = sourceType !== 'local'
+                    ? await this.fetchService.fetchContent(frUrl, "both", 2, "none")
+                    : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(frUrl));
                 const pageData = await this.fetchService.extractPageMetadata(doc, frUrl);
 
                 const jsonData = await (async () => {
@@ -1198,7 +1297,13 @@ export class ProjectStateService {
 
                 const parentUrl = pageData.parentPath ? this.fetchService.generateUrl(pageData.parentPath, source, owner, repo) : undefined
                 const parentDoc = await (async () => {
-                    try { return parentUrl ? await this.fetchService.fetchContent(parentUrl, "both", 2, "none") : undefined; }
+                    try {
+                        return (parentUrl && sourceType !== 'local')
+                            ? await this.fetchService.fetchContent(parentUrl, "both", 2, "none")
+                            : (parentUrl && sourceType !== 'local')
+                                ? this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(parentUrl))
+                                : undefined;
+                    }
                     catch { return undefined; }
                 })();
                 const parentLinks = parentDoc && liveFrUrl ? this.fetchService.getLinks(parentDoc, liveFrUrl) : undefined;
@@ -1262,16 +1367,17 @@ export class ProjectStateService {
         this.setModifiedDate();
     }
 
-    public async refreshAll(nodes: TreeNode[], version: 'live' | 'prototype' | 'baseline', onlyNeverChecked = false, fetchLive = false) {
+    public async refreshAll(nodes: TreeNode[], urlVersion: urlVersion, onlyNeverChecked = false, fetchLive = false) {
+        const version = urlVersion.startsWith('proto') ? 'prototype' : urlVersion.startsWith('base') ? 'baseline' : 'live'
         for (const node of nodes) {
             const needsRefresh = onlyNeverChecked
                 ? (!node.data?.[version]?.en?.lastChecked || !node.data?.[version]?.fr?.lastChecked)
                 : true;
             if (needsRefresh) {
-                await this.refreshNode(node, version, fetchLive);
+                await this.refreshNode(node, urlVersion, fetchLive);
             }
             if (node.children?.length) {
-                await this.refreshAll(node.children, version, onlyNeverChecked, fetchLive);
+                await this.refreshAll(node.children, urlVersion, onlyNeverChecked, fetchLive);
             }
         }
     }
@@ -1289,7 +1395,7 @@ export class ProjectStateService {
     }
 
     //TODO: automate whatever we can!
-    public createNode(parent: TreeNode) {
+    public createNode(parent: TreeNode): TreeNode {
         const date = Date.now().toString();
         const parentPathEN = parent.data?.path.en ?? '';
         const parentPathFR = parent.data?.path.fr ?? '';
@@ -1373,6 +1479,7 @@ export class ProjectStateService {
         parent.children = parent.children ?? [];
         parent.children.push(node);
         this.setProjectTree([...this.getProjectTree()]);
+        return node;
     }
 
     // Get first URL from project to determine primary language
@@ -1395,7 +1502,7 @@ export class ProjectStateService {
             return 'circular';
         }
 
-        const tree = [...this.getProjectTree()];
+        //const tree = [...this.getProjectTree()];
 
         // Remove from current parent
         if (node.parent) {
@@ -1534,8 +1641,9 @@ export class ProjectStateService {
     }
 
     // Remove collapsed or hidden pages
-    getDisplayTree(nodes: TreeNode[], collapsedUrls: Set<string>, hiddenUrls: Set<string>): TreeNode[] {
+    getDisplayTree(nodes: TreeNode[], collapsedUrls: Set<string>, hiddenUrls: Set<string>, navUrls: Map<string, string[]>): TreeNode[] {
         const clonedTree = this.cloneTree(nodes);
+        if (navUrls.size > 0) this.applyNavState(clonedTree, navUrls);
         if (hiddenUrls.size > 0) this.applyHiddenState(clonedTree, hiddenUrls);
         if (collapsedUrls.size > 0) this.applyCollapsedState(clonedTree, collapsedUrls);
         return clonedTree;
@@ -1630,6 +1738,52 @@ export class ProjectStateService {
                 this.applyHiddenState(node.children, hiddenUrls);
             }
         }
+    }
+
+    private applyNavState(nodes: TreeNode[], navUrls: Map<string, string[]>): void {
+        const lang = nodes[0]?.data.lang;
+        const root = this.project().projectData;
+        for (const node of nodes) {
+            const path = node.data?.path[lang];
+            if (navUrls.has(path)) {
+                const linkedPaths = navUrls.get(path)!;
+                const rescueNodes = linkedPaths
+                    .map(linkedPath => this.findNodeByPath(root, linkedPath, lang))
+                    .filter((match): match is TreeNode => !!match)
+                    .map(match => this.duplicateNode(match, node));
+                node.children = [...(node.children ?? []), ...rescueNodes];
+            }
+            if (node.children?.length) {
+                this.applyNavState(node.children, navUrls);
+            }
+        }
+    }
+
+    private duplicateNode(node: TreeNode, newParent: TreeNode): TreeNode {
+        const clone = structuredClone(node); // doesn't share references with original node
+        clone.children = []; // leaves children behind
+        clone.parent = newParent; // sets parent reference
+        const prefixLangData = (langData: LangData, prefix: string) => ({
+            ...langData,
+            h1: `${prefix}${langData.h1}`
+        });
+        clone.data = {
+            ...clone.data,
+            live: {
+                en: prefixLangData(clone.data.live.en, 'Rescue: '),
+                fr: prefixLangData(clone.data.live.fr, 'Sauvetage : ')
+            },
+            baseline: {
+                en: prefixLangData(clone.data.baseline.en, 'Rescue: '),
+                fr: prefixLangData(clone.data.baseline.fr, 'Sauvetage : ')
+            },
+            prototype: {
+                en: prefixLangData(clone.data.prototype.en, 'Rescue: '),
+                fr: prefixLangData(clone.data.prototype.fr, 'Sauvetage : ')
+            },
+            isNavChild: true, // not editable, different colour
+        };
+        return clone;
     }
 
 }

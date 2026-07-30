@@ -16,7 +16,7 @@
         <div class="flex flex-column lg:flex-row justify-content-between align-items-start">
             <div class="flex flex-column">
                 <h2 class="text-2xl my-1">{{ 'exportPages.settings._title' | translate }}</h2>
-                <p class="my-1">{{ 'exportPages.settings.description.' + selectedExportTarget | translate }}</p>
+                <p class="my-1">{{ 'exportPages.settings.description.' + selectedExportVersion | translate }}</p>
                 <div class="flex flex-column xl:flex-row gap-2 xl:gap-5">
                     <!-- Repository Info Row -->
                     <div class="flex flex-row gap-5">
@@ -28,7 +28,7 @@
                         }
                         <div>
                             <label for="repo" class="text-xs font-semibold">{{ 'project.github.label.repo' | translate }}</label>
-                            <p id="repo" class="text-color-secondary text-sm my-0">{{ projectData().github.repo }}{{(selectedExportTarget === 'baseline')?'-baseline':''}}</p>
+                            <p id="repo" class="text-color-secondary text-sm my-0">{{ projectData().github.repo }}{{(selectedExportVersion === 'baseline')?'-baseline':''}}</p>
                         </div>
                         @if(repoType() === 'github'){
                         <div>
@@ -44,12 +44,20 @@
                             <p-selectButton id="export-language" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
                                             [options]="exportLanguageOptions" [(ngModel)]="selectedExportLanguage" (onChange)="compareFiles()" />
                         </div>
+                        <!--Choose export source-->
+                        @if(exportSourceOptions.length > 1 && !prod){
+                        <div class="flex flex-column hover:text-primary">
+                            <label for="export-source" class="text-xs font-semibold xl:my-1">{{ 'exportPages.settings.exportSource' | translate }}</label>
+                            <p-selectButton id="export-source" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
+                                            [options]="exportSourceOptions" [(ngModel)]="selectedExportSource" />
+                        </div>
+                        }
                         <!--Choose export type-->
                         @if (projectData().github.hasBaselineRepo) {
                         <div class="flex flex-column hover:text-primary">
                             <label for="export-type" class="text-xs font-semibold xl:my-1">{{ 'exportPages.settings.exportVersion' | translate }}</label>
                             <p-selectButton id="export-type" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
-                                            [options]="exportTargetOptions" [(ngModel)]="selectedExportTarget" (onChange)="compareFiles()" />
+                                            [options]="exportVersionOptions" [(ngModel)]="selectedExportVersion" (onChange)="compareFiles()" />
                         </div>
                         }
                     </div>
@@ -70,8 +78,8 @@
                     <div class="flex flex-column align-items-stretch mt-3">
                         <label for="export-type" class="text-sm font-semibold">{{ 'exportPages.settings.exportVersion' | translate }}</label>
                         <p-selectButton id="export-type"
-                                        [options]="exportTargetOptions"
-                                        [(ngModel)]="selectedExportTarget"
+                                        [options]="exportVersionOptions"
+                                        [(ngModel)]="selectedExportVersion"
                                         (onChange)="compareFiles()"
                                         allowEmpty="false"
                                         optionLabel="label"
@@ -109,8 +117,8 @@
         <div class="flex flex-column align-items-stretch mt-3">
             <label for="export-type" class="text-sm font-semibold">{{ 'exportPages.settings.exportVersion' | translate }}</label>
             <p-selectButton id="export-type"
-                            [options]="exportTargetOptions"
-                            [(ngModel)]="selectedExportTarget"
+                            [options]="exportVersionOptions"
+                            [(ngModel)]="selectedExportVersion"
                             (onChange)="compareFiles()"
                             allowEmpty="false"
                             optionLabel="label"
@@ -147,7 +155,7 @@
                         {{ projectFileCount() }}
                     </div>
                     <div class="text-600 text-sm">
-                        {{ selectedExportTarget === 'prototype' ? ('exportPages.data.inScope' | translate) : ('exportPages.data.baseline' | translate) }}
+                        {{ selectedExportVersion === 'prototype' ? ('exportPages.data.inScope' | translate) : ('exportPages.data.baseline' | translate) }}
                     </div>
                 </div>
                 <div>
@@ -231,6 +239,14 @@
               [loading]="exportProgress()" />
     }
     @else{
+    @if (projectCache.hasLocal()){
+    <p-message severity="info" styleClass="mt-3">
+        <div class="flex align-items-center gap-2">
+            <i class="pi pi-info-circle font-bold"></i>
+            <span>{{'exportPages.local.warningMessage' | translate}}</span>
+        </div>
+    </p-message>
+    }
     <p-button styleClass="my-3" icon="pi pi-file-export" [label]="'exportPages.export.button.zip' | translate" severity="primary"
               (onClick)="exportToFile()"
               [disabled]="projectFileCount() === 0 || !gitHubData().repo"
@@ -258,9 +274,9 @@
 
 </div>
 
-@if(hasRepoConfig() && repoType() === 'github'){
+@if(hasRepoConfig()){
 <!-- Bookmarklet-->
 <div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0 min-w-min">
-    <aida-bookmarklet />
+    <aida-bookmarklet [mode]="repoType()" />
 </div>
 }

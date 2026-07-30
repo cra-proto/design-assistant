@@ -30,12 +30,12 @@
                 <!--PAGE-->
                 <p-button (click)="onMenuClick($event, node)" icon="pi pi-ellipsis-h" size="small" text class="absolute top-0 right-0 -mt-1 -mr-1" />
                 <div class="h-full" (dragstart)="onDragStart(node)" (dragover)="onDragOver($event, node)" (dragleave)="onDragLeave(node)" (drop)="onDrop()">
-                    <p class="pb-2"><a [class.cursor-move]="selectedView()==='changes'" [href]="selectedLanguage() === 'en' ? node.data.live.en.url : node.data.live.fr.url" target="_blank" [innerHTML]="getH1Display(node)"></a></p>
+                    <p class="pb-2"><a [class.cursor-move]="selectedView()==='changes'" [href]="selectedLanguage() === 'en' ? `https://www.canada.ca/${node.data.path.en}` : `https://www.canada.ca/${node.data.path.fr}`" target="_blank" [innerHTML]="getH1Display(node)" (click)="$event.preventDefault()"></a></p>
                     @if(node.data.collapsedChildren?.length || node.data.hiddenChildrenUrls?.length){
                     <i class="pi pi-eye-slash text-sm text-color-secondary opacity-70 absolute bottom-0 right-0 mb-1 mr-2"
                        [pTooltip]="'iaDiagram.tooltip.hiddenPages' | translate: {number: node.data.collapsedChildren?.length + node.data.hiddenChildrenUrls?.length}" tooltipPosition="top" tooltipStyleClass="z-200"></i>
                     }
-                    @if(!node.data.isCrawled && !node.data.status.isNew && selectedView() === 'changes'){
+                    @if(!node.data.isCrawled && !node.data.isNavChild && !node.data.status.isNew && selectedView() === 'changes'){
                     <p-button icon="pi pi-plus-circle" rounded size="small" text class="absolute left-50 -translate-x-50 bottom-0 -mb-1"
                               (click)="addUrlsService.addChildren(node,primaryLang)" [loading]="addUrlsService.urlState().isAdding" />
                     }

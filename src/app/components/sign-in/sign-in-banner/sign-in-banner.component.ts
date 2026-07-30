@@ -34,18 +34,23 @@ export class SignInBannerComponent implements OnInit {
     username = computed(() => this.exportGitHubService.user()?.name || this.exportGitHubService.user()?.login || 'User');
 
     //Signals
-    projectData = this.projectState.getProject;
     connectionStatus = signal<ConnectionStatus>('checking');
     showDisclaimer = signal<boolean>(false);
     pat = signal<string>(this.exportGitHubService.pat);
     precheckInProgress = signal<boolean>(false);
 
+    private githubData = computed(() => {
+        const project = this.projectState.getProject();
+        return { owner: project.github.owner, repo: project.github.repo };
+    }, {
+        equal: (a, b) => a.owner === b.owner && a.repo === b.repo
+    });
+
     constructor() {
         // Watch for changes to token or repo settings and run validateConnection
         effect(async () => {
             const token = this.exportGitHubService.token();
-            const owner = this.projectData().github.owner;
-            const repo = this.projectData().github.repo;
+            const { owner, repo } = this.githubData(); // computed signal should prevent re-running effect when other project data updates
             // Only run precheck if we have a token and repo configured
             if (token && token.length >= 40 && owner && repo) {
                 untracked(() => this.validateConnection());
@@ -69,8 +74,7 @@ export class SignInBannerComponent implements OnInit {
         this.showDisclaimer.set(false);
 
         const token = this.exportGitHubService.token();
-        const owner = this.projectData().github.owner;
-        const repo = this.projectData().github.repo;
+        const { owner, repo } = this.githubData();
 
         const result = await this.exportGitHubService.validateToken(token, owner, repo);
 

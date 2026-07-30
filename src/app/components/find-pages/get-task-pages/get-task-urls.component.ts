@@ -12,7 +12,7 @@ import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 
 // Services
-import { AirtableService } from '../../../services/airtable.service';
+import { AirtableService } from '../../../services/data-sources/airtable.service';
 import { AddUrlsService } from '../../add-urls/add-urls.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 

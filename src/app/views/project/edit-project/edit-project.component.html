@@ -54,11 +54,43 @@
                           styleClass="secondary-outline w-full min-w-max"
                           (click)="showUrls = true" />
                 <p-drawer [header]="'common.urls' | translate" [(visible)]="showUrls" position="right" styleClass="w-6">
+                    <div class="flex flex-row flex-wrap align-items-end gap-2">
+                        <aida-project-settings [showLang]="true" [allowBoth]="true" [showScope]="true" [showSource]="true" />
+                        <p-button icon="pi pi-copy" severity="primary" outlined styleClass="secondary-outline" size="small"
+                                  (onClick)="copyToClipboard(projectCache.selectedLang())"
+                                  [label]="'common.copyUrls' | translate" />
+                    </div>
+                    @if(projectCache.selectedLang() === 'both'){
+                    <p-table [value]="pairedPagesForTable()">
+                        <ng-template #header>
+                            <tr>
+                                <th>{{'common.language.english' | translate}}
+                                    <p-button icon="pi pi-copy" severity="primary" text rounded
+                                              (onClick)="copyToClipboard('en')"
+                                              [pTooltip]="'common.copyEnglish' | translate" tooltipPosition="top" />
+                                </th>
+                                <th>{{'common.language.french' | translate}}
+                                    <p-button icon="pi pi-copy" severity="primary" text rounded
+                                              (onClick)="copyToClipboard('fr')"
+                                              [pTooltip]="'common.copyFrench' | translate" tooltipPosition="top" />
+                                </th>
+                            </tr>
+                        </ng-template>
+                        <ng-template #body let-pair>
+                            <tr>
+                                <td>{{ pair.en.url }}</td>
+                                <td>{{ pair.fr.url }}</td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                    }
+                    @else {
                     <ul>
-                        @for(url of projectState.getAllPages(lang,'live','inScope'); track url.url){
+                        @for(url of singlePagesForList(); track url.url){
                         <li>{{url.url}}</li>
                         }
                     </ul>
+                    }
                 </p-drawer>
                 <p-button
                           [label]="('common.view' | translate) + ' ' + ('iaDiagram._title' | translate)"

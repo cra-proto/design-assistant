@@ -53,6 +53,8 @@ export interface BreadcrumbNode {
   styleClass?: string;      // for the label (used to set color and/or bold)
 }
 
+export type urlVersion = 'live' | 'protoGH' | 'baseGH' | 'protoUT' | 'baseUT' | 'preview' | 'upd';
+
 @Injectable({ providedIn: 'root' })
 export class FetchService {
   private translate = inject(TranslateService);
@@ -67,8 +69,9 @@ export class FetchService {
     "cra-test-arc.canada.ca",
     "test.canada.ca",
     //"gc-proto.github.io", //CORS error but redirects to test.canada.ca which works
+    "aleblanc3.github.io",
     "canada-preview.adobecqms.net",
-    "aleblanc3.github.io"
+    "cra-ut.isvcs.net"
   ]);
   private getAllowedHosts(mode: "prod" | "proto" | "both"): Set<string> {
     const allowed = new Set<string>();
@@ -78,17 +81,21 @@ export class FetchService {
   }
 
   //Validates URL and checks if it's in the specified allowed host list
-  private validateHost(
-    url: string,
-    hostMode: "prod" | "proto" | "both" | "none"
-  ): string {
+  private validateHost(url: string, hostMode: "prod" | "proto" | "both" | "none"): string {
     url = url.trim();
 
     let hostname: string;
     try {
       const parsedUrl = new URL(url);
-      if (parsedUrl.protocol !== "https:" || /\s/.test(url)) throw new Error();
+      if (/\s/.test(url)) throw new Error();
       hostname = parsedUrl.hostname.toLowerCase();
+      const isUT = hostname === "cra-ut.isvcs.net"
+      if (parsedUrl.protocol !== "https:" && !isUT) throw new Error();
+      //Add nocache parameter to GitHub urls
+      if (hostname !== this.prodHost) {
+        const separator = url.includes('?') ? '&' : '?';
+        url = url + `${separator}nocache=${Date.now()}`;
+      }
     } catch {
       throw new Error(`Invalid URL: ${url}`)
     }
@@ -99,6 +106,7 @@ export class FetchService {
         throw new Error(`Blocked host: ${hostname} blocked for url ${url}`);
       }
     }
+
 
     return url;
   }
@@ -153,7 +161,8 @@ export class FetchService {
     url = this.validateHost(url, hostMode);
     const response = await this.fetchWithRetry(url, "GET", retries, delay, suppressErrors);
     const html = await response.text();
-    return new DOMParser().parseFromString(html, "text/html");
+    const doc = this.cleanupFetch(html);
+    return doc;
   }
 
   public async fetchContentAndStatus(
@@ -166,7 +175,7 @@ export class FetchService {
     url = this.validateHost(url, hostMode);
     const response = await this.fetchWithRetry(url, "GET", retries, delay, suppressErrors);
     const html = await response.text();
-    const doc = new DOMParser().parseFromString(html, "text/html");
+    const doc = this.cleanupFetch(html);
     const finalUrl = response.url || url;
     return { doc, finalUrl };
   }
@@ -184,7 +193,7 @@ export class FetchService {
   }
 
   public async fetchJSON(url: string, fields: string[]): Promise<Record<string, string>> {
-    const date = new Date().toDateString;
+    const date = new Date().toDateString();
     const jsonUrl = url.replace('.html', `/jcr:content.json?nocache=${date}`);
     const result: Record<string, string> = {};
 
@@ -498,13 +507,39 @@ export class FetchService {
     return [...new Set(links)];
   }
 
-  //Get preview content
-  public fetchPreview(targetUrl: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const previewUrl = `https://canada-preview.adobecqms.net/en/revenue-agency/web-services-test/amber/test.html?fetch=${encodeURIComponent(targetUrl)}`;
-      //const previewUrl = `https://aleblanc3.github.io/test/test.html?fetch=${encodeURIComponent(targetUrl)}`;
+  //Fetch same-domain paths
+  public async getPaths(url: string): Promise<string[]> {
+    try {
+      const doc = await this.fetchContent(url, "both", 2);
+      const links = this.getLinks(doc, url);
+      return [...new Set(links.map(link => this.generatePath(link)))];
+    } catch (error) {
+      console.warn(`Failed to fetch links for "${url}"`, error);
+      return [];
+    }
+  }
 
-      const popup = window.open(previewUrl, '_blank', 'width=1,height=1,left=9999,top=9999');
+
+  /**
+   * Fetches page content from a different origin (UT, AEM preview etc.) by relaying
+   * the request through a same-origin proxy page. Only use if {@link fetchContent} is unsuccessful. 
+   *
+   * This function must be triggered by the user or the popup may be blocked resulting in 
+   * inconsistent behaviour for different users.
+   *
+   * @param targetUrl The full URL to fetch. Must be on an allowed origin or this will throw. (see {@link generateQuery} for allowed origins)
+   * @returns a string with the HTML content. For just a status check, use {@link fetchStatusViaProxy} instead.
+   */
+  public fetchViaProxy(targetUrl: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+
+      let fetchQuery: string;
+      let fetchOrigin: string;
+      try {
+        ({ fetchQuery, fetchOrigin } = this.generateQuery(targetUrl, false));
+      } catch (error) { reject(error); return; }
+
+      const popup = window.open(fetchQuery, '_blank', 'width=1,height=1,left=9999,top=9999');
       if (!popup) {
         reject(new Error('Popup blocked. Please allow popups for this site.'));
         return;
@@ -512,8 +547,7 @@ export class FetchService {
       //Listen for response
       const handler = (event: MessageEvent) => {
         // Verify origin
-        if (event.origin !== 'https://canada-preview.adobecqms.net') return;
-        //if (event.origin !== 'https://aleblanc3.github.io') return;
+        if (event.origin !== fetchOrigin) return;
         // Cleanup
         window.removeEventListener('message', handler);
         clearTimeout(timeout);
@@ -535,10 +569,30 @@ export class FetchService {
     });
   }
 
-  fetchPreviewStatus(targetUrl: string): Promise<boolean> {
+  public stringToDoc(html: string): Document {
+    return new DOMParser().parseFromString(html, 'text/html');
+  }
+
+  /**
+   * Fetches page status from a different origin (UT, AEM preview etc.) by relaying
+   * the request through a same-origin proxy page. Only use if {@link fetchStatus} is unsuccessful. 
+   *
+   * This function must be triggered by the user or the popup may be blocked resulting in 
+   * inconsistent behaviour for different users.
+   *
+   * @param targetUrl The full URL to fetch. Must be on an allowed origin or this will throw. (see {@link generateQuery} for allowed origins)
+   * @returns true if the page exists. For a content fetch, use {@link fetchViaProxy} instead.
+   */
+  fetchStatusViaProxy(targetUrl: string): Promise<boolean> {
     return new Promise((resolve) => {
-      const previewUrl = `https://canada-preview.adobecqms.net/en/revenue-agency/web-services-test/amber/test.html?fetch=${encodeURIComponent(targetUrl)}&check=true`;
-      const popup = window.open(previewUrl, '_blank', 'width=1,height=1,left=9999,top=9999');
+
+      let fetchQuery: string;
+      let fetchOrigin: string;
+      try {
+        ({ fetchQuery, fetchOrigin } = this.generateQuery(targetUrl, true));
+      } catch { resolve(false); return; }
+
+      const popup = window.open(fetchQuery, '_blank', 'width=1,height=1,left=9999,top=9999');
 
       if (!popup) {
         resolve(false);
@@ -546,7 +600,7 @@ export class FetchService {
       }
 
       const handler = (event: MessageEvent) => {
-        if (event.origin !== 'https://canada-preview.adobecqms.net') return;
+        if (event.origin !== fetchOrigin) return;
 
         window.removeEventListener('message', handler);
         clearTimeout(timeout);
@@ -565,26 +619,29 @@ export class FetchService {
     });
   }
 
-  // Generate other URLs from Canada.ca URL
-  generateOtherUrl(productionUrl: string, type: 'prototype' | 'baseline' | 'preview' = 'prototype', owner: string, repo: string): string {
-    if (!productionUrl || !owner || !repo) { return ''; }
-    const isCRAproto = owner === 'cra-proto';
-    const isGCproto = owner === 'gc-proto';
-    try {
-      const url = new URL(productionUrl);
-      const path = url.pathname; // e.g., /en/revenue-agency/services/tax/individuals.html
-      if (type === 'preview') {
-        return `https://canada-preview.adobecqms.net${path}`
-      } else {
-        const repoSuffix = type === 'baseline' ? `${repo}-baseline` : repo;
-        let prototypeUrl = `https://${owner}.github.io/${repoSuffix}${path}`;
-        if (isCRAproto) { prototypeUrl = `https://cra-test-arc.canada.ca/${repoSuffix}${path}` }
-        else if (isGCproto) { prototypeUrl = `https://test.canada.ca/${repoSuffix}${path}` }
-        return prototypeUrl;
-      }
-    } catch (error) {
-      console.error('Failed to generate prototype URL:', error);
-      return '';
+  /**
+   * Generates the url query string needed for {@link fetchViaProxy} and {@link fetchStatusViaProxy}
+   *
+   * If you want to enable a new origin, add the origin and the same-origin proxy page with proxy.js to the paths records.
+   *
+   * @param targetUrl The full URL for the query.
+   * @param statusCheck False by default. Set it to true to add an optional parameter to limit the fetch to page status and no content.
+   * @returns fetchQuery (The proxy page with your target url as the query) and fetchOrigin (the origin we are fetching from)
+   * @throws Throws if targetUrl is not an allowed origin (see paths variable)
+   */
+  private generateQuery(targetUrl: string, statusCheck = false): { fetchQuery: string; fetchOrigin: string } {
+    const targetOrigin = new URL(targetUrl).origin;
+    const paths: Record<string, string> = {
+      "https://canada-preview.adobecqms.net": "https://canada-preview.adobecqms.net/en/revenue-agency/web-services-test/amber/test.html?fetch=",
+      "http://cra-ut.isvcs.net": "http://cra-ut.isvcs.net/test/aida/_Tools/fetch.html?fetch=",
+    };
+    const fetchUrl = paths[targetOrigin];
+    if (!fetchUrl) {
+      throw new Error(`Unhandled target URL: ${targetUrl}`);
+    }
+    return {
+      fetchQuery: `${fetchUrl}${encodeURIComponent(targetUrl)}&check=${statusCheck}`,
+      fetchOrigin: targetOrigin,
     }
   }
 
@@ -634,20 +691,21 @@ export class FetchService {
   }
 
   //Generate url for specific version
-  generateUrl(path: string, version: 'live' | 'prototype' | 'baseline' | 'preview' | 'ut' | 'ut-base' | 'upd' = 'live', owner?: string, repo?: string): string {
+
+  generateUrl(path: string, version: urlVersion = 'live', owner?: string, repo?: string): string {
     const repoDomain = owner === 'cra-proto' ? 'https://cra-test-arc.canada.ca' : owner === 'gc-proto' ? 'https://test.canada.ca' : `https://${owner}.github.io`
     switch (version) {
       case 'live':
         return `https://www.canada.ca/${path}`
-      case 'prototype':
+      case 'protoGH':
         return `${repoDomain}/${repo}/${path}`
-      case 'baseline':
+      case 'baseGH':
         return `${repoDomain}/${repo}-baseline/${path}`
       case 'preview':
         return `https://canada-preview.adobecqms.net/${path}`
-      case 'ut':
+      case 'protoUT':
         return `http://cra-ut.isvcs.net/test/aida/${repo}/${path}`
-      case 'ut-base':
+      case 'baseUT':
         return `http://cra-ut.isvcs.net/test/aida/${repo}-baseline/${path}`
       case 'upd': {
         const currentLang = this.translate.currentLang?.startsWith('fr') ? '&lang=FR' : '';
@@ -663,6 +721,23 @@ export class FetchService {
     if (url.includes('/en/') || url.endsWith('en.html') || url.startsWith('en/')) return 'en';
     else if (url.includes('/fr/') || url.endsWith('fr.html') || url.startsWith('fr/')) return 'fr';
     else return null
+  }
+
+  /**
+    * Removes malformed data-rte elements from fetched content before it causes parsing errors
+    */
+  cleanupFetch(html: string): Document {
+    const clean = html
+      .replace(/<data-rte-class="[^"]*">/g, '')
+      .replace(/<\/data-rte-class="[^"]*">/g, '')
+    const doc = new DOMParser().parseFromString(clean, 'text/html');
+    doc.querySelectorAll('[data-rte-class]').forEach(el => {
+      while (el.firstChild) {
+        el.parentNode?.insertBefore(el.firstChild, el);
+      }
+      el.remove();
+    });
+    return doc;
   }
 
 }

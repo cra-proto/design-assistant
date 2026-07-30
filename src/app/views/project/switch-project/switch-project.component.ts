@@ -37,7 +37,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { SetupProjectComponent } from '../../../components/setup-project/setup-project.component';
 import { AddCollaboratorsComponent } from '../../../components/add-collaborators/add-collaborators.component';
 import { GitHubAuthService } from '../../../services/github/github-auth.service';
-import { CollaboratorService } from '../../../services/collaborator.service';
+import { CollaboratorService } from '../../../services/github/collaborator.service';
 
 //Storage
 import { ProjectStateService } from '../../../services/project-state.service';
@@ -269,7 +269,7 @@ export class SwitchProjectComponent implements OnInit {
         this.projectState.setProject(project); // Update the project state
         //Refresh live data if project is missing properties (for patching legacy data)
         await this.projectState.refreshAll(project.projectData, "live", true);
-        await this.projectState.refreshAll(project.projectData, "baseline", true, true);
+        await this.projectState.refreshAll(project.projectData, "baseGH", true, true);
       } else {
         console.error('Failed to load project'); // Show error message
       }

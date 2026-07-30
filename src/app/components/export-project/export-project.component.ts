@@ -9,6 +9,7 @@ import { MenuItem } from 'primeng/api';
 
 //Services
 import { ProjectStateService } from '../../services/project-state.service';
+import { ProjectCacheService } from '../../services/project-cache.service';
 
 @Component({
     selector: 'aida-export-project',
@@ -22,6 +23,7 @@ import { ProjectStateService } from '../../services/project-state.service';
 export class ExportProjectComponent {
     private translate = inject(TranslateService)
     private projectState = inject(ProjectStateService);
+    private projectCache = inject(ProjectCacheService);
     private router = inject(Router);
 
 
@@ -32,6 +34,7 @@ export class ExportProjectComponent {
                 icon: 'pi pi-github',
                 command: () => {
                     this.projectState.getProject().repoType = 'github';
+                    this.projectCache.checkLocalStatus();
                     this.router.navigate(['/export-pages']);
                 },
             },
@@ -40,6 +43,7 @@ export class ExportProjectComponent {
                 icon: 'pi pi-link',
                 command: () => {
                     this.projectState.getProject().repoType = 'local';
+                    this.projectCache.checkLocalStatus();
                     this.router.navigate(['/export-pages']);
                 },
             },

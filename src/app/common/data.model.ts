@@ -213,6 +213,7 @@ export interface TreeNodeData {
     //Hidden tracking info
     isContainer: boolean;            // True if page is a container page (used to group together pages for AI combine/split actions)
     isCrawled: boolean;              // True after crawling for children
+    isNavChild?: boolean;            // True for duplicate nodes created to reveal navigational children in IA diagram
 }
 
 // New page status interface

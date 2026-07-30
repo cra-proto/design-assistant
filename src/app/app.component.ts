@@ -11,7 +11,7 @@ import { PrimeNG } from 'primeng/config';
 import { ProjectStorageService } from './services/storage/project-storage.service';
 import { ProjectStateService } from './services/project-state.service';
 import { ExportGitHubService } from './services/github/export-github.service';
-import { CollaboratorService } from './services/collaborator.service';
+import { CollaboratorService } from './services/github/collaborator.service';
 import { CloudStorageService } from './services/storage/cloud-storage.service';
 import { UserSettingsService } from './services/user-settings.service';
 import { UsageService } from './services/usage.service';
@@ -108,7 +108,7 @@ export class AppComponent implements OnInit {
         console.log(`Project loaded successfully: ${active.key}`)
         //Refresh live data if project is missing properties (for patching legacy data)
         await this.projectState.refreshAll(project.projectData, "live", true);
-        await this.projectState.refreshAll(project.projectData, "baseline", true, true);
+        await this.projectState.refreshAll(project.projectData, "baseGH", true, true);
       } else {
         console.error(`Failed to load project: ${active.key}`); // Show error message
         this.projectStorageService.clearActiveProject();

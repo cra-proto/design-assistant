@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand, ScanCommandOutput, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -95,20 +95,28 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
         const userOrg = validateOrg(event.queryStringParameters?.org);
         console.log('Listing projects from table:', TABLE_NAME, 'for org:', userOrg);
 
-        // Scan for all public projects
-        const result = await docClient.send(new ScanCommand({
-            TableName: TABLE_NAME,
-            ProjectionExpression: 'id, #k, projectName, lastModified, phase, inScopePages, collaborators, github, #org',
-            ExpressionAttributeNames: {
-                '#k': 'key',
-                '#org': 'org',
-            }
-        }));
+        let items: Record<string, any>[] = [];
+        let lastEvaluatedKey: Record<string, any> | undefined = undefined;
 
-        console.log('Found projects:', result.Items?.length || 0);
+        // Scan for all public projects
+        do {
+            const result: ScanCommandOutput = await docClient.send(new ScanCommand({
+                TableName: TABLE_NAME,
+                ProjectionExpression: 'id, #k, projectName, lastModified, phase, inScopePages, collaborators, github, repoType, #org',
+                ExpressionAttributeNames: {
+                    '#k': 'key',
+                    '#org': 'org',
+                },
+                ExclusiveStartKey: lastEvaluatedKey
+            }));
+            items = items.concat(result.Items || []);
+            lastEvaluatedKey = result.LastEvaluatedKey;
+        } while (lastEvaluatedKey);
+
+        console.log('Found projects:', items.length || 0);
 
         // Filter projects based on org
-        const filteredItems = result.Items?.filter(item => {
+        const filteredItems = items.filter(item => {
             const projectOrg = item.org || 'DEFAULT';
 
             // ADMIN sees everything

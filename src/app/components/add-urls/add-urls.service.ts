@@ -4,9 +4,9 @@ import { TreeNode } from 'primeng/api';
 // Services
 import { FetchService } from '../../services/fetch.service';
 import { ProjectStateService } from '../../services/project-state.service';
-import { UpdService } from '../../services/upd.service';
-import { AirtableService } from '../../services/airtable.service';
-import { VanityService } from '../../services/vanity.service';
+import { UpdService } from '../../services/data-sources/upd.service';
+import { AirtableService } from '../../services/data-sources/airtable.service';
+import { VanityService } from '../../services/data-sources/vanity.service';
 import { PageActions, LangData, PageTemplate } from '../../common/data.model';
 import { ProjectStorageService } from '../../services/storage/project-storage.service';
 import { TreeNodeStyleService } from '../../services/treenode-style.service';

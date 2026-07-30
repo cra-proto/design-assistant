@@ -15,7 +15,7 @@ import { MessageModule } from 'primeng/message';
 
 //Custom components and services
 import { ProjectStateService } from '../../services/project-state.service';
-import { CollaboratorService } from '../../services/collaborator.service';
+import { CollaboratorService } from '../../services/github/collaborator.service';
 import { ProjectPhase } from '../../common/data.model';
 
 @Component({

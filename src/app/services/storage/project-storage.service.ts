@@ -293,6 +293,16 @@ export class ProjectStorageService {
                 return null;
             }
 
+            // Add date references back
+            project = {
+                ...project,
+                created: new Date(project.created),
+                lastModified: new Date(project.lastModified),
+                lastSaved: new Date(project.lastSaved),
+                lastExported: project.lastExported ? new Date(project.lastExported) : null,
+                lastDownloaded: project.lastDownloaded ? new Date(project.lastDownloaded) : null,
+            };
+
             // Add parent references back
             this.rebuildParents(project.projectData, undefined)
 

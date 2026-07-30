@@ -21,7 +21,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 //Services
 import { ExportGitHubService } from '../../../services/github/export-github.service';
 import { ProjectStateService } from '../../../services/project-state.service';
-import { FetchService } from '../../../services/fetch.service';
+import { FetchService, urlVersion } from '../../../services/fetch.service';
 import { GitHubAuthService } from '../../../services/github/github-auth.service';
 import { UsageService } from '../../../services/usage.service';
 import { HtmlNormalizationService } from '../../../services/html-normalization.service';
@@ -31,8 +31,9 @@ import { SetupRepoComponent } from '../../../components/setup-repo/setup-repo.co
 import { SignInBannerComponent } from '../../../components/sign-in/sign-in-banner/sign-in-banner.component';
 import { BookmarkletComponent } from '../../../components/bookmarklet/bookmarklet.component';
 
-import { CDTS_TEMPLATE_ENG, CDTS_TEMPLATE_FRA, EXIT_PAGE_TEMPLATE_ENG, EXIT_PAGE_TEMPLATE_FRA, LINK_DETOUR_JS } from '../../../common/cdts.template';
+import { CDTS_TEMPLATE_ENG, CDTS_TEMPLATE_FRA, EXIT_PAGE_TEMPLATE_ENG, EXIT_PAGE_TEMPLATE_FRA, INDEX_PAGE_TEMPLATE_ENG, INDEX_PAGE_TEMPLATE_FRA, LINK_DETOUR_JS } from '../../../common/cdts.template';
 import { environment } from '../../../../environments/environment';
+import { ProjectCacheService } from '../../../services/project-cache.service';
 
 enum ExportStatus {
   ExportNew = 'exportPages.export.status.addToGitHub', // Export - New page
@@ -81,16 +82,18 @@ interface ExportMessage {
   styles: ``
 })
 export class ExportComponent implements OnInit {
-  private projectState = inject(ProjectStateService);
+  public projectState = inject(ProjectStateService);
   public authService = inject(GitHubAuthService);
   public exportGitHubService = inject(ExportGitHubService);
   private fetchService = inject(FetchService);
   public translate = inject(TranslateService);
   private router = inject(Router)
   private usageService = inject(UsageService);
-  private htmlNormalizationService = inject(HtmlNormalizationService)
+  private htmlNormalizationService = inject(HtmlNormalizationService);
+  public projectCache = inject(ProjectCacheService);
 
   defaultOrg = environment.defaultOrg;
+  prod = environment.production
   readonly ExportStatus = ExportStatus;
 
   //Signals
@@ -99,6 +102,7 @@ export class ExportComponent implements OnInit {
   filesTable = signal<FileStatus[]>([]);
   exportMessage = signal<ExportMessage | null>(null);
   repoType = signal<'local' | 'github'>(this.projectData().repoType);
+
 
   markForTranslation() {
     marker('exportPages.settings.description.prototype');
@@ -120,8 +124,8 @@ export class ExportComponent implements OnInit {
     // Watch for changes to repo settings and run compareFiles()
     effect(async () => {
       void this.exportGitHubService.token(); // track signal
-      const owner = this.projectData().github.owner;
-      const repo = this.projectData().github.repo;
+      void this.projectData().github.owner; // track signal
+      void this.projectData().github.repo; // track signal
       const repoType = this.projectData().repoType;
       //Update repoType signal
       if (repoType) {
@@ -147,6 +151,11 @@ export class ExportComponent implements OnInit {
   // Initialize table and connection status
   async ngOnInit() {
     //await this.compareFiles();
+    if (this.projectData().lastExported) {
+      const version = this.selectedExportVersion === 'prototype' ? 'protoGH' : 'baseGH'
+      const indexUrl = this.fetchService.generateUrl("index.html", version, this.projectData().github.owner, this.projectData().github.repo);
+      this.projectCache.hasGitHub.set((await this.fetchService.fetchStatus(indexUrl, "proto", 2)).ok);
+    }
   }
 
   // Template visiblity controls
@@ -169,26 +178,57 @@ export class ExportComponent implements OnInit {
     else { return [frLabel, enLabel, bothLabel] }
   }
 
-  // Export target options
-  selectedExportTarget: 'prototype' | 'baseline' = 'prototype';
+  // Export version options
+  selectedExportVersion: 'prototype' | 'baseline' = 'prototype';
 
-  get exportTargetOptions() {
+  get exportVersionOptions() {
     return [
       { label: this.translate.instant('common.version.prototype'), value: 'prototype' },
       { label: this.translate.instant('common.version.baseline'), value: 'baseline' }
     ];
   }
 
+  // Export source options
+  selectedExportSource: 'github' | 'local' | 'live' = 'live';
+
+  get exportSourceOptions() {
+    const options = [{ label: this.translate.instant('common.version.canada'), value: 'live' }];
+    if (this.projectCache.hasGitHub()) {
+      options.push({ label: this.translate.instant('common.version.prototype.github'), value: 'github' })
+    }
+    if (this.projectCache.hasLocal()) {
+      options.push({ label: this.translate.instant('common.version.prototype.local'), value: 'local' })
+    }
+    return options;
+  }
+
+  //Export context based on user selections above
+  get exportContext() {
+    const source: urlVersion = this.selectedExportSource === 'live'
+      ? 'live'
+      : this.selectedExportSource === 'local'
+        ? (this.selectedExportVersion === 'prototype' ? 'protoUT' : 'baseUT')
+        : (this.selectedExportVersion === 'prototype' ? 'protoGH' : 'baseGH');
+
+    const repo = this.selectedExportVersion === 'prototype'
+      ? this.gitHubData().repo
+      : `${this.gitHubData().repo}-baseline`;
+
+    const scope: 'inScope' | 'all' = this.selectedExportVersion === 'prototype' ? 'inScope' : 'all';
+
+    return { source, repo, scope };
+  };
+
   // Open targeted GitHub repo
   openRepo() {
     let modifier = '';
-    if (this.selectedExportTarget === 'baseline') { modifier = '-baseline'; };
+    if (this.selectedExportVersion === 'baseline') { modifier = '-baseline'; };
     const url = `https://github.com/${this.projectData().github.owner}/${this.projectData().github.repo}${modifier}`;
     window.open(url, '_blank');
   }
 
   //CDTS template files
-  cdtsFiles = ['source/data/exclude-redirect-links.json', 'source/exit-intent-e.html', 'source/exit-intent-f.html']
+  cdtsFiles = ['source/data/exclude-redirect-links.json', 'source/scripts/external-link-detour.js', 'source/exit-intent-e.html', 'source/exit-intent-f.html', 'index.html']
   //Jekyll template files
   jekyllUpdateFiles = ["404.html", "_includes/*", "index.html", "source/data/exclude-redirect-links.json", "source/exit-intent-e.html", "source/exit-intent-f.html"];
   jekyllSkipFiles = ["_config.yml", "README.md", "robots.txt"];
@@ -197,29 +237,28 @@ export class ExportComponent implements OnInit {
   private compareFilesRequestId = 0;
   async compareFiles() {
     const requestId = ++this.compareFilesRequestId
-    if (!this.repoType()) this.projectData().repoType ? this.repoType.set(this.projectData().repoType) : this.repoType.set("github");
+    if (!this.repoType()) {
+      this.repoType.set(this.projectData().repoType ?? "github");
+    }
 
     const lang = this.selectedExportLanguage;
-    const scope = this.selectedExportTarget === 'prototype' ? 'inScope' : 'all';
+    const { source, repo, scope } = this.exportContext;
 
-    const enPages = this.projectState.getAllPages("en", this.selectedExportTarget, scope).map(p => p.path);
-    const frPages = this.projectState.getAllPages("fr", this.selectedExportTarget, scope).map(p => p.path);
+    const enPages = this.projectState.getAllPages("en", source, scope).map(p => p.path);
+    const frPages = this.projectState.getAllPages("fr", source, scope).map(p => p.path);
 
-    const projectPaths = [
-      ...(lang === 'en' ? enPages : lang === 'fr' ? frPages : [...enPages, ...frPages]),
-      ...this.cdtsFiles
-    ];
+    const projectPaths = [...(lang === 'en' ? enPages : lang === 'fr' ? frPages : [...enPages, ...frPages])];
 
     // Local mode
     if (this.repoType() === 'local') {
       if (requestId !== this.compareFilesRequestId) return;
-      this.filesTable.set(projectPaths.map(path => ({ path, status: ExportStatus.ExportNew })));
+      const localPaths = [...projectPaths, ...this.cdtsFiles];
+      this.filesTable.set(localPaths.map(path => ({ path, status: ExportStatus.ExportNew })));
       return;
     }
 
     // GitHub mode
     const owner = this.gitHubData().owner;
-    const repo = this.selectedExportTarget === 'prototype' ? this.gitHubData().repo : `${this.gitHubData().repo}-baseline`;
     const branch = this.gitHubData().branch;
     const token = this.exportGitHubService.token();
 
@@ -294,7 +333,7 @@ export class ExportComponent implements OnInit {
         if (isAutoUpdateFile) status = ExportStatus.ExportOverwrite;
         else if (isAlwaysSkipFile) status = ExportStatus.SkipOverwrite;
         else {
-          const storedSha = pathLang ? node?.data?.[this.selectedExportTarget][pathLang].githubSha : null;
+          const storedSha = pathLang ? node?.data?.[this.selectedExportVersion][pathLang].githubSha : null;
           const githubSha = filteredGithubPages.get(path);
           status = storedSha && storedSha === githubSha
             ? ExportStatus.ExportOverwrite  // SHA matches - refresh content
@@ -436,15 +475,15 @@ export class ExportComponent implements OnInit {
     const JSZip = (await import('jszip')).default;
     const zip = new JSZip();
 
-    const repo = this.selectedExportTarget === 'prototype' ? this.gitHubData().repo : `${this.gitHubData().repo}-baseline`;
-    const scope = this.selectedExportTarget === 'prototype' ? "inScope" : "all"
+    const { source, repo, scope } = this.exportContext;
     const date = new Date().toISOString().split('T')[0];
+    const aidaLang = this.translate.currentLang.startsWith('fr') ? 'fr' : 'en';
 
     const projectPaths = this.projectTable().filter(item => item.status === ExportStatus.ExportNew || item.status === ExportStatus.ExportOverwrite).map(item => item.path);
     const templatePaths = this.templateTable().filter(item => item.status === ExportStatus.ExportNew || item.status === ExportStatus.ExportOverwrite).map(item => item.path);
 
     for (const path of projectPaths) {
-      const url = this.fetchService.generateUrl(path, "live");
+      const url = this.fetchService.generateUrl(path, source, this.gitHubData().owner, repo); //Source for fetching content
       const lang = this.fetchService.getLang(url);
       if (!lang) continue;
       const node = this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, lang)
@@ -452,7 +491,7 @@ export class ExportComponent implements OnInit {
       const h1 = node?.data.prototype[lang].h1;
       const doubleH1 = node?.data.prototype[lang].doubleH1;
 
-      //Medadata
+      //Metadata
       const title = doubleH1 ? `${h1}: ${doubleH1}` : h1
       const description = node?.data.prototype[lang].description;
       const keywords = node?.data.prototype[lang].keywords;
@@ -470,32 +509,63 @@ export class ExportComponent implements OnInit {
 
       //Content (TODO: subway templates)
       //const template = node?.data.prototype[lang].template;
-      const doc = await this.fetchService.fetchContent(url, "both");
-      const { content, styles, scripts } = await this.htmlNormalizationService.cleanContentForCdts(doc);
 
-      const html = this.buildCdtsPage(lang === 'fr' ? CDTS_TEMPLATE_FRA : CDTS_TEMPLATE_ENG, {
-        TITLE: title ?? '',
-        DESCRIPTION: description ?? '',
-        KEYWORDS: keywords ?? '',
-        ROBOTS: robots,
-        ENGLISH: enUrl ?? '',
-        FRENCH: frUrl ?? '',
-        BREADCRUMBS: breadcrumbs,
-        HEADER: header ?? '',
-        CONTENT: content,
-        MODIFIED: date,
-        STYLES: styles,
-        SCRIPTS: scripts,
-        REPO: repo,
-        DEPTH: depth
-      });
+      //Defaults for new or unavailable pages
+      const isNewPage = node?.data.status.isNew ?? false;
+      let content = '';
+      let styles = '';
+      let scripts = '';
+      let subject = '';
+      let altLangPage = '';
 
-      zip.file(`${repo}/${path}`, html);
+      try {
+        const retries = isNewPage ? 1 : 2;
+        const doc = !source.endsWith("UT")
+          ? await this.fetchService.fetchContent(url, "both", retries)
+          : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(url));
+        if (!doc) {
+          throw new Error(`No document returned for ${url}`);
+        }
+        ({ content, styles, scripts } = await this.htmlNormalizationService.cleanContentForCdts(doc));
+        subject = (doc.querySelector('meta[name="dcterms.subject"]') as HTMLMetaElement)?.content.trim() || "";
+        altLangPage = Array.from(doc.querySelectorAll<HTMLLinkElement>('link[rel="alternate"]')).find(link => link.getAttribute("hreflang") !== lang)?.href || "";
+      } catch (error) {
+        if (isNewPage) {
+          console.warn(`New page "${path}" is 404. Creating blank template.`, error);
+        } else {
+          console.error(`Existing page "${path}" is unexpectedly 404. Creating blank template instead.`, error);
+        }
+      }
+
+      try {
+        const html = this.buildCdtsPage(lang === 'fr' ? CDTS_TEMPLATE_FRA : CDTS_TEMPLATE_ENG, {
+          TITLE: title ?? '',
+          DESCRIPTION: description ?? '',
+          KEYWORDS: keywords ?? '',
+          SUBJECT: subject ?? '',
+          ALTLINK: altLangPage ?? '',
+          ROBOTS: robots,
+          ENGLISH: enUrl ?? '',
+          FRENCH: frUrl ?? '',
+          BREADCRUMBS: breadcrumbs,
+          HEADER: header ?? '',
+          CONTENT: content,
+          MODIFIED: date,
+          STYLES: styles,
+          SCRIPTS: scripts,
+          REPO: repo,
+          DEPTH: depth
+        });
+        zip.file(`${repo}/${path}`, html);
+      } catch (error) {
+        console.error(`Failed to zip page "${path}":`, error);
+      }
     }
 
     //Redirect files
     for (const path of templatePaths) {
       if (path === this.cdtsFiles[0]) {
+        //Collect page paths for redirects
         let allPagePaths;
         if (this.selectedExportLanguage === "both") {
           const enPages = this.projectState.getAllPages("en", "live", scope).map(page => page.path)
@@ -511,49 +581,171 @@ export class ExportComponent implements OnInit {
         const redirectsJson = JSON.stringify(redirects, null, 2);
         zip.file(`${repo}/${path}`, redirectsJson)
       }
-      else {
-        const html = this.buildCdtsPage(path === this.cdtsFiles[1] ? EXIT_PAGE_TEMPLATE_ENG : EXIT_PAGE_TEMPLATE_FRA, {
+      else if (path === this.cdtsFiles[1]) {
+        const html = this.buildCdtsPage(LINK_DETOUR_JS, {});
+        zip.file(`${repo}/${path}`, html);
+      }
+      else if (path === this.cdtsFiles[2] || path === this.cdtsFiles[3]) {
+        const html = this.buildCdtsPage(path === this.cdtsFiles[2] ? EXIT_PAGE_TEMPLATE_ENG : EXIT_PAGE_TEMPLATE_FRA, {
           MODIFIED: date,
           REPO: repo
         });
         zip.file(`${repo}/${path}`, html);
       }
-      //TODO: Check if this is needed for UT or not. Might be able to link directly to file.
-      const html = this.buildCdtsPage(LINK_DETOUR_JS, {});
-      zip.file(`${repo}/source/scripts/external-link-detour.js`, html);
+      else if (path === this.cdtsFiles[4]) {
+        const html = this.buildCdtsPage(aidaLang === 'en' ? INDEX_PAGE_TEMPLATE_ENG : INDEX_PAGE_TEMPLATE_FRA, {
+          MODIFIED: date,
+          CONTENT: projectPaths ? this.buildCdtsIndex(new Set(projectPaths)) : '',
+          REPO: repo
+        });
+        //console.log(await this.htmlNormalizationService.formatHtml(html))
+        zip.file(`${repo}/${path}`, await this.htmlNormalizationService.formatHtml(html));
+      }
+      else console.warn("Unhandled template file")
     }
+    //Update date
+    this.projectState.setDownloadDate();
     //Track exports
     const pageCountEN = projectPaths.filter(p => p.startsWith('en/') || p === 'en.html').length;
     const pageCountFR = projectPaths.filter(p => p.startsWith('fr/') || p === 'fr.html').length;
-    this.usageService.trackExport(this.projectData().id, this.projectData().org ?? 'DEFAULT', this.projectData().storageType, this.projectData().repoType, `${repo}`, this.selectedExportTarget, pageCountEN, pageCountFR);
+    this.usageService.trackExport(this.projectData().id, this.projectData().org ?? 'DEFAULT', this.projectData().storageType, this.projectData().repoType, `${repo}`, this.selectedExportVersion, pageCountEN, pageCountFR);
     //Download zip file
     const blob = await zip.generateAsync({ type: 'blob' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `aida-html-export-${new Date().toISOString().split('T')[0]}.zip`;
     a.click();
-    URL.revokeObjectURL(a.href);
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
   buildCdtsPage(template: string, vars: Record<string, string>): string {
     return Object.entries(vars).reduce(
-      (html, [key, value]) => html.replaceAll(`{{${key}}}`, value),
+      (html, [key, value]) => html.replaceAll(`{{${key}}}`, () => value),
       template
     );
+  }
+
+  //Create index page for CDTS template
+  buildCdtsIndex(paths: Set<string>) {
+    //Include GitHub link if previously exported
+    const showGithubLink = !!this.projectState.getProject().lastExported && !!this.gitHubData().owner && !!this.gitHubData().repo;
+    const { repo, scope } = this.exportContext;
+    const githubLinkHtml = showGithubLink
+      ? `<div class="mrgn-tp-md">
+            <div class="row">
+                <ul class="toc lst-spcd col-md-12">
+                    <li class="col-md-4 col-sm-6"><a class="list-group-item active" href="https://github.com/${this.gitHubData().owner}/${repo}" target="_blank">${this.translate.instant('project.github._title')}</a></li>
+                </ul>
+            </div>
+         </div>\n`
+      : '';
+    //Include GitHub usernames if available
+    const collaboratorNames = !!this.projectData().collaborators?.length;
+    const collaboratorHtml = collaboratorNames
+      ? `<section class="gc-contributors">
+         <h2 class="h3">${this.translate.instant('collaborators.project')}</h2>
+         <ul>${this.projectData().collaborators.map(collab => ` <li> ${collab.login}</li>`).join('')}</ul>
+         </section>\n`
+      : '';
+    //EXPORTED_BY will be filled out via .ps1 extraction tool
+    const exporterHtml = `<p class="gc-byline">${this.translate.instant('exportPages.exportedBy')} {{EXPORTED_BY}}</p>`
+    //Paired pages
+    const exportedPairs = this.projectState.getPairedPages("live", scope).filter(pair => paths.has(pair.en.path) || paths.has(pair.fr.path));
+    //Labels
+    const viewCanada = this.translate.instant('common.viewOnCanada');
+    const viewUPD = this.translate.instant('common.viewOnUPD');
+    //const viewAIDA = this.translate.instant('common.viewOnAIDA');
+    const ungroupedCaption = this.translate.instant('exportPages.ungroupedPages');
+
+    //Table status map
+    const statusClassMap: Record<string, string> = {
+      isBaseline: ' class="active"',
+      isNew: ' class="success"',
+      isROT: ' class="danger"',
+      isMoved: ' class="warning"',
+    };
+
+    //Table headers
+    const headers = this.selectedExportLanguage === 'en'
+      ? [this.translate.instant('common.language.englishPages')]
+      : this.selectedExportLanguage === 'fr'
+        ? [this.translate.instant('common.language.frenchPages')]
+        : [this.translate.instant('common.language.englishPages'), this.translate.instant('common.language.frenchPages')];
+    const headerHtml = headers.map(h => `<th>${h}</th>`).join('\n                  ');
+
+    //Row builder for a set of pairs
+    const buildRows = (pairsList: typeof exportedPairs) => pairsList.map(pair => {
+      const rowStatus = statusClassMap[pair.status] ?? '';
+      const enCell = paths.has(pair.en.path)
+        ? `<a href="${this.fetchService.generateUrl(pair.en.path, "protoUT", this.gitHubData().owner, repo)}" target="_blank"
+              data-versions='[
+                {"label": "${viewCanada}", "href":"${pair.en.url}"},
+                {"label": "${viewUPD}", "href":"${this.fetchService.generateUrl(pair.en.path, "upd")}"}
+              ]'>${pair.en.label ?? pair.en.path}</a>`
+        : `<i class="fa fa-minus"></i>`;
+      const frCell = paths.has(pair.fr.path)
+        ? `<a href="${this.fetchService.generateUrl(pair.fr.path, "protoUT", this.gitHubData().owner, repo)}" target="_blank"
+              data-versions='[
+                {"label": "${viewCanada}", "href":"${pair.fr.url}"},
+                {"label": "${viewUPD}", "href":"${this.fetchService.generateUrl(pair.fr.path, "upd")}"}
+              ]'>${pair.fr.label ?? pair.fr.path}</a>`
+        : `<i class="fa fa-minus"></i>`;
+      const cells = this.selectedExportLanguage === 'en'
+        ? [enCell]
+        : this.selectedExportLanguage === 'fr'
+          ? [frCell]
+          : [enCell, frCell];
+      return `
+        <tr>
+            ${cells.map(cell => `<td${rowStatus}>${cell}</td>`).join('\n        ')}
+        </tr>`;
+    }).join('');
+
+    //Table builder for a group
+    const buildTable = (caption: string, isVisibleCaption: boolean, pairsList: typeof exportedPairs) => `
+      <table class="table table-hover">
+          <caption${isVisibleCaption ? '' : ' class="wb-inv"'}>${caption}</caption>
+          <thead>
+              <tr>
+                  ${headerHtml}
+              </tr>
+          </thead>
+          <tbody>${buildRows(pairsList)}
+          </tbody>
+      </table>`;
+
+    //Group pairs by section title, preserving traversal order; ungrouped pairs go last
+    const groupedPairs = new Map<string, typeof exportedPairs>();
+    const ungroupedPairs: typeof exportedPairs = [];
+    exportedPairs.forEach(pair => {
+      const groupKey = this.translate.currentLang?.startsWith('fr') ? pair.fr.group : pair.en.group;
+      if (groupKey) {
+        if (!groupedPairs.has(groupKey)) groupedPairs.set(groupKey, []);
+        groupedPairs.get(groupKey)!.push(pair);
+      } else {
+        ungroupedPairs.push(pair);
+      }
+    });
+
+    //Table HTML
+    const tablesHtml = [
+      ...Array.from(groupedPairs.entries()).map(([groupTitle, pairsList]) => buildTable(groupTitle, true, pairsList)),
+      ...(ungroupedPairs.length ? [buildTable(ungroupedCaption, true, ungroupedPairs)] : []),
+    ].join('\n');
+
+    //Content HTML
+    return `${exporterHtml}${githubLinkHtml}${tablesHtml}${collaboratorHtml}`;
+
   }
 
   /*_________________________________________*/
   /****** GITHUB SPECIFIC FUNCTIONS *********/
 
   //Get in-scope URLs and page content (used by export fxn)
-  private async getUrlandContent(node: TreeNode, lang: 'en' | 'fr' = 'en'): Promise<PageData[]> {
+  private async getUrlandContent(node: TreeNode, lang: 'en' | 'fr' = 'en', owner: string, repo: string, source: urlVersion): Promise<PageData[]> {
     const pages: PageData[] = [];
     const path = node.data?.path[lang];
-    const url = this.fetchService.generateUrl(path, "live");
-
-    const repo = this.selectedExportTarget === 'prototype'
-      ? this.gitHubData().repo
-      : `${this.gitHubData().repo}-baseline`;
+    const url = this.fetchService.generateUrl(path, source, owner, repo);
 
     if (path && repo) {
       try {
@@ -573,11 +765,16 @@ export class ExportComponent implements OnInit {
             pages.push({ url, path, filename, content });
           }
           else {
-            const doc = await this.fetchService.fetchContent(url, "prod");
-            const breadcrumbs = this.selectedExportTarget === 'prototype'
+            const doc = !source.endsWith('UT')
+              ? await this.fetchService.fetchContent(url, "both")
+              : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(url));
+            const breadcrumbs = this.selectedExportVersion === 'prototype'
               ? this.projectState.getBreadcrumbChain(node.data.path[lang], lang).slice(1)
               : undefined; //baseline uses live breadcrumb
             const content = await this.exportGitHubService.formatDocumentAsJekyll(doc, url, this.gitHubData().owner, repo, breadcrumbs);
+            //console.log(url);
+            //console.log(doc);
+            //console.log(content);
             pages.push({ url, path, filename, content });
           }
         }
@@ -588,7 +785,7 @@ export class ExportComponent implements OnInit {
     // recurse into children
     if (node?.children) {
       for (const child of node.children) {
-        const childPages = await this.getUrlandContent(child, lang);
+        const childPages = await this.getUrlandContent(child, lang, owner, repo, source);
         pages.push(...childPages);
       }
     }
@@ -597,30 +794,30 @@ export class ExportComponent implements OnInit {
 
   // Main export function (DO NOT REMOVE TIMEOUTS, THEY GIVE ENOUGH TIME FOR SHA TO UPDATE BETWEEN EXPORTS)
   async exportProjectToGitHub() {
+    const { source, repo, scope } = this.exportContext;
     const owner = this.gitHubData().owner;
-    const repo = this.selectedExportTarget === 'prototype'
-      ? this.gitHubData().repo
-      : `${this.gitHubData().repo}-baseline`;
     const branch = this.gitHubData().branch;
     const token = this.exportGitHubService.token();
     const projectName = this.projectData().projectName;
-    const scope = this.selectedExportTarget === "prototype" ? "inScope" : "all"
+    console.log(source)
+    console.log(repo)
+    console.log(scope)
 
     // Step 1: Gather all in-scope or baseline URLs and their content
     this.exportProgress.set({ step: 'exportPages.export.progress.gatherPages', progress: 5, });
     let nodes = this.projectState.getProjectTree();
-    if (this.selectedExportTarget === 'baseline') {
+    if (this.selectedExportVersion === 'baseline') {
       nodes = this.projectState.getBaselineTree(nodes, "full");
     }
 
     let exportPages: PageData[] = [];
     if (this.selectedExportLanguage === 'both') {
-      const enPages = await this.getUrlandContent(nodes[0], 'en');
-      const frPages = await this.getUrlandContent(nodes[0], 'fr');
+      const enPages = await this.getUrlandContent(nodes[0], 'en', owner, repo, source);
+      const frPages = await this.getUrlandContent(nodes[0], 'fr', owner, repo, source);
       exportPages = [...enPages, ...frPages];
     }
     else {
-      exportPages = await this.getUrlandContent(nodes[0], this.selectedExportLanguage);
+      exportPages = await this.getUrlandContent(nodes[0], this.selectedExportLanguage, owner, repo, source);
     }
 
     // Step 2: Check for templates files to include
@@ -661,7 +858,7 @@ export class ExportComponent implements OnInit {
         //Store SHA with project data
         if (result?.content?.sha) {
           const pathLang = page.path.startsWith('en/') || page.path.endsWith('en.html') ? 'en' : 'fr';
-          this.projectState.setPageSha(page.path, result.content.sha, this.selectedExportTarget, pathLang);
+          this.projectState.setPageSha(page.path, result.content.sha, this.selectedExportVersion, pathLang);
         }
       } catch (error) {
         console.error(`Error exporting ${page.path}:`, error);
@@ -695,7 +892,7 @@ export class ExportComponent implements OnInit {
     this.projectState.setExportDate();
     const pageCountEN = exportPages.filter(p => p.path.startsWith('en/') || p.path === 'en.html').length;
     const pageCountFR = exportPages.filter(p => p.path.startsWith('fr/') || p.path === 'fr.html').length;
-    this.usageService.trackExport(this.projectData().id, this.projectData().org ?? 'DEFAULT', this.projectData().storageType, this.projectData().repoType, `${owner}/${repo}`, this.selectedExportTarget, pageCountEN, pageCountFR);
+    this.usageService.trackExport(this.projectData().id, this.projectData().org ?? 'DEFAULT', this.projectData().storageType, this.projectData().repoType, `${owner}/${repo}`, this.selectedExportVersion, pageCountEN, pageCountFR);
     setTimeout(() => this.exportProgress.set(null), 5000);
     this.compareFiles();
   }

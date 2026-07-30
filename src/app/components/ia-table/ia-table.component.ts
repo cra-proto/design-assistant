@@ -139,7 +139,7 @@ export class IaTableComponent implements OnInit {
             {
                 label: this.translate.instant(`iaDiagram.menu.createChild`),
                 icon: "pi pi-file-plus text-green-500",
-                command: () => { this.projectState.createNode(this.selectedNode) }
+                command: () => { this.selectedNode = this.projectState.createNode(this.selectedNode); this.editNode = true; }
             },
             {
                 label: this.translate.instant(`iaDiagram.menu.deleteNode`),
@@ -152,8 +152,8 @@ export class IaTableComponent implements OnInit {
         const github = this.projectState.getProject().github;
         const liveUrl = this.fetchService.generateUrl(path, "live");
         const previewUrl = this.fetchService.generateUrl(path, "preview");
-        const prototypeUrl = this.fetchService.generateUrl(path, "prototype", github.owner, github.repo);
-        const baselineUrl = this.fetchService.generateUrl(path, "baseline", github.owner, github.repo);
+        const prototypeUrl = this.fetchService.generateUrl(path, "protoGH", github.owner, github.repo);
+        const baselineUrl = this.fetchService.generateUrl(path, "baseGH", github.owner, github.repo);
         const updUrl = `https://cra-arc.alpha.canada.ca/en/pages?url=${liveUrl}${this.currentLang}`;
         if (!isContainer) {
             this.options.push(
@@ -198,8 +198,6 @@ export class IaTableComponent implements OnInit {
         const dropNode = event.dropNode;
 
         if (!dragNode || !dropNode) return;
-
-        const primaryLang = this.projectState.detectPrimaryLanguage();
 
         // Prevent dropping containers into containers (not foolproof)
         if ((dropNode.data.isContainer || dropNode.parent?.data?.isContainer) && dragNode.data.isContainer) return;
