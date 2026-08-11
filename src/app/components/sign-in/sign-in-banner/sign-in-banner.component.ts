@@ -1,5 +1,5 @@
 import { Component, inject, signal, effect, computed, OnInit, untracked } from '@angular/core';
-import { TranslateModule } from "@ngx-translate/core";
+import { TranslatePipe } from "@ngx-translate/core";
 
 // PrimeNG
 import { DividerModule } from 'primeng/divider';
@@ -18,7 +18,7 @@ type ConnectionStatus = 'checking' | 'connected' | 'warning' | 'error' | 'missin
 
 @Component({
     selector: 'aida-sign-in-banner',
-    imports: [TranslateModule,
+    imports: [TranslatePipe,
         ButtonModule, DividerModule,
         PatComponent,],
     templateUrl: './sign-in-banner.component.html',

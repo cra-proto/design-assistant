@@ -1,6 +1,6 @@
 import { Component, inject, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, computed, signal, effect } from '@angular/core';
 import { CommonModule, LocationStrategy } from '@angular/common';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG modules
@@ -34,7 +34,7 @@ export interface ViewOption<T = string> {
 
 @Component({
     selector: 'aida-compare-source',
-    imports: [TranslateModule, CommonModule, FormsModule,
+    imports: [TranslatePipe, CommonModule, FormsModule,
         ButtonModule, SplitButtonModule, RadioButtonModule, ToolbarModule, TooltipModule],
     templateUrl: './compare-source.component.html',
     styleUrl: './compare-source.component.css'

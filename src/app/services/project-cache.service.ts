@@ -1,4 +1,4 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, inject, effect } from '@angular/core';
 
 //Services
 import { ProjectStateService } from './project-state.service';
@@ -27,6 +27,7 @@ export class ProjectCacheService {
 
     private localCheckInProgress = false;
     private previewCheckInProgress = false;
+    private githubCheckInProgress = false;
 
     // Track user choices on select buttons (for managing UI state)
 
@@ -44,6 +45,23 @@ export class ProjectCacheService {
 
     /** Signal for the IA diagram view. Defaults to changes. */
     public selectedViewIA = signal<'baseline' | 'changes' | 'final'>('changes');
+
+    /** Signal for the view URLs drawer. Defaults to url. */
+    public selectedDisplay = signal<'url' | 'title'>('url');
+
+
+    constructor() {
+        effect(() => {
+            void this.projectState.getGitHub().owner;
+            void this.projectState.getGitHub().repo;
+            this.checkGitHubStatus();
+        });
+        effect(() => {
+            void this.projectState.getGitHub().repo;
+            this.hasLocal.set(null);
+            this.hasLocalBL.set(null);
+        });
+    }
 
     /**
     * Checks if a local index page exists for the project so UI can be updated
@@ -71,6 +89,33 @@ export class ProjectCacheService {
             );
         }
         Promise.all(checks).finally(() => { this.localCheckInProgress = false; });
+    }
+
+    /**
+    * Checks if a github index page exists for the project so UI can be updated
+    ** Updates signals {@link hasGitHub} and {@link hasGitHubBL}
+    *
+    * Call this fxn OnInit and via effect whenever the repo or owner change
+    *
+    * Use {@link checkPreviewStatus} for AEM preview and an effect for GitHub versions
+    */
+    public checkGitHubStatus(): void {
+        if (this.githubCheckInProgress) return;
+        const owner = this.projectState.getProject().github.owner;
+        const repo = this.projectState.getProject().github.repo;
+        if (!owner || !repo) return;
+        this.githubCheckInProgress = true;
+        const url = this.fetchService.generateUrl("index.html", "protoGH", owner, repo);
+        const checks: Promise<void>[] = [
+            this.fetchService.fetchStatus(url).then(response => this.hasGitHub.set(response.ok))
+        ];
+        if (this.projectState.getProject().github.hasBaselineRepo) {
+            const urlBL = this.fetchService.generateUrl("index.html", "baseGH", owner, repo);
+            checks.push(
+                this.fetchService.fetchStatus(urlBL).then(response => this.hasGitHubBL.set(response.ok))
+            );
+        }
+        Promise.all(checks).finally(() => { this.githubCheckInProgress = false; });
     }
 
     /**

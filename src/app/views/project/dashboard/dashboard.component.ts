@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from "@ngx-translate/core";
+import { TranslatePipe } from "@ngx-translate/core";
 import { RouterLink } from '@angular/router';
 
 //PrimeNG modules
@@ -23,7 +23,7 @@ import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'aida-dashboard',
-  imports: [CommonModule, FormsModule, TranslateModule, RouterLink,
+  imports: [CommonModule, FormsModule, TranslatePipe, RouterLink,
     ExportProjectComponent, AddCollaboratorsComponent,
     ButtonModule, TagModule, AvatarModule, AvatarGroupModule, TooltipModule, ProgressBarModule, CheckboxModule, DividerModule],
   templateUrl: './dashboard.component.html',

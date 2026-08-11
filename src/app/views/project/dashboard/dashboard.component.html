@@ -19,7 +19,7 @@
                     <div class="flex flex-row gap-2 flex-1">
                         <i class="pi pi-copy text-primary text-3xl align-self-center"></i>
                         <div class="flex flex-column align-self-start">
-                            <p class="text-sm text-600 my-1">Pages</p>
+                            <p class="text-sm text-600 my-1">{{ "common.pages" | translate }}</p>
                             <p class="text-xl font-bold my-0">{{ projectData.inScopePages }}</p>
                         </div>
                     </div>
@@ -27,7 +27,7 @@
                     <div class="flex flex-row gap-2 flex-1">
                         <i class="pi pi-clock text-primary text-3xl align-self-center"></i>
                         <div class="flex flex-column align-self-start">
-                            <p class="text-sm text-600 my-1">Last Modified</p>
+                            <p class="text-sm text-600 my-1">{{ "common.modified" | translate }}</p>
                             <p class="text-md my-0 white-space-nowrap">{{ projectData.lastModified| date:'short' }}</p>
                         </div>
                     </div>
@@ -35,7 +35,7 @@
                     <div class="flex flex-row gap-2 flex-1">
                         <i class="pi pi-users text-primary text-3xl align-self-center"></i>
                         <div class="flex flex-column align-self-start">
-                            <p class="text-sm text-600 my-1">Collaborators</p>
+                            <p class="text-sm text-600 my-1">{{ "common.collaborators" | translate }}</p>
                             <aida-add-collaborators mode="dashboard" />
                         </div>
                     </div>
@@ -96,7 +96,7 @@
             <p-button icon="pi pi-github" label="View baseline repository" text size="large" class="w-full h-full" fluid
                       (onClick)="openRepo(projectData.github,'baseline')" />
             } @else {
-            <h3 class="my-1 align-self-center">Baseline</h3>
+            <h3 class="my-1 align-self-center">{{"common.version.baseline" | translate }}</h3>
             }
         </div>
 
@@ -108,7 +108,7 @@
                 <div class="flex-1">
                     <div class="flex align-items-center mb-3">
                         <i class="pi pi-search text-orange-500 text-xl"></i>
-                        <h3 class="text-lg font-semibold text-900 ml-2 m-0">Discover</h3>
+                        <h3 class="text-lg font-semibold text-900 ml-2 m-0">{{"project.phase.discover" | translate }}</h3>
                     </div>
                     <p class="text-600 text-sm mb-3 min-h-2rem">Build your content inventory and identify tasks.</p>
                     <div class="border-top-1 surface-border pt-3">
@@ -125,7 +125,7 @@
                     <span class="material-icons text-primary text-7xl mt-5">library_books</span>
                     <div class="flex flex-column mt-0">
                         <p class="text-3xl text-600 mb-0">{{ projectData.inScopePages }}</p>
-                        <p class="text-xl font-bold mt-0">pages</p>
+                        <p class="text-xl font-bold mt-0 lowercase">{{"common.pages" | translate }}</p>
                     </div>
                 </div>
             </div>
@@ -136,7 +136,7 @@
                 <div class="flex-1">
                     <div class="flex align-items-center mb-3">
                         <i class="pi pi-chart-line text-blue-500 text-xl"></i>
-                        <h3 class="text-lg font-semibold text-900 ml-2 m-0">Assess</h3>
+                        <h3 class="text-lg font-semibold text-900 ml-2 m-0">{{"project.phase.assess" | translate }}</h3>
                     </div>
                     <p class="text-600 text-sm mb-3 min-h-2rem">Compare prototypes with baseline pages and evaluate content quality.</p>
                     <div class="border-top-1 surface-border pt-3">
@@ -157,7 +157,7 @@
                     <span class="material-icons text-primary text-7xl mt-5">troubleshoot</span>
                     <div class="flex flex-column mt-0">
                         <p class="text-3xl text-600 mb-0">{{ assessmentStats.issuesFound }}</p>
-                        <p class="text-xl font-bold mt-0">Problems</p>
+                        <p class="text-xl font-bold mt-0 lowercase">{{"common.problems" | translate }}</p>
                     </div>
                 </div>
                 }
@@ -172,7 +172,7 @@
             <p-button icon="pi pi-github" label="View prototype repository" text size="large" class="w-full h-full" fluid
                       (onClick)="openRepo(projectData.github,'prototype')" />
             } @else {
-            <h3 class="my-1 align-self-center">Prototype</h3>
+            <h3 class="my-1 align-self-center">{{"common.version.prototype" | translate }}</h3>
             }
         </div>
 
@@ -183,7 +183,7 @@
                 <div class="flex-1">
                     <div class="flex align-items-center mb-3">
                         <i class="pi pi-pencil text-purple-500 text-xl"></i>
-                        <h3 class="text-lg font-semibold text-900 ml-2 m-0">Design</h3>
+                        <h3 class="text-lg font-semibold text-900 ml-2 m-0">{{"project.phase.design" | translate }}</h3>
                     </div>
                     <p class="text-600 text-sm mb-3 min-h-2rem">Redesign content and export prototypes to GitHub.</p>
                     <div class="border-top-1 surface-border pt-3">
@@ -234,7 +234,7 @@
                     <div class="flex align-items-center mb-3">
                         <i class="pi pi-check-circle text-xl" [ngClass]="{'text-green-500': selectedItems.length/checklist.length * 100 === 100,
                                         'text-red-500': selectedItems.length/checklist.length * 100 !== 100}"></i>
-                        <h3 class="text-lg font-semibold text-900 ml-2 m-0">Approve</h3>
+                        <h3 class="text-lg font-semibold text-900 ml-2 m-0">{{"project.phase.approve" | translate }}</h3>
                     </div>
                     <p class="text-600 text-sm mb-3 min-h-2rem">Review changes and get approvals.</p>
                     <div class="border-top-1 surface-border pt-3">

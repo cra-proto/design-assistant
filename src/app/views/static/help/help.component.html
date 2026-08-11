@@ -172,6 +172,19 @@
 
     <section class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
         <h2 id="release">Release notes</h2>
+        <h3 id="0-5-11">Release 0.5.11 (August 11, 2026)</h3>
+        <h4>Security & maintenance</h4>
+        <ul>
+            <li>Migrated ngx-translate from v16 to v18 (required for the upcoming Angular 20 upgrade)<br><strong>note:</strong> ngx-translate-extract-marker can be removed in a future update as marker is now part of ngx-translate</li>
+            <li>Updated Angular framework, AWS SDK, and other dependencies to resolve flagged vulnerabilities</li>
+            <li>Removed unused &#64;angular/platform-browser-dynamic dependency</li>
+            <li>Updated ESlint rules to warn about more patterns in preparation for Angular 20 upgrade</li>
+        </ul>
+        <h4>Other updates</h4>
+        <ul>
+            <li>Added loading spinner during initial app load</li>
+            <li>Added new invalid urls component for reviewing urls that don't pass validation during "Add pages"</li>
+        </ul>
         <h3 id="0-5-10">Release 0.5.10 (July 30, 2026)</h3>
         <h4>Export improvements</h4>
         <ul>

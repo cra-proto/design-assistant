@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 
 //PrimeNG modules
@@ -14,7 +14,7 @@ import { ProjectCacheService } from '../../services/project-cache.service';
 @Component({
     selector: 'aida-export-project',
     imports: [
-        TranslateModule,
+        TranslatePipe,
         ButtonModule, MenuModule
     ],
     templateUrl: './export-project.component.html',

@@ -14,11 +14,39 @@
   <meta property="og:image" content="https://d12jpzad41do8v.cloudfront.net/images/social-preview.png" />
   <meta property="og:url" content="https://d12jpzad41do8v.cloudfront.net/" />
   <meta property="og:type" content="website" />
+  <style>
+    .pre-bootstrap-loader {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+    }
+
+    .pre-bootstrap-spinner {
+      width: 80px;
+      height: 80px;
+      border: 6px solid #e2e8f0;
+      border-top-color: #7636ab;
+      border-radius: 50%;
+      animation: pre-bootstrap-spin 0.8s linear infinite;
+    }
+
+    @keyframes pre-bootstrap-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
 </head>
 
 <body vocab="http://schema.org/" typeof="WebPage">
-  <!-- eslint-disable-next-line @angular-eslint/template/prefer-self-closing-tags -->
-  <aida-root></aida-root>
+  <aida-root>
+    <div class="pre-bootstrap-loader">
+      <div class="pre-bootstrap-spinner"></div>
+    </div>
+  </aida-root>
 </body>
 
 </html>

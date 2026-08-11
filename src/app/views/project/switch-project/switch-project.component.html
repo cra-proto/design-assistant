@@ -6,7 +6,7 @@
 <p-message severity="info" styleClass="mb-2 sticky top-0 z-2">
   <div class="flex align-items-center gap-2">
     <i class="pi pi-info-circle font-bold"></i>
-    <span>Sign in with GitHub to edit cloud projects and save your local projects to the cloud.</span>
+    <span>{{'switch.authWarning' | translate }}</span>
   </div>
 </p-message>
 }
@@ -19,12 +19,12 @@
       <!--Search-->
       <p-iconfield>
         <p-inputicon styleClass="pi pi-search" />
-        <input id="search" type="text" pInputText placeholder="Search" class="min-w-min md:min-w-max w-full" [(ngModel)]="searchTerm" />
+        <input id="search" type="text" pInputText [placeholder]="'common.search' | translate" class="min-w-min md:min-w-max w-full" [(ngModel)]="searchTerm" />
       </p-iconfield>
       <!--Sort-->
-      <p-select id="sort" [options]="sortOptions" [(ngModel)]="selectedSort" placeholder="Sort by" styleClass="min-w-min md:min-w-max" />
+      <p-select id="sort" [options]="sortOptions" [(ngModel)]="selectedSort" [placeholder]="'common.sortBy' | translate" styleClass="min-w-min md:min-w-max" />
       <!--Filter-->
-      <p-multiselect inputId="filter" (onClick)="updateGroupedFilters()" [options]="groupedFilters" [group]="true" [(ngModel)]="selectedFilter" placeholder="Filter files" styleClass="min-w-min md:min-w-max">
+      <p-multiselect inputId="filter" (onClick)="updateGroupedFilters()" [options]="groupedFilters" [group]="true" [(ngModel)]="selectedFilter" [placeholder]="'common.filter'|translate" styleClass="min-w-min md:min-w-max">
         <ng-template let-group #group>
           <div class="flex items-center">
             <span>{{ group.label }}</span>
@@ -63,7 +63,7 @@
     </div>
 
   </div>
-  @if(currentMode() === 'deleted'){<p class="mt-0 text-sm text-color-secondary">These projects have been marked for deletion. They will be removed from this view in 30 days. Select a project to restore it.</p>}
+  @if(currentMode() === 'deleted'){<p class="mt-0 text-sm text-color-secondary">{{'switch.delWarning' | translate}}</p>}
   <!--Saved projects-->
   @if(projects.length> 0){
   <div class="grid">
@@ -122,7 +122,7 @@
         @if((project.storageType === 'local' && loadingKey === project.key) || (project.storageType === 'cloud' && loadingKey === project.id)){
         <div class="flex flex-row gap-2 justify-content-center mt-5">
           <i class="pi pi-spin pi-spinner text-primary-500 text-2xl"></i>
-          <span class="text-sm text-color-secondary">Loading project<span class="loading-dots"></span></span>
+          <span class="text-sm text-color-secondary" [innerHTML]="'switch.loading'|translate"></span>
         </div>
         } @else {
         <!--Project details-->
@@ -159,13 +159,13 @@
   </div>
   } @else {
   <!--Fallback if no saved projects-->
-  <p class="text-color-secondary ml-2">No saved projects.</p>
+  <p class="text-color-secondary ml-2">{{'switch.noProjects' | translate}}</p>
   }
 </div>
 
 <!-- Save Project Dialog -->
-<p-dialog header="Save project" [modal]="true" [(visible)]="showSave" styleClass="max-w-25rem">
-  <p class="text-color-secondary -mt-1">Name your project to save it for later.</p>
+<p-dialog [header]="'common.save' | translate" [modal]="true" [(visible)]="showSave" styleClass="max-w-25rem">
+  <p class="text-color-secondary -mt-1">{{'switch.nameWarning' | translate}}</p>
   <aida-setup-project />
   <div class="flex justify-end gap-2 mt-2">
     <p-button label="Cancel" severity="secondary" (onClick)="showSave = false" />

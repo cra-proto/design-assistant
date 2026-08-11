@@ -1,7 +1,7 @@
 import { Component, inject, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
@@ -21,7 +21,7 @@ import { ProjectPhase } from '../../common/data.model';
 @Component({
     selector: 'aida-setup-project',
     imports: [
-        CommonModule, FormsModule, TranslateModule,
+        CommonModule, FormsModule, TranslatePipe,
         IftaLabelModule, KeyFilterModule, InputTextModule, SelectModule, SelectButtonModule, MessageModule
     ],
     templateUrl: './setup-project.component.html',

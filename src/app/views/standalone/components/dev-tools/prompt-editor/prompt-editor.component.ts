@@ -2,7 +2,7 @@
 import { Component, inject, ViewChild, ElementRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { RouterLink } from '@angular/router';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
@@ -54,7 +54,7 @@ interface TabConfig {
     selector: 'aida-prompt-editor',
     standalone: true,
     imports: [
-        CommonModule, FormsModule, TranslateModule, RouterLink,
+        CommonModule, FormsModule, TranslatePipe, RouterLink,
         BreadcrumbModule, TabsModule, TextareaModule, IftaLabelModule, FieldsetModule, ButtonModule, SelectModule, MultiSelectModule, CheckboxModule, RadioButtonModule,
         ProgressSpinnerModule, MessageModule
     ],

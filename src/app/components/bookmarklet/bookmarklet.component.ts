@@ -1,5 +1,5 @@
 import { Component, inject, computed, input } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { DomSanitizer } from '@angular/platform-browser';
 
@@ -9,7 +9,7 @@ import { ProjectStateService } from '../../services/project-state.service';
 @Component({
     selector: 'aida-bookmarklet',
     imports: [
-        TranslateModule,
+        TranslatePipe,
     ],
     templateUrl: './bookmarklet.component.html',
     styles: ``

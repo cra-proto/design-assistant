@@ -37,7 +37,6 @@ export class UserSettingsService {
   constructor() {
     // Language
     this.translate.addLangs(['en', 'fr']);
-    this.translate.setDefaultLang('en');
     const storedLang = localStorage.getItem('lang') || this.translate.getBrowserLang() || 'en';
     this.setLanguage(storedLang);
 

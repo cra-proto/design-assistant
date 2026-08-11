@@ -1,5 +1,5 @@
-import { Component, inject, computed, signal, ViewChild, OnInit } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Component, inject, computed, signal, ViewChild, effect } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG modules
@@ -13,22 +13,25 @@ import { DialogModule } from 'primeng/dialog';
 
 // Services
 import { ProjectStateService } from '../../services/project-state.service';
+import { ProjectCacheService } from '../../services/project-cache.service';
 import { IaDiagramService } from './ia-diagram.service';
 import { TreeNodeStyleService } from '../../services/treenode-style.service';
 import { EditNodeComponent } from '../edit-node/edit-node.component';
 import { AddUrlsService } from '../add-urls/add-urls.service';
 import { FetchService } from '../../services/fetch.service';
+import { ProjectSettingsComponent } from "../project-settings/project-settings.component";
 
 @Component({
   selector: 'aida-ia-diagram',
-  imports: [TranslateModule, FormsModule,
+  imports: [TranslatePipe, FormsModule,
     OrganizationChartModule, ButtonModule, TooltipModule, SelectButtonModule,
-    MenuModule, DialogModule, EditNodeComponent],
+    MenuModule, DialogModule, EditNodeComponent, ProjectSettingsComponent],
   templateUrl: './ia-diagram.component.html',
   styleUrl: './ia-diagram.component.css'
 })
-export class IaDiagramComponent implements OnInit {
+export class IaDiagramComponent {
   private projectState = inject(ProjectStateService);
+  public projectCache = inject(ProjectCacheService);
   private translate = inject(TranslateService);
   public iaDiagram = inject(IaDiagramService);
   private treeNodeStyleService = inject(TreeNodeStyleService);
@@ -39,18 +42,12 @@ export class IaDiagramComponent implements OnInit {
 
   //Signals
   projectData = this.projectState.getProject;
-  hasGitHub = signal<boolean>(false);
-  hasLocal = signal<boolean>(false);
 
-  async ngOnInit() {
-    if (this.projectData().lastExported) {
-      const url = this.fetchService.generateUrl("index.html", "protoGH", this.projectData().github.owner, this.projectData().github.repo);
-      this.hasGitHub.set((await this.fetchService.fetchStatus(url, "proto", 2)).ok);
-    }
-    if (this.projectData().lastDownloaded) {
-      const url = this.fetchService.generateUrl("index.html", "protoUT", this.projectData().github.owner, this.projectData().github.repo);
-      this.hasLocal.set((await this.fetchService.fetchStatus(url, "proto", 2)).ok);
-    }
+  constructor() {
+    effect(() => {
+      const applyStatusColors = this.projectCache.selectedViewIA() === 'changes';
+      this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0, applyStatusColors);
+    });
   }
 
   projectTree = computed(() => {
@@ -61,9 +58,9 @@ export class IaDiagramComponent implements OnInit {
       if (custom) { tree = [custom] };
     }
     //Adjustments for baseline or final version
-    if (this.selectedView() === 'baseline') {
+    if (this.projectCache.selectedViewIA() === 'baseline') {
       tree = this.projectState.getBaselineTree(tree, this.selectedTree() === 'full' ? 'full' : 'custom');
-    } else if (this.selectedView() === 'final') {
+    } else if (this.projectCache.selectedViewIA() === 'final') {
       tree = this.projectState.getFinalTree(tree);
     }
     //Adjustments for collapsed nodes
@@ -74,40 +71,14 @@ export class IaDiagramComponent implements OnInit {
     return tree;
   });
 
-  //View options
-  selectedView = signal<'baseline' | 'changes' | 'final'>('changes');
-
-  get viewOptions() {
-    return [
-      { label: this.translate.instant('iaDiagram.view.baseline'), value: 'baseline' },
-      { label: this.translate.instant('iaDiagram.view.changes'), value: 'changes' },
-      { label: this.translate.instant('iaDiagram.view.final'), value: 'final' }
-    ];
-  }
-
-  changeView() {
-    const applyStatusColors = this.selectedView() === 'changes';
-    this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0, applyStatusColors);
-  }
-
-  //Language options
-  selectedLanguage = signal<'en' | 'fr'>(this.primaryLang);
-
-  get languageOptions() {
-    return [
-      { label: this.translate.instant('common.language.english'), value: 'en' },
-      { label: this.translate.instant('common.language.french'), value: 'fr' },
-    ];
-  }
-
   // Display H1
   getH1Display(node: TreeNode): string {
-    const lang = this.selectedLanguage();
+    const lang = this.projectCache.selectedLang();
     const liveH1 = node.data?.live?.[lang]?.h1 ?? '';
     const protoH1 = node.data?.prototype?.[lang]?.h1 ?? '';
     const changed = liveH1 !== protoH1
-    if (this.selectedView() === 'baseline') return liveH1;
-    else if (this.selectedView() === 'final') return protoH1;
+    if (this.projectCache.selectedViewIA() === 'baseline') return liveH1;
+    else if (this.projectCache.selectedViewIA() === 'final') return protoH1;
     else if (changed) return `<s class="text-color-secondary text-sm">${liveH1}</s><br>${protoH1}`;
     else return protoH1;
   }
@@ -118,7 +89,6 @@ export class IaDiagramComponent implements OnInit {
   //Menu options
   @ViewChild('menu') menu!: Menu;
   items: MenuItem[] = [];
-
 
   editNode = false;
   selectedNode: TreeNode = {};
@@ -150,10 +120,10 @@ export class IaDiagramComponent implements OnInit {
     const index = siblings.indexOf(node);
     const canMoveLeft = (index > 0 && !node.data.isNavChild);
     const canMoveRight = (index < siblings.length - 1 && !node.data.isNavChild);
-    if (this.selectedView() === 'changes' && (canMoveRight || canMoveLeft)) {
+    if (this.projectCache.selectedViewIA() === 'changes' && (canMoveRight || canMoveLeft)) {
       this.items[0].items!.push({ separator: true });
     }
-    if (this.selectedView() === 'changes' && canMoveLeft) {
+    if (this.projectCache.selectedViewIA() === 'changes' && canMoveLeft) {
       this.items[0].items!.push(
         {
           label: this.translate.instant(`common.moveLeft`),
@@ -162,18 +132,18 @@ export class IaDiagramComponent implements OnInit {
         }
       );
     }
-    if (this.selectedView() === 'changes' && canMoveRight) {
+    if (this.projectCache.selectedViewIA() === 'changes' && canMoveRight) {
       this.items[0].items!.push({
         label: this.translate.instant(`common.moveRight`),
         icon: "pi pi-arrow-right",
         command: () => this.projectState.reorderNode(node, "right")
       });
     }
-    if (this.selectedView() === 'changes' && (canMoveRight || canMoveLeft)) {
+    if (this.projectCache.selectedViewIA() === 'changes' && (canMoveRight || canMoveLeft)) {
       this.items[0].items!.push({ separator: true });
     }
     // Action: Find child pages
-    if (this.selectedView() === 'changes' && !node.data.isCrawled && !node.data.isNavChild) {
+    if (this.projectCache.selectedViewIA() === 'changes' && !node.data.isCrawled && !node.data.isNavChild) {
       this.items[0].items!.push({
         label: this.translate.instant(`iaDiagram.menu.findChildren`),
         icon: "pi pi-search",
@@ -181,7 +151,7 @@ export class IaDiagramComponent implements OnInit {
       })
     }
     // Action: Add child page or delete node
-    if (this.selectedView() === 'changes' && !node.data.isNavChild) {
+    if (this.projectCache.selectedViewIA() === 'changes' && !node.data.isNavChild) {
       this.items[0].items!.push(
         {
           label: this.translate.instant(`iaDiagram.menu.createChild`),
@@ -276,13 +246,18 @@ export class IaDiagramComponent implements OnInit {
           }
           //Toggle on
           const type = this.projectState.getProject().repoType;
-          const version = type === "github" && this.hasGitHub()
+          const version = type === "github" && this.projectCache.hasGitHub()
             ? "protoGH"
-            : type === "local" && this.hasLocal()
+            : type === "local" && this.projectCache.hasLocal()
               ? "protoUT"
               : "live"
           const url = this.fetchService.generateUrl(path, version, this.projectData().github.owner, this.projectData().github.repo);
-          const linkedPaths = await this.fetchService.getPaths(url);
+          const viaProxy = version.endsWith('UT');
+          let linkedPaths = await this.fetchService.getPaths(url, viaProxy);
+          if (version !== 'live' && linkedPaths.length === 0) {
+            const urlLive = this.fetchService.generateUrl(path, "live");
+            linkedPaths = await this.fetchService.getPaths(urlLive, false);
+          }
           const projectPaths = new Set(this.projectState.getAllPages(this.primaryLang).map(p => p.path));
           const directChildPaths = new Set((node.children ?? []).map(child => child.data.path[this.primaryLang]));
           const filteredPaths = linkedPaths.filter(p => projectPaths.has(p) && !directChildPaths.has(p) && p !== path);
@@ -312,27 +287,27 @@ export class IaDiagramComponent implements OnInit {
   dropTarget = signal<TreeNode | null>(null);
 
   onDragStart(node: TreeNode) {
-    if (this.selectedView() !== 'changes') return;
+    if (this.projectCache.selectedViewIA() !== 'changes') return;
     this.dragNode.set(node);
   }
 
   onDragOver(event: DragEvent, node: TreeNode) {
     event.preventDefault(); // required to allow drop
-    if (this.selectedView() !== 'changes') return;
+    if (this.projectCache.selectedViewIA() !== 'changes') return;
     if (node.data.path[this.primaryLang] !== this.dragNode()?.data?.path[this.primaryLang]) {
       this.dropTarget.set(node);
     }
   }
 
   onDragLeave(node: TreeNode) {
-    if (this.selectedView() !== 'changes') return;
+    if (this.projectCache.selectedViewIA() !== 'changes') return;
     if (this.dropTarget()?.data?.path[this.primaryLang] === node.data.path[this.primaryLang]) {
       this.dropTarget.set(null);
     }
   }
 
   onDrop() {
-    if (this.selectedView() !== 'changes') return;
+    if (this.projectCache.selectedViewIA() !== 'changes') return;
     const drag = this.dragNode();
     const drop = this.dropTarget();
     if (!drag || !drop || drag.data.path[this.primaryLang] === drop.data.path[this.primaryLang] || drag.parent?.data?.path[this.primaryLang] === drop.data.path[this.primaryLang]) {

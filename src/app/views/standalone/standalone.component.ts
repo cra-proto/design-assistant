@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { TranslateModule } from "@ngx-translate/core";
+import { TranslatePipe } from "@ngx-translate/core";
 import { RouterLink } from '@angular/router';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { UserSettingsService } from '../../services/user-settings.service';
@@ -8,7 +8,7 @@ import { DevToolsComponent } from './components/dev-tools/dev-tools.component';
 
 @Component({
     selector: 'aida-standalone',
-    imports: [TranslateModule, RouterLink, DevToolsComponent],
+    imports: [TranslatePipe, RouterLink, DevToolsComponent],
     templateUrl: 'standalone.component.html',
     styles: ``
 })

@@ -508,9 +508,9 @@ export class FetchService {
   }
 
   //Fetch same-domain paths
-  public async getPaths(url: string): Promise<string[]> {
+  public async getPaths(url: string, viaProxy = false): Promise<string[]> {
     try {
-      const doc = await this.fetchContent(url, "both", 2);
+      const doc = !viaProxy ? await this.fetchContent(url, "both", 2) : this.stringToDoc(await this.fetchViaProxy(url));
       const links = this.getLinks(doc, url);
       return [...new Set(links.map(link => this.generatePath(link)))];
     } catch (error) {
@@ -680,14 +680,14 @@ export class FetchService {
 
   //Get relative path
   generatePath(url: string): string {
-    const isLocal = url.includes('cra-ut.isvcs.net');
-    const isGithub = url.includes('cra-test-arc.canada.ca') || url.includes('test.canada.ca') || url.includes('github.io');
-    const slice = isLocal ? 4 : isGithub ? 2 : 1;
     try {
-      return (new URL(url).pathname).split('/').slice(slice).join('/');
-    } catch {
-      return url;
+      const { hostname, pathname } = new URL(url);
+      const isLocal = hostname === 'cra-ut.isvcs.net';
+      const isGithub = hostname === 'cra-test-arc.canada.ca' || hostname === 'test.canada.ca' || hostname.endsWith('.github.io');
+      const slice = isLocal ? 4 : isGithub ? 2 : 1;
+      return pathname.split('/').slice(slice).join('/');
     }
+    catch { return url; }
   }
 
   //Generate url for specific version
@@ -708,7 +708,7 @@ export class FetchService {
       case 'baseUT':
         return `http://cra-ut.isvcs.net/test/aida/${repo}-baseline/${path}`
       case 'upd': {
-        const currentLang = this.translate.currentLang?.startsWith('fr') ? '&lang=FR' : '';
+        const currentLang = this.translate.currentLang()?.startsWith('fr') ? '&lang=FR' : '';
         return `https://cra-arc.alpha.canada.ca/en/pages?url=https://www.canada.ca/${path}${currentLang}`
       }
       default:

@@ -6,23 +6,14 @@
 
     <div class="overflow-auto">
         <!--Toggle View-->
-        <div class="flex flex-row absolute">
-            <div class="flex flex-column hover:text-primary z-1 ml-4">
-                <label for="view" class="text-xs font-semibold xl:my-1">{{ 'common.view' | translate }}</label>
-                <p-selectButton id="view" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
-                                [options]="viewOptions" [(ngModel)]="selectedView" (onChange)="changeView()" />
-            </div>
-            <div class="flex flex-column hover:text-primary z-1 ml-4">
-                <label for="view" class="text-xs font-semibold xl:my-1">{{ 'common.language' | translate }}</label>
-                <p-selectButton id="view" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
-                                [options]="languageOptions" [(ngModel)]="selectedLanguage" />
-            </div>
+        <div class="flex flex-row absolute z-1 ml-4">
+            <aida-project-settings [showLang]="true" [showViewIA]="true" ] />
         </div>
         <!--IA Diagram-->
         <p-organization-chart [value]="projectTree()">
             <ng-template let-node pTemplate="default">
                 <!--ORPHAN STATUS-->
-                @if(selectedLanguage() === 'en' ? node.data.live.en.isOrphan : node.data.live.fr.isOrphan){
+                @if(projectCache.selectedLang() === 'en' ? node.data.live.en.isOrphan : node.data.live.fr.isOrphan){
                 <div class="-mt-6 mb-6">
                     <i class="pi pi-times text-red-500" [pTooltip]="'iaDiagram.tooltip.orphan' | translate" tooltipPosition="top" tooltipStyleClass="z-200"></i>
                 </div>
@@ -30,12 +21,12 @@
                 <!--PAGE-->
                 <p-button (click)="onMenuClick($event, node)" icon="pi pi-ellipsis-h" size="small" text class="absolute top-0 right-0 -mt-1 -mr-1" />
                 <div class="h-full" (dragstart)="onDragStart(node)" (dragover)="onDragOver($event, node)" (dragleave)="onDragLeave(node)" (drop)="onDrop()">
-                    <p class="pb-2"><a [class.cursor-move]="selectedView()==='changes'" [href]="selectedLanguage() === 'en' ? `https://www.canada.ca/${node.data.path.en}` : `https://www.canada.ca/${node.data.path.fr}`" target="_blank" [innerHTML]="getH1Display(node)" (click)="$event.preventDefault()"></a></p>
+                    <p class="pb-2"><a [class.cursor-move]="projectCache.selectedViewIA()==='changes'" [href]="projectCache.selectedLang() === 'en' ? `https://www.canada.ca/${node.data.path.en}` : `https://www.canada.ca/${node.data.path.fr}`" target="_blank" [innerHTML]="getH1Display(node)" (click)="$event.preventDefault()"></a></p>
                     @if(node.data.collapsedChildren?.length || node.data.hiddenChildrenUrls?.length){
                     <i class="pi pi-eye-slash text-sm text-color-secondary opacity-70 absolute bottom-0 right-0 mb-1 mr-2"
                        [pTooltip]="'iaDiagram.tooltip.hiddenPages' | translate: {number: node.data.collapsedChildren?.length + node.data.hiddenChildrenUrls?.length}" tooltipPosition="top" tooltipStyleClass="z-200"></i>
                     }
-                    @if(!node.data.isCrawled && !node.data.isNavChild && !node.data.status.isNew && selectedView() === 'changes'){
+                    @if(!node.data.isCrawled && !node.data.isNavChild && !node.data.status.isNew && projectCache.selectedViewIA() === 'changes'){
                     <p-button icon="pi pi-plus-circle" rounded size="small" text class="absolute left-50 -translate-x-50 bottom-0 -mb-1"
                               (click)="addUrlsService.addChildren(node,primaryLang)" [loading]="addUrlsService.urlState().isAdding" />
                     }
@@ -47,7 +38,7 @@
 <!--Context Menu-->
 <p-menu #menu [model]="items" [popup]="true" />
 
-<p-dialog [header]="selectedNode.data?.prototype?.[selectedLanguage()].h1" [modal]="true" [maximizable]="true" [(visible)]="editNode" styleClass="w-10" [style]="{ height: '90vh' }">
+<p-dialog [header]="selectedNode.data?.prototype?.[projectCache.selectedLang()].h1" [modal]="true" [maximizable]="true" [(visible)]="editNode" styleClass="w-10" [style]="{ height: '90vh' }">
     @if(selectedNode) {
     <aida-edit-node [node]="selectedNode" [isOpen]="editNode" (dialogClose)="editNode = false" />
     }

@@ -41,7 +41,7 @@ export class ProjectStateService {
     private usageService = inject(UsageService);
     private exportGitHubService = inject(ExportGitHubService);
 
-    private currentLang = signal<string>(this.translate.currentLang ?? 'en');
+    private currentLang = signal<string>(this.translate.currentLang() ?? 'en');
 
     // Main project state
     private project = signal<Project>({
@@ -70,6 +70,8 @@ export class ProjectStateService {
     });
 
     getProject = computed(() => this.project());
+
+    getGitHub = computed(() => this.project().github);
 
     // Track save status
     private saveStatus = signal<SaveStatus>('saved');
@@ -386,63 +388,8 @@ export class ProjectStateService {
     public templateOptions = computed(() =>
         Object.values(PageTemplate)
             .map(key => ({ value: key, label: this.translate.instant(key) }))
-            .sort((a, b) => a.label.localeCompare(b.label, this.translate.currentLang))
+            .sort((a, b) => a.label.localeCompare(b.label, this.translate.currentLang()))
     );
-
-    // Merge new pages into existing tree
-    mergePages(newPages: TreeNode<ProjectTreeNodeData>[]) {
-        const currentTree = this.project().projectData;
-        const merged = this.mergeTreeNodes(currentTree, newPages);
-        this.project.update(curr => ({
-            ...curr,
-            projectData: merged,
-            lastModified: new Date()
-        }));
-    }
-
-    // Recursive merge helper
-    private mergeTreeNodes(
-        current: TreeNode<ProjectTreeNodeData>[],
-        incoming: TreeNode<ProjectTreeNodeData>[]
-    ): TreeNode<ProjectTreeNodeData>[] {
-        const map = new Map<string, TreeNode<ProjectTreeNodeData>>();
-
-        // Add current nodes to map
-        for (const node of current) {
-            if (node.data?.url) {
-                map.set(node.data.url, node);
-            }
-        }
-
-        // Merge incoming nodes
-        for (const node of incoming) {
-            const url = node.data?.url;
-            if (!url) continue;
-
-            if (!map.has(url)) {
-                // New node, add it
-                map.set(url, node);
-            } else {
-                // Node exists, merge children and update if user added
-                const existing = map.get(url)!;
-
-                // If incoming is in-scope but existing wasn't, update it
-                if (node.data?.status.inScope && !existing.data?.status.inScope) {
-                    existing.data = { ...existing.data, ...node.data };
-                }
-
-                // Merge children
-                if (node.children?.length) {
-                    existing.children = this.mergeTreeNodes(
-                        existing.children ?? [],
-                        node.children
-                    );
-                }
-            }
-        }
-
-        return Array.from(map.values());
-    }
 
     //TreeNode lookup
     findNodeByPath(nodes: TreeNode[], path: string, lang: 'en' | 'fr' = 'en'): TreeNode | null {
@@ -1395,16 +1342,19 @@ export class ProjectStateService {
     }
 
     //TODO: automate whatever we can!
-    public createNode(parent: TreeNode): TreeNode {
+    public createNode(parent: TreeNode, url?: string): TreeNode {
         const date = Date.now().toString();
-        const parentPathEN = parent.data?.path.en ?? '';
-        const parentPathFR = parent.data?.path.fr ?? '';
+        const parentPathEN = parent.data?.path?.en ?? '.html';
+        const parentPathFR = parent.data?.path?.fr ?? '.html';
 
-        const placeholderPathEN = parentPathEN.replace('.html', `/new-page-${date}.html`);
-        const placeholderPathFR = parentPathFR.replace('.html', `/nouvelle-page-${date}.html`)
+        const placeholderPathEN = (url && this.fetchService.getLang(url) === 'en') ? this.fetchService.generatePath(url) : parentPathEN.replace('.html', `/new-page-${date}.html`);
+        const placeholderPathFR = (url && this.fetchService.getLang(url) === 'fr') ? this.fetchService.generatePath(url) : parentPathFR.replace('.html', `/nouvelle-page-${date}.html`);
+
+        const placeholderH1EN = url?.split('/').pop()?.replace('.html', '').replace(/-/g, ' ').replace(/^./, c => c.toUpperCase()) || "New page";
+        const placeholderH1FR = url?.split('/').pop()?.replace('.html', '').replace(/-/g, ' ').replace(/^./, c => c.toUpperCase()) || "Nouvelle page";
 
         const enData: LangData = {
-            h1: 'New page',
+            h1: placeholderH1EN,
             doubleH1: parent.data?.prototype.en.doubleH1 ?? undefined,
             //Content
             contentHash: undefined,
@@ -1440,7 +1390,7 @@ export class ProjectStateService {
 
         const frData: LangData = {
             ...enData,
-            h1: 'Nouvelle page',
+            h1: placeholderH1FR,
             doubleH1: parent.data?.prototype.fr.doubleH1 ?? undefined,
             parentPath: parentPathFR,
         };

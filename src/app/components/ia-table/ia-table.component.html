@@ -12,12 +12,12 @@
             } @else{
             <i class="pi pi-file"></i>
             }
-            <a [href]="node.data.path[currentLang]" target="_blank" (click)="onNodeClick($event)" [innerHTML]="node.data.prototype[currentLang].h1" class="ia-label"></a>
+            <a [href]="node.data.path[currentLanguage]" target="_blank" (click)="onNodeClick($event)" [innerHTML]="node.data.prototype[currentLanguage].h1" class="ia-label"></a>
         </div>
     </ng-template>
 </p-tree>
 
-<p-dialog [header]="selectedNode?.data?.prototype?.[currentLang].h1" [modal]="true" [maximizable]="true" [(visible)]="editNode" styleClass="w-10" [style]="{ height: '90vh' }">
+<p-dialog [header]="selectedNode?.data?.prototype?.[currentLanguage].h1" [modal]="true" [maximizable]="true" [(visible)]="editNode" styleClass="w-10" [style]="{ height: '90vh' }">
     @if(selectedNode) {
     <aida-edit-node [node]="selectedNode" [isOpen]="editNode" (dialogClose)="editNode = false" />
     }

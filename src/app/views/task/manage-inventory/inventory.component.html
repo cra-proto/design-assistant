@@ -112,22 +112,6 @@
             </div>
             }
         </div>
-        <!--div>
-            <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
-                <span class="text-xs  my-1">{{'inventory.columnVis.visibleGroups' | translate}}</span>
-                <p-selectbutton class="mb-0" [options]="columnGroupButtons" [(ngModel)]="selectedGroups" [multiple]="true" optionLabel="tooltip" optionValue="value" (onChange)="onGroupSelectionChange()">
-                    <ng-template let-item pTemplate="item">
-                        <i [class]="'pb-0 pi ' + item.icon" [pTooltip]="item.tooltip" tooltipPosition="top"></i>
-                    </ng-template>
-                </p-selectbutton>
-                <p-selectbutton class="mb-0" [options]="columnMaterialButtons" [(ngModel)]="selectedGroups" [multiple]="true" optionLabel="tooltip" optionValue="value" (onChange)="onGroupSelectionChange()">
-                    <ng-template let-item pTemplate="item">
-                        <span class="material-icons" [pTooltip]="item.tooltip" tooltipPosition="top">{{ item.icon }}</span>
-                    </ng-template>
-                </p-selectbutton>
-            </div>
-        </div-->
-
 
         @if(projectState.selectedInventoryView === "table"){
         <p-table #dt [value]="tableData()" [(selection)]="selectedNodes" dataKey="enPath" selectionMode="multiple" size="small" stripedRows [scrollable]="false"
@@ -363,7 +347,7 @@
                         @if (node[col.field] === -1) {
                         <i class="pi pi-minus text-gray-400"></i>
                         } @else {
-                        {{ node[col.field] | number:'1.0-0':(translate.currentLang === 'en' ? 'en-CA' : 'fr-CA') }}
+                        {{ node[col.field] | number:'1.0-0':(translate.currentLang() === 'en' ? 'en-CA' : 'fr-CA') }}
                         }
                         }
                         <!-- UPD link -->

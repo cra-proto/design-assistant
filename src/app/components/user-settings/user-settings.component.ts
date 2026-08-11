@@ -1,6 +1,6 @@
 import { Component, inject, Input, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from "@ngx-translate/core";
+import { TranslatePipe } from "@ngx-translate/core";
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { MenuItem } from 'primeng/api';
@@ -13,7 +13,7 @@ export type SettingsMode = 'all' | 'language' | 'theme';
 
 @Component({
     selector: 'aida-user-settings',
-    imports: [TranslateModule, FormsModule,
+    imports: [TranslatePipe, FormsModule,
         SelectButtonModule, SelectModule
     ],
     templateUrl: './user-settings.component.html',

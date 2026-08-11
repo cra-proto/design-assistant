@@ -1,11 +1,11 @@
 import { Component, inject } from '@angular/core';
-import { TranslateModule } from "@ngx-translate/core";
+import { TranslatePipe } from "@ngx-translate/core";
 import { UserSettingsService } from '../services/user-settings.service';
 import { version as appVersion } from '../../../package.json'
 
 @Component({
   selector: 'aida-footer',
-  imports: [TranslateModule],
+  imports: [TranslatePipe],
   template: `
 <footer>
     <div class="flex flex-row justify-content-between align-items-end mt-auto pt-2">

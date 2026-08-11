@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, effect, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 //PrimeNG modules
@@ -23,7 +23,7 @@ type RepoMode = 'default' | 'baseline';
 @Component({
   selector: 'aida-setup-repo',
   imports: [
-    CommonModule, FormsModule, TranslateModule,
+    CommonModule, FormsModule, TranslatePipe,
     InputTextModule, IftaLabelModule, CheckboxModule, AutoCompleteModule, KeyFilterModule, MessageModule, SelectButtonModule
   ],
   templateUrl: './setup-repo.component.html',

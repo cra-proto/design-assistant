@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { RouterLink } from '@angular/router';
@@ -95,7 +95,7 @@ const STATUS_FIELDS: Record<string, (keyof UsageRecord)[]> = {
 @Component({
     selector: 'aida-usage-monitoring',
     imports: [
-        CommonModule, FormsModule, TranslateModule, RouterLink,
+        CommonModule, FormsModule, TranslatePipe, RouterLink,
         BreadcrumbModule, SkeletonModule, DividerModule, ButtonModule, SelectButtonModule, ToggleButtonModule, SelectModule, IftaLabelModule,
         ChartModule,
     ],

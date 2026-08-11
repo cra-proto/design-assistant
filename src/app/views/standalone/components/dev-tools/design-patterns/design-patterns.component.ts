@@ -1,7 +1,7 @@
 import { Component, effect, OnDestroy, AfterViewInit, ViewChildren, QueryList, ElementRef, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { RouterLink } from '@angular/router';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
@@ -68,7 +68,7 @@ type PreviewConfig = MessagePreviewConfig | ButtonPreviewConfig | CardPreviewCon
     selector: 'aida-design-patterns',
     standalone: true,
     imports: [
-        CommonModule, FormsModule, TranslateModule, RouterLink,
+        CommonModule, FormsModule, TranslatePipe, RouterLink,
         BreadcrumbModule, TabsModule, MessageModule, ButtonModule, TooltipModule,
         InputTextModule, TextareaModule, SelectModule, IftaLabelModule,
     ],

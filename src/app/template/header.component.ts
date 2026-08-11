@@ -1,6 +1,6 @@
 import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateModule, TranslateService } from "@ngx-translate/core";
+import { TranslatePipe, TranslateService } from "@ngx-translate/core";
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 // PrimeNG
@@ -17,7 +17,7 @@ import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'aida-header',
-  imports: [CommonModule, TranslateModule,
+  imports: [CommonModule, TranslatePipe,
     ButtonModule, DividerModule, ToastModule,
     SignInButtonComponent,
   ],

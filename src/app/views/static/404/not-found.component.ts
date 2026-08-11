@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { TranslateModule } from "@ngx-translate/core";
+import { TranslatePipe } from "@ngx-translate/core";
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 @Component({
   selector: 'aida-not-found',
-  imports: [TranslateModule],
+  imports: [TranslatePipe],
   template: `
   
     <span [innerHTML]="random404Key | translate"></span>

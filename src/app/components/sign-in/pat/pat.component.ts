@@ -1,6 +1,6 @@
 import { Component, inject, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from "@ngx-translate/core";
+import { TranslatePipe } from "@ngx-translate/core";
 
 import { ButtonModule } from 'primeng/button';
 import { IftaLabelModule } from 'primeng/iftalabel';
@@ -13,7 +13,7 @@ import { environment } from '../../../../environments/environment';
 
 @Component({
     selector: 'aida-pat',
-    imports: [TranslateModule, FormsModule,
+    imports: [TranslatePipe, FormsModule,
         ButtonModule, IftaLabelModule, PasswordModule, TooltipModule, DialogModule],
     templateUrl: './pat.component.html',
     styles: ``

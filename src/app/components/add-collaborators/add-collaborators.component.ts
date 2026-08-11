@@ -1,7 +1,7 @@
 import { Component, inject, computed, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from "@ngx-translate/core";
+import { TranslatePipe, TranslateService } from "@ngx-translate/core";
 
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
@@ -24,7 +24,7 @@ export type CollaboratorMode = 'list' | 'dashboard' | 'switch';
 
 @Component({
     selector: 'aida-add-collaborators',
-    imports: [CommonModule, FormsModule, TranslateModule,
+    imports: [CommonModule, FormsModule, TranslatePipe,
         AvatarModule, AvatarGroupModule, TooltipModule, ButtonModule, ConfirmDialogModule,
         DialogModule, MessageModule,
         AutoCompleteModule, IftaLabelModule, KeyFilterModule

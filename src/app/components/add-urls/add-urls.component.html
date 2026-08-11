@@ -36,6 +36,12 @@
               [loading]="addUrlsService.urlState().isValidating || addUrlsService.urlState().isAdding"
               (onClick)="undoAddPages()" />
     }
+    <!-- View Invalid URLs Button -->
+    @if(addUrlsService.urlState().urlsToReview.length > 0){
+    <p-button [label]="'addPages.viewInvalid' | translate" icon="pi pi-link" severity="info"
+              [loading]="addUrlsService.urlState().isValidating || addUrlsService.urlState().isAdding"
+              (onClick)="viewInvalidUrls = true" />
+    }
 </div>
 
 @if(addUrlsService.urlState().isValidating && addUrlsService.validatingProgress(); as progress){
@@ -59,3 +65,10 @@
     </ng-template>
 </p-progressbar>
 }
+
+<!-- Invalid URLs popup -->
+<p-dialog [header]="'invalidUrls._title' | translate" [modal]="true" [maximizable]="true" [(visible)]="viewInvalidUrls" styleClass="w-10" [style]="{ height: '90vh' }">
+    @if(addUrlsService.urlState().urlsToReview.length > 0) {
+    <aida-invalid-urls (dialogClose)="viewInvalidUrls = false" />
+    }
+</p-dialog>

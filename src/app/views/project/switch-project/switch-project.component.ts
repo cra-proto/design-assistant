@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from "@ngx-translate/core";
+import { TranslatePipe, TranslateService } from "@ngx-translate/core";
 import { Router } from '@angular/router';
 
 import { CardModule } from 'primeng/card';
@@ -50,7 +50,7 @@ import { ProjectMetadata, ProjectPhase } from '../../../common/data.model';
 @Component({
   selector: 'aida-switch-project',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule,
+  imports: [CommonModule, FormsModule, TranslatePipe,
     CardModule, ButtonModule, DialogModule, FieldsetModule, TimelineModule, ProgressBarModule, SplitButtonModule, ChipModule,
     InputTextModule, IconFieldModule, InputIconModule, SelectModule, MultiSelectModule,
     CheckboxModule, DividerModule, SelectButtonModule, TagModule, TableModule, TabsModule, BadgeModule, AvatarModule, AvatarGroupModule, TooltipModule, MessageModule,

@@ -1,7 +1,7 @@
 import { Component, inject, computed, ViewChild, effect, OnInit } from '@angular/core';
 import { CommonModule, LocationStrategy } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 
 // PrimeNG modules
 import { TreeModule, TreeNodeContextMenuSelectEvent, TreeNodeDropEvent } from 'primeng/tree';
@@ -25,7 +25,7 @@ import { FetchService } from '../../services/fetch.service';
 
 @Component({
     selector: 'aida-ia-table',
-    imports: [FormsModule, CommonModule, TranslateModule,
+    imports: [FormsModule, CommonModule,
         TreeModule, ContextMenuModule, DialogModule,
         InputTextModule, InputGroupModule, InputGroupAddonModule,
         ButtonModule, TooltipModule,
@@ -54,7 +54,7 @@ export class IaTableComponent implements OnInit {
     draggable = true;
     selectable = false;
 
-    get currentLang() { return this.translate.currentLang.startsWith('fr') ? 'fr' : 'en' }
+    get currentLanguage() { return this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en' }
 
     constructor() {
         effect(() => {
@@ -154,7 +154,7 @@ export class IaTableComponent implements OnInit {
         const previewUrl = this.fetchService.generateUrl(path, "preview");
         const prototypeUrl = this.fetchService.generateUrl(path, "protoGH", github.owner, github.repo);
         const baselineUrl = this.fetchService.generateUrl(path, "baseGH", github.owner, github.repo);
-        const updUrl = `https://cra-arc.alpha.canada.ca/en/pages?url=${liveUrl}${this.currentLang}`;
+        const updUrl = `https://cra-arc.alpha.canada.ca/en/pages?url=${liveUrl}${this.currentLanguage}`;
         if (!isContainer) {
             this.options.push(
                 { separator: true },

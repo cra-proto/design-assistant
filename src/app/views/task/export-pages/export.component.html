@@ -16,50 +16,29 @@
         <div class="flex flex-column lg:flex-row justify-content-between align-items-start">
             <div class="flex flex-column">
                 <h2 class="text-2xl my-1">{{ 'exportPages.settings._title' | translate }}</h2>
-                <p class="my-1">{{ 'exportPages.settings.description.' + selectedExportVersion | translate }}</p>
+                <p class="my-1">{{ 'exportPages.settings.description.' + projectCache.selectedVersion() | translate }}</p>
                 <div class="flex flex-column xl:flex-row gap-2 xl:gap-5">
                     <!-- Repository Info Row -->
                     <div class="flex flex-row gap-5">
                         @if(repoType() === 'github'){
                         <div>
                             <label for="owner" class="text-xs font-semibold">{{ 'project.github.label.owner' | translate }}</label>
-                            <p id="owner" class="text-color-secondary text-sm my-0">{{ projectData().github.owner }}</p>
+                            <p id="owner" class="text-color-secondary white-space-nowrap text-sm my-0">{{ projectData().github.owner }}</p>
                         </div>
                         }
                         <div>
                             <label for="repo" class="text-xs font-semibold">{{ 'project.github.label.repo' | translate }}</label>
-                            <p id="repo" class="text-color-secondary text-sm my-0">{{ projectData().github.repo }}{{(selectedExportVersion === 'baseline')?'-baseline':''}}</p>
+                            <p id="repo" class="text-color-secondary white-space-nowrap text-sm my-0">{{ projectData().github.repo }}{{(projectCache.selectedVersion() === 'baseline')?'-baseline':''}}</p>
                         </div>
                         @if(repoType() === 'github'){
                         <div>
                             <label for="branch" class="text-xs font-semibold">{{ 'project.github.label.branch' | translate }}</label>
-                            <p id="branch" class="text-color-secondary text-sm my-0">{{ projectData().github.branch }}</p>
+                            <p id="branch" class="text-color-secondary white-space-nowrap text-sm my-0">{{ projectData().github.branch }}</p>
                         </div>
                         }
                     </div>
                     <div class="flex flex-row flex-wrap row-gap-2 column-gap-5">
-                        <!--Choose export language-->
-                        <div class="flex flex-column hover:text-primary">
-                            <label for="export-language" class="text-xs font-semibold xl:my-1">{{ 'exportPages.settings.exportLanguage' | translate }}</label>
-                            <p-selectButton id="export-language" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
-                                            [options]="exportLanguageOptions" [(ngModel)]="selectedExportLanguage" (onChange)="compareFiles()" />
-                        </div>
-                        <!--Choose export source-->
-                        @if(exportSourceOptions.length > 1){
-                        <div class="flex flex-column hover:text-primary">
-                            <label for="export-source" class="text-xs font-semibold xl:my-1">{{ 'exportPages.settings.exportSource' | translate }}</label>
-                            <p-selectButton id="export-source" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
-                                            [options]="exportSourceOptions" [(ngModel)]="selectedExportSource" />
-                        </div>
-                        }
-                        <!--Choose export type-->
-                        @if (projectData().github.hasBaselineRepo) {
-                        <div class="flex flex-column hover:text-primary">
-                            <label for="export-type" class="text-xs font-semibold xl:my-1">{{ 'exportPages.settings.exportVersion' | translate }}</label>
-                            <p-selectButton id="export-type" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
-                                            [options]="exportVersionOptions" [(ngModel)]="selectedExportVersion" (onChange)="compareFiles()" />
-                        </div>
-                        }
+                        <aida-project-settings [showLang]="true" [allowBoth]="true" [showVersion]="true" [isPrototype]="!projectData().github.hasBaselineRepo" [showSource]="true" [onlyValid]="true" />
                     </div>
                 </div>
             </div>
@@ -75,21 +54,7 @@
                 <p-popover #settingsOverlay styleClass="w-full lg:w-30rem">
                     <aida-setup-repo mode="baseline" />
                     @if (projectData().github.hasBaselineRepo) {
-                    <div class="flex flex-column align-items-stretch mt-3">
-                        <label for="export-type" class="text-sm font-semibold">{{ 'exportPages.settings.exportVersion' | translate }}</label>
-                        <p-selectButton id="export-type"
-                                        [options]="exportVersionOptions"
-                                        [(ngModel)]="selectedExportVersion"
-                                        (onChange)="compareFiles()"
-                                        allowEmpty="false"
-                                        optionLabel="label"
-                                        optionValue="value"
-                                        styleClass="secondary-outline max-h-3rem">
-                            <ng-template #item let-item>
-                                {{ item.label | translate }}
-                            </ng-template>
-                        </p-selectButton>
-                    </div>
+                    <aida-project-settings [showVersion]="true" />
                     }
                 </p-popover>
                 }
@@ -114,17 +79,7 @@
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full min-w-min">
         <aida-setup-repo />
         @if (projectData().github.hasBaselineRepo) {
-        <div class="flex flex-column align-items-stretch mt-3">
-            <label for="export-type" class="text-sm font-semibold">{{ 'exportPages.settings.exportVersion' | translate }}</label>
-            <p-selectButton id="export-type"
-                            [options]="exportVersionOptions"
-                            [(ngModel)]="selectedExportVersion"
-                            (onChange)="compareFiles()"
-                            allowEmpty="false"
-                            optionLabel="label"
-                            optionValue="value"
-                            styleClass="secondary-outline max-h-3rem" />
-        </div>
+        <aida-project-settings [showVersion]="true" />
         }
     </div>
     }
@@ -155,7 +110,7 @@
                         {{ projectFileCount() }}
                     </div>
                     <div class="text-600 text-sm">
-                        {{ selectedExportVersion === 'prototype' ? ('exportPages.data.inScope' | translate) : ('exportPages.data.baseline' | translate) }}
+                        {{ projectCache.selectedVersion() === 'prototype' ? ('exportPages.data.inScope' | translate) : ('exportPages.data.baseline' | translate) }}
                     </div>
                 </div>
                 <div>

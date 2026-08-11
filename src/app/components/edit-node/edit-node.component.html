@@ -2,12 +2,12 @@
     <div class="flex flex-row flex-wrap gap-3">
         <div class="flex flex-column hover:text-primary">
             <label for="lang" class="text-xs font-semibold">{{ 'common.language' | translate }}</label>
-            <p-selectButton id="lang" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
+            <p-selectbutton id="lang" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
                             [options]="languageOptions" [(ngModel)]="selectedLanguage" />
         </div>
         <div class="flex flex-column hover:text-primary">
             <label for="version" class="text-xs font-semibold">{{ 'common.version' | translate }}</label>
-            <p-selectButton id="version" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
+            <p-selectbutton id="version" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
                             [options]="versionOptions" [(ngModel)]="selectedVersion" />
         </div>
         <div class="flex flex-column hover:text-primary">

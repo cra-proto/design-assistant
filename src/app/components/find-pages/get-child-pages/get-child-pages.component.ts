@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 // PrimeNG modules
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -19,7 +19,7 @@ import { AddUrlsService } from '../../add-urls/add-urls.service';
     selector: 'aida-get-child-pages',
     standalone: true,
     imports: [
-        CommonModule, FormsModule, TranslateModule,
+        CommonModule, FormsModule, TranslatePipe,
         InputNumberModule, IftaLabelModule, ButtonModule, ProgressBarModule, CheckboxModule
     ],
     templateUrl: './get-child-pages.component.html',

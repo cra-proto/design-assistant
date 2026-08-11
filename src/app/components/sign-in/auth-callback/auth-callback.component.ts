@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -11,7 +11,7 @@ import { GitHubAuthService } from '../../../services/github/github-auth.service'
 
 @Component({
   selector: 'aida-auth-callback',
-  imports: [CommonModule, TranslateModule,
+  imports: [CommonModule, TranslatePipe,
     ProgressSpinnerModule, MessageModule],
   templateUrl: './auth-callback.component.html',
   styles: ``

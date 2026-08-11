@@ -96,7 +96,7 @@
                             (onChange)="toolbarToggleCopy(webSelectedView())" />
             @if(getUrl()){
             <a [href]="getUrl()" target="_blank" rel="noopener noreferrer" class="p-togglebutton border-none no-underline font-bold">
-                <span class="flex flex-row gap-2 align-items-center"><i class="pi pi-external-link"></i>Open page</span>
+                <span class="flex flex-row gap-2 align-items-center"><i class="pi pi-external-link"></i>{{ 'common.openNewTab' | translate }}</span>
             </a>
             }
         </div>

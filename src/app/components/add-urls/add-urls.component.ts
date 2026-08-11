@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 //PrimeNG
 import { IftaLabelModule } from 'primeng/iftalabel';
@@ -9,16 +9,19 @@ import { TextareaModule } from 'primeng/textarea';
 import { MessageModule } from 'primeng/message';
 import { ButtonModule } from 'primeng/button';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { DialogModule } from 'primeng/dialog';
 
 //Custom
 import { ProjectStateService } from '../../services/project-state.service';
 import { AddUrlsService } from './add-urls.service';
+import { InvalidUrlsComponent } from './invalid-urls/invalid-urls.component';
 
 @Component({
     selector: 'aida-add-urls',
     imports: [
-        CommonModule, FormsModule, TranslateModule,
-        IftaLabelModule, TextareaModule, MessageModule, ButtonModule, ProgressBarModule
+        CommonModule, FormsModule, TranslatePipe,
+        IftaLabelModule, TextareaModule, MessageModule, ButtonModule, ProgressBarModule, DialogModule,
+        InvalidUrlsComponent
     ],
     templateUrl: './add-urls.component.html',
     styles: ``
@@ -36,7 +39,7 @@ export class AddUrlsComponent implements OnInit {
     // Parse URLs from textarea
     parseUrls(): void {
         const rawUrls = this.addUrlsService.urlState().rawUrls;
-        const currentLang = this.translate.currentLang?.startsWith('fr') ? 'fr' : 'en';
+        const currentLang = this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en';
         const existingUrls = new Set(this.projectState.getAllPages(currentLang, "live", "all").map(u => u.url));
         const { parsedUrls, duplicates, invalidUrls, oppositeLangUrls } = this.addUrlsService.parseUrls(rawUrls, existingUrls, currentLang);
 
@@ -105,4 +108,6 @@ export class AddUrlsComponent implements OnInit {
             setTimeout(() => this.highlightAddPages = false, 3000);
         }
     }
+
+    viewInvalidUrls = false;
 }

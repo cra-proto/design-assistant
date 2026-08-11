@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 //Services
 import { ProjectStateService } from '../services/project-state.service';
@@ -11,7 +11,7 @@ import { environment } from '../../environments/environment';
 @Component({
   selector: 'aida-sidebar',
   standalone: true,
-  imports: [RouterModule, TranslateModule],
+  imports: [RouterModule, TranslatePipe],
   templateUrl: './sidebar.component.html',
   styles: ``
 })

@@ -1,7 +1,7 @@
-import { Component, OnInit, inject, signal, computed, effect, ViewChild, untracked } from '@angular/core';
+import { Component, inject, signal, computed, effect, ViewChild, untracked, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { Router } from '@angular/router';
 
@@ -30,6 +30,7 @@ import { HtmlNormalizationService } from '../../../services/html-normalization.s
 import { SetupRepoComponent } from '../../../components/setup-repo/setup-repo.component';
 import { SignInBannerComponent } from '../../../components/sign-in/sign-in-banner/sign-in-banner.component';
 import { BookmarkletComponent } from '../../../components/bookmarklet/bookmarklet.component';
+import { ProjectSettingsComponent } from "../../../components/project-settings/project-settings.component";
 
 import { CDTS_TEMPLATE_ENG, CDTS_TEMPLATE_FRA, EXIT_PAGE_TEMPLATE_ENG, EXIT_PAGE_TEMPLATE_FRA, INDEX_PAGE_TEMPLATE_ENG, INDEX_PAGE_TEMPLATE_FRA, LINK_DETOUR_JS } from '../../../common/cdts.template';
 import { environment } from '../../../../environments/environment';
@@ -74,10 +75,10 @@ interface ExportMessage {
 
 @Component({
   selector: 'aida-export-github',
-  imports: [CommonModule, FormsModule, TranslateModule,
+  imports: [CommonModule, FormsModule, TranslatePipe,
     MessageModule, ButtonModule, TooltipModule, PopoverModule, SelectButtonModule, DividerModule,
     TableModule, ChipModule, PanelModule, ProgressBarModule,
-    SetupRepoComponent, SignInBannerComponent, BookmarkletComponent],
+    SetupRepoComponent, SignInBannerComponent, BookmarkletComponent, ProjectSettingsComponent],
   templateUrl: './export.component.html',
   styles: ``
 })
@@ -125,6 +126,8 @@ export class ExportComponent implements OnInit {
       void this.exportGitHubService.token(); // track signal
       void this.projectData().github.owner; // track signal
       void this.projectData().github.repo; // track signal
+      void this.projectCache.selectedLang(); // track signal
+      void this.projectCache.selectedVersion(); // track signal
       const repoType = this.projectData().repoType;
       //Update repoType signal
       if (repoType) {
@@ -133,6 +136,10 @@ export class ExportComponent implements OnInit {
       //Update table when owner or repo changes
       untracked(() => this.compareFiles());
     });
+  }
+
+  ngOnInit() {
+    this.projectCache.checkGitHubStatus();
   }
 
   // Computed signals
@@ -147,16 +154,6 @@ export class ExportComponent implements OnInit {
   newCount = computed(() => this.filesTable().filter(f => f.status === ExportStatus.ExportNew).length);
   updatedCount = computed(() => this.filesTable().filter(f => f.status === ExportStatus.ExportOverwrite).length);
 
-  // Initialize table and connection status
-  async ngOnInit() {
-    //await this.compareFiles();
-    if (this.projectData().lastExported) {
-      const version = this.selectedExportVersion === 'prototype' ? 'protoGH' : 'baseGH'
-      const indexUrl = this.fetchService.generateUrl("index.html", version, this.projectData().github.owner, this.projectData().github.repo);
-      this.projectCache.hasGitHub.set((await this.fetchService.fetchStatus(indexUrl, "proto", 2)).ok);
-    }
-  }
-
   // Template visiblity controls
   // If a repo is configured (and overlay is closed), show the repo settings as a secondary task instead of a card
   @ViewChild('settingsOverlay') settingsOverlay!: Popover;
@@ -165,55 +162,15 @@ export class ExportComponent implements OnInit {
     return hasGithubData || this.settingsOverlay?.overlayVisible;
   }
 
-  //Export language options
-  selectedExportLanguage: 'en' | 'fr' | 'both' = 'en';
-
-  get exportLanguageOptions() {
-    const primaryLang = this.projectState.detectPrimaryLanguage();
-    const enLabel = { label: this.translate.instant('common.language.english'), value: 'en' }
-    const frLabel = { label: this.translate.instant('common.language.french'), value: 'fr' }
-    const bothLabel = { label: this.translate.instant('common.both'), value: 'both' }
-    if (primaryLang === 'en') { return [enLabel, frLabel, bothLabel] }
-    else { return [frLabel, enLabel, bothLabel] }
-  }
-
-  // Export version options
-  selectedExportVersion: 'prototype' | 'baseline' = 'prototype';
-
-  get exportVersionOptions() {
-    return [
-      { label: this.translate.instant('common.version.prototype'), value: 'prototype' },
-      { label: this.translate.instant('common.version.baseline'), value: 'baseline' }
-    ];
-  }
-
-  // Export source options
-  selectedExportSource: 'github' | 'local' | 'live' = 'live';
-
-  get exportSourceOptions() {
-    const options = [{ label: this.translate.instant('common.version.canada'), value: 'live' }];
-    if (this.projectCache.hasGitHub()) {
-      options.push({ label: this.translate.instant('common.version.prototype.github'), value: 'github' })
-    }
-    if (this.projectCache.hasLocal()) {
-      options.push({ label: this.translate.instant('common.version.prototype.local'), value: 'local' })
-    }
-    return options;
-  }
-
   //Export context based on user selections above
   get exportContext() {
-    const source: urlVersion = this.selectedExportSource === 'live'
-      ? 'live'
-      : this.selectedExportSource === 'local'
-        ? (this.selectedExportVersion === 'prototype' ? 'protoUT' : 'baseUT')
-        : (this.selectedExportVersion === 'prototype' ? 'protoGH' : 'baseGH');
+    const source = this.projectCache.selectedSource();
 
-    const repo = this.selectedExportVersion === 'prototype'
+    const repo = this.projectCache.selectedVersion() === 'prototype'
       ? this.gitHubData().repo
       : `${this.gitHubData().repo}-baseline`;
 
-    const scope: 'inScope' | 'all' = this.selectedExportVersion === 'prototype' ? 'inScope' : 'all';
+    const scope: 'inScope' | 'all' = this.projectCache.selectedVersion() === 'prototype' ? 'inScope' : 'all';
 
     return { source, repo, scope };
   };
@@ -221,7 +178,7 @@ export class ExportComponent implements OnInit {
   // Open targeted GitHub repo
   openRepo() {
     let modifier = '';
-    if (this.selectedExportVersion === 'baseline') { modifier = '-baseline'; };
+    if (this.projectCache.selectedVersion() === 'baseline') { modifier = '-baseline'; };
     const url = `https://github.com/${this.projectData().github.owner}/${this.projectData().github.repo}${modifier}`;
     window.open(url, '_blank');
   }
@@ -240,7 +197,7 @@ export class ExportComponent implements OnInit {
       this.repoType.set(this.projectData().repoType ?? "github");
     }
 
-    const lang = this.selectedExportLanguage;
+    const lang = this.projectCache.selectedLang();
     const { source, repo, scope } = this.exportContext;
 
     const enPages = this.projectState.getAllPages("en", source, scope).map(p => p.path);
@@ -332,7 +289,7 @@ export class ExportComponent implements OnInit {
         if (isAutoUpdateFile) status = ExportStatus.ExportOverwrite;
         else if (isAlwaysSkipFile) status = ExportStatus.SkipOverwrite;
         else {
-          const storedSha = pathLang ? node?.data?.[this.selectedExportVersion][pathLang].githubSha : null;
+          const storedSha = pathLang ? node?.data?.[this.projectCache.selectedVersion()][pathLang].githubSha : null;
           const githubSha = filteredGithubPages.get(path);
           status = storedSha && storedSha === githubSha
             ? ExportStatus.ExportOverwrite  // SHA matches - refresh content
@@ -476,7 +433,7 @@ export class ExportComponent implements OnInit {
 
     const { source, repo, scope } = this.exportContext;
     const date = new Date().toISOString().split('T')[0];
-    const aidaLang = this.translate.currentLang.startsWith('fr') ? 'fr' : 'en';
+    const aidaLang = this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en';
 
     const projectPaths = this.projectTable().filter(item => item.status === ExportStatus.ExportNew || item.status === ExportStatus.ExportOverwrite).map(item => item.path);
     const templatePaths = this.templateTable().filter(item => item.status === ExportStatus.ExportNew || item.status === ExportStatus.ExportOverwrite).map(item => item.path);
@@ -565,13 +522,14 @@ export class ExportComponent implements OnInit {
     for (const path of templatePaths) {
       if (path === this.cdtsFiles[0]) {
         //Collect page paths for redirects
+        const lang = this.projectCache.selectedLang();
         let allPagePaths;
-        if (this.selectedExportLanguage === "both") {
+        if (lang === "both") {
           const enPages = this.projectState.getAllPages("en", "live", scope).map(page => page.path)
           const frPages = this.projectState.getAllPages("fr", "live", scope).map(page => page.path)
           allPagePaths = new Set([...enPages, ...frPages]);
         }
-        else { allPagePaths = new Set(this.projectState.getAllPages(this.selectedExportLanguage, "live", scope).map(page => page.path)); }
+        else { allPagePaths = new Set(this.projectState.getAllPages(lang, "live", scope).map(page => page.path)); }
         // Format redirect
         const redirects = [...allPagePaths].map(path => ({
           origin: `https://www.canada.ca/${path}`,
@@ -607,7 +565,7 @@ export class ExportComponent implements OnInit {
     //Track exports
     const pageCountEN = projectPaths.filter(p => p.startsWith('en/') || p === 'en.html').length;
     const pageCountFR = projectPaths.filter(p => p.startsWith('fr/') || p === 'fr.html').length;
-    this.usageService.trackExport(this.projectData().id, this.projectData().org ?? 'DEFAULT', this.projectData().storageType, this.projectData().repoType, `${repo}`, this.selectedExportVersion, pageCountEN, pageCountFR);
+    this.usageService.trackExport(this.projectData().id, this.projectData().org ?? 'DEFAULT', this.projectData().storageType, this.projectData().repoType, `${repo}`, this.projectCache.selectedVersion(), pageCountEN, pageCountFR);
     //Download zip file
     const blob = await zip.generateAsync({ type: 'blob' });
     const a = document.createElement('a');
@@ -665,9 +623,9 @@ export class ExportComponent implements OnInit {
     };
 
     //Table headers
-    const headers = this.selectedExportLanguage === 'en'
+    const headers = this.projectCache.selectedLang() === 'en'
       ? [this.translate.instant('common.language.englishPages')]
-      : this.selectedExportLanguage === 'fr'
+      : this.projectCache.selectedLang() === 'fr'
         ? [this.translate.instant('common.language.frenchPages')]
         : [this.translate.instant('common.language.englishPages'), this.translate.instant('common.language.frenchPages')];
     const headerHtml = headers.map(h => `<th>${h}</th>`).join('\n                  ');
@@ -689,9 +647,9 @@ export class ExportComponent implements OnInit {
                 {"label": "${viewUPD}", "href":"${this.fetchService.generateUrl(pair.fr.path, "upd")}"}
               ]'>${pair.fr.label ?? pair.fr.path}</a>`
         : `<i class="fa fa-minus"></i>`;
-      const cells = this.selectedExportLanguage === 'en'
+      const cells = this.projectCache.selectedLang() === 'en'
         ? [enCell]
-        : this.selectedExportLanguage === 'fr'
+        : this.projectCache.selectedLang() === 'fr'
           ? [frCell]
           : [enCell, frCell];
       return `
@@ -717,7 +675,7 @@ export class ExportComponent implements OnInit {
     const groupedPairs = new Map<string, typeof exportedPairs>();
     const ungroupedPairs: typeof exportedPairs = [];
     exportedPairs.forEach(pair => {
-      const groupKey = this.translate.currentLang?.startsWith('fr') ? pair.fr.group : pair.en.group;
+      const groupKey = this.translate.currentLang()?.startsWith('fr') ? pair.fr.group : pair.en.group;
       if (groupKey) {
         if (!groupedPairs.has(groupKey)) groupedPairs.set(groupKey, []);
         groupedPairs.get(groupKey)!.push(pair);
@@ -767,7 +725,7 @@ export class ExportComponent implements OnInit {
             const doc = !source.endsWith('UT')
               ? await this.fetchService.fetchContent(url, "both")
               : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(url));
-            const breadcrumbs = this.selectedExportVersion === 'prototype'
+            const breadcrumbs = this.projectCache.selectedVersion() === 'prototype'
               ? this.projectState.getBreadcrumbChain(node.data.path[lang], lang).slice(1)
               : undefined; //baseline uses live breadcrumb
             const content = await this.exportGitHubService.formatDocumentAsJekyll(doc, url, this.gitHubData().owner, repo, breadcrumbs);
@@ -798,6 +756,8 @@ export class ExportComponent implements OnInit {
     const branch = this.gitHubData().branch;
     const token = this.exportGitHubService.token();
     const projectName = this.projectData().projectName;
+    const cacheVersion = this.projectCache.selectedVersion();
+    const version = cacheVersion === 'live' ? 'prototype' : cacheVersion;
     console.log(source)
     console.log(repo)
     console.log(scope)
@@ -805,18 +765,19 @@ export class ExportComponent implements OnInit {
     // Step 1: Gather all in-scope or baseline URLs and their content
     this.exportProgress.set({ step: 'exportPages.export.progress.gatherPages', progress: 5, });
     let nodes = this.projectState.getProjectTree();
-    if (this.selectedExportVersion === 'baseline') {
+    if (version === 'baseline') {
       nodes = this.projectState.getBaselineTree(nodes, "full");
     }
 
     let exportPages: PageData[] = [];
-    if (this.selectedExportLanguage === 'both') {
+    const lang = this.projectCache.selectedLang();
+    if (lang === 'both') {
       const enPages = await this.getUrlandContent(nodes[0], 'en', owner, repo, source);
       const frPages = await this.getUrlandContent(nodes[0], 'fr', owner, repo, source);
       exportPages = [...enPages, ...frPages];
     }
     else {
-      exportPages = await this.getUrlandContent(nodes[0], this.selectedExportLanguage, owner, repo, source);
+      exportPages = await this.getUrlandContent(nodes[0], lang, owner, repo, source);
     }
 
     // Step 2: Check for templates files to include
@@ -857,7 +818,7 @@ export class ExportComponent implements OnInit {
         //Store SHA with project data
         if (result?.content?.sha) {
           const pathLang = page.path.startsWith('en/') || page.path.endsWith('en.html') ? 'en' : 'fr';
-          this.projectState.setPageSha(page.path, result.content.sha, this.selectedExportVersion, pathLang);
+          this.projectState.setPageSha(page.path, result.content.sha, version, pathLang);
         }
       } catch (error) {
         console.error(`Error exporting ${page.path}:`, error);
@@ -891,7 +852,7 @@ export class ExportComponent implements OnInit {
     this.projectState.setExportDate();
     const pageCountEN = exportPages.filter(p => p.path.startsWith('en/') || p.path === 'en.html').length;
     const pageCountFR = exportPages.filter(p => p.path.startsWith('fr/') || p.path === 'fr.html').length;
-    this.usageService.trackExport(this.projectData().id, this.projectData().org ?? 'DEFAULT', this.projectData().storageType, this.projectData().repoType, `${owner}/${repo}`, this.selectedExportVersion, pageCountEN, pageCountFR);
+    this.usageService.trackExport(this.projectData().id, this.projectData().org ?? 'DEFAULT', this.projectData().storageType, this.projectData().repoType, `${owner}/${repo}`, version, pageCountEN, pageCountFR);
     setTimeout(() => this.exportProgress.set(null), 5000);
     this.compareFiles();
   }

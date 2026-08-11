@@ -14,7 +14,7 @@ import { TreeNodeStyleService } from '../../services/treenode-style.service';
 //Interfaces
 export interface ValidationItem {
     href: string;
-    status: 'ok' | 'bad' | 'redirect' | 'blocked' | 'checking';
+    status: 'ok' | 'bad' | 'redirect' | 'blocked' | 'checking' | 'new';
     originalHref?: string;
 }
 
@@ -26,10 +26,28 @@ export interface AddItem {
 export interface UrlState {
     rawUrls: string;
     urlsToValidate: ValidationItem[];
+    urlsToReview: ValidationItem[];
     urlsToAdd: AddItem[];
     isValidating: boolean;
     isAdding: boolean;
 }
+
+const dummyUrlsToReview: ValidationItem[] = [
+    // Bad
+    { href: 'https://www.canada.ca/en/services/new-page.html', status: 'bad' },
+    { href: 'https://www.canada.ca/en/revenue-agency/old-broken-link.html', status: 'bad' },
+    { href: 'https://www.canada.ca/fr/agence-revenu/page-supprimee.html', status: 'bad' },
+
+    // Blocked
+    { href: 'https://github.com/proto-cra/test-project/blob/main/README.md', status: 'blocked' },
+    { href: 'https://raw.githubusercontent.com/cra-proto/test-repo/main/data.json', status: 'blocked' },
+    { href: 'https://random-user.github.io/repo-name/en/draft-page.html', status: 'blocked' },
+
+    // Redirect
+    { href: 'https://www.canada.ca/en/services/benefits/dental.html', status: 'redirect', originalHref: 'https://www.canada.ca/en/services/benefits/cdcp.html' },
+    { href: 'https://www.canada.ca/en/revenue-agency/services/tax/individuals.html', status: 'redirect', originalHref: 'https://www.canada.ca/en/revenue-agency/services/tax/individuals-old.html' },
+    { href: 'https://www.canada.ca/fr/agence-revenu/services/impot/particuliers.html', status: 'redirect', originalHref: 'https://www.canada.ca/fr/agence-revenu/services/impot/particuliers-ancien.html' },
+];
 
 @Injectable({
     providedIn: 'root'
@@ -57,6 +75,7 @@ export class AddUrlsService {
     public urlState = signal<UrlState>({
         rawUrls: '',
         urlsToValidate: [],
+        urlsToReview: [],
         urlsToAdd: [],
         isValidating: false,
         isAdding: false,
@@ -64,6 +83,14 @@ export class AddUrlsService {
 
     setUrlState(partial: Partial<UrlState>) {
         this.urlState.update(curr => ({ ...curr, ...partial }));
+    }
+
+    updateReviewStatus(hrefs: string[], status: ValidationItem['status']) {
+        const hrefSet = new Set(hrefs);
+        const urlsToReview = this.urlState().urlsToReview.map(url =>
+            hrefSet.has(url.href) ? { ...url, status } : url
+        );
+        this.setUrlState({ urlsToReview });
     }
 
     projectLang = this.projectState.detectPrimaryLanguage();
@@ -135,8 +162,8 @@ export class AddUrlsService {
                 url = 'https://www.' + url;
             }
         }
-        else if (url.startsWith('https://canada-preview.adobecqms.net')) {
-            url = url.replace('https://canada-preview.adobecqms.net', 'https://www.canada.ca');
+        else if (url.startsWith('https://canada-preview.adobecqms.net/')) {
+            url = url.replace('https://canada-preview.adobecqms.net/', 'https://www.canada.ca/');
         }
 
         // Fix extension
@@ -202,9 +229,10 @@ export class AddUrlsService {
         for (const url of urls) {
             await this.validateUrl(url);
         }
-        // Filter out duplicates & invalid urls for ursToAdd
+        // Filter out duplicates & invalid urls for urlsToAdd
         const validated = this.urlState().urlsToValidate;
         const existingUrls = new Set(this.projectState.getAllPages(this.projectLang, "live", "all").map(u => u.url));
+
         const seen = new Set<string>();
         const urlsToAdd: AddItem[] = validated
             .filter(url => url.status === 'ok' || url.status === 'redirect')
@@ -214,7 +242,10 @@ export class AddUrlsService {
                 return true;
             })
             .map(url => ({ href: url.href, status: 'pending' }));
-        this.setUrlState({ isValidating: false, urlsToValidate: [], urlsToAdd })
+
+        const urlsToReview: ValidationItem[] = validated.filter(url => url.status === 'bad' || url.status === 'redirect' || url.status === 'blocked')
+
+        this.setUrlState({ isValidating: false, urlsToValidate: [], urlsToReview, urlsToAdd })
         this.addUrls();
     }
 
@@ -528,13 +559,6 @@ export class AddUrlsService {
     getHighlight() {
         return this.highlight();
     }
-
-    // Invalid urls component
-    urlsForReview = computed(() =>
-        this.urlState().urlsToValidate.filter(u =>
-            u.status === 'bad' || u.status === 'blocked' || u.status === 'redirect'
-        )
-    );
 
     // Append URLs to input (for the various find pages components)
     appendUrlsToInput(newUrls: string[]): void {

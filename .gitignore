@@ -47,6 +47,7 @@ testem.log
 /public/Task-Inventory-Dec2025.csv
 /public/upd-data-table_export_clean_2026-01-13.csv
 /scripts/preview.js
+/scripts/list-eslint-fixable.mjs
 
 # Python reference files
 /metadata-python

@@ -22,19 +22,11 @@ module.exports = tseslint.config(
     rules: {
       "@angular-eslint/directive-selector": [
         "error",
-        {
-          type: "attribute",
-          prefix: "aida",
-          style: "camelCase",
-        },
+        { type: "attribute", prefix: "aida", style: "camelCase" },
       ],
       "@angular-eslint/component-selector": [
         "error",
-        {
-          type: "element",
-          prefix: "aida",
-          style: "kebab-case",
-        },
+        { type: "element", prefix: "aida", style: "kebab-case" },
       ],
       // Modern JavaScript/TypeScript patterns
       "@typescript-eslint/prefer-optional-chain": "warn", // foo && foo.bar → foo?.bar
@@ -48,7 +40,11 @@ module.exports = tseslint.config(
 
       // Angular modern patterns
       "@angular-eslint/prefer-standalone": "warn", // Encourage standalone components
-      "@angular-eslint/prefer-on-push-component-change-detection": "off", // Performance boost, add it later
+      "@angular-eslint/prefer-on-push-component-change-detection": "warn", // Performance boost
+
+      // Signals (v20 prep)
+      "@angular-eslint/prefer-signals": "warn", // flags @Input/@ViewChild/@ContentChild with signal alternatives
+      "@angular-eslint/no-uncalled-signals": "warn", // catches `if (mySignal)` instead of `if (mySignal())`
     },
   },
   {

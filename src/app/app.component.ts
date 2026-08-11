@@ -2,7 +2,6 @@ import { Component, OnInit, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
-import { TranslateModule } from "@ngx-translate/core";
 import { HeaderComponent } from './template/header.component';
 import { SidebarComponent } from './template/sidebar.component';
 import { FooterComponent } from './template/footer.component';
@@ -18,7 +17,7 @@ import { UsageService } from './services/usage.service';
 
 @Component({
   selector: 'aida-root',
-  imports: [CommonModule, RouterOutlet, RouterModule, TranslateModule, HeaderComponent, SidebarComponent, FooterComponent],
+  imports: [CommonModule, RouterOutlet, RouterModule, HeaderComponent, SidebarComponent, FooterComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

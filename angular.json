@@ -82,7 +82,7 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2.6MB",
+                  "maximumWarning": "2.7MB",
                   "maximumError": "3MB"
                 },
                 {
@@ -97,8 +97,10 @@
                 "prismjs",
                 "diff",
                 "diff2html/lib/ui/js/diff2html-ui-slim",
+                "diff2html/lib/types",
                 "highlight.js",
                 "hogan.js",
+                "@profoundlogic/hogan",
                 "mammoth",
                 "bluebird/js/release/promise",
                 "jszip",
@@ -106,7 +108,9 @@
                 "dingbat-to-unicode",
                 "xmlbuilder",
                 "lop",
-                "base64-js"
+                "base64-js",
+                "pluralize",
+                "normalize-strings"
               ]
             },
             "development": {

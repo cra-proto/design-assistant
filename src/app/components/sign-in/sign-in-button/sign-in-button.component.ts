@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { timeout, catchError, of } from 'rxjs';
 import { Router } from '@angular/router';
-import { TranslateModule, TranslateService } from "@ngx-translate/core";
+import { TranslatePipe, TranslateService } from "@ngx-translate/core";
 
 import { ButtonModule } from 'primeng/button';
 import { AvatarModule } from 'primeng/avatar';
@@ -25,7 +25,7 @@ import { GitHubUser } from '../../../common/data.model';
 
 @Component({
   selector: 'aida-sign-in-button',
-  imports: [CommonModule, TranslateModule,
+  imports: [CommonModule, TranslatePipe,
     ButtonModule, AvatarModule,
     PopoverModule, MenuModule,
     DialogModule, IftaLabelModule, PasswordModule,

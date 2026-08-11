@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, effect, signal, computed, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 //PrimeNG Modules
@@ -39,7 +39,7 @@ import { isKnownNumber } from '../../../common/phone-numbers.config';
 
 @Component({
     selector: 'aida-inventory',
-    imports: [CommonModule, FormsModule, TranslateModule,
+    imports: [CommonModule, FormsModule, TranslatePipe,
         TableModule, TooltipModule, TagModule,
         ButtonModule, RadioButtonModule, IftaLabelModule, MultiSelectModule, SelectModule, TextareaModule,
         MenuModule, ContextMenuModule, ConfirmDialogModule, DialogModule,
@@ -319,7 +319,7 @@ export class InventoryComponent implements OnInit {
     // All column groups
     get columnGroups() {
         const groups = [...COLUMN_GROUPS];
-        if (this.translate.currentLang.startsWith('fr')) {
+        if (this.translate.currentLang()?.startsWith('fr')) {
             [groups[0], groups[1]] = [groups[1], groups[0]];
         }
         return groups;
@@ -1072,11 +1072,11 @@ export class InventoryComponent implements OnInit {
                 value: key,
                 label: this.translate.instant(key)
             }))
-            .sort((a, b) => a.label.localeCompare(b.label, this.translate.currentLang));
+            .sort((a, b) => a.label.localeCompare(b.label, this.translate.currentLang()));
     }
 
     // 4. Dialog popup (edit node)
-    get currentLang() { return this.translate.currentLang.startsWith('fr') ? 'fr' : 'en' }
+    get currentLang() { return this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en' }
 
     edit(node: FlattenedTreeNode) {
         const path = this.lang === 'fr' ? node.frPath : node.enPath;

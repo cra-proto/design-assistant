@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { TranslateModule } from "@ngx-translate/core";
+import { TranslatePipe } from "@ngx-translate/core";
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -11,7 +11,7 @@ import { AddUrlsService } from '../../../components/add-urls/add-urls.service';
 
 @Component({
     selector: 'aida-import-page',
-    imports: [TranslateModule, RouterModule, ProgressSpinnerModule],
+    imports: [TranslatePipe, RouterModule, ProgressSpinnerModule],
     templateUrl: 'import-page.component.html',
     styles: ``
 })

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 //Components
 import { TabsModule } from 'primeng/tabs';
@@ -9,7 +9,7 @@ import { GetChildPagesComponent } from './get-child-pages/get-child-pages.compon
 @Component({
     selector: 'aida-find-pages',
     imports: [
-        TranslateModule,
+        TranslatePipe,
         TabsModule, GetTaskUrlsComponent, GetChildPagesComponent
     ],
     templateUrl: './find-pages.component.html',

@@ -1,7 +1,7 @@
 import { Component, inject, input, computed, signal, effect, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 //PrimeNG modules
 import { TreeNode } from 'primeng/api';
@@ -26,7 +26,7 @@ import { urlVersion } from '../../services/fetch.service';
 @Component({
     selector: 'aida-edit-node',
     imports: [
-        CommonModule, FormsModule, TranslateModule,
+        CommonModule, FormsModule, TranslatePipe,
         FieldsetModule, IftaLabelModule, InputTextModule, TextareaModule, CheckboxModule, SelectModule, InputGroupModule, InputGroupAddonModule,
         ButtonModule, SelectButtonModule, MessageModule, TagModule,
     ],

@@ -1,1 +1,126 @@
-Invalid URLs
+@if(tabs().length > 1){
+<p-tabs [value]="initialTab()">
+    <p-tablist>
+        @for (tab of tabs(); track tab.status) {
+        <p-tab [value]="tab.value">{{ tab.label | translate }}<p-badge [value]="tab.items.length" /></p-tab>
+        }
+    </p-tablist>
+    <p-tabpanels>
+        @for (tab of tabs(); track tab.status) {
+        <p-tabpanel [value]="tab.value">
+            <ng-container *ngTemplateOutlet="outlets[tab.status]" />
+        </p-tabpanel>
+        }
+    </p-tabpanels>
+</p-tabs>
+}
+@else {
+@for (tab of tabs(); track tab.status) {
+<ng-container *ngTemplateOutlet="outlets[tab.status]" />
+}
+}
+
+<!-- Broken Link Template -->
+<ng-template #broken>
+    @if(urlsBroken().length > 0){
+    <h2 class="mb-2">{{'invalidUrls.broken.header' | translate}}</h2>
+    <p class="text-sm text-color-secondary my-1">{{'invalidUrls.broken.description' | translate}}</p>
+    <div class="flex flex-column gap-2 mt-3">
+        @for (url of urlsBroken(); track url.href; let i = $index) {
+        <div class="flex align-items-center gap-2">
+            <p-checkbox
+                        [ngModel]="isSelected(url.href)"
+                        (ngModelChange)="toggleBrokenUrl(url.href, $event)"
+                        [inputId]="'url-' + i"
+                        [binary]="true"
+                        size="large" />
+            <label [for]="'url-' + i" class="break-all">{{url.href}}</label>
+        </div>
+        }
+        <p-iftalabel>
+            <p-select id="parentPath" styleClass="secondary-outline" fluid appendTo="body"
+                      [(ngModel)]="selectedParent" [options]="parentPages()" optionLabel="label" optionValue="path"
+                      [filter]="true" filterBy="label">
+                <ng-template let-page #item>
+                    <div class="flex flex-column">
+                        <span class="font-bold -mb-1">{{ page.label }}</span>
+                        {{ page.path }}
+                    </div>
+                </ng-template></p-select>
+            <label for="parentPath">{{'editNode.parent' | translate}}</label>
+        </p-iftalabel>
+        <div class="flex flex-row align-items-center gap-2">
+            <p-button
+                      [label]="'invalidUrls.broken.addToProject' | translate"
+                      icon="pi pi-plus"
+                      (onClick)="addUrlsToProject()" />
+            <p class="text-color-secondary">{{ 'invalidUrls.broken.addToProject.description' | translate: { number: selectedBrokenUrls().length } }}</p>
+        </div>
+    </div>
+    }
+    @else {<p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'invalidUrls.broken.allAdded' | translate" />}
+    @if(urlsNew().length > 0) {
+    <h2 class="mb-2">{{'invalidUrls.new.header' | translate}}</h2>
+    <p class="text-sm text-color-secondary my-1">{{'invalidUrls.new.description' | translate}}</p>
+    @for(url of urlsNew(); track url.href){
+    <li class="flex align-items-center">
+        <p-button icon="pi pi-pen-to-square" rounded text
+                  [pTooltip]="'common.edit' | translate" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0"
+                  (onClick)="edit(url.href)" />
+        {{ url.href }}
+    </li>
+    }
+    }
+</ng-template>
+
+<!-- Redirected Link Template -->
+<ng-template #redirect>
+    <h2 class="mb-2 mt-3">{{'invalidUrls.redirect.header' | translate}}</h2>
+    <p class="text-sm text-color-secondary my-1">{{'invalidUrls.redirect.description' | translate}}</p>
+    <div class="flex flex-column gap-2">
+        @for(url of urlsRedirect(); track url.originalHref){
+        <div class="border-1 border-round-lg surface-border">
+            <div class="flex flex-row justify-content-between gap-2">
+                <div>
+                    <div class="flex align-items-center gap-2 p-2">
+                        <i class="pi pi-directions text-2xl text-orange-500"></i>
+                        <span class="text-sm text-600 font-semibold">{{'invalidUrls.redirect.subheading' | translate}}</span>
+                    </div>
+                    <div class="px-2 text-xs text-color-secondary">
+                        <span class="font-semibold mx-1">{{'common.from' | translate}}</span>
+                        <span>{{url.originalHref}}</span>
+                    </div>
+                    <div class="px-2 text-xs text-color-secondary">
+                        <span class="font-semibold mx-1">{{'common.to' | translate}}</span>
+                        <span>{{url.href}}</span>
+                    </div>
+                </div>
+                <p-button icon="pi pi-copy" severity="primary" outlined styleClass="secondary-outline white-space-nowrap h-full" size="small"
+                          (onClick)="copyToClipboard(url.href)"
+                          [label]="'common.copyNewUrl' | translate" />
+            </div>
+        </div>
+        }
+    </div>
+</ng-template>
+
+
+<!-- Blocked Link Template -->
+<ng-template #blocked>
+    <h2 class="mb-2 mt-3">{{'invalidUrls.blocked.header' | translate}}</h2>
+    <p class="text-sm text-color-secondary my-1">{{'invalidUrls.blocked.description' | translate}}</p>
+    <ul class="my-0 list-none">
+        @for(url of urlsBlocked(); track url.href){
+        <li class="flex align-items-center">
+            <i class="pi pi-ban text-red-500 mr-2"></i>{{ url.href }}
+        </li>
+        }
+    </ul>
+</ng-template>
+
+<!-- Edit node popup-->
+<p-dialog [header]="selectedNode.data?.prototype?.[currentLang].h1" [modal]="true" [maximizable]="true" [(visible)]="editNode" styleClass="w-10" [style]="{ height: '90vh' }">
+    @if(selectedNode) {
+    <aida-edit-node [node]="selectedNode" [isOpen]="editNode" (dialogClose)="editNode = false" />
+    }
+</p-dialog>

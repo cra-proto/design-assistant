@@ -1,7 +1,7 @@
 import { Component, inject, computed, signal, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 // PrimeNG modules
 import { AutoCompleteModule, AutoCompleteCompleteEvent, AutoCompleteSelectEvent, AutoCompleteUnselectEvent } from 'primeng/autocomplete';
@@ -26,7 +26,7 @@ export interface TaskOption {
   selector: 'aida-get-task-urls',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, TranslateModule,
+    CommonModule, FormsModule, TranslatePipe,
     AutoCompleteModule, IftaLabelModule, TagModule,
     ProgressSpinnerModule, ButtonModule, CheckboxModule
   ],
@@ -41,9 +41,7 @@ export class GetTaskUrlsComponent implements OnInit {
   private projectState = inject(ProjectStateService);
 
   // Signals
-  private currentLanguage = signal<'en' | 'fr'>(
-    this.translate.currentLang?.startsWith('fr') ? 'fr' : 'en'
-  );
+  private currentLanguage = signal<'en' | 'fr'>(this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en');
   filteredTasks = signal<TaskOption[]>([]);
   selectedTaskIds = signal<number[]>([]);
   selectedTasks = signal<TaskOption[]>([]);
@@ -77,15 +75,10 @@ export class GetTaskUrlsComponent implements OnInit {
   constructor() {
     // React to language changes
     effect(() => {
-      const lang = this.translate.currentLang;
+      const lang = this.translate.currentLang();
       if (lang) {
         this.currentLanguage.set(lang.startsWith('fr') ? 'fr' : 'en');
       }
-    });
-
-    // Subscribe to translate service language changes
-    this.translate.onLangChange.subscribe(event => {
-      this.currentLanguage.set(event.lang.startsWith('fr') ? 'fr' : 'en');
     });
 
     // React to task selection and language changes
