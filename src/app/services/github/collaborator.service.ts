@@ -24,7 +24,7 @@ export class CollaboratorService {
 
     // Add current user to all local projects without collaborators 
     async addCurrentUserToLocalProjects(user: GitHubUser): Promise<void> {
-        console.log('Adding current user to local projects as collaborator:', user.login);
+        //console.log('Adding current user to local projects as collaborator:', user.login);
 
         // Get list of all local projects
         const savedProjects = this.projectStorageService.getLocalProjectList('saved');
@@ -35,7 +35,7 @@ export class CollaboratorService {
             }
         }
 
-        console.log('Finished adding user to local projects');
+        //console.log('Finished adding user to local projects');
     }
 
     // Add current user to specific project
@@ -59,7 +59,7 @@ export class CollaboratorService {
             this.projectStorageService.updateLocalProjectList(projectKey, project); // Update local storage list
             this.projectStorageService.projectListVersion.update(v => v + 1); // Update signal
 
-            console.log(`Added ${user.login} as collaborator to project ${projectKey}`);
+            //console.log(`Added ${user.login} as collaborator to project ${projectKey}`);
         } catch (error) {
             console.error(`Failed to add user to project ${projectKey}:`, error);
         }
@@ -79,12 +79,12 @@ export class CollaboratorService {
                 // Update existing collaborator with fresh data
                 updatedCollaborators[existingIndex] = newCollab;
                 updatedCount++;
-                console.log(`Updated collaborator: ${newCollab.login}`);
+                //console.log(`Updated collaborator: ${newCollab.login}`);
             } else {
                 // Add new collaborator
                 updatedCollaborators.push(newCollab);
                 addedCount++;
-                console.log(`Added new collaborator: ${newCollab.login}`);
+                //console.log(`Added new collaborator: ${newCollab.login}`);
             }
         });
 
@@ -105,7 +105,6 @@ export class CollaboratorService {
 
         // Check if anything was actually removed
         if (updatedCollaborators.length === originalCount) {
-            console.warn(`Collaborator ${collab.login} not found in project`);
             return project;
         }
 
@@ -233,9 +232,10 @@ export class CollaboratorService {
     }
 
     // Get collaborator emails (for requesting access)
-    getCollaboratorEmails(collabs: GitHubUser[]): (string | null)[] {
+    public getCollaboratorEmails(collabs: GitHubUser[]): string[] {
         return collabs
-            .filter(collab => collab.email && collab.email.trim() !== '')
-            .map(collab => collab.email) || [];
+            .filter((collab): collab is GitHubUser & { email: string } =>
+                !!collab.email && collab.email.trim() !== '')
+            .map(collab => collab.email);
     }
 }

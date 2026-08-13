@@ -1,5 +1,4 @@
 import { Component, inject, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { RouterLink } from "@angular/router";
@@ -26,10 +25,9 @@ import { ProjectCacheService } from '../../../services/project-cache.service';
 @Component({
   selector: 'aida-edit-project',
   imports: [
-    CommonModule, FormsModule, TranslatePipe, RouterLink,
-    SetupProjectComponent, SetupRepoComponent, AddCollaboratorsComponent, FindPagesComponent, AddUrlsComponent,
+    FormsModule, TranslatePipe, RouterLink,
+    SetupProjectComponent, SetupRepoComponent, AddCollaboratorsComponent, FindPagesComponent, AddUrlsComponent, ProjectSettingsComponent,
     DrawerModule, ButtonModule, MessageModule, SelectButtonModule, TableModule, TooltipModule,
-    ProjectSettingsComponent
   ],
   templateUrl: './edit-project.component.html',
   styles: ``

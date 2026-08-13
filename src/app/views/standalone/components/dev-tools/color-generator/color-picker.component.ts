@@ -1,5 +1,4 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { ColorPickerModule } from 'primeng/colorpicker';
@@ -22,8 +21,9 @@ export interface ContrastTest {
     selector: 'aida-color-picker',
     standalone: true,
     imports: [
-        CommonModule, FormsModule,
-        ColorPickerModule, InputTextModule, ButtonModule, InputGroupModule, InputGroupAddonModule
+        FormsModule,
+        ColorPickerModule,
+        InputTextModule, ButtonModule, InputGroupModule, InputGroupAddonModule
     ],
     template: `
     <div class="flex flex-column gap-2">

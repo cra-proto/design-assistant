@@ -1,7 +1,10 @@
 import { Component, Input, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
+//PrimeNG
 import { ButtonModule } from 'primeng/button';
 import { TextareaModule } from 'primeng/textarea';
+
+//Custom
 import { ContrastUtil } from '../../../../../common/contrast.util';
 import { ColorConverter } from '../../../../../common/color-converter.util';
 
@@ -9,9 +12,7 @@ import { ColorConverter } from '../../../../../common/color-converter.util';
     selector: 'aida-copy-preset',
     standalone: true,
     imports: [
-        CommonModule,
-        ButtonModule,
-        TextareaModule
+        ButtonModule, TextareaModule
     ],
     template: `
     <div class="surface-card border-round p-4">

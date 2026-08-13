@@ -6,7 +6,7 @@
                        [(ngModel)]="getChildPagesService.depth" [min]="0" [max]="6" />
         <label for="depth">{{'findPages.findChildren.depth' | translate}}</label>
     </p-iftalabel>
-    <p-button icon="pi pi-search" [label]="'findPages.findChildren.add' | translate" severity="primary" class="flex min-h-full white-space-nowrap"
+    <p-button icon="pi pi-search" [label]="'findPages.findChildren.add' | translate" class="flex min-h-full white-space-nowrap"
               (click)="findChildPages()" [loading]="getChildPagesService.searchProgress()" />
 </div>
 @if(getChildPagesService.searchProgress(); as progress){

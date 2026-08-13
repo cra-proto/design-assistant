@@ -139,7 +139,7 @@
                 <th><span class="flex flex-row align-items-center gap-2">
                         {{'common.status' | translate}}
                         <p-button icon="pi pi-angle-double-right" pTooltip="Skip all" tooltipPosition="top" size="small" severity="secondary" (onClick)="setAll('skip', 'project')" />
-                        <p-button icon="pi pi-sync" pTooltip="Update all" tooltipPosition="top" size="small" severity="primary" (onClick)="setAll('export', 'project')" />
+                        <p-button icon="pi pi-sync" pTooltip="Update all" tooltipPosition="top" size="small" (onClick)="setAll('export', 'project')" />
                     </span>
                 </th>
             </tr>
@@ -167,7 +167,7 @@
                     <th><span class="flex flex-row align-items-center gap-2">
                             {{'common.status' | translate}}
                             <p-button icon="pi pi-angle-double-right" pTooltip="Skip all" tooltipPosition="top" size="small" severity="secondary" (onClick)="setAll('skip', 'template')" />
-                            <p-button icon="pi pi-sync" pTooltip="Update all" tooltipPosition="top" size="small" severity="primary" (onClick)="setAll('export', 'template')" />
+                            <p-button icon="pi pi-sync" pTooltip="Update all" tooltipPosition="top" size="small" (onClick)="setAll('export', 'template')" />
                         </span>
                     </th>
                 </tr>
@@ -188,7 +188,7 @@
 
     <!--Export button-->
     @if(repoType() === 'github'){
-    <p-button styleClass="my-3" icon="pi pi-github" [label]="'exportPages.export.button.github' | translate" severity="primary"
+    <p-button styleClass="my-3" icon="pi pi-github" [label]="'exportPages.export.button.github' | translate"
               (onClick)="exportProjectToGitHub()"
               [disabled]="projectFileCount() === 0 || !exportGitHubService.token() || !gitHubData().repo"
               [loading]="exportProgress()" />
@@ -202,7 +202,7 @@
         </div>
     </p-message>
     }
-    <p-button styleClass="my-3" icon="pi pi-file-export" [label]="'exportPages.export.button.zip' | translate" severity="primary"
+    <p-button styleClass="my-3" icon="pi pi-file-export" [label]="'exportPages.export.button.zip' | translate"
               (onClick)="exportToFile()"
               [disabled]="projectFileCount() === 0 || !gitHubData().repo"
               [loading]="exportProgress()" />

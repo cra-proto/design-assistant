@@ -17,7 +17,7 @@
     </ng-template>
 </p-tree>
 
-<p-dialog [header]="selectedNode?.data?.prototype?.[currentLanguage].h1" [modal]="true" [maximizable]="true" [(visible)]="editNode" styleClass="w-10" [style]="{ height: '90vh' }">
+<p-dialog [header]="selectedNode?.data?.prototype?.[currentLanguage]?.h1" [modal]="true" [maximizable]="true" [(visible)]="editNode" styleClass="w-10" [style]="{ height: '90vh' }">
     @if(selectedNode) {
     <aida-edit-node [node]="selectedNode" [isOpen]="editNode" (dialogClose)="editNode = false" />
     }

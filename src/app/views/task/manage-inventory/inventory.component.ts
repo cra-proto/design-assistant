@@ -71,8 +71,8 @@ export class InventoryComponent implements OnInit {
     @ViewChild('menuContext') menuContext!: ContextMenu;
 
     // Variables
-    allColumns = computed(() => this.projectState.treeTableColumns()); // All table columns
-    frozenColumns = signal<TableColumn[]>([]); // Visible table columns
+    readonly allColumns = computed(() => this.projectState.treeTableColumns()); // All table columns
+    readonly frozenColumns = signal<TableColumn[]>([]); // Visible table columns
     scrollableColumns = signal<TableColumn[]>([]); // Visible table columns
 
     public selectedNodes: FlattenedTreeNode[] = [] // Flattened TreeNode data (for bulk actions - refresh, generate metadata, delete etc.)

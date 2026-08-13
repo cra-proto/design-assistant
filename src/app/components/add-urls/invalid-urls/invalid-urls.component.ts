@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-
-
 //PrimeNG
 import { TabsModule } from 'primeng/tabs';
 import { BadgeModule } from 'primeng/badge';
@@ -22,7 +20,6 @@ import { AddUrlsService } from '../add-urls.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { EditNodeComponent } from '../../edit-node/edit-node.component';
 import { FetchService } from '../../../services/fetch.service';
-
 
 @Component({
     selector: 'aida-invalid-urls',

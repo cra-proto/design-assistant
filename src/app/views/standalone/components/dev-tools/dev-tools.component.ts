@@ -1,15 +1,19 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from "@ngx-translate/core";
 import { RouterLink } from '@angular/router';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
+
+//PrimeNG
 import { CheckboxModule } from 'primeng/checkbox';
 import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'aida-dev-tools',
-  imports: [TranslatePipe, CommonModule, FormsModule, CheckboxModule, RouterLink, ButtonModule],
+  imports: [
+    TranslatePipe, FormsModule, RouterLink,
+    CheckboxModule, ButtonModule
+  ],
   template: `
     <h2>{{ 'dev._title' | translate}}</h2>
     <p [innerHTML]="'dev.description' | translate"></p>

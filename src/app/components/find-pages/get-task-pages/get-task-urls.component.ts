@@ -1,5 +1,4 @@
 import { Component, inject, computed, signal, effect, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -26,9 +25,8 @@ export interface TaskOption {
   selector: 'aida-get-task-urls',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, TranslatePipe,
-    AutoCompleteModule, IftaLabelModule, TagModule,
-    ProgressSpinnerModule, ButtonModule, CheckboxModule
+    FormsModule, TranslatePipe,
+    AutoCompleteModule, IftaLabelModule, TagModule, ProgressSpinnerModule, ButtonModule, CheckboxModule
   ],
   templateUrl: './get-task-urls.component.html',
   styles: ``

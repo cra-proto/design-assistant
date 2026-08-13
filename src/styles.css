@@ -491,3 +491,8 @@ html.dark-mode .p-togglebutton:not(.p-togglebutton-checked):not(.p-disabled) {
 .p-textarea {
   border-width: var(--aida-border-width) !important;
 }
+
+.p-autocomplete-dropdown {
+  border-top: none !important;
+  border-right: none !important;
+}

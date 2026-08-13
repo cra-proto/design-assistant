@@ -1,5 +1,4 @@
 import { Component, inject, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
@@ -28,7 +27,7 @@ import { CompareSourceComponent } from '../../../components/compare-source/compa
 @Component({
   selector: 'aida-compare-versions',
   imports: [
-    CommonModule, FormsModule, TranslatePipe,
+    FormsModule, TranslatePipe,
     ButtonModule, TabsModule, IftaLabelModule, SelectModule, CheckboxModule,
     CompareRenderedComponent, CompareSourceComponent
   ],

@@ -1,5 +1,4 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { timeout, catchError, of } from 'rxjs';
 import { Router } from '@angular/router';
@@ -25,11 +24,10 @@ import { GitHubUser } from '../../../common/data.model';
 
 @Component({
   selector: 'aida-sign-in-button',
-  imports: [CommonModule, TranslatePipe,
-    ButtonModule, AvatarModule,
-    PopoverModule, MenuModule,
-    DialogModule, IftaLabelModule, PasswordModule,
-    PatComponent, UserSettingsComponent],
+  imports: [TranslatePipe,
+    ButtonModule, AvatarModule, PopoverModule, MenuModule, DialogModule, IftaLabelModule, PasswordModule,
+    PatComponent, UserSettingsComponent
+  ],
   templateUrl: './sign-in-button.component.html',
   styles: ``
 })

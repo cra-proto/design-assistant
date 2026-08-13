@@ -1,12 +1,17 @@
 import { Component, OnInit, inject, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
+
+//Template
 import { HeaderComponent } from './template/header.component';
 import { SidebarComponent } from './template/sidebar.component';
 import { FooterComponent } from './template/footer.component';
 import { CustomTitleStrategy } from './common/custom-title-strategy';
+
+//PrimeNG
 import { PrimeNG } from 'primeng/config';
+
+//Services
 import { ProjectStorageService } from './services/storage/project-storage.service';
 import { ProjectStateService } from './services/project-state.service';
 import { ExportGitHubService } from './services/github/export-github.service';
@@ -17,9 +22,12 @@ import { UsageService } from './services/usage.service';
 
 @Component({
   selector: 'aida-root',
-  imports: [CommonModule, RouterOutlet, RouterModule, HeaderComponent, SidebarComponent, FooterComponent],
+  imports: [
+    RouterOutlet, RouterModule,
+    HeaderComponent, SidebarComponent, FooterComponent
+  ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styles: ''
 })
 export class AppComponent implements OnInit {
   CustomTitle = inject(CustomTitleStrategy);

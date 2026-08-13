@@ -1,5 +1,5 @@
 import { Component, inject, computed, ViewChild, effect, OnInit } from '@angular/core';
-import { CommonModule, LocationStrategy } from '@angular/common';
+import { LocationStrategy } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -25,10 +25,9 @@ import { FetchService } from '../../services/fetch.service';
 
 @Component({
     selector: 'aida-ia-table',
-    imports: [FormsModule, CommonModule,
-        TreeModule, ContextMenuModule, DialogModule,
-        InputTextModule, InputGroupModule, InputGroupAddonModule,
-        ButtonModule, TooltipModule,
+    imports: [
+        FormsModule,
+        TreeModule, ContextMenuModule, DialogModule, InputTextModule, InputGroupModule, InputGroupAddonModule, ButtonModule, TooltipModule,
         EditNodeComponent
     ],
     providers: [TreeDragDropService],
@@ -45,7 +44,7 @@ export class IaTableComponent implements OnInit {
     private fetchService = inject(FetchService);
 
     projectTree = computed(() => this.projectState.getProject().projectData);
-    selectedNode: TreeNode = {};
+    selectedNode?: TreeNode;
 
     //For edit node popup
     editNode = false;
@@ -80,6 +79,8 @@ export class IaTableComponent implements OnInit {
 
     onNodeContextMenu(event: TreeNodeContextMenuSelectEvent) {
         this.selectedNode = event.node;
+        if (!this.selectedNode) return;
+        const node = this.selectedNode;
         const isContainer = this.selectedNode.data.isContainer;
         const primaryLang = this.selectedNode.data.lang;
         const path = this.selectedNode.data.path[primaryLang];
@@ -110,7 +111,7 @@ export class IaTableComponent implements OnInit {
                 {
                     label: this.translate.instant(`common.moveUp`),
                     icon: "pi pi-arrow-up",
-                    command: () => this.projectState.reorderNode(this.selectedNode, "left")
+                    command: () => this.projectState.reorderNode(node, "left")
                 }
             );
         }
@@ -118,7 +119,7 @@ export class IaTableComponent implements OnInit {
             this.options.push({
                 label: this.translate.instant(`common.moveDown`),
                 icon: "pi pi-arrow-down",
-                command: () => this.projectState.reorderNode(this.selectedNode, "right")
+                command: () => this.projectState.reorderNode(node, "right")
             });
         }
         if (canMoveRight || canMoveLeft) {
@@ -131,7 +132,7 @@ export class IaTableComponent implements OnInit {
                 label: this.translate.instant(`iaDiagram.menu.findChildren`),
                 icon: "pi pi-search",
                 disabled: this.selectedNode.data.isCrawled,
-                command: () => { this.addUrlsService.addChildren(this.selectedNode, primaryLang); }
+                command: () => { this.addUrlsService.addChildren(node, primaryLang); }
             })
         }
         // Add child page or delete node       
@@ -139,12 +140,12 @@ export class IaTableComponent implements OnInit {
             {
                 label: this.translate.instant(`iaDiagram.menu.createChild`),
                 icon: "pi pi-file-plus text-green-500",
-                command: () => { this.selectedNode = this.projectState.createNode(this.selectedNode); this.editNode = true; }
+                command: () => { this.selectedNode = this.projectState.createNode(node); this.editNode = true; }
             },
             {
                 label: this.translate.instant(`iaDiagram.menu.deleteNode`),
                 icon: "pi pi-trash text-red-500",
-                command: () => { this.projectState.deleteNode(this.selectedNode) }
+                command: () => { this.projectState.deleteNode(node) }
             },
         );
 

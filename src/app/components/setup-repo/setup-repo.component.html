@@ -17,7 +17,7 @@
         @if(projectRepo === 'github'){
         <div class="flex flex-column gap-1">
             <p-iftalabel>
-                <input type="text" id="owner" pInputText [(ngModel)]="gitHubOwner" pSize="small" fluid (blur)="updateOwner();updateRepoList()" maxlength="39" [pKeyFilter]="ownerFilter" [ngClass]="{ 'ng-invalid ng-dirty': ownerError }" />
+                <input type="text" id="owner" pInputText [(ngModel)]="gitHubOwner" fluid (blur)="updateOwner();updateRepoList()" maxlength="39" [pKeyFilter]="ownerFilter" [ngClass]="{ 'ng-invalid ng-dirty': ownerError }" />
                 <label for="owner">{{'project.github.label.owner' | translate}}</label>
             </p-iftalabel>
             @if(ownerError){
@@ -29,12 +29,12 @@
             <p-autocomplete [(ngModel)]="gitHubRepo"
                             (input)="onRepoInput()" (onBlur)="onRepoBlur()" (onSelect)="onRepoSelect($event)"
                             [suggestions]="filteredRepos" (completeMethod)="filterRepos($event);"
-                            id="repo" [dropdown]=true pSize="small" maxlength="100" [pKeyFilter]="repoFilter" fluid />
+                            id="repo" [dropdown]=true [maxlength]=100 [pKeyFilter]="repoFilter" fluid />
             <label for="repo">{{'project.github.label.repo' | translate}}</label>
         </p-iftalabel>
         @if(projectRepo === 'github'){
         <p-iftalabel>
-            <input type="text" id="branch" pInputText [(ngModel)]="gitHubBranch" pSize="small" fluid (blur)="updateBranch()" [pKeyFilter]="branchFilter" />
+            <input type="text" id="branch" pInputText [(ngModel)]="gitHubBranch" fluid (blur)="updateBranch()" [pKeyFilter]="branchFilter" />
             <label for="branch">{{'project.github.label.branch' | translate}}</label>
         </p-iftalabel>
         }

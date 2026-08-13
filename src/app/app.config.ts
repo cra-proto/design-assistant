@@ -5,7 +5,6 @@ import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr-CA';
 import localeEn from '@angular/common/locales/en-CA';
 import { provideRouter, TitleStrategy, withInMemoryScrolling } from '@angular/router';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 //ngx-translate
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
@@ -42,9 +41,7 @@ export const appConfig: ApplicationConfig = {
       const savedLang = localStorage.getItem('lang') ?? 'en';
       return firstValueFrom(translate.use(savedLang));
     }),
-    provideAnimationsAsync(),
     providePrimeNG({
-
       inputVariant: 'filled', // default is outlined
       theme: {
         preset: MyPreset,
@@ -59,5 +56,4 @@ export const appConfig: ApplicationConfig = {
     MessageService,
     ConfirmationService
   ],
-
 };

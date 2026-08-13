@@ -81,10 +81,10 @@
                         <!-- Top toolbar - Column settings - Reset button -->
                         <div class="flex flex-column h-full gap-1">
                             <p-button [label]="'inventory.columnVis.defaultView' | translate"
-                                      severity="primary" outlined size="small" class="h-full" styleClass="h-full w-full secondary-outline p-1"
+                                      outlined size="small" class="h-full" styleClass="h-full w-full secondary-outline p-1"
                                       (onClick)="viewDefault()" />
                             <p-button [label]="'inventory.columnVis.metadataView' | translate"
-                                      severity="primary" outlined size="small" class="h-full" styleClass="h-full w-full secondary-outline p-1"
+                                      outlined size="small" class="h-full" styleClass="h-full w-full secondary-outline p-1"
                                       (onClick)="viewMetadata()" />
                         </div>
                     </div>
@@ -100,7 +100,7 @@
                     <p>{{selectedNodes.length}} pages selected</p>
 
                     <!-- Bulk actions toolbar - Actions -->
-                    <p-button [label]="'common.actions' | translate" icon="pi pi-chevron-down" iconPos="right" severity="primary" outlined styleClass="secondary-outline"
+                    <p-button [label]="'common.actions' | translate" icon="pi pi-chevron-down" iconPos="right" outlined styleClass="secondary-outline"
                               (onClick)="updateDropdown('actions'); menu.toggle($event)" />
 
                     <!-- Bulk actions toolbar - View -->
@@ -281,7 +281,7 @@
                             @if(isEditingCell(node, col, true)) {
                             <div class="flex flex-column gap-2">
                                 <div class="flex flex-row gap-2">
-                                    <p-tag [value]="'common.editing' | translate" class="capitalize" severity="primary" />
+                                    <p-tag [value]="'common.editing' | translate" class="capitalize" />
                                     <p-tag [value]="field.edited.length" pTooltip="character count" appendTo="body" showDelay="300" hideDelay="0"
                                            [severity]="field.edited.length >= 10 && field.edited.length <= 160 ? 'success' : 'danger'" class="mx-1" />
                                 </div>
@@ -295,7 +295,7 @@
                             <div class="flex flex-column gap-2">
                                 <div class="flex flex-row gap-2">
                                     <p-tag [value]="field.status.slice(0,8) === 'approved' ? ('common.approved' | translate) : ('common.'+field.status | translate)" class="capitalize"
-                                           [severity]="field.status === 'edited' ? 'primary' : field.status.slice(0,8) === 'approved' ? 'success' : 'secondary'" />
+                                           [severity]="field.status === 'edited' ? undefined : field.status.slice(0,8) === 'approved' ? 'success' : 'secondary'" />
                                     <p-tag [value]="field.status === 'edited' ? field.edited.length : field.ai.length" pTooltip="character count" appendTo="body" showDelay="300" hideDelay="0"
                                            [severity]="field.status === 'edited' ? field.edited.length >= 10 && field.edited.length <= 160 ? 'success' : 'danger' : field.ai.length >= 10 && field.ai.length <= 160 ? 'success' : 'danger'" class="mx-1" />
                                 </div>

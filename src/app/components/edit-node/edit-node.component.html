@@ -13,7 +13,7 @@
         <div class="flex flex-column hover:text-primary">
             <label for="refresh" class="text-xs font-semibold">{{ 'common.data' | translate }}</label>
             <div id="refresh" class="flex gap-2 align-items-center">
-                <p-button [label]="'common.refresh' | translate" icon="pi pi-refresh" severity="primary" outlined size="small" styleClass="secondary-outline"
+                <p-button [label]="'common.refresh' | translate" icon="pi pi-refresh" outlined size="small" styleClass="secondary-outline"
                           (onClick)=" refresh()" [disabled]="selectedVersion() === 'baseline' && !editsEnabled()" [loading]="projectState.refreshing()[selectedVersion()]" />
                 <span class="text-sm text-color-secondary white-space-nowrap">
                     {{ daysSinceRefresh() !== null
@@ -65,7 +65,7 @@
                 <div class="flex flex-column gap-1">
                     <p-inputgroup>
                         <p-iftalabel>
-                            <input type="text" id="path" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid
+                            <input type="text" id="path" pInputText variant="outlined" class="secondary-outline" fluid
                                    [(ngModel)]="node().data.path.en" (ngModelChange)="markChanges()" (blur)="updateSegment('en')" [disabled]="!urlEditsEnabled() || (!!versionConfig() && !editsEnabled())" />
                             <label for="path">{{'editNode.path' | translate}}</label>
                         </p-iftalabel>
@@ -76,18 +76,18 @@
                     </p-inputgroup>
                     @if(node().data.status.isNew && selectedVersion() === 'prototype'){
                     <p-iftalabel>
-                        <input type="text" id="pathSegment" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid [class.text-red-500]="pathEN().startsWith('new-page')"
+                        <input type="text" id="pathSegment" pInputText variant="outlined" class="secondary-outline" fluid [class.text-red-500]="pathEN().startsWith('new-page')"
                                [ngModel]="pathEN()" (ngModelChange)="pathEN.set($event);updatePath('en');" [disabled]="!!versionConfig() && !editsEnabled()" />
                         <label for="pathSegment">{{'editNode.pageUrl' | translate}}</label>
                     </p-iftalabel>
                     }
                     <p-iftalabel>
-                        <input type="text" id="doubleh1" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid
+                        <input type="text" id="doubleh1" pInputText variant="outlined" class="secondary-outline" fluid
                                [(ngModel)]="node().data[selectedVersion()].en.doubleH1" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()" />
                         <label for="doubleh1">{{'editNode.doubleh1' | translate}}</label>
                     </p-iftalabel>
                     <p-iftalabel>
-                        <input type="text" id="h1" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid [class.text-red-500]="node().data[selectedVersion()].en.h1==='New page'"
+                        <input type="text" id="h1" pInputText variant="outlined" class="secondary-outline" fluid [class.text-red-500]="node().data[selectedVersion()].en.h1==='New page'"
                                [(ngModel)]="node().data[selectedVersion()].en.h1" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()" />
                         <label for="h1">{{'editNode.h1' | translate}}</label>
                     </p-iftalabel>
@@ -125,31 +125,31 @@
 
                     <h3 class="my-0">{{'editNode.metadata' | translate}}</h3>
                     <p-iftalabel>
-                        <input type="text" id="title" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid
+                        <input type="text" id="title" pInputText variant="outlined" class="secondary-outline" fluid
                                [(ngModel)]="node().data[selectedVersion()].en.title" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()" />
                         <label for="title">{{'editNode.title' | translate}}</label>
                     </p-iftalabel>
                     <p-iftalabel>
-                        <textarea id="description" pTextarea variant="outlined" pSize="small" class="secondary-outline" fluid autoResize="true" rows="1"
+                        <textarea id="description" pTextarea variant="outlined" class="secondary-outline" fluid autoResize="true" rows="1"
                                   [(ngModel)]="node().data[selectedVersion()].en.description" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()"></textarea>
                         <label for="description">{{'editNode.description' | translate}}</label>
                     </p-iftalabel>
                     <p-iftalabel>
-                        <textarea id="keywords" pTextarea variant="outlined" pSize="small" class="secondary-outline" fluid autoResize="true" rows="1"
+                        <textarea id="keywords" pTextarea variant="outlined" class="secondary-outline" fluid autoResize="true" rows="1"
                                   [(ngModel)]="node().data[selectedVersion()].en.keywords" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()"></textarea>
                         <label for="keywords">{{'editNode.keywords' | translate}}</label>
                     </p-iftalabel>
 
                     <h3 class="my-0">{{'editNode.pageOwner' | translate}}</h3>
                     <p-iftalabel>
-                        <input type="text" id="owner" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid
+                        <input type="text" id="owner" pInputText variant="outlined" class="secondary-outline" fluid
                                [(ngModel)]="node().data[selectedVersion()].en.owner" (ngModelChange)="markChanges(); syncData(node(),'owner','ENtoFR')" [disabled]="!!versionConfig() && !editsEnabled()" />
                         <label for="owner" [class.text-red-500]="node().data[selectedVersion()].en.owner !== node().data[selectedVersion()].fr.owner">
                             {{'editNode.owner' | translate}}
                         </label>
                     </p-iftalabel>
                     <p-iftalabel>
-                        <input type="text" id="email" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid
+                        <input type="text" id="email" pInputText variant="outlined" class="secondary-outline" fluid
                                [(ngModel)]="node().data[selectedVersion()].en.email" (ngModelChange)="markChanges(); syncData(node(),'email','ENtoFR')" [disabled]="!!versionConfig() && !editsEnabled()" />
                         <label for="email" [class.text-red-500]="node().data[selectedVersion()].en.email !== node().data[selectedVersion()].fr.email">
                             {{'editNode.email' | translate}}
@@ -254,7 +254,7 @@
                             </span>
                         </div>
                         @if(node().data[selectedVersion()].en.is404){
-                        <p-tag [severity]="node().data[selectedVersion()].en.is404 === node().data[selectedVersion()].fr.is404 ? 'primary' : 'danger'" value="404" />
+                        <p-tag [severity]="node().data[selectedVersion()].en.is404 === node().data[selectedVersion()].fr.is404 ? undefined : 'danger'" value="404" />
                         }
                     </div>
 
@@ -266,7 +266,7 @@
                 <div class="flex flex-column gap-1">
                     <p-inputgroup>
                         <p-iftalabel>
-                            <input type="text" id="path-fr" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid
+                            <input type="text" id="path-fr" pInputText variant="outlined" class="secondary-outline" fluid
                                    [(ngModel)]="node().data.path.fr" (ngModelChange)="markChanges()" (blur)="updateSegment('fr')" [disabled]="!urlEditsEnabled() || (!!versionConfig() && !editsEnabled())" />
                             <label for="path-fr">{{'editNode.path' | translate}}</label>
                         </p-iftalabel>
@@ -277,18 +277,18 @@
                     </p-inputgroup>
                     @if(node().data.status.isNew && selectedVersion() === 'prototype'){
                     <p-iftalabel>
-                        <input type="text" id="pathSegment-fr" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid [class.text-red-500]="pathFR().startsWith('nouvelle-page')"
+                        <input type="text" id="pathSegment-fr" pInputText variant="outlined" class="secondary-outline" fluid [class.text-red-500]="pathFR().startsWith('nouvelle-page')"
                                [ngModel]="pathFR()" (ngModelChange)="pathFR.set($event);updatePath('fr');" [disabled]="!!versionConfig() && !editsEnabled()" />
                         <label for="pathSegment-fr">{{'editNode.pageUrl' | translate}}</label>
                     </p-iftalabel>
                     }
                     <p-iftalabel>
-                        <input type="text" id="doubleh1-fr" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid
+                        <input type="text" id="doubleh1-fr" pInputText variant="outlined" class="secondary-outline" fluid
                                [(ngModel)]="node().data[selectedVersion()].fr.doubleH1" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()" />
                         <label for="doubleh1-fr">{{'editNode.doubleh1' | translate}}</label>
                     </p-iftalabel>
                     <p-iftalabel>
-                        <input type="text" id="h1-fr" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid [class.text-red-500]="node().data[selectedVersion()].fr.h1==='Nouvelle page'"
+                        <input type="text" id="h1-fr" pInputText variant="outlined" class="secondary-outline" fluid [class.text-red-500]="node().data[selectedVersion()].fr.h1==='Nouvelle page'"
                                [(ngModel)]="node().data[selectedVersion()].fr.h1" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()" />
                         <label for="h1-fr">{{'editNode.h1' | translate}}</label>
                     </p-iftalabel>
@@ -326,31 +326,31 @@
 
                     <h3 class="my-0">{{'editNode.metadata' | translate}}</h3>
                     <p-iftalabel>
-                        <input type="text" id="title-fr" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid
+                        <input type="text" id="title-fr" pInputText variant="outlined" class="secondary-outline" fluid
                                [(ngModel)]="node().data[selectedVersion()].fr.title" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()" />
                         <label for="title-fr">{{'editNode.title' | translate}}</label>
                     </p-iftalabel>
                     <p-iftalabel>
-                        <textarea id="description-fr" pTextarea variant="outlined" pSize="small" class="secondary-outline" fluid autoResize="true" rows="1"
+                        <textarea id="description-fr" pTextarea variant="outlined" class="secondary-outline" fluid autoResize="true" rows="1"
                                   [(ngModel)]="node().data[selectedVersion()].fr.description" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()"></textarea>
                         <label for="description-fr">{{'editNode.description' | translate}}</label>
                     </p-iftalabel>
                     <p-iftalabel>
-                        <textarea id="keywords-fr" pTextarea variant="outlined" pSize="small" class="secondary-outline" fluid autoResize="true" rows="1"
+                        <textarea id="keywords-fr" pTextarea variant="outlined" class="secondary-outline" fluid autoResize="true" rows="1"
                                   [(ngModel)]="node().data[selectedVersion()].fr.keywords" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()"></textarea>
                         <label for="keywords-fr">{{'editNode.keywords' | translate}}</label>
                     </p-iftalabel>
 
                     <h3 class="my-0">{{'editNode.pageOwner' | translate}}</h3>
                     <p-iftalabel>
-                        <input type="text" id="owner-fr" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid
+                        <input type="text" id="owner-fr" pInputText variant="outlined" class="secondary-outline" fluid
                                [(ngModel)]="node().data[selectedVersion()].fr.owner" (ngModelChange)="markChanges(); syncData(node(),'owner','FRtoEN')" [disabled]="!!versionConfig() && !editsEnabled()" />
                         <label for="owner-fr" [class.text-red-500]="node().data[selectedVersion()].en.owner !== node().data[selectedVersion()].fr.owner">
                             {{'editNode.owner' | translate}}
                         </label>
                     </p-iftalabel>
                     <p-iftalabel>
-                        <input type="text" id="email-fr" pInputText variant="outlined" pSize="small" class="secondary-outline" fluid
+                        <input type="text" id="email-fr" pInputText variant="outlined" class="secondary-outline" fluid
                                [(ngModel)]="node().data[selectedVersion()].fr.email" (ngModelChange)="markChanges(); syncData(node(),'email','FRtoEN')" [disabled]="!!versionConfig() && !editsEnabled()" />
                         <label for="email-fr" [class.text-red-500]="node().data[selectedVersion()].en.email !== node().data[selectedVersion()].fr.email">
                             {{'editNode.email' | translate}}
@@ -455,7 +455,7 @@
                             </span>
                         </div>
                         @if(node().data[selectedVersion()].fr.is404){
-                        <p-tag [severity]="node().data[selectedVersion()].en.is404 === node().data[selectedVersion()].fr.is404 ? 'primary' : 'danger'" value="404" />
+                        <p-tag [severity]="node().data[selectedVersion()].en.is404 === node().data[selectedVersion()].fr.is404 ? undefined : 'danger'" value="404" />
                         }
                     </div>
                 </div>

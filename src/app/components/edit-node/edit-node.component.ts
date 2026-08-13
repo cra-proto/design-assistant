@@ -160,8 +160,8 @@ export class EditNodeComponent {
     //Version-specific warning messages
     protected readonly versionConfig = computed(() => {
         switch (this.selectedVersion()) {
-            case 'baseline': return { severity: 'error', icon: 'pi pi-times-circle font-bold', text: this.translate.instant('editNode.baselineWarning') };
-            case 'live': return { severity: 'warn', icon: 'pi pi-exclamation-triangle font-bold', text: this.translate.instant('editNode.liveWarning') };
+            case 'baseline': return { severity: 'error', icon: 'pi pi-times-circle font-bold', text: this.translate.instant('editNode.baselineWarning') } as const;
+            case 'live': return { severity: 'warn', icon: 'pi pi-exclamation-triangle font-bold', text: this.translate.instant('editNode.liveWarning') } as const;
             default: return null;
         }
     });

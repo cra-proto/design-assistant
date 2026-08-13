@@ -1,17 +1,13 @@
-@if(mode==="list"){
+<!-- LIST MODE -->
+@if(mode()==="list"){
 <h2 class="text-2xl my-1">{{'collaborators._title' | translate}}</h2>
 @if(collaborators().length > 0){
 <ul class="list-unstyled">
     @for(collab of collaborators(); track collab.id) {
-    <li [class.mb-2]="!collaboratorService.canEditProject(projectData())">
+    <li>
         <div class="flex flex-row justify-content-between align-items-center gap-2">
             <div class="flex align-items-center gap-2">
-                <p-avatar
-                          shape="circle"
-                          [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
-                          [image]="collab.avatar_url || undefined"
-                          [ngClass]="collaboratorService.getCollaboratorColorClass(collab)" />
-                {{collaboratorService.getCollaboratorName(collab)}}
+                <ng-container *ngTemplateOutlet="collabAvatar; context: { $implicit: collab, showName: true }" />
             </div>
             @if(collaboratorService.canEditProject(projectData())){
             <p-button icon="pi pi-trash" severity="danger" text rounded
@@ -22,111 +18,91 @@
     </li>
     }
 </ul>
-<p-confirmDialog key="collab" />
 @if(collaboratorService.canEditProject(projectData())){
-<p-iftalabel>
-    <p-autocomplete
-                    [(ngModel)]="selectedCollaborators" optionLabel="login"
-                    (onSelect)="onCollabSelect($event)" (onDropdownClick)="onDropdownClick()"
-                    [pKeyFilter]="collabFilter" [maxlength]="39"
-                    [suggestions]="filteredCollaborators" (completeMethod)="filterCollaborators($event)"
-                    id="collab" [dropdown]="true" [multiple]="true" size="small" fluid>
-        <ng-template let-collab #item>
-            <div class="flex flex-row gap-2 align-items-center">
-                <p-avatar
-                          shape="circle"
-                          [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
-                          [image]="collab.avatar_url || undefined"
-                          [ngClass]="collaboratorService.getCollaboratorColorClass(collab)" />
-                {{collaboratorService.getCollaboratorName(collab)}}
-            </div>
-        </ng-template>
-        <ng-template let-selected #selectedItem>{{selected.login}}</ng-template>
-    </p-autocomplete>
-    <label for="collab">{{'collaborators.label.select' | translate}}</label>
-</p-iftalabel>
-<p-button [label]="'common.add' | translate" icon="pi pi-plus" class="flex justify-content-end mt-2" [disabled]="selectedCollaborators.length===0"
-          (onClick)="addSelectedCollaborators()" />
-
-}@else if(exportGitHubService.user()){
-<p-message severity="warn" icon="pi pi-exclamation-triangle font-bold" [text]="'collaborators.message.notCollab' | translate" />
-@if(getRequestAccessMailto()) {
-<p-button
-          [label]="'collaborators.button.requestAccess' | translate"
-          icon="pi pi-envelope"
-          severity="secondary"
-          size="small"
-          styleClass="mt-2"
-          [link]="true"
-          (onClick)="openMailto(getRequestAccessMailto())" />
+<ng-container *ngTemplateOutlet="collabAutocomplete; context: { $implicit: addSelectedCollaborators }" />
+} @else if(exportGitHubService.user()){
+<p-message severity="warn" icon="pi pi-exclamation-triangle font-bold">
+    <div class="flex flex-row justify-content-between align-items-center">
+        {{'collaborators.message.notCollab' | translate}}
+        @if(getRequestAccessMailto()) {
+            <p-button [label]="'collaborators.button.requestAccess' | translate"
+                    icon="pi pi-envelope" link severity="secondary" size="small" styleClass="mt-2"
+                    (onClick)="openMailto(getRequestAccessMailto())" />
+        }
+    </div>
+</p-message>
+} @else{
+<p-message severity="info" icon="pi pi-info-circle font-bold">{{'collaborators.message.hasCollab' | translate}}</p-message>
 }
-}@else{
-<p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'collaborators.message.hasCollab' | translate" />
-}
-}@else{
-<p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'collaborators.message.firstCollab' | translate" />
+} @else{
+<p-message severity="info" icon="pi pi-info-circle font-bold">{{'collaborators.message.firstCollab' | translate}}</p-message>
 }
 }
-@if(mode==="dashboard" || mode==="switch"){
+<!-- GROUP MODE -->
+@if(mode()==="dashboard" || mode()==="switch"){
 @if(collaborators().length > 0){
 <div class="flex flex-row align-content-center">
     <p-avatar-group>
         @for(collab of collaborators().slice(0, maxVisibleCollaborators); track collab.id) {
-        <p-avatar shape="circle"
-                  [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
-                  [image]="collab.avatar_url || undefined"
-                  [pTooltip]="collaboratorService.getCollaboratorName(collab)"
-                  tooltipPosition="top"
-                  [ngClass]="collaboratorService.getCollaboratorColorClass(collab)" />
+        <ng-container *ngTemplateOutlet="collabAvatar; context: { $implicit: collab, showName: false }" />
         }
         @if(collaborators().length > maxVisibleCollaborators){
         <p-avatar shape="circle" [label]="'+'+(collaborators().length - maxVisibleCollaborators).toString()" [pTooltip]="'collaborators.plusMore' | translate: {number: collaborators().length - maxVisibleCollaborators}" tooltipPosition="top" />
         }
     </p-avatar-group>
-    @if(mode ==="dashboard"){
+    @if(mode() ==="dashboard"){
     @if(collaboratorService.canEditProject(projectData())){
     <p-button icon="pi pi-share-alt" text rounded size="small" [pTooltip]="'collaborators.addCollab' | translate" (onClick)="openShareDialog()" />
     }
-    <p-dialog [(visible)]="showShareDialog"
-              [header]="'collaborators.addCollab' | translate"
-              [modal]="true"
-              styleClass="w-12 md:w-8 lg:w-6">
-        <p-iftalabel>
-            <p-autocomplete
-                            [(ngModel)]="selectedCollaborators" optionLabel="login"
-                            (onSelect)="onCollabSelect($event)" (onDropdownClick)="onDropdownClick()"
-                            [pKeyFilter]="collabFilter" [maxlength]="39"
-                            [suggestions]="filteredCollaborators" (completeMethod)="filterCollaborators($event)"
-                            id="collab" [dropdown]="true" [multiple]="true" size="small" fluid
-                            [appendTo]="'body'">
-                <ng-template let-collab #item>
-                    <div class="flex flex-row gap-2 align-items-center">
-                        <p-avatar
-                                  shape="circle"
-                                  [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
-                                  [image]="collab.avatar_url || undefined"
-                                  [ngClass]="collaboratorService.getCollaboratorColorClass(collab)" />
-                        {{collaboratorService.getCollaboratorName(collab)}}
-                    </div>
-                </ng-template>
-                <ng-template let-selected #selectedItem>{{selected.login}}</ng-template>
-            </p-autocomplete>
-            <label for="collab">{{'collaborators.label.select' | translate}}</label>
-        </p-iftalabel>
-        <div class="flex justify-content-end gap-2 mt-3">
-            <p-button [label]="'common.cancel' | translate"
-                      severity="secondary"
-                      outlined
-                      styleClass="secondary-outline"
-                      (onClick)="closeShareDialog()" />
-            <p-button [label]="'common.add' | translate" icon="pi pi-plus"
-                      [disabled]="selectedCollaborators.length===0"
-                      (onClick)="addSelectedCollaborators(); closeShareDialog()" />
-        </div>
+    <p-dialog [(visible)]="showShareDialog" [modal]="true" styleClass="w-12 md:w-8 lg:w-6"
+              [header]="'collaborators.addCollab' | translate">
+        <ng-container *ngTemplateOutlet="collabAutocomplete; context: { $implicit: addAndCloseShareDialog, onCancel: closeShareDialog }" />
     </p-dialog>
     }
 </div>
 } @else {
-<p class="text-md mt-0">{{'common.none' | translate}}</p>
+<p class="text-md my-0">{{'common.none' | translate}}</p>
 }
 }
+
+<!--Confirmation dialog-->
+@if(mode()==="list"){
+<p-confirmDialog key="collab" />
+}
+
+<!--Autocomplete dropdown template-->
+<ng-template #collabAutocomplete let-onAdd let-onCancel="onCancel">
+    <p-iftalabel>
+        <p-autocomplete optionLabel="login" id="collab" [dropdown]="true" [multiple]="true" size="small" fluid [appendTo]="'body'"
+                        [(ngModel)]="selectedCollaborators"
+                        (onSelect)="onCollabSelect($event)" (onDropdownClick)="onDropdownClick()"
+                        [pKeyFilter]="collabFilter" [maxlength]="39"
+                        [suggestions]="filteredCollaborators()" (completeMethod)="filterCollaborators($event)">
+            <ng-template let-collab #item>
+                <div class="flex flex-row gap-2 align-items-center">
+                    <ng-container *ngTemplateOutlet="collabAvatar; context: { $implicit: collab, showName: true }" />
+                </div>
+            </ng-template>
+            <ng-template let-selected #selectedItem>{{selected.login}}</ng-template>
+        </p-autocomplete>
+        <label for="collab">{{'collaborators.label.select' | translate}}</label>
+    </p-iftalabel>
+    <div class="flex justify-content-end gap-2 mt-2">
+        @if(onCancel){
+        <p-button [label]="'common.cancel' | translate" severity="secondary" outlined styleClass="secondary-outline"
+                  (onClick)="onCancel()" />
+        }
+        <p-button [label]="'common.add' | translate" icon="pi pi-plus" [disabled]="selectedCollaborators.length===0"
+                  (onClick)="onAdd()" />
+    </div>
+</ng-template>
+
+<!--Avatar template-->
+<ng-template #collabAvatar let-collab let-showName="showName">
+    <p-avatar
+              shape="circle" [ngClass]="collaboratorService.getCollaboratorColorClass(collab)" class="mb-2"
+              [label]="collab.avatar_url ? undefined : collaboratorService.getCollaboratorInitials(collab)"
+              [image]="collab.avatar_url || undefined"
+              [pTooltip]="showName ? undefined : collaboratorService.getCollaboratorName(collab)" tooltipPosition="top" />
+    {{showName ? collaboratorService.getCollaboratorName(collab) : undefined}}
+</ng-template>

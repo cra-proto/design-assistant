@@ -1,5 +1,4 @@
 import { Component, inject, effect, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Router } from '@angular/router';
@@ -21,7 +20,7 @@ import { ProjectPhase } from '../../common/data.model';
 @Component({
     selector: 'aida-setup-project',
     imports: [
-        CommonModule, FormsModule, TranslatePipe,
+        FormsModule, TranslatePipe,
         IftaLabelModule, KeyFilterModule, InputTextModule, SelectModule, SelectButtonModule, MessageModule
     ],
     templateUrl: './setup-project.component.html',

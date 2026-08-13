@@ -1,5 +1,4 @@
 import { Component, effect, OnDestroy, AfterViewInit, ViewChildren, QueryList, ElementRef, signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { RouterLink } from '@angular/router';
@@ -68,9 +67,8 @@ type PreviewConfig = MessagePreviewConfig | ButtonPreviewConfig | CardPreviewCon
     selector: 'aida-design-patterns',
     standalone: true,
     imports: [
-        CommonModule, FormsModule, TranslatePipe, RouterLink,
-        BreadcrumbModule, TabsModule, MessageModule, ButtonModule, TooltipModule,
-        InputTextModule, TextareaModule, SelectModule, IftaLabelModule,
+        FormsModule, TranslatePipe, RouterLink,
+        BreadcrumbModule, TabsModule, MessageModule, ButtonModule, TooltipModule, InputTextModule, TextareaModule, SelectModule, IftaLabelModule
     ],
     templateUrl: './design-patterns.component.html',
     styleUrl: './design-patterns.component.css'
@@ -225,8 +223,8 @@ export class DesignPatternsComponent implements AfterViewInit, OnDestroy {
             label: 'Icon Buttons',
             code: `<div class="flex gap-2">
     <p-button icon="pi pi-trash" severity="danger" text rounded [pTooltip]="'dev.patterns.button.tooltip' | translate" tooltipPosition="top" />
-    <p-button icon="pi pi-share-alt" severity="primary" text rounded [pTooltip]="'dev.patterns.button.tooltip' | translate" tooltipPosition="top" />
-    <p-button icon="pi pi-sync" severity="primary" [pTooltip]="'dev.patterns.button.tooltip' | translate" tooltipPosition="top" />
+    <p-button icon="pi pi-share-alt" text rounded [pTooltip]="'dev.patterns.button.tooltip' | translate" tooltipPosition="top" />
+    <p-button icon="pi pi-sync" [pTooltip]="'dev.patterns.button.tooltip' | translate" tooltipPosition="top" />
 </div>`,
             description: 'dev.patterns.button.icon.desc',
             previewType: 'buttons',

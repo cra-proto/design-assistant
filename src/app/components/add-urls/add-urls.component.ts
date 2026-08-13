@@ -1,5 +1,4 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -19,7 +18,7 @@ import { InvalidUrlsComponent } from './invalid-urls/invalid-urls.component';
 @Component({
     selector: 'aida-add-urls',
     imports: [
-        CommonModule, FormsModule, TranslatePipe,
+        FormsModule, TranslatePipe,
         IftaLabelModule, TextareaModule, MessageModule, ButtonModule, ProgressBarModule, DialogModule,
         InvalidUrlsComponent
     ],

@@ -2,7 +2,7 @@
 <div class="flex flex-column gap-2">
     <!--Name-->
     <p-iftalabel>
-        <input type="text" id="name" pInputText [(ngModel)]="projectName" pSize="small" fluid (blur)="updateName()" [pKeyFilter]="nameFilter" />
+        <input type="text" id="name" pInputText [(ngModel)]="projectName" fluid (blur)="updateName()" [pKeyFilter]="nameFilter" />
         <label for="name">{{'project.setup.label.name' | translate}}</label>
     </p-iftalabel>
     <!--Phase-->
