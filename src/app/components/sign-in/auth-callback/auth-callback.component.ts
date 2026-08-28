@@ -1,28 +1,26 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
-import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
+import { TranslatePipe } from '@ngx-translate/core';
+
 import { MessageModule } from 'primeng/message';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 import { GitHubAuthService } from '../../../services/github/github-auth.service';
 
 @Component({
   selector: 'aida-auth-callback',
-  imports: [
-    TranslatePipe,
-    ProgressSpinnerModule, MessageModule
-  ],
+  imports: [TranslatePipe, MessageModule, ProgressSpinnerModule],
   templateUrl: './auth-callback.component.html',
-  styles: ``
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthCallbackComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  private authService = inject(GitHubAuthService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly authService = inject(GitHubAuthService);
 
-  error = signal<string | null>(null);
+  protected readonly error = signal<string | null>(null);
 
   private markForTranslation() {
     marker('github.callback.error.invalidParams');

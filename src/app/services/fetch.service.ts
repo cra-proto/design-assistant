@@ -1,17 +1,20 @@
-import { Injectable, inject } from '@angular/core';
-import { environment } from '../../environments/environment';
-import { PageTemplate } from '../common/data.model';
-import { isPortalDomain } from '../common/portal-domains.config';
+import { inject, Injectable } from '@angular/core';
+
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
-import rs from 'text-readability';
 import { TranslateService } from '@ngx-translate/core';
 
+import rs from 'text-readability';
+
+import { environment } from '../../environments/environment';
+import { PageTemplate, UrlVersion } from '../common/data.model';
+import { isPortalDomain } from '../common/portal-domains.config';
+
 export interface JsonMetadata {
-  owner?: string;                 // jrc:content.json gcContributor
-  email?: string;                 // jrc:content.json gcBranch
-  lastPublished?: string;         // jrc:content.json gcLastPublished
-  lastModified?: string;          // jrc:content.json cq:lastModified
-  isFreestyle?: boolean           // jrc:content.json cq:template
+  owner?: string; // jrc:content.json gcContributor
+  email?: string; // jrc:content.json gcBranch
+  lastPublished?: string; // jrc:content.json gcLastPublished
+  lastModified?: string; // jrc:content.json cq:lastModified
+  isFreestyle?: boolean; // jrc:content.json cq:template
 }
 
 export interface PageMetadata {
@@ -19,69 +22,67 @@ export interface PageMetadata {
   h1?: string;
   doubleH1?: string;
   //Content
-  contentHash?: string;    // Hash of normalized page HTML at last crawl
-  lastChecked?: string;    // ISO string of fetch date
-  githubSha?: string;      // SHA of last GitHub export
+  contentHash?: string; // Hash of normalized page HTML at last crawl
+  lastChecked?: string; // ISO string of fetch date
+  githubSha?: string; // SHA of last GitHub export
   //Metadata
-  title?: string;            // metadata title
-  description?: string;      // metadata description
-  keywords?: string;         // metadata keywords    
+  title?: string; // metadata title
+  description?: string; // metadata description
+  keywords?: string; // metadata keywords
   //Status
-  noindex?: boolean;         // True if page is not indexed for search
-  isArchived: boolean;       // True if page has archive banner
-  linksToPortal: boolean;    // True if page links to a portal
-  hasChatbot: boolean;       // True if page has chatbot
+  noindex?: boolean; // True if page is not indexed for search
+  isArchived: boolean; // True if page has archive banner
+  linksToPortal: boolean; // True if page links to a portal
+  hasChatbot: boolean; // True if page has chatbot
   //Data
-  parentPath?: string;           // For page move detection
-  wordCount?: number;        // Count of words on page
-  linkCount?: number;        // Count of links on page
-  template?: PageTemplate;   // Determined based on page content & url pattern
-  links?: string[]
+  parentPath?: string; // For page move detection
+  wordCount?: number; // Count of words on page
+  linkCount?: number; // Count of links on page
+  template?: PageTemplate; // Determined based on page content & url pattern
+  links?: string[];
   fleschKincaid: number;
   gunningFog: number;
   phoneNumbers: string[];
 }
 
 export interface BreadcrumbNode {
-  label: string;            // link text
-  url: string;              // link
-  inScope?: boolean;        // true = user-added page, false = page added from breadcrumb for context
-  iaOrphan?: boolean;       // true = IA orphan, false = link found on parent
-  icon?: string;            // represents status of link from parent to child
-  iconTooltip?: string;     // explanation for icon
-  linkTooltip?: string;     // explanation for color/boldness of label
-  styleClass?: string;      // for the label (used to set color and/or bold)
+  label: string; // link text
+  url: string; // link
+  inScope?: boolean; // true = user-added page, false = page added from breadcrumb for context
+  iaOrphan?: boolean; // true = IA orphan, false = link found on parent
+  icon?: string; // represents status of link from parent to child
+  iconTooltip?: string; // explanation for icon
+  linkTooltip?: string; // explanation for color/boldness of label
+  styleClass?: string; // for the label (used to set color and/or bold)
 }
-
-export type urlVersion = 'live' | 'protoGH' | 'baseGH' | 'protoUT' | 'baseUT' | 'preview' | 'upd';
 
 @Injectable({ providedIn: 'root' })
 export class FetchService {
   private translate = inject(TranslateService);
 
   //Block unknown hosts
-  private prodHost = "www.canada.ca";
+  private prodHost = 'www.canada.ca';
   private protoHosts = new Set([
     `${environment.defaultOrg}.github.io`,
-    "proto-cra.github.io",
+    'proto-cra.github.io',
     //"cra-design.github.io", //Currently blocked by browser because it looks like a phishing site
     //"cra-proto.github.io", //Is currently cra-test-arc.canada.ca
-    "cra-test-arc.canada.ca",
-    "test.canada.ca",
+    'cra-test-arc.canada.ca',
+    'test.canada.ca',
     //"gc-proto.github.io", //CORS error but redirects to test.canada.ca which works
-    "aleblanc3.github.io",
-    "canada-preview.adobecqms.net",
-    "cra-ut.isvcs.net"
+    'aleblanc3.github.io',
+    'canada-preview.adobecqms.net',
+    'cra-ut.isvcs.net',
   ]);
-  private getAllowedHosts(mode: "prod" | "proto" | "both"): Set<string> {
+  private getAllowedHosts(mode: 'prod' | 'proto' | 'both'): Set<string> {
     const allowed = new Set<string>();
-    if (mode === "prod" || mode === "both") allowed.add(this.prodHost);
-    if (mode === "proto" || mode === "both") this.protoHosts.forEach(host => allowed.add(host));
+    if (mode === 'prod' || mode === 'both') allowed.add(this.prodHost);
+    if (mode === 'proto' || mode === 'both') this.protoHosts.forEach((host) => allowed.add(host));
     return allowed;
   }
 
   //Validates URL and checks if it's in the specified allowed host list
-  private validateHost(url: string, hostMode: "prod" | "proto" | "both" | "none"): string {
+  private validateHost(url: string, hostMode: 'prod' | 'proto' | 'both' | 'none'): string {
     url = url.trim();
 
     let hostname: string;
@@ -89,46 +90,41 @@ export class FetchService {
       const parsedUrl = new URL(url);
       if (/\s/.test(url)) throw new Error();
       hostname = parsedUrl.hostname.toLowerCase();
-      const isUT = hostname === "cra-ut.isvcs.net"
-      if (parsedUrl.protocol !== "https:" && !isUT) throw new Error();
+      const isUT = hostname === 'cra-ut.isvcs.net';
+      if (parsedUrl.protocol !== 'https:' && !isUT) throw new Error();
       //Add nocache parameter to GitHub urls
       if (hostname !== this.prodHost) {
         const separator = url.includes('?') ? '&' : '?';
         url = url + `${separator}nocache=${Date.now()}`;
       }
     } catch {
-      throw new Error(`Invalid URL: ${url}`)
+      throw new Error(`Invalid URL: ${url}`);
     }
 
-    if (hostMode !== "none") {
+    if (hostMode !== 'none') {
       const allowedHosts = this.getAllowedHosts(hostMode);
       if (!allowedHosts.has(hostname)) {
         throw new Error(`Blocked host: ${hostname} blocked for url ${url}`);
       }
     }
 
-
     return url;
   }
 
   //Uses specified fetch method and retries if initial fetch fails (can happen due to intermittent server issues etc.)
-  public async fetchWithRetry(
-    url: string,
-    mode: "GET" | "HEAD" = "HEAD",
-    retries = 3,
-    delay: number | "random" | "none" = "none",
-    suppressErrors = false
-  ): Promise<Response> {
+  public async fetchWithRetry(url: string, mode: 'GET' | 'HEAD' = 'HEAD', retries = 3, delay: number | 'random' | 'none' = 'none', suppressErrors = false): Promise<Response> {
     for (let attempt = 1; attempt <= retries; attempt++) {
       await this.simulateDelay(delay);
       try {
         const response =
-          mode === "HEAD"
-            ? await fetch(url, { method: "HEAD" }) //removed cache: "no-store" from { method: "HEAD", cache: "no-store" } 
+          mode === 'HEAD'
+            ? await fetch(url, { method: 'HEAD' }) //removed cache: "no-store" from { method: "HEAD", cache: "no-store" }
             : await fetch(url); // plain GET to avoid CORS error
         if (response.ok) return response;
         else {
-          if (!suppressErrors) { console.warn(`Fetch attempt #${attempt}. Status: ${response.status}. Method: ${mode}`); }
+          if (!suppressErrors) {
+            console.warn(`Fetch attempt #${attempt}. Status: ${response.status}. Method: ${mode}`);
+          }
           if (attempt < retries) {
             const backoffDelay = Math.pow(2, attempt - 1) * 300; // 300ms, 600ms, 1200ms delay before retry
             await this.delay(backoffDelay);
@@ -151,15 +147,9 @@ export class FetchService {
     else throw new Error(`Unexpected error for ${url}`); //fallback, could be CORS or URLs blocked for safety reasons (suspected phishing etc.)
   }
 
-  public async fetchContent(
-    url: string,
-    hostMode: "prod" | "proto" | "both" | "none" = "both",
-    retries = 3,
-    delay: number | "random" | "none" = "none",
-    suppressErrors = false
-  ): Promise<Document> {
+  public async fetchContent(url: string, hostMode: 'prod' | 'proto' | 'both' | 'none' = 'both', retries = 3, delay: number | 'random' | 'none' = 'none', suppressErrors = false): Promise<Document> {
     url = this.validateHost(url, hostMode);
-    const response = await this.fetchWithRetry(url, "GET", retries, delay, suppressErrors);
+    const response = await this.fetchWithRetry(url, 'GET', retries, delay, suppressErrors);
     const html = await response.text();
     const doc = this.cleanupFetch(html);
     return doc;
@@ -167,13 +157,13 @@ export class FetchService {
 
   public async fetchContentAndStatus(
     url: string,
-    hostMode: "prod" | "proto" | "both" | "none" = "both",
+    hostMode: 'prod' | 'proto' | 'both' | 'none' = 'both',
     retries = 3,
-    delay: number | "random" | "none" = "none",
-    suppressErrors = false
+    delay: number | 'random' | 'none' = 'none',
+    suppressErrors = false,
   ): Promise<{ doc: Document; finalUrl: string }> {
     url = this.validateHost(url, hostMode);
-    const response = await this.fetchWithRetry(url, "GET", retries, delay, suppressErrors);
+    const response = await this.fetchWithRetry(url, 'GET', retries, delay, suppressErrors);
     const html = await response.text();
     const doc = this.cleanupFetch(html);
     const finalUrl = response.url || url;
@@ -182,14 +172,16 @@ export class FetchService {
 
   public async fetchStatus(
     url: string,
-    hostMode: "prod" | "proto" | "both" | "none" = "both",
+    hostMode: 'prod' | 'proto' | 'both' | 'none' = 'both',
     retries = 3,
-    delay: number | "random" | "none" = "none",
-    delayBetweenRequests = 100 //ms
+    delay: number | 'random' | 'none' = 'none',
+    delayBetweenRequests = 100, //ms
   ): Promise<Response> {
     url = this.validateHost(url, hostMode);
-    if (delayBetweenRequests > 0) { await this.delay(delayBetweenRequests); }
-    return this.fetchWithRetry(url, "HEAD", retries, delay, true);
+    if (delayBetweenRequests > 0) {
+      await this.delay(delayBetweenRequests);
+    }
+    return this.fetchWithRetry(url, 'HEAD', retries, delay, true);
   }
 
   public async fetchJSON(url: string, fields: string[]): Promise<Record<string, string>> {
@@ -198,7 +190,7 @@ export class FetchService {
     const result: Record<string, string> = {};
 
     try {
-      const response = await this.fetchWithRetry(jsonUrl, "GET", 3, "none", true);
+      const response = await this.fetchWithRetry(jsonUrl, 'GET', 3, 'none', true);
       const json = await response.json();
 
       for (const field of fields) {
@@ -218,11 +210,7 @@ export class FetchService {
       owner: data['gcContributor'] ?? undefined,
       email: data['gcBranch'] ?? undefined,
       lastPublished: data['gcLastPublished'] ? data['gcLastPublished'] : undefined,
-      lastModified: data['gcModifiedIsOverridden'] === 'true' && data['gcModifiedOverride']
-        ? data['gcModifiedOverride']
-        : data['cq:lastModified']
-          ? data['cq:lastModified']
-          : undefined,
+      lastModified: data['gcModifiedIsOverridden'] === 'true' && data['gcModifiedOverride'] ? data['gcModifiedOverride'] : data['cq:lastModified'] ? data['cq:lastModified'] : undefined,
       isFreestyle: data['cq:template']?.includes('freestyle') ?? false,
     };
   }
@@ -231,29 +219,24 @@ export class FetchService {
   public async simulateDelay(delay: number | 'random' | 'none' = 'none'): Promise<void> {
     if (environment.production || delay === 'none') return;
 
-    if (delay === "random") {
-      await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 1500)); //random 0.1 to 1.6 second delay
-    }
-    else if (typeof delay === "number" && delay > 0) {
-      await new Promise(resolve => setTimeout(resolve, delay)); //user input delay
+    if (delay === 'random') {
+      await new Promise((resolve) => setTimeout(resolve, 100 + Math.random() * 1500)); //random 0.1 to 1.6 second delay
+    } else if (typeof delay === 'number' && delay > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delay)); //user input delay
     }
   }
 
   //adds delay on both dev and prod (useful for adding short delays before retrying a failed fetch, only use this if the delay is required on prod)
   public async delay(delay: number): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, delay)); //user input delay
+    await new Promise((resolve) => setTimeout(resolve, delay)); //user input delay
   }
 
   //fake Response for suppressing CORS errors (should only be used when fetching external content, hostMode = "none:")
-  private suppressError(
-    url: string,
-    status = 500,
-    statusText = "Suppressed fetch error"
-  ): Response {
+  private suppressError(url: string, status = 500, statusText = 'Suppressed fetch error'): Response {
     return new Response(null, {
       status,
       statusText,
-      headers: { "X-Suppressed-Error": "true", "X-Source-Url": url },
+      headers: { 'X-Suppressed-Error': 'true', 'X-Source-Url': url },
     });
   }
 
@@ -269,8 +252,8 @@ export class FetchService {
     const oppUrl = doc.querySelector(`link[rel="alternate"][hreflang="${oppLang}"]`)?.getAttribute('href') || '';
 
     // Get H1 (or double H1)
-    const h1Elements = Array.from(doc.querySelectorAll('h1')).filter(h1 => !h1.classList.contains('wb-inv'));
-    const h1Texts = h1Elements.map(e => e.textContent?.trim()).filter(Boolean);
+    const h1Elements = Array.from(doc.querySelectorAll('h1')).filter((h1) => !h1.classList.contains('wb-inv'));
+    const h1Texts = h1Elements.map((e) => e.textContent?.trim()).filter(Boolean);
 
     let doubleH1 = doc.querySelector('hgroup p:has(+ h1)')?.innerHTML || doc.querySelector('p.lead:has(+ h1)')?.innerHTML || '';
     let h1 = '';
@@ -284,9 +267,12 @@ export class FetchService {
 
     // Content hash
     const mainContent = doc.querySelector('main')?.innerHTML ?? '';
-    const contentHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(mainContent))
-      .then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''));
-    const lastChecked = new Date().toISOString()
+    const contentHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(mainContent)).then((buf) =>
+      Array.from(new Uint8Array(buf))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join(''),
+    );
+    const lastChecked = new Date().toISOString();
 
     // Get metadata
     const title = doc.querySelector('meta[name="dcterms.title"]')?.getAttribute('content') || '';
@@ -301,7 +287,7 @@ export class FetchService {
     const isArchived = doc.querySelector('.gc-archv') !== null;
 
     // Get portal link status
-    const linksToPortal = Array.from(doc.querySelectorAll('a')).some(link => isPortalDomain(link.href));
+    const linksToPortal = Array.from(doc.querySelectorAll('a')).some((link) => isPortalDomain(link.href));
 
     //Has ChatBot
     const hasChatbot = !!doc.querySelector('chatbot');
@@ -312,7 +298,10 @@ export class FetchService {
 
     //Word count
     const text = doc.querySelector('main')?.textContent || '';
-    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+    const words = text
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0);
     const wordCount = words.length;
 
     // Get template
@@ -327,19 +316,18 @@ export class FetchService {
     const isNewsUrl = /\/(news|nouvelles)\/\d{4}\//.test(url);
     const isTaxtip = url.includes('/newsroom/tax-tips/') || url.includes('/salle-presse/conseils-fiscaux/');
     const isTFSMK = url.includes('/tax-tips/tax-filing-season-media-kit') || url.includes('/conseils-fiscaux/trousse-medias-periode-production-declarations-revenus');
-    const isEnforcementNotice = url.includes('/newsroom/criminal-investigations-actions-charges-convictions') || url.includes('/salle-presse/mesures-relatives-enquetes-criminelles-accusations-condamnations');
+    const isEnforcementNotice =
+      url.includes('/newsroom/criminal-investigations-actions-charges-convictions') || url.includes('/salle-presse/mesures-relatives-enquetes-criminelles-accusations-condamnations');
     const isMultimedia = url.includes('/news/cra-multimedia-library/') || url.includes('/nouvelles/bibliotheque-multimedia-arc/');
     //Video transcript pages
     const hasVideo = doc.querySelector('video') !== null;
-    const hasTranscriptH2 = Array.from(doc.querySelectorAll('h2')).some(h2 =>
-      /transcript/i.test(h2.textContent?.trim() ?? '')
-    );
+    const hasTranscriptH2 = Array.from(doc.querySelectorAll('h2')).some((h2) => /transcript/i.test(h2.textContent?.trim() ?? ''));
     const isVideoTranscript = hasVideo && hasTranscriptH2 && isMultimedia;
     //Forms & pubs
     const isFormReadme = url.includes('/forms-publications/forms/') || url.includes('/formulaires-publications/formulaires/');
     const isPub = url.includes('/forms-publications/publications/') || url.includes('/formulaires-publications/publications/'); //must check after isPubReadme
     const isPubReadme = /\/(forms-publications\/publications|formulaires-publications\/publications)\/[a-z0-9-]+\.html$/.test(url);
-    const is5000g = url.includes('/general-income-tax-benefit-package/5000-g.html') || url.includes('/trousse-generale-impot-prestations/5000-g.html')
+    const is5000g = url.includes('/general-income-tax-benefit-package/5000-g.html') || url.includes('/trousse-generale-impot-prestations/5000-g.html');
     const isT1Readme = /\/(general-income-tax-benefit-package|trousse-generale-impot-prestations)\/([a-z-]+\/)?5\d{3}-[a-z]{1,5}\.html$/.test(url);
     const isT1Pub = /\/(general-income-tax-benefit-package|trousse-generale-impot-prestations)\/([a-z-]+\/)?5\d{3}-[a-z]{1,5}\/[a-z0-9-]+\.html$/.test(url);
     const isTD1Readme = /\/(td1-forms-pay-received-on-january-1-(\d{4}-)?later|formulaires-td1-paies-recues-1er-janvier-(\d{4}-)?apres)\/[a-z0-9-]+\.html$/.test(url);
@@ -355,26 +343,26 @@ export class FetchService {
       't4008-payroll-deductions-supplementary-tables',
       't4008-tables-supplementaires-retenues-paie',
       't4008-payroll-deductions-supplementary-tables-previous-years',
-      't4008-tables-supplementaires-retenues-paie-annees-anterieures'
+      't4008-tables-supplementaires-retenues-paie-annees-anterieures',
     ];
     const isPayrollReadme = new RegExp(`\\/(${payrollPatterns.join('|')})\\/[a-z0-9-]+\\.html$`).test(url);
     //Assume old topic page if more than 80% of list-group-items have links
     const listGroupItemCount = doc.querySelectorAll('.list-group-item').length;
     const listGroupLinkCount = doc.querySelectorAll('.list-group-item a').length;
-    const isOldTopic = listGroupItemCount > 0 && (listGroupLinkCount / listGroupItemCount) >= 0.8;
+    const isOldTopic = listGroupItemCount > 0 && listGroupLinkCount / listGroupItemCount >= 0.8;
     //Assume navigational page if over 70% of content is link text
     const mainElement = doc.querySelector('main');
     const mainText = mainElement?.innerText.trim() ?? '';
     const mainLinks = mainElement?.querySelectorAll('a') ?? [];
     const linkCount = mainLinks.length ?? 0;
-    const linkText = Array.from(mainLinks).map(a => a.innerText.trim()).join('');
-    const isNavigational = mainText.length > 0 && (linkText.length / mainText.length) >= 0.7;
+    const linkText = Array.from(mainLinks)
+      .map((a) => a.innerText.trim())
+      .join('');
+    const isNavigational = mainText.length > 0 && linkText.length / mainText.length >= 0.7;
     //PDF download pages
     const hasPdfDownloadLink = doc.querySelector('a[href$=".pdf"].btn.stretched-link') !== null;
     const hasThumbnailContainer = doc.querySelector('.thumbnail') !== null;
-    const hasPdfMetadata = Array.from(doc.querySelectorAll('small')).some(small =>
-      /PDF,.*(KB|Ko).*page/i.test(small.textContent?.trim() ?? '')
-    );
+    const hasPdfMetadata = Array.from(doc.querySelectorAll('small')).some((small) => /PDF,.*(KB|Ko).*page/i.test(small.textContent?.trim() ?? ''));
     const isPdfDownload = hasPdfDownloadLink && (hasThumbnailContainer || hasPdfMetadata);
     //Brochure page
     const isBrochure = doc.querySelector('.panel-heading.bg-primary') !== null;
@@ -434,9 +422,30 @@ export class FetchService {
 
     // Phone numbers
     const phoneRegex = /(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}/g;
-    const phoneNumbers = [...new Set(mainText.match(phoneRegex) ?? [])].map(n => n.trim());
+    const phoneNumbers = [...new Set(mainText.match(phoneRegex) ?? [])].map((n) => n.trim());
 
-    return { oppUrl, h1, doubleH1, contentHash, lastChecked, title, description, keywords, noindex, isArchived, linksToPortal, hasChatbot, parentPath, wordCount, linkCount, template, links, fleschKincaid, gunningFog, phoneNumbers };
+    return {
+      oppUrl,
+      h1,
+      doubleH1,
+      contentHash,
+      lastChecked,
+      title,
+      description,
+      keywords,
+      noindex,
+      isArchived,
+      linksToPortal,
+      hasChatbot,
+      parentPath,
+      wordCount,
+      linkCount,
+      template,
+      links,
+      fleschKincaid,
+      gunningFog,
+      phoneNumbers,
+    };
   }
 
   markForTranslation() {
@@ -474,7 +483,7 @@ export class FetchService {
       const rawHref = el.getAttribute('href') || '';
       let absoluteUrl = '';
       try {
-        absoluteUrl = new URL(rawHref, baseUrl).href.replace("/content/canadasite", ""); // handles both relative + absolute
+        absoluteUrl = new URL(rawHref, baseUrl).href.replace('/content/canadasite', ''); // handles both relative + absolute
       } catch {
         console.warn(`Invalid breadcrumb href: ${rawHref}`);
       }
@@ -488,43 +497,42 @@ export class FetchService {
 
   //Get same-domain links
   public getLinks(doc: Document, baseUrl: string): string[] {
-    const baseDomain = new URL(baseUrl).origin
+    const baseDomain = new URL(baseUrl).origin;
     const links = Array.from(doc.querySelectorAll('main a'))
-      .map(a => a.getAttribute('href'))
+      .map((a) => a.getAttribute('href'))
       .filter((href): href is string => !!href)
-      .map(href => {
+      .map((href) => {
         try {
           const url = new URL(href, baseUrl);
           url.hash = '';
           url.search = '';
-          return url.href.replace("/content/canadasite", "");
+          return url.href.replace('/content/canadasite', '');
         } catch {
           return null;
         }
       })
       .filter((href): href is string => !!href)
-      .filter(href => new URL(href).origin === baseDomain);
+      .filter((href) => new URL(href).origin === baseDomain);
     return [...new Set(links)];
   }
 
   //Fetch same-domain paths
   public async getPaths(url: string, viaProxy = false): Promise<string[]> {
     try {
-      const doc = !viaProxy ? await this.fetchContent(url, "both", 2) : this.stringToDoc(await this.fetchViaProxy(url));
+      const doc = !viaProxy ? await this.fetchContent(url, 'both', 2) : this.stringToDoc(await this.fetchViaProxy(url));
       const links = this.getLinks(doc, url);
-      return [...new Set(links.map(link => this.generatePath(link)))];
+      return [...new Set(links.map((link) => this.generatePath(link)))];
     } catch (error) {
       console.warn(`Failed to fetch links for "${url}"`, error);
       return [];
     }
   }
 
-
   /**
    * Fetches page content from a different origin (UT, AEM preview etc.) by relaying
-   * the request through a same-origin proxy page. Only use if {@link fetchContent} is unsuccessful. 
+   * the request through a same-origin proxy page. Only use if {@link fetchContent} is unsuccessful.
    *
-   * This function must be triggered by the user or the popup may be blocked resulting in 
+   * This function must be triggered by the user or the popup may be blocked resulting in
    * inconsistent behaviour for different users.
    *
    * @param targetUrl The full URL to fetch. Must be on an allowed origin or this will throw. (see {@link generateQuery} for allowed origins)
@@ -532,12 +540,14 @@ export class FetchService {
    */
   public fetchViaProxy(targetUrl: string): Promise<string> {
     return new Promise((resolve, reject) => {
-
       let fetchQuery: string;
       let fetchOrigin: string;
       try {
         ({ fetchQuery, fetchOrigin } = this.generateQuery(targetUrl, false));
-      } catch (error) { reject(error); return; }
+      } catch (error) {
+        reject(error);
+        return;
+      }
 
       const popup = window.open(fetchQuery, '_blank', 'width=1,height=1,left=9999,top=9999');
       if (!popup) {
@@ -575,9 +585,9 @@ export class FetchService {
 
   /**
    * Fetches page status from a different origin (UT, AEM preview etc.) by relaying
-   * the request through a same-origin proxy page. Only use if {@link fetchStatus} is unsuccessful. 
+   * the request through a same-origin proxy page. Only use if {@link fetchStatus} is unsuccessful.
    *
-   * This function must be triggered by the user or the popup may be blocked resulting in 
+   * This function must be triggered by the user or the popup may be blocked resulting in
    * inconsistent behaviour for different users.
    *
    * @param targetUrl The full URL to fetch. Must be on an allowed origin or this will throw. (see {@link generateQuery} for allowed origins)
@@ -585,12 +595,14 @@ export class FetchService {
    */
   fetchStatusViaProxy(targetUrl: string): Promise<boolean> {
     return new Promise((resolve) => {
-
       let fetchQuery: string;
       let fetchOrigin: string;
       try {
         ({ fetchQuery, fetchOrigin } = this.generateQuery(targetUrl, true));
-      } catch { resolve(false); return; }
+      } catch {
+        resolve(false);
+        return;
+      }
 
       const popup = window.open(fetchQuery, '_blank', 'width=1,height=1,left=9999,top=9999');
 
@@ -632,8 +644,8 @@ export class FetchService {
   private generateQuery(targetUrl: string, statusCheck = false): { fetchQuery: string; fetchOrigin: string } {
     const targetOrigin = new URL(targetUrl).origin;
     const paths: Record<string, string> = {
-      "https://canada-preview.adobecqms.net": "https://canada-preview.adobecqms.net/en/revenue-agency/web-services-test/amber/test.html?fetch=",
-      "http://cra-ut.isvcs.net": "http://cra-ut.isvcs.net/test/aida/_Tools/fetch.html?fetch=",
+      'https://canada-preview.adobecqms.net': 'https://canada-preview.adobecqms.net/en/revenue-agency/web-services-test/amber/test.html?fetch=',
+      'http://cra-ut.isvcs.net': 'http://cra-ut.isvcs.net/test/aida/_Tools/fetch.html?fetch=',
     };
     const fetchUrl = paths[targetOrigin];
     if (!fetchUrl) {
@@ -642,17 +654,15 @@ export class FetchService {
     return {
       fetchQuery: `${fetchUrl}${encodeURIComponent(targetUrl)}&check=${statusCheck}`,
       fetchOrigin: targetOrigin,
-    }
+    };
   }
 
-  getReadability(doc: Document): { fleschKincaid: number, gunningFog: number } {
-
-
+  public getReadability(doc: Document): { fleschKincaid: number; gunningFog: number } {
     // Remove fieldflow & other hard to score elements
-    doc.querySelectorAll('.wb-fieldflow, .wb-fieldflow-sub, .pagedetails, script, nav, style').forEach(el => el.remove());
+    doc.querySelectorAll('.wb-fieldflow, .wb-fieldflow-sub, .pagedetails, script, nav, style').forEach((el) => el.remove());
 
     // Add periods to end of list items if missing
-    doc.querySelectorAll('li').forEach(el => {
+    doc.querySelectorAll('li').forEach((el) => {
       const text = el.textContent?.trim() ?? '';
       if (text && !text.match(/[.!?]$/)) {
         el.textContent = text + '.';
@@ -660,7 +670,7 @@ export class FetchService {
     });
 
     // Add periods to end of headings if missing
-    doc.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(el => {
+    doc.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((el) => {
       const text = el.textContent?.trim() ?? '';
       if (text && !text.match(/[.!?]$/)) {
         el.textContent = text + '.';
@@ -675,7 +685,7 @@ export class FetchService {
     const fleschKincaid = rs.fleschKincaidGrade(cleanText);
     const gunningFog = rs.gunningFog(cleanText);
 
-    return { fleschKincaid, gunningFog }
+    return { fleschKincaid, gunningFog };
   }
 
   //Get relative path
@@ -686,33 +696,34 @@ export class FetchService {
       const isGithub = hostname === 'cra-test-arc.canada.ca' || hostname === 'test.canada.ca' || hostname.endsWith('.github.io');
       const slice = isLocal ? 4 : isGithub ? 2 : 1;
       return pathname.split('/').slice(slice).join('/');
+    } catch {
+      return url;
     }
-    catch { return url; }
   }
 
   //Generate url for specific version
 
-  generateUrl(path: string, version: urlVersion = 'live', owner?: string, repo?: string): string {
-    const repoDomain = owner === 'cra-proto' ? 'https://cra-test-arc.canada.ca' : owner === 'gc-proto' ? 'https://test.canada.ca' : `https://${owner}.github.io`
+  generateUrl(path: string, version: UrlVersion = 'live', owner?: string, repo?: string): string {
+    const repoDomain = owner === 'cra-proto' ? 'https://cra-test-arc.canada.ca' : owner === 'gc-proto' ? 'https://test.canada.ca' : `https://${owner}.github.io`;
     switch (version) {
       case 'live':
-        return `https://www.canada.ca/${path}`
+        return `https://www.canada.ca/${path}`;
       case 'protoGH':
-        return `${repoDomain}/${repo}/${path}`
+        return `${repoDomain}/${repo}/${path}`;
       case 'baseGH':
-        return `${repoDomain}/${repo}-baseline/${path}`
+        return `${repoDomain}/${repo}-baseline/${path}`;
       case 'preview':
-        return `https://canada-preview.adobecqms.net/${path}`
+        return `https://canada-preview.adobecqms.net/${path}`;
       case 'protoUT':
-        return `http://cra-ut.isvcs.net/test/aida/${repo}/${path}`
+        return `http://cra-ut.isvcs.net/test/aida/${repo}/${path}`;
       case 'baseUT':
-        return `http://cra-ut.isvcs.net/test/aida/${repo}-baseline/${path}`
+        return `http://cra-ut.isvcs.net/test/aida/${repo}-baseline/${path}`;
       case 'upd': {
         const currentLang = this.translate.currentLang()?.startsWith('fr') ? '&lang=FR' : '';
-        return `https://cra-arc.alpha.canada.ca/en/pages?url=https://www.canada.ca/${path}${currentLang}`
+        return `https://cra-arc.alpha.canada.ca/en/pages?url=https://www.canada.ca/${path}${currentLang}`;
       }
       default:
-        return `https://www.canada.ca/${path}`
+        return `https://www.canada.ca/${path}`;
     }
   }
 
@@ -720,18 +731,16 @@ export class FetchService {
   getLang(url: string): 'en' | 'fr' | null {
     if (url.includes('/en/') || url.endsWith('en.html') || url.startsWith('en/')) return 'en';
     else if (url.includes('/fr/') || url.endsWith('fr.html') || url.startsWith('fr/')) return 'fr';
-    else return null
+    else return null;
   }
 
   /**
-    * Removes malformed data-rte elements from fetched content before it causes parsing errors
-    */
+   * Removes malformed data-rte elements from fetched content before it causes parsing errors
+   */
   cleanupFetch(html: string): Document {
-    const clean = html
-      .replace(/<data-rte-class="[^"]*">/g, '')
-      .replace(/<\/data-rte-class="[^"]*">/g, '')
+    const clean = html.replace(/<data-rte-class="[^"]*">/g, '').replace(/<\/data-rte-class="[^"]*">/g, '');
     const doc = new DOMParser().parseFromString(clean, 'text/html');
-    doc.querySelectorAll('[data-rte-class]').forEach(el => {
+    doc.querySelectorAll('[data-rte-class]').forEach((el) => {
       while (el.firstChild) {
         el.parentNode?.insertBefore(el.firstChild, el);
       }
@@ -739,6 +748,4 @@ export class FetchService {
     });
     return doc;
   }
-
 }
-

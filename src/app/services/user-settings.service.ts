@@ -1,38 +1,48 @@
-import { Injectable, signal, effect, inject } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { Router } from '@angular/router';
+import { effect, inject, Injectable, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { updatePreset } from '@primeuix/themes';
+import { Router } from '@angular/router';
+
+import { TranslateService } from '@ngx-translate/core';
+
+import { PrimeNG } from 'primeng/config';
+
 import MyPreset from '../common/theme-presets/preset';
+import CustomPreset from '../common/theme-presets/preset-custom';
 import DeutanPreset from '../common/theme-presets/preset-deutan';
 import ProtanPreset from '../common/theme-presets/preset-protan';
 import TritanPreset from '../common/theme-presets/preset-tritan';
-import CustomPreset from '../common/theme-presets/preset-custom';
 
 export type ColorScheme = 'default' | 'deutan' | 'protan' | 'tritan' | 'custom';
 
 @Injectable({ providedIn: 'root' })
 export class UserSettingsService {
-  private translate = inject(TranslateService);
-  private router = inject(Router);
-  private title = inject(Title);
+  private readonly primeNGConfig = inject(PrimeNG);
+  private readonly translate = inject(TranslateService);
+  private readonly router = inject(Router);
+  private readonly title = inject(Title);
 
   // Language
-  public currentLang = signal<string>('en');
+  public readonly currentLang = signal<string>('en');
 
   // Dark & Light themes
-  public darkMode = signal<boolean>(false);
-  public icon = signal<string>('pi pi-sun');
+  public readonly darkMode = signal<boolean>(false);
+  public readonly icon = signal<string>('pi pi-sun');
 
   // Default & Colorblind themes
-  private colorSchemeKey = 'color-scheme';
-  colorScheme = signal<ColorScheme>(this.getStoredColorScheme());
+  private readonly colorSchemeKey = 'color-scheme';
+  public readonly colorScheme = signal<ColorScheme>(this.getStoredColorScheme());
 
   // Toolbox visibility (used by sidebar, undecided if we should surface in user settings)
-  toolbox = signal<string | null>(localStorage.getItem('myToolbox'));
+  public readonly toolbox = signal<string | null>(localStorage.getItem('myToolbox'));
 
   // User
-  public userId = signal<string>(this.getOrCreateUserId());
+  public readonly userId = signal<string>(this.getOrCreateUserId());
+
+  //Version
+  public readonly includePreview = signal<boolean>(localStorage.getItem('includePreview') === 'true' ? true : false);
+  public readonly includeGitHub = signal<boolean>(false);
+  public readonly includeLocal = signal<boolean>(false);
+  public readonly includeBaseline = signal<boolean>(false);
 
   constructor() {
     // Language
@@ -43,17 +53,20 @@ export class UserSettingsService {
 
     // Dark & Light
     const storedTheme = localStorage.getItem('darkMode');
-    this.setDarkMode(storedTheme === 'true')
+    this.setDarkMode(storedTheme === 'true');
 
     // Default & Colorblind
     effect(() => {
       this.applyColorScheme(this.colorScheme());
     });
 
+    effect(() => {
+      localStorage.setItem('includePreview', this.includePreview().toString());
+    });
   }
 
   // Language
-  setLanguage(lang: string) {
+  public setLanguage(lang: string) {
     const useLang = lang === 'en' ? 'en' : 'fr';
     this.currentLang.set(useLang);
     this.translate.use(useLang);
@@ -61,7 +74,7 @@ export class UserSettingsService {
     console.log(`Language set to ${useLang}`);
   }
 
-  toggleLanguage() {
+  public toggleLanguage() {
     const newLang = this.currentLang() === 'en' ? 'fr' : 'en';
     this.setLanguage(newLang);
     //Update title on language change
@@ -74,7 +87,7 @@ export class UserSettingsService {
   }
 
   // Dark & Light
-  setDarkMode(enabled: boolean) {
+  private setDarkMode(enabled: boolean) {
     this.darkMode.set(enabled);
     localStorage.setItem('darkMode', String(enabled));
     document.documentElement.classList.toggle('dark-mode', enabled);
@@ -82,19 +95,17 @@ export class UserSettingsService {
     console.log(`Dark mode set to ${enabled}`);
   }
 
-  toggle() {
+  public toggle() {
     this.setDarkMode(!this.darkMode());
   }
 
   // Default & Colorblind
   private getStoredColorScheme(): ColorScheme {
     const stored = localStorage.getItem(this.colorSchemeKey);
-    return (stored === 'deutan' || stored === 'protan' || stored === 'tritan' || stored === 'custom' || stored === 'default')
-      ? stored
-      : 'default';
+    return stored === 'deutan' || stored === 'protan' || stored === 'tritan' || stored === 'custom' || stored === 'default' ? stored : 'default';
   }
 
-  setColorScheme(scheme: ColorScheme) {
+  public setColorScheme(scheme: ColorScheme) {
     this.colorScheme.set(scheme);
     localStorage.setItem(this.colorSchemeKey, scheme);
   }
@@ -118,7 +129,15 @@ export class UserSettingsService {
       default:
         preset = MyPreset;
     }
-    updatePreset(preset);
+    this.primeNGConfig.theme.set({
+      preset: preset,
+      options: {
+        colorScheme: 'light',
+        theme: 'blue',
+        ripple: true,
+        darkModeSelector: '.dark-mode',
+      },
+    });
   }
 
   // UserId
@@ -130,9 +149,8 @@ export class UserSettingsService {
     return id;
   }
 
-  setUserId(id: string): void {
+  public setUserId(id: string): void {
     localStorage.setItem('userId', id);
     this.userId.set(id);
   }
-
 }

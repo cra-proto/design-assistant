@@ -1,4 +1,5 @@
-import { PagePromptKey, PromptConfig, RoleKey, OutputKey, RubricKey } from './prompt.model'
+import { OutputKey, PagePromptKey, PromptConfig, RoleKey, RubricKey } from './prompt.model';
+
 export const PagePrompts: Record<PagePromptKey, PromptConfig> = {
   [PagePromptKey.Headings]: {
     role: RoleKey.ContentDesigner,

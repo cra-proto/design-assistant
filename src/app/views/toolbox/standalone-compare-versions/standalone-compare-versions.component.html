@@ -1,0 +1,20 @@
+<h1 id="wb-cont">{{ 'compare._title' | translate }}</h1>
+
+<div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+  <p-tabs value="0" class="mt-3">
+    <p-tablist>
+      <p-tab value="0"><i class="pi pi-eye mr-1"></i>{{ 'compare.tab.rendered' | translate }}</p-tab>
+      <!--p-tab value="1"><i class="pi pi-code mr-1"></i>{{ 'compare.tab.source' | translate }}</p-tab-->
+    </p-tablist>
+    <p-tabpanels class="shadow-1">
+      <!-- Rendered page -->
+      <p-tabpanel value="0">
+        <aida-compare-rendered [afterContent]="modifiedHtml()" [beforeContent]="originalHtml()" (contentChanged)="onContentChanged($event)" />
+      </p-tabpanel>
+      <!-- Source code -->
+      <!--p-tabpanel value="1">
+          <aida-compare-source [beforeContent]="originalHtml()" [afterContent]="modifiedHtml()"></aida-compare-source>
+        </p-tabpanel-->
+    </p-tabpanels>
+  </p-tabs>
+</div>

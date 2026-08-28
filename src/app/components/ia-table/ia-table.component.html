@@ -1,24 +1,33 @@
-<p-contextMenu #cm [model]="options" />
-<p-tree [value]="projectTree()"
-        [selectionMode]="selectable ? 'multiple' : null" [(selection)]="selectedNode"
-        [draggableNodes]="draggable" [droppableNodes]="true" draggableScope="self" droppableScope="self" (onNodeDrop)="handleNodeDrop($event)" [validateDrop]="true"
-        [contextMenu]="cm" (onNodeContextMenuSelect)="onNodeContextMenu($event)">
-    <ng-template pTemplate="default" let-node>
-        <div class="flex flex-row align-items-center gap-2">
-            @if(draggable){
-            <i class="pi pi-arrows-alt cursor-move text-color-secondary"></i>
-            } @else if(node.children?.length > 0){
-            <i class="pi pi-folder"></i>
-            } @else{
-            <i class="pi pi-file"></i>
-            }
-            <a [href]="node.data.path[currentLanguage]" target="_blank" (click)="onNodeClick($event)" [innerHTML]="node.data.prototype[currentLanguage].h1" class="ia-label"></a>
-        </div>
-    </ng-template>
+<p-contextmenu [model]="options" #cm />
+<p-tree
+  [(selection)]="selectedNode"
+  [contextMenu]="cm"
+  [draggableNodes]="draggable"
+  [droppableNodes]="true"
+  [selectionMode]="selectable ? 'multiple' : null"
+  [validateDrop]="true"
+  [value]="projectTree()"
+  (onNodeContextMenuSelect)="onNodeContextMenu($event)"
+  (onNodeDrop)="handleNodeDrop($event)"
+  draggableScope="self"
+  droppableScope="self"
+>
+  <ng-template let-node pTemplate="default">
+    <div class="flex flex-row align-items-center gap-2">
+      @if (draggable) {
+        <i class="pi pi-arrows-alt cursor-move text-color-secondary"></i>
+      } @else if (node.children?.length > 0) {
+        <i class="pi pi-folder"></i>
+      } @else {
+        <i class="pi pi-file"></i>
+      }
+      <a [href]="node.data.path[currentLanguage]" [innerHTML]="node.data.prototype[currentLanguage].h1" (click)="onNodeClick($event)" class="ia-label" target="_blank"></a>
+    </div>
+  </ng-template>
 </p-tree>
 
-<p-dialog [header]="selectedNode?.data?.prototype?.[currentLanguage]?.h1" [modal]="true" [maximizable]="true" [(visible)]="editNode" styleClass="w-10" [style]="{ height: '90vh' }">
-    @if(selectedNode) {
-    <aida-edit-node [node]="selectedNode" [isOpen]="editNode" (dialogClose)="editNode = false" />
-    }
+<p-dialog [(visible)]="editNode" [header]="selectedNode?.data?.prototype?.[currentLanguage]?.h1" [maximizable]="true" [modal]="true" [style]="{ height: '90vh' }" styleClass="w-10">
+  @if (selectedNode) {
+    <aida-edit-node [isOpen]="editNode" [node]="selectedNode" (dialogClose)="editNode = false" />
+  }
 </p-dialog>

@@ -4,7 +4,7 @@
 :root {
   --header-height: 3rem;
   --nav-width: 4.8rem;
-  --body-font: "Noto Sans", sans-serif;
+  --body-font: 'Noto Sans', sans-serif;
   --z-fixed: 100;
   --aida-border-width: 1.5px;
   --aida-border-width-checked: 2px;
@@ -22,7 +22,7 @@ body {
   padding: 0 1rem;
   font-family: var(--body-font);
   font-size: var(--font-size);
-  transition: .3s;
+  transition: 0.3s;
 }
 
 /* ========== Layout ========== */
@@ -221,7 +221,7 @@ html.dark-mode .p-button.p-button-primary {
 */
 
 /*override accordion style*/
-.p-accordion>.p-accordionpanel {
+.p-accordion > .p-accordionpanel {
   box-shadow: none !important;
   margin: 0 !important;
 }
@@ -320,7 +320,9 @@ html.dark-mode .secondary-outline {
   transform: translate(-50%, -50%) !important;
   width: auto !important;
   z-index: 1 !important;
-  text-shadow: 0 0 3px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.7) !important;
+  text-shadow:
+    0 0 3px rgba(0, 0, 0, 1),
+    0 0 6px rgba(0, 0, 0, 0.7) !important;
 }
 
 .transparent .p-toolbar {
@@ -396,7 +398,6 @@ html.dark-mode .secondary-outline {
 }
 
 @keyframes bounce-left {
-
   0%,
   100% {
     transform: translateX(0);
@@ -434,11 +435,11 @@ code.custom {
 }
 
 .translate-x-50 {
-  transform: translateX(50%)
+  transform: translateX(50%);
 }
 
 .-translate-x-50 {
-  transform: translateX(-50%)
+  transform: translateX(-50%);
 }
 
 /*Make selected togglebuttons stand out more*/

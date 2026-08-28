@@ -1,475 +1,771 @@
 <div class="flex flex-column h-full">
-    <div class="flex flex-row flex-wrap gap-3">
-        <div class="flex flex-column hover:text-primary">
-            <label for="lang" class="text-xs font-semibold">{{ 'common.language' | translate }}</label>
-            <p-selectbutton id="lang" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
-                            [options]="languageOptions" [(ngModel)]="selectedLanguage" />
-        </div>
-        <div class="flex flex-column hover:text-primary">
-            <label for="version" class="text-xs font-semibold">{{ 'common.version' | translate }}</label>
-            <p-selectbutton id="version" allowEmpty="false" optionLabel="label" optionValue="value" size="small" styleClass="secondary-outline text-primary max-h-3rem"
-                            [options]="versionOptions" [(ngModel)]="selectedVersion" />
-        </div>
-        <div class="flex flex-column hover:text-primary">
-            <label for="refresh" class="text-xs font-semibold">{{ 'common.data' | translate }}</label>
-            <div id="refresh" class="flex gap-2 align-items-center">
-                <p-button [label]="'common.refresh' | translate" icon="pi pi-refresh" outlined size="small" styleClass="secondary-outline"
-                          (onClick)=" refresh()" [disabled]="selectedVersion() === 'baseline' && !editsEnabled()" [loading]="projectState.refreshing()[selectedVersion()]" />
-                <span class="text-sm text-color-secondary white-space-nowrap">
-                    {{ daysSinceRefresh() !== null
-                    ? ('editNode.lastRefreshed' | translate: { days: daysSinceRefresh() })
-                    : ('editNode.neverRefreshed' | translate) }}
-                </span>
-            </div>
-        </div>
-        @if(node().data?.status){
-        <div class="flex flex-column hover:text-primary">
-            <label for="status" class="text-xs font-semibold">{{ 'common.status' | translate }}</label>
-            <div id="status" class="flex flex-row gap-2 align-items-center h-full">
-                <div class="flex gap-1 align-items-center">
-                    <p-checkbox inputId="inScope" [binary]="true" size="large"
-                                [(ngModel)]="node().data.status.inScope" (ngModelChange)="markChanges()" />
-                    <label for="inScope">{{'editNode.inScope' | translate}}</label>
-                </div>
-                <div class="flex gap-1 align-items-center">
-                    <p-checkbox inputId="isNew" [binary]="true" size="large"
-                                [(ngModel)]="node().data.status.isNew" (ngModelChange)="markChanges()" />
-                    <label for="isNew">{{'editNode.isNew' | translate}}</label>
-                </div>
-                <div class="flex gap-1 align-items-center">
-                    <p-checkbox inputId="isROT" [binary]="true" size="large"
-                                [(ngModel)]="node().data.status.isROT" (ngModelChange)="markChanges()" />
-                    <label for="isROT">{{'editNode.isROT' | translate}}</label>
-                </div>
-                <div class="flex gap-1 align-items-center">
-                    <p-checkbox inputId="isMoved" [binary]="true" size="large"
-                                [(ngModel)]="node().data.status.isMoved" (ngModelChange)="markChanges()" />
-                    <label for="isMoved">{{'editNode.isMoved' | translate}}</label>
-                </div>
-            </div>
-        </div>
-        }
+  <div class="flex flex-row flex-wrap gap-3">
+    <div class="flex flex-column hover:text-primary">
+      <label class="text-xs font-semibold" for="lang">{{ 'common.language' | translate }}</label>
+      <p-selectbutton
+        id="lang"
+        [(ngModel)]="selectedLanguage"
+        [options]="languageOptions"
+        allowEmpty="false"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        styleClass="secondary-outline text-primary max-h-3rem"
+      />
     </div>
-    @if(versionConfig(); as config){
-    <p-message [severity]="config.severity" [icon]="config.icon" styleClass="mt-2">
-        <span>{{ config.text }}</span>
-        <p-button [label]="'editNode.enableEdits' | translate" icon="pi pi-file-edit" severity="danger" outlined size="small" styleClass="secondary-outline white-space-nowrap"
-                  (onClick)="enableEdits()" [disabled]="editsEnabled()" />
-    </p-message>
-    }
-    @if(node().data) {
-    <div class="flex-1 overflow-y-auto">
-        <div class="flex flex-row gap-2 min-w-min">
-            @if(selectedLanguage() !== 'fr'){
-            <p-fieldset [legend]="'common.language.english' | translate" class="flex-1">
-                <div class="flex flex-column gap-1">
-                    <p-inputgroup>
-                        <p-iftalabel>
-                            <input type="text" id="path" pInputText variant="outlined" class="secondary-outline" fluid
-                                   [(ngModel)]="node().data.path.en" (ngModelChange)="markChanges()" (blur)="updateSegment('en')" [disabled]="!urlEditsEnabled() || (!!versionConfig() && !editsEnabled())" />
-                            <label for="path">{{'editNode.path' | translate}}</label>
-                        </p-iftalabel>
-                        <p-inputgroup-addon class="secondary-outline">
-                            <p-button icon="pi pi-pen-to-square" text class="w-full h-full"
-                                      (onClick)="enableUrlEdits()" [disabled]="urlEditsEnabled()" />
-                        </p-inputgroup-addon>
-                    </p-inputgroup>
-                    @if(node().data.status.isNew && selectedVersion() === 'prototype'){
-                    <p-iftalabel>
-                        <input type="text" id="pathSegment" pInputText variant="outlined" class="secondary-outline" fluid [class.text-red-500]="pathEN().startsWith('new-page')"
-                               [ngModel]="pathEN()" (ngModelChange)="pathEN.set($event);updatePath('en');" [disabled]="!!versionConfig() && !editsEnabled()" />
-                        <label for="pathSegment">{{'editNode.pageUrl' | translate}}</label>
-                    </p-iftalabel>
-                    }
-                    <p-iftalabel>
-                        <input type="text" id="doubleh1" pInputText variant="outlined" class="secondary-outline" fluid
-                               [(ngModel)]="node().data[selectedVersion()].en.doubleH1" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()" />
-                        <label for="doubleh1">{{'editNode.doubleh1' | translate}}</label>
-                    </p-iftalabel>
-                    <p-iftalabel>
-                        <input type="text" id="h1" pInputText variant="outlined" class="secondary-outline" fluid [class.text-red-500]="node().data[selectedVersion()].en.h1==='New page'"
-                               [(ngModel)]="node().data[selectedVersion()].en.h1" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()" />
-                        <label for="h1">{{'editNode.h1' | translate}}</label>
-                    </p-iftalabel>
-
-                    <!-- Template -->
-                    <p-iftalabel>
-                        <p-select id="template" styleClass="secondary-outline" fluid appendTo="body"
-                                  [(ngModel)]="node().data[selectedVersion()].en.template" (ngModelChange)="markChanges(); syncData(node(),'template','ENtoFR')" [disabled]="!!versionConfig() && !editsEnabled()"
-                                  [options]="projectState.templateOptions()" optionLabel="label" optionValue="value"
-                                  [filter]="true" filterBy="label" />
-                        <label for="template" [class.text-red-500]="node().data[selectedVersion()].en.template !== node().data[selectedVersion()].fr.template">
-                            {{'editNode.template' | translate}}
-                        </label>
-                    </p-iftalabel>
-
-                    <!-- Parent page -->
-                    <p-iftalabel>
-                        <p-select id="parentPath" styleClass="secondary-outline" fluid appendTo="body"
-                                  [ngModel]="node().data[selectedVersion()].en.parentPath" (onChange)="moveNode(node(), $event.value, 'en')" [disabled]="!!versionConfig() && !editsEnabled()"
-                                  [options]="enPages()" optionLabel="label" optionValue="path"
-                                  [filter]="true" filterBy="label">
-                            <ng-template let-page #item>
-                                <div class="flex flex-column">
-                                    <span class="font-bold -mb-1">{{ page.label }}</span>
-                                    {{ page.path }}
-                                </div>
-                            </ng-template></p-select>
-                        <label for="parentPath">{{'editNode.parent' | translate}}</label>
-                    </p-iftalabel>
-                    @if(moveError()){
-                    <p-message severity="error" icon="pi pi-times-circle font-bold" styleClass="mb-2">
-                        <span>{{ 'editNode.moveError' | translate }}</span>
-                    </p-message>
-                    }
-
-                    <h3 class="my-0">{{'editNode.metadata' | translate}}</h3>
-                    <p-iftalabel>
-                        <input type="text" id="title" pInputText variant="outlined" class="secondary-outline" fluid
-                               [(ngModel)]="node().data[selectedVersion()].en.title" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()" />
-                        <label for="title">{{'editNode.title' | translate}}</label>
-                    </p-iftalabel>
-                    <p-iftalabel>
-                        <textarea id="description" pTextarea variant="outlined" class="secondary-outline" fluid autoResize="true" rows="1"
-                                  [(ngModel)]="node().data[selectedVersion()].en.description" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()"></textarea>
-                        <label for="description">{{'editNode.description' | translate}}</label>
-                    </p-iftalabel>
-                    <p-iftalabel>
-                        <textarea id="keywords" pTextarea variant="outlined" class="secondary-outline" fluid autoResize="true" rows="1"
-                                  [(ngModel)]="node().data[selectedVersion()].en.keywords" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()"></textarea>
-                        <label for="keywords">{{'editNode.keywords' | translate}}</label>
-                    </p-iftalabel>
-
-                    <h3 class="my-0">{{'editNode.pageOwner' | translate}}</h3>
-                    <p-iftalabel>
-                        <input type="text" id="owner" pInputText variant="outlined" class="secondary-outline" fluid
-                               [(ngModel)]="node().data[selectedVersion()].en.owner" (ngModelChange)="markChanges(); syncData(node(),'owner','ENtoFR')" [disabled]="!!versionConfig() && !editsEnabled()" />
-                        <label for="owner" [class.text-red-500]="node().data[selectedVersion()].en.owner !== node().data[selectedVersion()].fr.owner">
-                            {{'editNode.owner' | translate}}
-                        </label>
-                    </p-iftalabel>
-                    <p-iftalabel>
-                        <input type="text" id="email" pInputText variant="outlined" class="secondary-outline" fluid
-                               [(ngModel)]="node().data[selectedVersion()].en.email" (ngModelChange)="markChanges(); syncData(node(),'email','ENtoFR')" [disabled]="!!versionConfig() && !editsEnabled()" />
-                        <label for="email" [class.text-red-500]="node().data[selectedVersion()].en.email !== node().data[selectedVersion()].fr.email">
-                            {{'editNode.email' | translate}}
-                        </label>
-                    </p-iftalabel>
-
-                    <h3 class="my-0">{{'editNode.info' | translate}}</h3>
-                    <div class="flex flex-row gap-3 flex-wrap">
-                        <div class="flex align-items-center">
-                            <p-checkbox inputId="isArchived" [binary]="true" [disabled]="!!versionConfig() && !editsEnabled()"
-                                        [(ngModel)]="node().data[selectedVersion()].en.isArchived" (ngModelChange)="markChanges(); syncData(node(),'isArchived','ENtoFR')" />
-                            <label for="isArchived" class="ml-2" [class.text-red-500]="node().data[selectedVersion()].en.isArchived !== node().data[selectedVersion()].fr.isArchived">
-                                {{'editNode.isArchived' | translate}}
-                            </label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-checkbox inputId="noindex" [binary]="true" [disabled]="!!versionConfig() && !editsEnabled()"
-                                        [(ngModel)]="node().data[selectedVersion()].en.noindex" (ngModelChange)="markChanges(); syncData(node(),'noindex','ENtoFR')" />
-                            <label for="noindex" class="ml-2" [class.text-red-500]="node().data[selectedVersion()].en.noindex !== node().data[selectedVersion()].fr.noindex">
-                                {{'editNode.noindex' | translate}}
-                            </label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-checkbox inputId="isOrphan" [binary]="true" [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
-                                        [(ngModel)]="node().data[selectedVersion()].en.isOrphan" (ngModelChange)="markChanges()" />
-                            <label for="isOrphan" class="ml-2" [class.text-red-500]="node().data[selectedVersion()].en.isOrphan !== node().data[selectedVersion()].fr.isOrphan">
-                                {{'editNode.isOrphan' | translate}}
-                            </label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-checkbox inputId="linksToPortal" [binary]="true" [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
-                                        [(ngModel)]="node().data[selectedVersion()].en.linksToPortal" (ngModelChange)="markChanges()" />
-                            <label for="linksToPortal" class="ml-2" [class.text-red-500]="node().data[selectedVersion()].en.linksToPortal !== node().data[selectedVersion()].fr.linksToPortal">
-                                {{'editNode.linksToPortal' | translate}}
-                            </label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-checkbox inputId="hasChatbot" [binary]="true" [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
-                                        [(ngModel)]="node().data[selectedVersion()].en.hasChatbot" (ngModelChange)="markChanges()" />
-                            <label for="hasChatbot" class="ml-2" [class.text-red-500]="node().data[selectedVersion()].en.hasChatbot !== node().data[selectedVersion()].fr.hasChatbot">
-                                {{'editNode.hasChatbot' | translate}}
-                            </label>
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'editNode.lastPublished' | translate }}
-                            </span>
-                            <span [class.text-red-500]="(node().data[selectedVersion()].en.lastPublished | date) !== (node().data[selectedVersion()].fr.lastPublished | date)">
-                                {{ (node().data[selectedVersion()].en.lastPublished | date) ?? ('common.never' | translate) }}
-                            </span>
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'editNode.wordCount' | translate }}
-                            </span>
-                            {{ (node().data[selectedVersion()].en.wordCount | number) ?? '—' }}
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'editNode.linkCount' | translate }}
-                            </span>
-                            <span [class.text-red-500]="node().data[selectedVersion()].en.linkCount !== node().data[selectedVersion()].fr.linkCount">
-                                {{ (node().data[selectedVersion()].en.linkCount | number) ?? '—' }}
-                            </span>
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'editNode.vanityCount' | translate }}
-                            </span>
-                            <span [class.text-red-500]="node().data.vanity.en.length !== node().data.vanity.fr.length">
-                                {{ (node().data.vanity.en.length | number) ?? '—' }}
-                            </span>
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'editNode.phoneCount' | translate }}
-                            </span>
-                            <span [class.text-red-500]="node().data[selectedVersion()].en.phoneNumbers?.length !== node().data[selectedVersion()].fr.phoneNumbers?.length">
-                                {{ (node().data[selectedVersion()].en.phoneNumbers?.length | number) ?? '—' }}
-                            </span>
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'editNode.visits' | translate }}
-                            </span>
-                            {{ (node().data[selectedVersion()].en.visits | number) ?? '—' }}
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'common.readability.fleschKincaid' | translate }}
-                            </span>
-                            <span [class.text-orange-400]="node().data[selectedVersion()].en.fleschKincaid < 12 && node().data[selectedVersion()].en.fleschKincaid > 8" [class.text-red-500]="node().data[selectedVersion()].en.fleschKincaid >= 12">
-                                {{ (node().data[selectedVersion()].en.fleschKincaid | number) ?? '—' }}
-                            </span>
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'common.readability.gunningFog' | translate }}
-                            </span>
-                            <span [class.text-orange-400]="node().data[selectedVersion()].en.gunningFog < 12 && node().data[selectedVersion()].en.gunningFog > 8" [class.text-red-500]="node().data[selectedVersion()].en.gunningFog >= 12">
-                                {{ (node().data[selectedVersion()].en.gunningFog | number) ?? '—' }}
-                            </span>
-                        </div>
-                        @if(node().data[selectedVersion()].en.is404){
-                        <p-tag [severity]="node().data[selectedVersion()].en.is404 === node().data[selectedVersion()].fr.is404 ? undefined : 'danger'" value="404" />
-                        }
-                    </div>
-
-                </div>
-            </p-fieldset>
-            }
-            @if(selectedLanguage() !== 'en'){
-            <p-fieldset [legend]="'common.language.french' | translate" class="flex-1">
-                <div class="flex flex-column gap-1">
-                    <p-inputgroup>
-                        <p-iftalabel>
-                            <input type="text" id="path-fr" pInputText variant="outlined" class="secondary-outline" fluid
-                                   [(ngModel)]="node().data.path.fr" (ngModelChange)="markChanges()" (blur)="updateSegment('fr')" [disabled]="!urlEditsEnabled() || (!!versionConfig() && !editsEnabled())" />
-                            <label for="path-fr">{{'editNode.path' | translate}}</label>
-                        </p-iftalabel>
-                        <p-inputgroup-addon class="secondary-outline">
-                            <p-button icon="pi pi-pen-to-square" text class="w-full h-full"
-                                      (onClick)="enableUrlEdits()" [disabled]="urlEditsEnabled()" />
-                        </p-inputgroup-addon>
-                    </p-inputgroup>
-                    @if(node().data.status.isNew && selectedVersion() === 'prototype'){
-                    <p-iftalabel>
-                        <input type="text" id="pathSegment-fr" pInputText variant="outlined" class="secondary-outline" fluid [class.text-red-500]="pathFR().startsWith('nouvelle-page')"
-                               [ngModel]="pathFR()" (ngModelChange)="pathFR.set($event);updatePath('fr');" [disabled]="!!versionConfig() && !editsEnabled()" />
-                        <label for="pathSegment-fr">{{'editNode.pageUrl' | translate}}</label>
-                    </p-iftalabel>
-                    }
-                    <p-iftalabel>
-                        <input type="text" id="doubleh1-fr" pInputText variant="outlined" class="secondary-outline" fluid
-                               [(ngModel)]="node().data[selectedVersion()].fr.doubleH1" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()" />
-                        <label for="doubleh1-fr">{{'editNode.doubleh1' | translate}}</label>
-                    </p-iftalabel>
-                    <p-iftalabel>
-                        <input type="text" id="h1-fr" pInputText variant="outlined" class="secondary-outline" fluid [class.text-red-500]="node().data[selectedVersion()].fr.h1==='Nouvelle page'"
-                               [(ngModel)]="node().data[selectedVersion()].fr.h1" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()" />
-                        <label for="h1-fr">{{'editNode.h1' | translate}}</label>
-                    </p-iftalabel>
-
-                    <!-- Template -->
-                    <p-iftalabel>
-                        <p-select id="template-fr" styleClass="secondary-outline" fluid appendTo="body"
-                                  [(ngModel)]="node().data[selectedVersion()].fr.template" (ngModelChange)="markChanges(); syncData(node(),'template','FRtoEN')" [disabled]="!!versionConfig() && !editsEnabled()"
-                                  [options]="projectState.templateOptions()" optionLabel="label" optionValue="value"
-                                  [filter]="true" filterBy="label" />
-                        <label for="template-fr" [class.text-red-500]="node().data[selectedVersion()].en.template !== node().data[selectedVersion()].fr.template">
-                            {{'editNode.template' | translate}}
-                        </label>
-                    </p-iftalabel>
-
-                    <!-- Parent page -->
-                    <p-iftalabel>
-                        <p-select id="parentPath-fr" styleClass="secondary-outline" fluid appendTo="body"
-                                  [ngModel]="node().data[selectedVersion()].fr.parentPath" (onChange)="moveNode(node(), $event.value, 'fr')" [disabled]="!!versionConfig() && !editsEnabled()"
-                                  [options]="frPages()" optionLabel="label" optionValue="path"
-                                  [filter]="true" filterBy="label">
-                            <ng-template let-page #item>
-                                <div class="flex flex-column">
-                                    <span class="font-bold -mb-1">{{ page.label }}</span>
-                                    {{ page.path }}
-                                </div>
-                            </ng-template></p-select>
-                        <label for="parentPath-fr">{{'editNode.parent' | translate}}</label>
-                    </p-iftalabel>
-                    @if(moveError()){
-                    <p-message severity="error" icon="pi pi-times-circle font-bold" styleClass="mb-2">
-                        <span>{{ 'editNode.moveError' | translate }}</span>
-                    </p-message>
-                    }
-
-                    <h3 class="my-0">{{'editNode.metadata' | translate}}</h3>
-                    <p-iftalabel>
-                        <input type="text" id="title-fr" pInputText variant="outlined" class="secondary-outline" fluid
-                               [(ngModel)]="node().data[selectedVersion()].fr.title" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()" />
-                        <label for="title-fr">{{'editNode.title' | translate}}</label>
-                    </p-iftalabel>
-                    <p-iftalabel>
-                        <textarea id="description-fr" pTextarea variant="outlined" class="secondary-outline" fluid autoResize="true" rows="1"
-                                  [(ngModel)]="node().data[selectedVersion()].fr.description" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()"></textarea>
-                        <label for="description-fr">{{'editNode.description' | translate}}</label>
-                    </p-iftalabel>
-                    <p-iftalabel>
-                        <textarea id="keywords-fr" pTextarea variant="outlined" class="secondary-outline" fluid autoResize="true" rows="1"
-                                  [(ngModel)]="node().data[selectedVersion()].fr.keywords" (ngModelChange)="markChanges()" [disabled]="!!versionConfig() && !editsEnabled()"></textarea>
-                        <label for="keywords-fr">{{'editNode.keywords' | translate}}</label>
-                    </p-iftalabel>
-
-                    <h3 class="my-0">{{'editNode.pageOwner' | translate}}</h3>
-                    <p-iftalabel>
-                        <input type="text" id="owner-fr" pInputText variant="outlined" class="secondary-outline" fluid
-                               [(ngModel)]="node().data[selectedVersion()].fr.owner" (ngModelChange)="markChanges(); syncData(node(),'owner','FRtoEN')" [disabled]="!!versionConfig() && !editsEnabled()" />
-                        <label for="owner-fr" [class.text-red-500]="node().data[selectedVersion()].en.owner !== node().data[selectedVersion()].fr.owner">
-                            {{'editNode.owner' | translate}}
-                        </label>
-                    </p-iftalabel>
-                    <p-iftalabel>
-                        <input type="text" id="email-fr" pInputText variant="outlined" class="secondary-outline" fluid
-                               [(ngModel)]="node().data[selectedVersion()].fr.email" (ngModelChange)="markChanges(); syncData(node(),'email','FRtoEN')" [disabled]="!!versionConfig() && !editsEnabled()" />
-                        <label for="email-fr" [class.text-red-500]="node().data[selectedVersion()].en.email !== node().data[selectedVersion()].fr.email">
-                            {{'editNode.email' | translate}}
-                        </label>
-                    </p-iftalabel>
-
-                    <h3 class="my-0">{{'editNode.info' | translate}}</h3>
-                    <div class="flex flex-row gap-3 flex-wrap">
-                        <div class="flex align-items-center">
-                            <p-checkbox inputId="isArchived-fr" [binary]="true" [disabled]="!!versionConfig() && !editsEnabled()"
-                                        [(ngModel)]="node().data[selectedVersion()].fr.isArchived" (ngModelChange)="markChanges(); syncData(node(),'isArchived','FRtoEN')" />
-                            <label for="isArchived-fr" class="ml-2" [class.text-red-500]="node().data[selectedVersion()].en.isArchived !== node().data[selectedVersion()].fr.isArchived">
-                                {{'editNode.isArchived' | translate}}
-                            </label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-checkbox inputId="noindex-fr" [binary]="true" [disabled]="!!versionConfig() && !editsEnabled()"
-                                        [(ngModel)]="node().data[selectedVersion()].fr.noindex" (ngModelChange)="markChanges(); syncData(node(),'noindex','FRtoEN')" />
-                            <label for="noindex-fr" class="ml-2" [class.text-red-500]="node().data[selectedVersion()].en.noindex !== node().data[selectedVersion()].fr.noindex">
-                                {{'editNode.noindex' | translate}}
-                            </label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-checkbox inputId="isOrphan-fr" [binary]="true" [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
-                                        [(ngModel)]="node().data[selectedVersion()].fr.isOrphan" (ngModelChange)="markChanges()" />
-                            <label for="isOrphan-fr" class="ml-2" [class.text-red-500]="node().data[selectedVersion()].en.isOrphan !== node().data[selectedVersion()].fr.isOrphan">
-                                {{'editNode.isOrphan' | translate}}
-                            </label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-checkbox inputId="linksToPortal-fr" [binary]="true" [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
-                                        [(ngModel)]="node().data[selectedVersion()].fr.linksToPortal" (ngModelChange)="markChanges()" />
-                            <label for="linksToPortal-fr" class="ml-2" [class.text-red-500]="node().data[selectedVersion()].en.linksToPortal !== node().data[selectedVersion()].fr.linksToPortal">
-                                {{'editNode.linksToPortal' | translate}}
-                            </label>
-                        </div>
-                        <div class="flex align-items-center">
-                            <p-checkbox inputId="hasChatbot-fr" [binary]="true" [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
-                                        [(ngModel)]="node().data[selectedVersion()].fr.hasChatbot" (ngModelChange)="markChanges()" />
-                            <label for="hasChatbot-fr" class="ml-2" [class.text-red-500]="node().data[selectedVersion()].en.hasChatbot !== node().data[selectedVersion()].fr.hasChatbot">
-                                {{'editNode.hasChatbot' | translate}}
-                            </label>
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'editNode.lastPublished' | translate }}
-                            </span>
-                            <span [class.text-red-500]="(node().data[selectedVersion()].en.lastPublished | date) !== (node().data[selectedVersion()].fr.lastPublished | date)">
-                                {{ (node().data[selectedVersion()].fr.lastPublished | date) ?? ('common.never' | translate) }}
-                            </span>
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'editNode.wordCount' | translate }}
-                            </span>
-                            {{ (node().data[selectedVersion()].fr.wordCount | number) ?? '—' }}
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'editNode.linkCount' | translate }}
-                            </span>
-                            <span [class.text-red-500]="node().data[selectedVersion()].en.linkCount !== node().data[selectedVersion()].fr.linkCount">
-                                {{ (node().data[selectedVersion()].fr.linkCount | number) ?? '—' }}
-                            </span>
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'editNode.vanityCount' | translate }}
-                            </span>
-                            <span [class.text-red-500]="node().data.vanity.en.length !== node().data.vanity.fr.length">
-                                {{ (node().data.vanity.fr.length | number) ?? '—' }}
-                            </span>
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'editNode.phoneCount' | translate }}
-                            </span>
-                            <span [class.text-red-500]="node().data[selectedVersion()].en.phoneNumbers?.length !== node().data[selectedVersion()].fr.phoneNumbers?.length">
-                                {{ (node().data[selectedVersion()].fr.phoneNumbers?.length | number) ?? '—' }}
-                            </span>
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'editNode.visits' | translate }}
-                            </span>
-                            {{ (node().data[selectedVersion()].fr.visits | number) ?? '—' }}
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'common.readability.fleschKincaid' | translate }}
-                            </span>
-                            <span [class.text-orange-400]="node().data[selectedVersion()].fr.fleschKincaid < 12 && node().data[selectedVersion()].fr.fleschKincaid > 8" [class.text-red-500]="node().data[selectedVersion()].fr.fleschKincaid >= 12">
-                                {{ (node().data[selectedVersion()].fr.fleschKincaid | number) ?? '—' }}
-                            </span>
-                        </div>
-                        <div class="flex flex-column text-sm text-color-secondary">
-                            <span class="font-bold">
-                                {{ 'common.readability.gunningFog' | translate }}
-                            </span>
-                            <span [class.text-orange-400]="node().data[selectedVersion()].fr.gunningFog < 12 && node().data[selectedVersion()].fr.gunningFog > 8" [class.text-red-500]="node().data[selectedVersion()].fr.gunningFog >= 12">
-                                {{ (node().data[selectedVersion()].fr.gunningFog | number) ?? '—' }}
-                            </span>
-                        </div>
-                        @if(node().data[selectedVersion()].fr.is404){
-                        <p-tag [severity]="node().data[selectedVersion()].en.is404 === node().data[selectedVersion()].fr.is404 ? undefined : 'danger'" value="404" />
-                        }
-                    </div>
-                </div>
-            </p-fieldset>
-            }
+    <div class="flex flex-column hover:text-primary">
+      <label class="text-xs font-semibold" for="version">{{ 'common.version' | translate }}</label>
+      <p-selectbutton
+        id="version"
+        [(ngModel)]="selectedVersion"
+        [options]="versionOptions"
+        allowEmpty="false"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        styleClass="secondary-outline text-primary max-h-3rem"
+      />
+    </div>
+    <div class="flex flex-column hover:text-primary">
+      <label class="text-xs font-semibold" for="refresh">{{ 'common.data' | translate }}</label>
+      <div id="refresh" class="flex gap-2 align-items-center">
+        <p-button
+          [disabled]="selectedVersion() === 'baseline' && !editsEnabled()"
+          [label]="'common.refresh' | translate"
+          [loading]="projectState.refreshing()[selectedVersion()]"
+          (onClick)="refresh()"
+          icon="pi pi-refresh"
+          outlined
+          size="small"
+          styleClass="secondary-outline"
+        />
+        <span class="text-sm text-color-secondary white-space-nowrap">
+          {{ daysSinceRefresh() !== null ? ('editNode.lastRefreshed' | translate: { days: daysSinceRefresh() }) : ('editNode.neverRefreshed' | translate) }}
+        </span>
+      </div>
+    </div>
+    @if (node().data?.status) {
+      <div class="flex flex-column hover:text-primary">
+        <label class="text-xs font-semibold" for="status">{{ 'common.status' | translate }}</label>
+        <div id="status" class="flex flex-row gap-2 align-items-center h-full">
+          <div class="flex gap-1 align-items-center">
+            <p-checkbox [(ngModel)]="node().data.status.inScope" [binary]="true" (ngModelChange)="markChanges()" inputId="inScope" size="large" />
+            <label for="inScope">{{ 'editNode.inScope' | translate }}</label>
+          </div>
+          <div class="flex gap-1 align-items-center">
+            <p-checkbox [(ngModel)]="node().data.status.isNew" [binary]="true" (ngModelChange)="markChanges()" inputId="isNew" size="large" />
+            <label for="isNew">{{ 'editNode.isNew' | translate }}</label>
+          </div>
+          <div class="flex gap-1 align-items-center">
+            <p-checkbox [(ngModel)]="node().data.status.isROT" [binary]="true" (ngModelChange)="markChanges()" inputId="isROT" size="large" />
+            <label for="isROT">{{ 'editNode.isROT' | translate }}</label>
+          </div>
+          <div class="flex gap-1 align-items-center">
+            <p-checkbox [(ngModel)]="node().data.status.isMoved" [binary]="true" (ngModelChange)="markChanges()" inputId="isMoved" size="large" />
+            <label for="isMoved">{{ 'editNode.isMoved' | translate }}</label>
+          </div>
         </div>
+      </div>
+    }
+  </div>
+  @if (versionConfig(); as config) {
+    <p-message [icon]="config.icon" [severity]="config.severity" styleClass="mt-2">
+      <span>{{ config.text }}</span>
+      <p-button
+        [disabled]="editsEnabled()"
+        [label]="'editNode.enableEdits' | translate"
+        (onClick)="enableEdits()"
+        icon="pi pi-file-edit"
+        outlined
+        severity="danger"
+        size="small"
+        styleClass="secondary-outline white-space-nowrap"
+      />
+    </p-message>
+  }
+  @if (node().data) {
+    <div class="flex-1 overflow-y-auto">
+      <div class="flex flex-row gap-2 min-w-min">
+        @if (selectedLanguage() !== 'fr') {
+          <p-fieldset [legend]="'common.language.english' | translate" class="flex-1">
+            <div class="flex flex-column gap-1">
+              <p-inputgroup>
+                <p-iftalabel>
+                  <input
+                    id="path"
+                    [(ngModel)]="node().data.path.en"
+                    [disabled]="!urlEditsEnabled() || (!!versionConfig() && !editsEnabled())"
+                    (blur)="updateSegment('en')"
+                    (ngModelChange)="markChanges()"
+                    class="secondary-outline"
+                    fluid
+                    pInputText
+                    type="text"
+                    variant="outlined"
+                  />
+                  <label for="path">{{ 'editNode.path' | translate }}</label>
+                </p-iftalabel>
+                <p-inputgroup-addon class="secondary-outline">
+                  <p-button [disabled]="urlEditsEnabled()" (onClick)="enableUrlEdits()" class="w-full h-full" icon="pi pi-pen-to-square" text />
+                </p-inputgroup-addon>
+              </p-inputgroup>
+              @if (node().data.status.isNew && selectedVersion() === 'prototype') {
+                <p-iftalabel>
+                  <input
+                    id="pathSegment"
+                    [class.text-red-500]="pathEN().startsWith('new-page')"
+                    [disabled]="!!versionConfig() && !editsEnabled()"
+                    [ngModel]="pathEN()"
+                    (ngModelChange)="pathEN.set($event); updatePath('en')"
+                    class="secondary-outline"
+                    fluid
+                    pInputText
+                    type="text"
+                    variant="outlined"
+                  />
+                  <label for="pathSegment">{{ 'editNode.pageUrl' | translate }}</label>
+                </p-iftalabel>
+              }
+              <p-iftalabel>
+                <input
+                  id="doubleh1"
+                  [(ngModel)]="node().data[selectedVersion()].en.doubleH1"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges()"
+                  class="secondary-outline"
+                  fluid
+                  pInputText
+                  type="text"
+                  variant="outlined"
+                />
+                <label for="doubleh1">{{ 'editNode.doubleh1' | translate }}</label>
+              </p-iftalabel>
+              <p-iftalabel>
+                <input
+                  id="h1"
+                  [(ngModel)]="node().data[selectedVersion()].en.h1"
+                  [class.text-red-500]="node().data[selectedVersion()].en.h1 === 'New page'"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges()"
+                  class="secondary-outline"
+                  fluid
+                  pInputText
+                  type="text"
+                  variant="outlined"
+                />
+                <label for="h1">{{ 'editNode.h1' | translate }}</label>
+              </p-iftalabel>
+
+              <!-- Template -->
+              <p-iftalabel>
+                <p-select
+                  id="template"
+                  [(ngModel)]="node().data[selectedVersion()].en.template"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  [filter]="true"
+                  [options]="projectState.templateOptions()"
+                  (ngModelChange)="markChanges(); syncData(node(), 'template', 'ENtoFR')"
+                  appendTo="body"
+                  filterBy="label"
+                  fluid
+                  optionLabel="label"
+                  optionValue="value"
+                  styleClass="secondary-outline"
+                />
+                <label [class.text-red-500]="node().data[selectedVersion()].en.template !== node().data[selectedVersion()].fr.template" for="template">
+                  {{ 'editNode.template' | translate }}
+                </label>
+              </p-iftalabel>
+
+              <!-- Parent page -->
+              <p-iftalabel>
+                <p-select
+                  id="parentPath"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  [filter]="true"
+                  [ngModel]="node().data[selectedVersion()].en.parentPath"
+                  [options]="enPages()"
+                  (onChange)="moveNode(node(), $event.value, 'en')"
+                  appendTo="body"
+                  filterBy="label"
+                  fluid
+                  optionLabel="label"
+                  optionValue="path"
+                  styleClass="secondary-outline"
+                >
+                  <ng-template #item let-page>
+                    <div class="flex flex-column">
+                      <span class="font-bold -mb-1">{{ page.label }}</span>
+                      {{ page.path }}
+                    </div>
+                  </ng-template></p-select
+                >
+                <label for="parentPath">{{ 'editNode.parent' | translate }}</label>
+              </p-iftalabel>
+              @if (moveError()) {
+                <p-message icon="pi pi-times-circle font-bold" severity="error" styleClass="mb-2">
+                  <span>{{ 'editNode.moveError' | translate }}</span>
+                </p-message>
+              }
+
+              <h3 class="my-0">{{ 'editNode.metadata' | translate }}</h3>
+              <p-iftalabel>
+                <input
+                  id="title"
+                  [(ngModel)]="node().data[selectedVersion()].en.title"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges()"
+                  class="secondary-outline"
+                  fluid
+                  pInputText
+                  type="text"
+                  variant="outlined"
+                />
+                <label for="title">{{ 'editNode.title' | translate }}</label>
+              </p-iftalabel>
+              <p-iftalabel>
+                <textarea
+                  id="description"
+                  [(ngModel)]="node().data[selectedVersion()].en.description"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges()"
+                  class="secondary-outline"
+                  autoResize="true"
+                  fluid
+                  pTextarea
+                  rows="1"
+                  variant="outlined"
+                ></textarea>
+                <label for="description">{{ 'editNode.description' | translate }}</label>
+              </p-iftalabel>
+              <p-iftalabel>
+                <textarea
+                  id="keywords"
+                  [(ngModel)]="node().data[selectedVersion()].en.keywords"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges()"
+                  class="secondary-outline"
+                  autoResize="true"
+                  fluid
+                  pTextarea
+                  rows="1"
+                  variant="outlined"
+                ></textarea>
+                <label for="keywords">{{ 'editNode.keywords' | translate }}</label>
+              </p-iftalabel>
+
+              <h3 class="my-0">{{ 'editNode.pageOwner' | translate }}</h3>
+              <p-iftalabel>
+                <input
+                  id="owner"
+                  [(ngModel)]="node().data[selectedVersion()].en.owner"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges(); syncData(node(), 'owner', 'ENtoFR')"
+                  class="secondary-outline"
+                  fluid
+                  pInputText
+                  type="text"
+                  variant="outlined"
+                />
+                <label [class.text-red-500]="node().data[selectedVersion()].en.owner !== node().data[selectedVersion()].fr.owner" for="owner">
+                  {{ 'editNode.owner' | translate }}
+                </label>
+              </p-iftalabel>
+              <p-iftalabel>
+                <input
+                  id="email"
+                  [(ngModel)]="node().data[selectedVersion()].en.email"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges(); syncData(node(), 'email', 'ENtoFR')"
+                  class="secondary-outline"
+                  fluid
+                  pInputText
+                  type="text"
+                  variant="outlined"
+                />
+                <label [class.text-red-500]="node().data[selectedVersion()].en.email !== node().data[selectedVersion()].fr.email" for="email">
+                  {{ 'editNode.email' | translate }}
+                </label>
+              </p-iftalabel>
+
+              <h3 class="my-0">{{ 'editNode.info' | translate }}</h3>
+              <div class="flex flex-row gap-3 flex-wrap">
+                <div class="flex align-items-center">
+                  <p-checkbox
+                    [(ngModel)]="node().data[selectedVersion()].en.isArchived"
+                    [binary]="true"
+                    [disabled]="!!versionConfig() && !editsEnabled()"
+                    (ngModelChange)="markChanges(); syncData(node(), 'isArchived', 'ENtoFR')"
+                    inputId="isArchived"
+                  />
+                  <label [class.text-red-500]="node().data[selectedVersion()].en.isArchived !== node().data[selectedVersion()].fr.isArchived" class="ml-2" for="isArchived">
+                    {{ 'editNode.isArchived' | translate }}
+                  </label>
+                </div>
+                <div class="flex align-items-center">
+                  <p-checkbox
+                    [(ngModel)]="node().data[selectedVersion()].en.noindex"
+                    [binary]="true"
+                    [disabled]="!!versionConfig() && !editsEnabled()"
+                    (ngModelChange)="markChanges(); syncData(node(), 'noindex', 'ENtoFR')"
+                    inputId="noindex"
+                  />
+                  <label [class.text-red-500]="node().data[selectedVersion()].en.noindex !== node().data[selectedVersion()].fr.noindex" class="ml-2" for="noindex">
+                    {{ 'editNode.noindex' | translate }}
+                  </label>
+                </div>
+                <div class="flex align-items-center">
+                  <p-checkbox
+                    [(ngModel)]="node().data[selectedVersion()].en.isOrphan"
+                    [binary]="true"
+                    [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
+                    (ngModelChange)="markChanges()"
+                    inputId="isOrphan"
+                  />
+                  <label [class.text-red-500]="node().data[selectedVersion()].en.isOrphan !== node().data[selectedVersion()].fr.isOrphan" class="ml-2" for="isOrphan">
+                    {{ 'editNode.isOrphan' | translate }}
+                  </label>
+                </div>
+                <div class="flex align-items-center">
+                  <p-checkbox
+                    [(ngModel)]="node().data[selectedVersion()].en.linksToPortal"
+                    [binary]="true"
+                    [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
+                    (ngModelChange)="markChanges()"
+                    inputId="linksToPortal"
+                  />
+                  <label [class.text-red-500]="node().data[selectedVersion()].en.linksToPortal !== node().data[selectedVersion()].fr.linksToPortal" class="ml-2" for="linksToPortal">
+                    {{ 'editNode.linksToPortal' | translate }}
+                  </label>
+                </div>
+                <div class="flex align-items-center">
+                  <p-checkbox
+                    [(ngModel)]="node().data[selectedVersion()].en.hasChatbot"
+                    [binary]="true"
+                    [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
+                    (ngModelChange)="markChanges()"
+                    inputId="hasChatbot"
+                  />
+                  <label [class.text-red-500]="node().data[selectedVersion()].en.hasChatbot !== node().data[selectedVersion()].fr.hasChatbot" class="ml-2" for="hasChatbot">
+                    {{ 'editNode.hasChatbot' | translate }}
+                  </label>
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'editNode.lastPublished' | translate }}
+                  </span>
+                  <span [class.text-red-500]="(node().data[selectedVersion()].en.lastPublished | date) !== (node().data[selectedVersion()].fr.lastPublished | date)">
+                    {{ (node().data[selectedVersion()].en.lastPublished | date) ?? ('common.never' | translate) }}
+                  </span>
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'editNode.wordCount' | translate }}
+                  </span>
+                  {{ (node().data[selectedVersion()].en.wordCount | number) ?? '—' }}
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'editNode.linkCount' | translate }}
+                  </span>
+                  <span [class.text-red-500]="node().data[selectedVersion()].en.linkCount !== node().data[selectedVersion()].fr.linkCount">
+                    {{ (node().data[selectedVersion()].en.linkCount | number) ?? '—' }}
+                  </span>
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'editNode.vanityCount' | translate }}
+                  </span>
+                  <span [class.text-red-500]="node().data.vanity.en.length !== node().data.vanity.fr.length">
+                    {{ (node().data.vanity.en.length | number) ?? '—' }}
+                  </span>
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'editNode.phoneCount' | translate }}
+                  </span>
+                  <span [class.text-red-500]="node().data[selectedVersion()].en.phoneNumbers?.length !== node().data[selectedVersion()].fr.phoneNumbers?.length">
+                    {{ (node().data[selectedVersion()].en.phoneNumbers?.length | number) ?? '—' }}
+                  </span>
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'editNode.visits' | translate }}
+                  </span>
+                  {{ (node().data[selectedVersion()].en.visits | number) ?? '—' }}
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'common.readability.fleschKincaid' | translate }}
+                  </span>
+                  <span
+                    [class.text-orange-400]="node().data[selectedVersion()].en.fleschKincaid < 12 && node().data[selectedVersion()].en.fleschKincaid > 8"
+                    [class.text-red-500]="node().data[selectedVersion()].en.fleschKincaid >= 12"
+                  >
+                    {{ (node().data[selectedVersion()].en.fleschKincaid | number) ?? '—' }}
+                  </span>
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'common.readability.gunningFog' | translate }}
+                  </span>
+                  <span
+                    [class.text-orange-400]="node().data[selectedVersion()].en.gunningFog < 12 && node().data[selectedVersion()].en.gunningFog > 8"
+                    [class.text-red-500]="node().data[selectedVersion()].en.gunningFog >= 12"
+                  >
+                    {{ (node().data[selectedVersion()].en.gunningFog | number) ?? '—' }}
+                  </span>
+                </div>
+                @if (node().data[selectedVersion()].en.is404) {
+                  <p-tag value="404" [severity]="node().data[selectedVersion()].en.is404 === node().data[selectedVersion()].fr.is404 ? undefined : 'danger'" />
+                }
+              </div>
+            </div>
+          </p-fieldset>
+        }
+        @if (selectedLanguage() !== 'en') {
+          <p-fieldset [legend]="'common.language.french' | translate" class="flex-1">
+            <div class="flex flex-column gap-1">
+              <p-inputgroup>
+                <p-iftalabel>
+                  <input
+                    id="path-fr"
+                    [(ngModel)]="node().data.path.fr"
+                    [disabled]="!urlEditsEnabled() || (!!versionConfig() && !editsEnabled())"
+                    (blur)="updateSegment('fr')"
+                    (ngModelChange)="markChanges()"
+                    class="secondary-outline"
+                    fluid
+                    pInputText
+                    type="text"
+                    variant="outlined"
+                  />
+                  <label for="path-fr">{{ 'editNode.path' | translate }}</label>
+                </p-iftalabel>
+                <p-inputgroup-addon class="secondary-outline">
+                  <p-button [disabled]="urlEditsEnabled()" (onClick)="enableUrlEdits()" class="w-full h-full" icon="pi pi-pen-to-square" text />
+                </p-inputgroup-addon>
+              </p-inputgroup>
+              @if (node().data.status.isNew && selectedVersion() === 'prototype') {
+                <p-iftalabel>
+                  <input
+                    id="pathSegment-fr"
+                    [class.text-red-500]="pathFR().startsWith('nouvelle-page')"
+                    [disabled]="!!versionConfig() && !editsEnabled()"
+                    [ngModel]="pathFR()"
+                    (ngModelChange)="pathFR.set($event); updatePath('fr')"
+                    class="secondary-outline"
+                    fluid
+                    pInputText
+                    type="text"
+                    variant="outlined"
+                  />
+                  <label for="pathSegment-fr">{{ 'editNode.pageUrl' | translate }}</label>
+                </p-iftalabel>
+              }
+              <p-iftalabel>
+                <input
+                  id="doubleh1-fr"
+                  [(ngModel)]="node().data[selectedVersion()].fr.doubleH1"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges()"
+                  class="secondary-outline"
+                  fluid
+                  pInputText
+                  type="text"
+                  variant="outlined"
+                />
+                <label for="doubleh1-fr">{{ 'editNode.doubleh1' | translate }}</label>
+              </p-iftalabel>
+              <p-iftalabel>
+                <input
+                  id="h1-fr"
+                  [(ngModel)]="node().data[selectedVersion()].fr.h1"
+                  [class.text-red-500]="node().data[selectedVersion()].fr.h1 === 'Nouvelle page'"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges()"
+                  class="secondary-outline"
+                  fluid
+                  pInputText
+                  type="text"
+                  variant="outlined"
+                />
+                <label for="h1-fr">{{ 'editNode.h1' | translate }}</label>
+              </p-iftalabel>
+
+              <!-- Template -->
+              <p-iftalabel>
+                <p-select
+                  id="template-fr"
+                  [(ngModel)]="node().data[selectedVersion()].fr.template"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  [filter]="true"
+                  [options]="projectState.templateOptions()"
+                  (ngModelChange)="markChanges(); syncData(node(), 'template', 'FRtoEN')"
+                  appendTo="body"
+                  filterBy="label"
+                  fluid
+                  optionLabel="label"
+                  optionValue="value"
+                  styleClass="secondary-outline"
+                />
+                <label [class.text-red-500]="node().data[selectedVersion()].en.template !== node().data[selectedVersion()].fr.template" for="template-fr">
+                  {{ 'editNode.template' | translate }}
+                </label>
+              </p-iftalabel>
+
+              <!-- Parent page -->
+              <p-iftalabel>
+                <p-select
+                  id="parentPath-fr"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  [filter]="true"
+                  [ngModel]="node().data[selectedVersion()].fr.parentPath"
+                  [options]="frPages()"
+                  (onChange)="moveNode(node(), $event.value, 'fr')"
+                  appendTo="body"
+                  filterBy="label"
+                  fluid
+                  optionLabel="label"
+                  optionValue="path"
+                  styleClass="secondary-outline"
+                >
+                  <ng-template #item let-page>
+                    <div class="flex flex-column">
+                      <span class="font-bold -mb-1">{{ page.label }}</span>
+                      {{ page.path }}
+                    </div>
+                  </ng-template></p-select
+                >
+                <label for="parentPath-fr">{{ 'editNode.parent' | translate }}</label>
+              </p-iftalabel>
+              @if (moveError()) {
+                <p-message icon="pi pi-times-circle font-bold" severity="error" styleClass="mb-2">
+                  <span>{{ 'editNode.moveError' | translate }}</span>
+                </p-message>
+              }
+
+              <h3 class="my-0">{{ 'editNode.metadata' | translate }}</h3>
+              <p-iftalabel>
+                <input
+                  id="title-fr"
+                  [(ngModel)]="node().data[selectedVersion()].fr.title"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges()"
+                  class="secondary-outline"
+                  fluid
+                  pInputText
+                  type="text"
+                  variant="outlined"
+                />
+                <label for="title-fr">{{ 'editNode.title' | translate }}</label>
+              </p-iftalabel>
+              <p-iftalabel>
+                <textarea
+                  id="description-fr"
+                  [(ngModel)]="node().data[selectedVersion()].fr.description"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges()"
+                  class="secondary-outline"
+                  autoResize="true"
+                  fluid
+                  pTextarea
+                  rows="1"
+                  variant="outlined"
+                ></textarea>
+                <label for="description-fr">{{ 'editNode.description' | translate }}</label>
+              </p-iftalabel>
+              <p-iftalabel>
+                <textarea
+                  id="keywords-fr"
+                  [(ngModel)]="node().data[selectedVersion()].fr.keywords"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges()"
+                  class="secondary-outline"
+                  autoResize="true"
+                  fluid
+                  pTextarea
+                  rows="1"
+                  variant="outlined"
+                ></textarea>
+                <label for="keywords-fr">{{ 'editNode.keywords' | translate }}</label>
+              </p-iftalabel>
+
+              <h3 class="my-0">{{ 'editNode.pageOwner' | translate }}</h3>
+              <p-iftalabel>
+                <input
+                  id="owner-fr"
+                  [(ngModel)]="node().data[selectedVersion()].fr.owner"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges(); syncData(node(), 'owner', 'FRtoEN')"
+                  class="secondary-outline"
+                  fluid
+                  pInputText
+                  type="text"
+                  variant="outlined"
+                />
+                <label [class.text-red-500]="node().data[selectedVersion()].en.owner !== node().data[selectedVersion()].fr.owner" for="owner-fr">
+                  {{ 'editNode.owner' | translate }}
+                </label>
+              </p-iftalabel>
+              <p-iftalabel>
+                <input
+                  id="email-fr"
+                  [(ngModel)]="node().data[selectedVersion()].fr.email"
+                  [disabled]="!!versionConfig() && !editsEnabled()"
+                  (ngModelChange)="markChanges(); syncData(node(), 'email', 'FRtoEN')"
+                  class="secondary-outline"
+                  fluid
+                  pInputText
+                  type="text"
+                  variant="outlined"
+                />
+                <label [class.text-red-500]="node().data[selectedVersion()].en.email !== node().data[selectedVersion()].fr.email" for="email-fr">
+                  {{ 'editNode.email' | translate }}
+                </label>
+              </p-iftalabel>
+
+              <h3 class="my-0">{{ 'editNode.info' | translate }}</h3>
+              <div class="flex flex-row gap-3 flex-wrap">
+                <div class="flex align-items-center">
+                  <p-checkbox
+                    [(ngModel)]="node().data[selectedVersion()].fr.isArchived"
+                    [binary]="true"
+                    [disabled]="!!versionConfig() && !editsEnabled()"
+                    (ngModelChange)="markChanges(); syncData(node(), 'isArchived', 'FRtoEN')"
+                    inputId="isArchived-fr"
+                  />
+                  <label [class.text-red-500]="node().data[selectedVersion()].en.isArchived !== node().data[selectedVersion()].fr.isArchived" class="ml-2" for="isArchived-fr">
+                    {{ 'editNode.isArchived' | translate }}
+                  </label>
+                </div>
+                <div class="flex align-items-center">
+                  <p-checkbox
+                    [(ngModel)]="node().data[selectedVersion()].fr.noindex"
+                    [binary]="true"
+                    [disabled]="!!versionConfig() && !editsEnabled()"
+                    (ngModelChange)="markChanges(); syncData(node(), 'noindex', 'FRtoEN')"
+                    inputId="noindex-fr"
+                  />
+                  <label [class.text-red-500]="node().data[selectedVersion()].en.noindex !== node().data[selectedVersion()].fr.noindex" class="ml-2" for="noindex-fr">
+                    {{ 'editNode.noindex' | translate }}
+                  </label>
+                </div>
+                <div class="flex align-items-center">
+                  <p-checkbox
+                    [(ngModel)]="node().data[selectedVersion()].fr.isOrphan"
+                    [binary]="true"
+                    [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
+                    (ngModelChange)="markChanges()"
+                    inputId="isOrphan-fr"
+                  />
+                  <label [class.text-red-500]="node().data[selectedVersion()].en.isOrphan !== node().data[selectedVersion()].fr.isOrphan" class="ml-2" for="isOrphan-fr">
+                    {{ 'editNode.isOrphan' | translate }}
+                  </label>
+                </div>
+                <div class="flex align-items-center">
+                  <p-checkbox
+                    [(ngModel)]="node().data[selectedVersion()].fr.linksToPortal"
+                    [binary]="true"
+                    [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
+                    (ngModelChange)="markChanges()"
+                    inputId="linksToPortal-fr"
+                  />
+                  <label [class.text-red-500]="node().data[selectedVersion()].en.linksToPortal !== node().data[selectedVersion()].fr.linksToPortal" class="ml-2" for="linksToPortal-fr">
+                    {{ 'editNode.linksToPortal' | translate }}
+                  </label>
+                </div>
+                <div class="flex align-items-center">
+                  <p-checkbox
+                    [(ngModel)]="node().data[selectedVersion()].fr.hasChatbot"
+                    [binary]="true"
+                    [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
+                    (ngModelChange)="markChanges()"
+                    inputId="hasChatbot-fr"
+                  />
+                  <label [class.text-red-500]="node().data[selectedVersion()].en.hasChatbot !== node().data[selectedVersion()].fr.hasChatbot" class="ml-2" for="hasChatbot-fr">
+                    {{ 'editNode.hasChatbot' | translate }}
+                  </label>
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'editNode.lastPublished' | translate }}
+                  </span>
+                  <span [class.text-red-500]="(node().data[selectedVersion()].en.lastPublished | date) !== (node().data[selectedVersion()].fr.lastPublished | date)">
+                    {{ (node().data[selectedVersion()].fr.lastPublished | date) ?? ('common.never' | translate) }}
+                  </span>
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'editNode.wordCount' | translate }}
+                  </span>
+                  {{ (node().data[selectedVersion()].fr.wordCount | number) ?? '—' }}
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'editNode.linkCount' | translate }}
+                  </span>
+                  <span [class.text-red-500]="node().data[selectedVersion()].en.linkCount !== node().data[selectedVersion()].fr.linkCount">
+                    {{ (node().data[selectedVersion()].fr.linkCount | number) ?? '—' }}
+                  </span>
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'editNode.vanityCount' | translate }}
+                  </span>
+                  <span [class.text-red-500]="node().data.vanity.en.length !== node().data.vanity.fr.length">
+                    {{ (node().data.vanity.fr.length | number) ?? '—' }}
+                  </span>
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'editNode.phoneCount' | translate }}
+                  </span>
+                  <span [class.text-red-500]="node().data[selectedVersion()].en.phoneNumbers?.length !== node().data[selectedVersion()].fr.phoneNumbers?.length">
+                    {{ (node().data[selectedVersion()].fr.phoneNumbers?.length | number) ?? '—' }}
+                  </span>
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'editNode.visits' | translate }}
+                  </span>
+                  {{ (node().data[selectedVersion()].fr.visits | number) ?? '—' }}
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'common.readability.fleschKincaid' | translate }}
+                  </span>
+                  <span
+                    [class.text-orange-400]="node().data[selectedVersion()].fr.fleschKincaid < 12 && node().data[selectedVersion()].fr.fleschKincaid > 8"
+                    [class.text-red-500]="node().data[selectedVersion()].fr.fleschKincaid >= 12"
+                  >
+                    {{ (node().data[selectedVersion()].fr.fleschKincaid | number) ?? '—' }}
+                  </span>
+                </div>
+                <div class="flex flex-column text-sm text-color-secondary">
+                  <span class="font-bold">
+                    {{ 'common.readability.gunningFog' | translate }}
+                  </span>
+                  <span
+                    [class.text-orange-400]="node().data[selectedVersion()].fr.gunningFog < 12 && node().data[selectedVersion()].fr.gunningFog > 8"
+                    [class.text-red-500]="node().data[selectedVersion()].fr.gunningFog >= 12"
+                  >
+                    {{ (node().data[selectedVersion()].fr.gunningFog | number) ?? '—' }}
+                  </span>
+                </div>
+                @if (node().data[selectedVersion()].fr.is404) {
+                  <p-tag value="404" [severity]="node().data[selectedVersion()].en.is404 === node().data[selectedVersion()].fr.is404 ? undefined : 'danger'" />
+                }
+              </div>
+            </div>
+          </p-fieldset>
+        }
+      </div>
     </div>
 
     <div class="flex flex-row justify-content-end gap-2 mt-2">
-        <p-button [label]="'common.cancel' | translate" icon="pi pi-times" severity="secondary"
-                  (onClick)="cancel()" />
-        <p-button [label]="'common.save' | translate" icon="pi pi-save" severity="success"
-                  (onClick)="save()" [disabled]="!hasChanges()" />
+      <p-button [label]="'common.cancel' | translate" (onClick)="cancel()" icon="pi pi-times" severity="secondary" />
+      <p-button [disabled]="!hasChanges()" [label]="'common.save' | translate" (onClick)="save()" icon="pi pi-save" severity="success" />
     </div>
-
-    }
+  }
 </div>

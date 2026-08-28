@@ -1,601 +1,620 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
-import { CloudStorageService } from './cloud-storage.service';
-import { LocalStorageService } from './local-storage.service';
-import { FetchService } from '../fetch.service';
-import { Project, ProjectMetadata, ProjectTreeNodeData, LangData, PageTemplate } from '../../common/data.model';
+import { computed, inject, Injectable, signal } from '@angular/core';
+
 import { TreeNode } from 'primeng/api';
 
+import { FetchService } from '../fetch.service';
+import { UserSettingsService } from '../user-settings.service';
+import { CloudStorageService } from './cloud-storage.service';
+import { LocalStorageService } from './local-storage.service';
+
+import { environment } from '../../../environments/environment';
+import { LangData, PageTemplate, Project, ProjectMetadata, ProjectPhase, ProjectTreeNodeData } from '../../common/data.model';
+
 export interface ActiveProject {
-    key: string;
-    storageType: 'local' | 'cloud';
+  key: string;
+  storageType: 'local' | 'cloud';
 }
 
 //Integrates local and cloud project storage and tracks which project is currently active
 @Injectable({ providedIn: 'root' })
 export class ProjectStorageService {
-    //Services
-    private cloudStorageService = inject(CloudStorageService);
-    private localStorageService = inject(LocalStorageService);
-    private fetchService = inject(FetchService);
+  //Services
+  private readonly cloudStorageService = inject(CloudStorageService);
+  private readonly localStorageService = inject(LocalStorageService);
+  private readonly settingsService = inject(UserSettingsService);
+  private readonly fetchService = inject(FetchService);
 
-    // Local storage keys
-    private readonly ACTIVE_PROJECT_KEY = 'activeProject';
-    private readonly SAVED_PROJECTS_KEY = 'savedProjects';
-    private readonly DELETED_PROJECTS_KEY = 'deletedProjects';
-    public generateKeyFromName(projectName: string): string { // Generates a project key for saving to local or cloud storage
-        if (!projectName || projectName.trim() === '') {
-            return 'autosave';
-        }
-        return projectName.replace(/[:']/g, '').replace(/\s+/g, '-').toLowerCase();
+  // Local storage keys
+  private readonly ACTIVE_PROJECT_KEY = 'activeProject';
+  private readonly SAVED_PROJECTS_KEY = 'savedProjects';
+  private readonly DELETED_PROJECTS_KEY = 'deletedProjects';
+  private generateKeyFromName(projectName: string): string {
+    // Generates a project key for saving to local or cloud storage
+    if (!projectName || projectName.trim() === '') {
+      return 'autosave';
     }
+    return projectName.replace(/[:']/g, '').replace(/\s+/g, '-').toLowerCase();
+  }
 
-    // Other variables
-    private readonly DAYS_UNTIL_AUTO_DELETE = 30;
+  // Other variables
+  private readonly DAYS_UNTIL_AUTO_DELETE = 30;
 
-    // Signal for changes to project list
-    public projectListVersion = signal<number>(0);
-    public projectListChanged = computed(() => this.projectListVersion());
+  // Signal for changes to project list
+  public readonly projectListVersion = signal<number>(0);
+  public readonly projectListChanged = computed(() => this.projectListVersion());
 
-    /************************************
-     ********** ACTIVE PROJECT **********
-     ************************************/
-    // Signal for current active project
-    private activeProject = signal<ActiveProject | null>(this.getActiveProject());
-    public currentActive = computed(() => this.activeProject());
+  /************************************
+   ********** ACTIVE PROJECT **********
+   ************************************/
+  // Signal for current active project
+  private readonly activeProject = signal<ActiveProject | null>(this.getActiveProject());
+  public readonly currentActive = computed(() => this.activeProject());
 
-    // Get active project key from local storage (used on initial app load)
-    getActiveProject(): ActiveProject | null {
-        const stored = this.localStorageService.getData(this.ACTIVE_PROJECT_KEY);
-        if (!stored) return null;
+  // Get active project key from local storage (used on initial app load)
+  public getActiveProject(): ActiveProject | null {
+    const stored = this.localStorageService.getData(this.ACTIVE_PROJECT_KEY);
+    if (!stored) return null;
 
-        try {
-            const parsed = JSON.parse(stored);
-            // Validate structure
-            if (parsed.key && (parsed.storageType === 'local' || parsed.storageType === 'cloud')) {
-                return parsed as ActiveProject;
-            }
-            return null;
-        } catch (error) {
-            console.error('Failed to parse active project:', error);
-            return null;
-        }
+    try {
+      const parsed = JSON.parse(stored);
+      // Validate structure
+      if (parsed.key && (parsed.storageType === 'local' || parsed.storageType === 'cloud')) {
+        return parsed as ActiveProject;
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to parse active project:', error);
+      return null;
     }
+  }
 
-    // Set active project (used when switching projects)
-    setActiveProject(key: string, storageType: 'local' | 'cloud'): void {
-        const activeProject: ActiveProject = { key, storageType };
-        this.localStorageService.saveData(this.ACTIVE_PROJECT_KEY, JSON.stringify(activeProject));
-        this.activeProject.set(activeProject);
-        //console.log('Active project set:', activeProject);
-    }
+  // Set active project (used when switching projects)
+  private setActiveProject(key: string, storageType: 'local' | 'cloud'): void {
+    const activeProject: ActiveProject = { key, storageType };
+    this.localStorageService.saveData(this.ACTIVE_PROJECT_KEY, JSON.stringify(activeProject));
+    this.activeProject.set(activeProject);
+    //console.log('Active project set:', activeProject);
+  }
 
-    // Clear active project (used when starting new project)
-    clearActiveProject(): void {
-        this.localStorageService.removeData(this.ACTIVE_PROJECT_KEY);
-        this.activeProject.set(null);
-        //console.log('Active project cleared');
-    }
+  // Clear active project (used when starting new project)
+  public clearActiveProject(): void {
+    this.localStorageService.removeData(this.ACTIVE_PROJECT_KEY);
+    this.activeProject.set(null);
+    //console.log('Active project cleared');
+  }
 
-    // Tracks if active project exists (true unless working in autosave file)
-    hasActiveProject(): boolean {
-        return this.getActiveProject() !== null;
-    }
+  // Tracks if active project exists (true unless working in autosave file)
+  public hasActiveProject(): boolean {
+    return this.getActiveProject() !== null;
+  }
 
-    /************************************
-     *********** SAVE PROJECT ***********
-     ************************************/
+  /************************************
+   *********** SAVE PROJECT ***********
+   ************************************/
 
-    // Save to either local or cloud based on project.storageType (returns true if successful)
-    async saveProject(project: Project): Promise<boolean> {
-        try {
-            const newKey = this.generateKeyFromName(project.projectName);
-            const storageType = project.storageType;
+  // Save to either local or cloud based on project.storageType (returns true if successful)
+  public async saveProject(project: Project): Promise<boolean> {
+    try {
+      const newKey = this.generateKeyFromName(project.projectName);
+      const storageType = project.storageType;
 
-            //Get old key (in case of project rename)
-            const oldActiveProject = this.getActiveProject();
-            const oldKey = oldActiveProject?.key;
+      //Get old key (in case of project rename)
+      const oldActiveProject = this.getActiveProject();
+      const oldKey = oldActiveProject?.key;
 
-            //console.log(`Saving project "${newKey}" to ${storageType} storage...`);
+      //console.log(`Saving project "${newKey}" to ${storageType} storage...`);
 
-            if (storageType === 'cloud') {
-                // Save to cloud
-                const success = await this.saveToCloud(project, newKey);
-                if (!success) {
-                    console.error('Cloud save failed');
-                    return false;
-                }
-                else { this.deleteLocalProject(newKey) }
-                this.setActiveProject(project.id, storageType);
-            } else {
-                // Save to local
-                this.saveToLocal(project, newKey);
-                // If key changed, delete the old one
-                if (oldKey && oldKey !== newKey) {
-                    //console.log(`Key changed from "${oldKey}" to "${newKey}", deleting old key`);
-                    this.deleteLocalProject(oldKey);
-                }
-                this.setActiveProject(newKey, storageType);
-                // Remove key from deleted project list (in case we are restoring a project from the deleted list)
-                const deletedProjects = JSON.parse(this.localStorageService.getData(this.DELETED_PROJECTS_KEY) || '[]');
-                const updatedDeletedProjects = deletedProjects.filter((p: ProjectMetadata) => p.key !== newKey && p.key !== oldKey);
-                this.localStorageService.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
-            }
-
-            //console.log(`Project "${newKey}" saved successfully to ${storageType}`);
-            return true;
-
-        } catch (error) {
-            console.error('Failed to save project:', error);
-            return false;
-        }
-    }
-
-    // Save project to local storage
-    private saveToLocal(project: Project, key: string): void {
-        // Remove circular TreeNode references
-        const projectToSave = this.prepareProjectForSave(project);
-
-        //console.group('=== SAVE TO LOCAL DEBUG ===');
-        //console.log('1. Storage Key:', key);
-        //console.log('2. Full Project Data:', JSON.stringify(projectToSave, null, 2));
-
-        // Save to localStorage
-        this.localStorageService.saveData(key, JSON.stringify(projectToSave));
-
-        // Update project list for local projects
-        this.updateLocalProjectList(key, project);
-        this.projectListVersion.update(v => v + 1);
-
-        // After save, retrieve and log what's actually stored
-        //console.log('3. Retrieved from localStorage:', this.localStorageService.getData(key));
-        //console.log('4. Active Project:', this.localStorageService.getData(this.ACTIVE_PROJECT_KEY));
-        //console.log('5. All Saved Projects:', this.localStorageService.getData(this.SAVED_PROJECTS_KEY));
-        //console.groupEnd();
-    }
-
-    // Save project to cloud storage (including the extra data that we save separately for local projcts for display purposes)
-    private async saveToCloud(project: Project, key: string): Promise<boolean> {
-        // Remove circular TreeNode references
-        const projectToSave = this.prepareProjectForSave(project);
-
-        // Add key & update storageLocation
-        const updatedProject = {
-            ...projectToSave,
-            key: key,
-            storageLocation: 'cloud' as const
-        };
-
-        // Save to cloud (returns cloud ID or null)
-        const savedId = await this.cloudStorageService.saveProject(updatedProject, project.id);
-        if (savedId) {
-            this.projectListVersion.update(v => v + 1);
-        }
-        return savedId !== null;
-
-    }
-
-    // Remove circular TreeNode references from project data
-    public prepareProjectForSave(project: Project): Project {
-        return {
-            ...project,
-            projectData: this.removeParents(project.projectData)
-        };
-    }
-
-    // Remove circular TreeNode references from TreeNodes
-    removeParents(nodes: TreeNode[]): TreeNode[] {
-        return nodes.map(node => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { parent, ...rest } = node;
-            return {
-                ...rest,
-                children: node.children ? this.removeParents(node.children) : []
-            };
-        });
-    }
-
-    // Add parent references back
-    rebuildParents(nodes: TreeNode[], parent: TreeNode | undefined): void {
-        for (const node of nodes) {
-            node.parent = parent;
-            if (node.children?.length) {
-                this.rebuildParents(node.children, node);
-            }
-        }
-    }
-
-    // Update list of local projects in localStorage
-    public updateLocalProjectList(key: string, project: Project): void {
-        const savedProjects = JSON.parse(this.localStorageService.getData(this.SAVED_PROJECTS_KEY) || '[]');
-        const existingIndex = savedProjects.findIndex((p: ProjectMetadata) => p.key === key);
-
-        const projectEntry: ProjectMetadata = {
-            id: project.id,
-            key,
-            projectName: project.projectName,
-            phase: project.phase,
-            inScopePages: project.inScopePages,
-            lastModified: project.lastModified,
-            storageType: 'local',
-            repoType: project.repoType ?? 'github',
-            collaborators: project.collaborators || [],
-            github: project.github
-        };
-
-        if (existingIndex >= 0) {
-            savedProjects[existingIndex] = projectEntry;
+      if (storageType === 'cloud') {
+        // Save to cloud
+        const success = await this.saveToCloud(project, newKey);
+        if (!success) {
+          console.error('Cloud save failed');
+          return false;
         } else {
-            savedProjects.push(projectEntry);
+          this.deleteLocalProject(newKey);
         }
-
-        // Sort by most recent
-        savedProjects.sort((a: ProjectMetadata, b: ProjectMetadata) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
-
-        this.localStorageService.saveData(this.SAVED_PROJECTS_KEY, JSON.stringify(savedProjects));
-
-        //console.log('Project list updated:', savedProjects);
-    }
-
-
-    /************************************
-     *********** LOAD PROJECTS **********
-     ************************************/
-
-    async getProjectList(): Promise<ProjectMetadata[]> {
-        // Get local projects
-        const localProjects = this.getLocalProjectList('saved');
-
-        // Get cloud projects
-        const cloudProjects = await this.cloudStorageService.projects();
-
-        // Combine and sort by timestamp (most recent first)
-        return [...localProjects, ...cloudProjects]
-            .sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
-    }
-
-    public getLocalProjectList(mode: 'saved' | 'deleted' = 'saved'): ProjectMetadata[] {
-        const storageKey = mode === 'deleted' ? this.DELETED_PROJECTS_KEY : this.SAVED_PROJECTS_KEY;
-        const projectsString = this.localStorageService.getData(storageKey);
-        if (!projectsString) return [];
-
-        try {
-            const projects = JSON.parse(projectsString);
-            // Convert timestamp back to Date object
-            return projects.map((p: ProjectMetadata) => ({
-                ...p,
-                lastModified: new Date(p.lastModified)
-            }));
-        } catch (error) {
-            console.error(`Failed to parse ${mode} projects:`, error);
-            return [];
+        this.setActiveProject(project.id, storageType);
+      } else {
+        // Save to local
+        this.saveToLocal(project, newKey);
+        // If key changed, delete the old one
+        if (oldKey && oldKey !== newKey) {
+          //console.log(`Key changed from "${oldKey}" to "${newKey}", deleting old key`);
+          this.deleteLocalProject(oldKey);
         }
-    }
-
-    /************************************
-    ********** SWITCH PROJECTS **********
-    ************************************/
-
-    // Gets project from local or cloud storage (caller will need to update project-state)
-    async loadProject(key: string, storageType: 'local' | 'cloud'): Promise<Project | null> {
-        //console.log(`Loading project: ${key} from ${storageType}`);
-
-        try {
-            let project: Project | null = null;
-
-            if (storageType === 'local') {
-                project = await this.loadFromLocal(key);
-            } else {
-                project = await this.loadFromCloud(key);
-            }
-
-            if (!project) {
-                console.error('Failed to load project');
-                return null;
-            }
-
-            // Add date references back
-            project = {
-                ...project,
-                created: new Date(project.created),
-                lastModified: new Date(project.lastModified),
-                lastSaved: new Date(project.lastSaved),
-                lastExported: project.lastExported ? new Date(project.lastExported) : null,
-                lastDownloaded: project.lastDownloaded ? new Date(project.lastDownloaded) : null,
-            };
-
-            // Add parent references back
-            this.rebuildParents(project.projectData, undefined)
-
-            // Set as active project
-            this.setActiveProject(key, storageType);
-
-            //console.log(`Project "${key}" loaded successfully`);
-            return project;
-
-        } catch (error) {
-            console.error('Failed to load project:', error);
-            return null;
-        }
-    }
-
-    /**
-     * Load project from local storage
-     */
-    private async loadFromLocal(key: string): Promise<Project | null> {
-        const stored = this.localStorageService.getData(key);
-        if (!stored) {
-            console.error(`No project found with key: ${key}`);
-            return null;
-        }
-
-        try {
-            const project = JSON.parse(stored);
-
-            // Patch old data and convert timestamps back to Date objects
-            const patched = this.patchLegacyProject({
-                ...project,
-                created: new Date(project.created),
-                lastModified: new Date(project.lastModified),
-                lastSaved: new Date(project.lastSaved),
-                lastExported: project.lastExported ? new Date(project.lastExported) : null,
-                storageType: 'local' as const
-            });
-            return patched
-        } catch (error) {
-            console.error('Failed to parse project:', error);
-            return null;
-        }
-    }
-
-    /**
-     * Load project from cloud storage
-     */
-    private async loadFromCloud(projectId: string): Promise<Project | null> {
-        const cloudProject = await this.cloudStorageService.getProject(projectId);
-        if (!cloudProject) return null;
-
-        // CloudProject should already be in the correct format
-        // Just ensure storageType is set correctly
-        return this.patchLegacyProject({
-            ...cloudProject,
-            storageType: 'cloud' as const
-        });
-    }
-
-    /************************************
-    *********** DELETE PROJECT **********
-    ************************************/
-
-    /**
-     * Delete a project from local or cloud storage
-     */
-    async deleteProject(key: string, storageType: 'local' | 'cloud'): Promise<boolean> {
-        try {
-            if (storageType === 'local') {
-                const success = this.deleteLocalProject(key);
-                if (success) {
-                    this.projectListVersion.update(v => v + 1); // Notify that project list has changed
-                }
-                return success;
-            } else {
-                const projectToDelete = await this.loadProjectData(key, 'cloud')
-                if (projectToDelete) { this.saveToLocal(projectToDelete, key); this.deleteLocalProject(key) }
-                const success = await this.cloudStorageService.deleteProject(key);
-                if (success) {
-                    this.projectListVersion.update(v => v + 1); // Notify that project list has changed
-                }
-                return success;
-            }
-        } catch (error) {
-            console.error('Failed to delete project:', error);
-            return false;
-        }
-    }
-
-    // Delete a local project (saved → recycle bin → delete)
-    private deleteLocalProject(key: string): boolean {
-        //Check if project is in savedProjects or deletedProjects
-        const savedProjects = JSON.parse(this.localStorageService.getData(this.SAVED_PROJECTS_KEY) || '[]');
+        this.setActiveProject(newKey, storageType);
+        // Remove key from deleted project list (in case we are restoring a project from the deleted list)
         const deletedProjects = JSON.parse(this.localStorageService.getData(this.DELETED_PROJECTS_KEY) || '[]');
+        const updatedDeletedProjects = deletedProjects.filter((p: ProjectMetadata) => p.key !== newKey && p.key !== oldKey);
+        this.localStorageService.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
+      }
 
-        const savedProject = savedProjects.find((p: ProjectMetadata) => p.key === key); // ProjectMetadata or undefined
-        const inDeleted = deletedProjects.some((p: ProjectMetadata) => p.key === key); // true or false
+      //console.log(`Project "${newKey}" saved successfully to ${storageType}`);
+      return true;
+    } catch (error) {
+      console.error('Failed to save project:', error);
+      return false;
+    }
+  }
 
-        //Process saved projects first in case same key is in both somehow. Prevents accidental permenent delete.
-        if (savedProject) {
-            // Remove from saved project list and add to deleted project list
-            const updatedSavedProjects = savedProjects.filter((p: ProjectMetadata) => p.key !== key);
-            this.localStorageService.saveData(this.SAVED_PROJECTS_KEY, JSON.stringify(updatedSavedProjects));
-            const deletedProject = {
-                ...savedProject,
-                lastModified: new Date(),
-            };
-            const updatedDeletedProjects = [...deletedProjects, deletedProject];
-            this.localStorageService.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
-            //console.log(`Local project "${key}" marked for deletion`);
-            this.projectListVersion.update(v => v + 1);
-            return true;
+  // Save project to local storage
+  private saveToLocal(project: Project, key: string): void {
+    // Remove circular TreeNode references
+    const projectToSave = this.prepareProjectForSave(project);
+
+    //console.group('=== SAVE TO LOCAL DEBUG ===');
+    //console.log('1. Storage Key:', key);
+    //console.log('2. Full Project Data:', JSON.stringify(projectToSave, null, 2));
+
+    // Save to localStorage
+    this.localStorageService.saveData(key, JSON.stringify(projectToSave));
+
+    // Update project list for local projects
+    this.updateLocalProjectList(key, project);
+    this.projectListVersion.update((v) => v + 1);
+
+    // After save, retrieve and log what's actually stored
+    //console.log('3. Retrieved from localStorage:', this.localStorageService.getData(key));
+    //console.log('4. Active Project:', this.localStorageService.getData(this.ACTIVE_PROJECT_KEY));
+    //console.log('5. All Saved Projects:', this.localStorageService.getData(this.SAVED_PROJECTS_KEY));
+    //console.groupEnd();
+  }
+
+  // Save project to cloud storage (including the extra data that we save separately for local projcts for display purposes)
+  private async saveToCloud(project: Project, key: string): Promise<boolean> {
+    // Remove circular TreeNode references
+    const projectToSave = this.prepareProjectForSave(project);
+
+    // Add key & update storageLocation
+    const updatedProject = {
+      ...projectToSave,
+      key: key,
+      storageLocation: 'cloud' as const,
+    };
+
+    // Save to cloud (returns cloud ID or null)
+    const savedId = await this.cloudStorageService.saveProject(updatedProject, project.id);
+    if (savedId) {
+      this.projectListVersion.update((v) => v + 1);
+    }
+    return savedId !== null;
+  }
+
+  // Remove circular TreeNode references from project data
+  public prepareProjectForSave(project: Project): Project {
+    return {
+      ...project,
+      projectData: this.removeParents(project.projectData),
+    };
+  }
+
+  // Remove circular TreeNode references from TreeNodes
+  public removeParents(nodes: TreeNode[]): TreeNode[] {
+    return nodes.map((node) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { parent, ...rest } = node;
+      return {
+        ...rest,
+        children: node.children ? this.removeParents(node.children) : [],
+      };
+    });
+  }
+
+  // Add parent references back
+  public rebuildParents(nodes: TreeNode[], parent: TreeNode | undefined): void {
+    for (const node of nodes) {
+      node.parent = parent;
+      if (node.children?.length) {
+        this.rebuildParents(node.children, node);
+      }
+    }
+  }
+
+  // Update list of local projects in localStorage
+  public updateLocalProjectList(key: string, project: Project): void {
+    const savedProjects = JSON.parse(this.localStorageService.getData(this.SAVED_PROJECTS_KEY) || '[]');
+    const existingIndex = savedProjects.findIndex((p: ProjectMetadata) => p.key === key);
+
+    const projectEntry: ProjectMetadata = {
+      id: project.id,
+      key,
+      projectName: project.projectName,
+      phase: project.phase,
+      inScopePages: project.inScopePages,
+      lastModified: project.lastModified,
+      storageType: 'local',
+      repoType: project.repoType ?? 'github',
+      collaborators: project.collaborators || [],
+      github: project.github,
+    };
+
+    if (existingIndex >= 0) {
+      savedProjects[existingIndex] = projectEntry;
+    } else {
+      savedProjects.push(projectEntry);
+    }
+
+    // Sort by most recent
+    savedProjects.sort((a: ProjectMetadata, b: ProjectMetadata) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
+
+    this.localStorageService.saveData(this.SAVED_PROJECTS_KEY, JSON.stringify(savedProjects));
+
+    //console.log('Project list updated:', savedProjects);
+  }
+
+  /************************************
+   *********** LOAD PROJECTS **********
+   ************************************/
+
+  public async getProjectList(): Promise<ProjectMetadata[]> {
+    // Get local projects
+    const localProjects = this.getLocalProjectList('saved');
+
+    // Get cloud projects
+    const cloudProjects = await this.cloudStorageService.projects();
+
+    // Normalize so we can trust ProjectMetadata's shape
+    const normalized = [...localProjects, ...cloudProjects].map((p) => this.patchProjectList(p));
+
+    // Combine and sort by timestamp (most recent first)
+    return normalized.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
+  }
+
+  /** Ensures all projects in list have all the required fields (older ones may be missing repoType) */
+  private patchProjectList(raw: Partial<ProjectMetadata>): ProjectMetadata {
+    return {
+      id: raw.id ?? '',
+      key: raw.key ?? '',
+      projectName: raw.projectName ?? 'common.autosave',
+      lastModified: raw.lastModified ?? new Date(0),
+      phase: raw.phase ?? ProjectPhase.Draft,
+      inScopePages: raw.inScopePages ?? 0,
+      collaborators: raw.collaborators ?? [],
+      github: raw.github ?? { owner: environment.defaultOrg, repo: '', branch: 'main', hasBaselineRepo: false },
+      storageType: raw.storageType ?? 'local',
+      repoType: raw.repoType ?? 'github',
+      org: raw.org,
+    };
+  }
+
+  public getLocalProjectList(mode: 'saved' | 'deleted' = 'saved'): ProjectMetadata[] {
+    const storageKey = mode === 'deleted' ? this.DELETED_PROJECTS_KEY : this.SAVED_PROJECTS_KEY;
+    const projectsString = this.localStorageService.getData(storageKey);
+    if (!projectsString) return [];
+
+    try {
+      const projects = JSON.parse(projectsString);
+      // Convert timestamp back to Date object
+      return projects.map((p: ProjectMetadata) => ({
+        ...p,
+        lastModified: new Date(p.lastModified),
+      }));
+    } catch (error) {
+      console.error(`Failed to parse ${mode} projects:`, error);
+      return [];
+    }
+  }
+
+  /************************************
+   ********** SWITCH PROJECTS **********
+   ************************************/
+
+  // Gets project from local or cloud storage (caller will need to update project-state)
+  public async loadProject(key: string, storageType: 'local' | 'cloud'): Promise<Project | null> {
+    //console.log(`Loading project: ${key} from ${storageType}`);
+
+    try {
+      let project: Project | null = null;
+
+      if (storageType === 'local') {
+        project = await this.loadFromLocal(key);
+      } else {
+        project = await this.loadFromCloud(key);
+      }
+
+      if (!project) {
+        console.error('Failed to load project');
+        return null;
+      }
+
+      // Add date references back
+      project = {
+        ...project,
+        created: new Date(project.created),
+        lastModified: new Date(project.lastModified),
+        lastSaved: new Date(project.lastSaved),
+        lastExported: project.lastExported ? new Date(project.lastExported) : null,
+        lastDownloaded: project.lastDownloaded ? new Date(project.lastDownloaded) : null,
+      };
+
+      // Add parent references back
+      this.rebuildParents(project.projectData, undefined);
+
+      // Set as active project
+      this.setActiveProject(key, storageType);
+
+      // Update settingsService available version signals after project load
+      this.settingsService.includeBaseline.set(project.github.hasBaselineRepo);
+      this.settingsService.includeLocal.set(project.repoType === 'local');
+      this.settingsService.includeGitHub.set(project.repoType === 'github');
+
+      //console.log(`Project "${key}" loaded successfully`);
+      return project;
+    } catch (error) {
+      console.error('Failed to load project:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Load project from local storage
+   */
+  private async loadFromLocal(key: string): Promise<Project | null> {
+    const stored = this.localStorageService.getData(key);
+    if (!stored) {
+      console.error(`No project found with key: ${key}`);
+      return null;
+    }
+
+    try {
+      const project = JSON.parse(stored);
+
+      // Patch old data and convert timestamps back to Date objects
+      const patched = this.patchLegacyProject({
+        ...project,
+        created: new Date(project.created),
+        lastModified: new Date(project.lastModified),
+        lastSaved: new Date(project.lastSaved),
+        lastExported: project.lastExported ? new Date(project.lastExported) : null,
+        storageType: 'local' as const,
+      });
+      return patched;
+    } catch (error) {
+      console.error('Failed to parse project:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Load project from cloud storage
+   */
+  private async loadFromCloud(projectId: string): Promise<Project | null> {
+    const cloudProject = await this.cloudStorageService.getProject(projectId);
+    if (!cloudProject) return null;
+
+    // CloudProject should already be in the correct format
+    // Just ensure storageType is set correctly
+    return this.patchLegacyProject({
+      ...cloudProject,
+      storageType: 'cloud' as const,
+    });
+  }
+
+  /************************************
+   *********** DELETE PROJECT **********
+   ************************************/
+
+  /**
+   * Delete a project from local or cloud storage
+   */
+  public async deleteProject(key: string, storageType: 'local' | 'cloud'): Promise<boolean> {
+    try {
+      if (storageType === 'local') {
+        const success = this.deleteLocalProject(key);
+        if (success) {
+          this.projectListVersion.update((v) => v + 1); // Notify that project list has changed
         }
-        else if (inDeleted) {
-            // Delete and remove from deleted project list
-            this.localStorageService.removeData(key);
-            const updatedDeletedProjects = deletedProjects.filter((p: ProjectMetadata) => p.key !== key);
-            this.localStorageService.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
-            //console.log(`Deleted project "${key}" deleted`);
-            this.projectListVersion.update(v => v + 1);
-            return true;
+        return success;
+      } else {
+        const projectToDelete = await this.loadProjectData(key, 'cloud');
+        if (projectToDelete) {
+          this.saveToLocal(projectToDelete, key);
+          this.deleteLocalProject(key);
         }
-
-        return false;
-    }
-
-    /*******************************************
-    *********** BACKGROUND OPERATIONS **********
-    ********************************************/
-
-    // Loads project data without setting it as active
-    async loadProjectData(key: string, storageType: 'local' | 'cloud'): Promise<Project | null> {
-        try {
-            if (storageType === 'local') {
-                return await this.loadFromLocal(key);
-            } else {
-                return await this.loadFromCloud(key);
-            }
-        } catch (error) {
-            console.error(`Failed to load project data for ${key}:`, error);
-            return null;
+        const success = await this.cloudStorageService.deleteProject(key);
+        if (success) {
+          this.projectListVersion.update((v) => v + 1); // Notify that project list has changed
         }
+        return success;
+      }
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      return false;
+    }
+  }
+
+  // Delete a local project (saved → recycle bin → delete)
+  private deleteLocalProject(key: string): boolean {
+    //Check if project is in savedProjects or deletedProjects
+    const savedProjects = JSON.parse(this.localStorageService.getData(this.SAVED_PROJECTS_KEY) || '[]');
+    const deletedProjects = JSON.parse(this.localStorageService.getData(this.DELETED_PROJECTS_KEY) || '[]');
+
+    const savedProject = savedProjects.find((p: ProjectMetadata) => p.key === key); // ProjectMetadata or undefined
+    const inDeleted = deletedProjects.some((p: ProjectMetadata) => p.key === key); // true or false
+
+    //Process saved projects first in case same key is in both somehow. Prevents accidental permenent delete.
+    if (savedProject) {
+      // Remove from saved project list and add to deleted project list
+      const updatedSavedProjects = savedProjects.filter((p: ProjectMetadata) => p.key !== key);
+      this.localStorageService.saveData(this.SAVED_PROJECTS_KEY, JSON.stringify(updatedSavedProjects));
+      const deletedProject = {
+        ...savedProject,
+        lastModified: new Date(),
+      };
+      const updatedDeletedProjects = [...deletedProjects, deletedProject];
+      this.localStorageService.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
+      //console.log(`Local project "${key}" marked for deletion`);
+      this.projectListVersion.update((v) => v + 1);
+      return true;
+    } else if (inDeleted) {
+      // Delete and remove from deleted project list
+      this.localStorageService.removeData(key);
+      const updatedDeletedProjects = deletedProjects.filter((p: ProjectMetadata) => p.key !== key);
+      this.localStorageService.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
+      //console.log(`Deleted project "${key}" deleted`);
+      this.projectListVersion.update((v) => v + 1);
+      return true;
     }
 
-    // Automatically removes deleted projects after a period of time
-    public cleanupDeletedProjects(): number {
-        const deletedProjects = this.getLocalProjectList('deleted');
-        const cutoffDate = new Date();
-        cutoffDate.setDate(cutoffDate.getDate() - this.DAYS_UNTIL_AUTO_DELETE);
+    return false;
+  }
 
-        const projectsToDelete = deletedProjects.filter(
-            p => p.lastModified < cutoffDate
-        );
+  /*******************************************
+   *********** BACKGROUND OPERATIONS **********
+   ********************************************/
 
-        // Permanently delete each expired project
-        projectsToDelete.forEach(project => {
-            this.deleteLocalProject(project.key);
-        });
+  // Loads project data without setting it as active
+  public async loadProjectData(key: string, storageType: 'local' | 'cloud'): Promise<Project | null> {
+    try {
+      if (storageType === 'local') {
+        return await this.loadFromLocal(key);
+      } else {
+        return await this.loadFromCloud(key);
+      }
+    } catch (error) {
+      console.error(`Failed to load project data for ${key}:`, error);
+      return null;
+    }
+  }
 
-        return projectsToDelete.length; // Return count for notification
+  // Automatically removes deleted projects after a period of time
+  public cleanupDeletedProjects(): number {
+    const deletedProjects = this.getLocalProjectList('deleted');
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - this.DAYS_UNTIL_AUTO_DELETE);
+
+    const projectsToDelete = deletedProjects.filter((p) => p.lastModified < cutoffDate);
+
+    // Permanently delete each expired project
+    projectsToDelete.forEach((project) => {
+      this.deleteLocalProject(project.key);
+    });
+
+    return projectsToDelete.length; // Return count for notification
+  }
+
+  /************************************
+   *********** EXPORT PROJECT **********
+   ************************************/
+
+  /************************************
+   ********** IMPORT PROJECT **********
+   ************************************/
+
+  /************************************
+   *********** PATCH PROJECT ***********
+   ************************************/
+
+  private patchLegacyNode(node: TreeNode): TreeNode {
+    // Check if this is already the new structure
+    if (node.data?.live !== undefined) {
+      return {
+        ...node,
+        children: node.children?.map((child) => this.patchLegacyNode(child)) ?? [],
+      };
     }
 
-    /************************************
-    *********** EXPORT PROJECT **********
-    ************************************/
+    const old = node.data as ProjectTreeNodeData;
+    const urlLang = old.url?.includes('/en/') || old.url?.includes('/en.html') ? 'en' : 'fr';
+    const oppUrl = old.metadata?.oppUrl;
+    const enUrl = urlLang === 'en' ? old.url : oppUrl;
+    const frUrl = urlLang === 'fr' ? old.url : oppUrl;
+    const enPath = enUrl ? this.fetchService.generatePath(enUrl) : undefined;
+    const frPath = frUrl ? this.fetchService.generatePath(frUrl) : undefined;
 
+    const enData: LangData = {
+      h1: urlLang === 'en' ? old.h1 : (old.metadata?.oppTitle ?? ''),
+      doubleH1: urlLang === 'en' ? old.doubleH1 : old.metadata?.oppSectionTitle,
+      contentHash: undefined,
+      lastChecked: undefined,
+      githubSha: undefined,
+      title: old.metadata?.title ?? '',
+      description: old.metadata?.description ?? '',
+      keywords: old.metadata?.keywords ?? '',
+      is404: old.status?.isNew ?? false,
+      isOrphan: old.status?.isOrphan ?? false,
+      noindex: old.status?.noindexEN === true,
+      isArchived: old.status?.archiveStatus === 'archived',
+      linksToPortal: old.status?.linksToPortal ?? false,
+      hasChatbot: false,
+      owner: old.metadata?.owner,
+      email: old.metadata?.email,
+      lastPublished: old.metadata?.lastPublished instanceof Date ? old.metadata.lastPublished.toISOString() : old.metadata?.lastPublished,
+      lastModified: old.metadata?.lastModified instanceof Date ? old.metadata.lastModified.toISOString() : old.metadata?.lastModified,
+      parentPath: old.originalParent ? this.fetchService.generatePath(old.originalParent) : undefined,
+      wordCount: old.metadata?.wordCount ?? -1,
+      linkCount: -1,
+      fleschKincaid: -1,
+      gunningFog: -1,
+      phoneNumbers: [],
+      template: old.metadata?.template ?? PageTemplate.Content,
+      problem: undefined,
+    };
 
-    /************************************
-     ********** IMPORT PROJECT **********
-     ************************************/
+    const frData: LangData = {
+      h1: urlLang === 'fr' ? old.h1 : (old.metadata?.oppTitle ?? ''),
+      doubleH1: urlLang === 'fr' ? old.doubleH1 : old.metadata?.oppSectionTitle,
+      contentHash: undefined,
+      lastChecked: undefined,
+      githubSha: undefined,
+      title: old.metadata?.titleFR ?? '',
+      description: old.metadata?.descriptionFR ?? '',
+      keywords: old.metadata?.keywordsFR ?? '',
+      is404: old.status?.isNew ?? false,
+      isOrphan: old.status?.isOrphan ?? false,
+      noindex: old.status?.noindexFR === true,
+      isArchived: old.status?.archiveStatus === 'archived',
+      linksToPortal: old.status?.linksToPortal ?? false,
+      hasChatbot: false,
+      owner: old.metadata?.owner,
+      email: old.metadata?.email,
+      lastPublished: old.metadata?.lastPublished instanceof Date ? old.metadata.lastPublished.toISOString() : old.metadata?.lastPublished,
+      lastModified: old.metadata?.lastModified instanceof Date ? old.metadata.lastModified.toISOString() : old.metadata?.lastModified,
+      parentPath: old.originalParent ? this.fetchService.generatePath(old.originalParent) : undefined,
+      wordCount: old.metadata?.wordCount ?? -1,
+      linkCount: -1,
+      fleschKincaid: -1,
+      gunningFog: -1,
+      phoneNumbers: [],
+      template: old.metadata?.template ?? PageTemplate.Content,
+      problem: undefined,
+    };
 
-    /************************************
-    *********** PATCH PROJECT ***********
-    ************************************/
+    const githubEnData: LangData = { ...enData, is404: true };
+    const githubFrData: LangData = { ...frData, is404: true };
 
-    private patchLegacyNode(node: TreeNode): TreeNode {
-        // Check if this is already the new structure
-        if (node.data?.live !== undefined) {
-            return {
-                ...node,
-                children: node.children?.map(child => this.patchLegacyNode(child)) ?? []
-            };
-        }
+    return {
+      ...node,
+      data: {
+        lang: urlLang,
+        path: { en: enPath, fr: frPath },
+        status: {
+          inScope: old.status?.inScope ?? false,
+          isNew: old.status?.isNew ?? false,
+          isMoved: old.status?.isMoved ?? false,
+          isROT: old.status?.isROT ?? false,
+        },
+        task: { en: old.metadata?.task ?? [], fr: old.metadata?.task ?? [] },
+        visits: { en: old.metadata?.visits ?? -1, fr: old.metadata?.visits ?? -1 },
+        vanities: { en: [], fr: [] },
+        live: { en: enData, fr: frData },
+        baseline: { en: { ...githubEnData }, fr: { ...githubFrData } },
+        prototype: { en: { ...githubEnData }, fr: { ...githubFrData } },
+        metadataReview: old.metadataReview,
+        notes: { issue: old.notes?.problem, solution: old.notes?.solution },
+        repoType: 'github',
+        isContainer: old.status?.isContainer ?? false,
+        isCrawled: old.status?.isCrawled ?? false,
+      },
+      children: node.children?.map((child) => this.patchLegacyNode(child)) ?? [],
+    };
+  }
 
-        const old = node.data as ProjectTreeNodeData;
-        const urlLang = (old.url?.includes('/en/') || old.url?.includes('/en.html')) ? 'en' : 'fr';
-        const oppUrl = old.metadata?.oppUrl;
-        const enUrl = urlLang === 'en' ? old.url : oppUrl;
-        const frUrl = urlLang === 'fr' ? old.url : oppUrl;
-        const enPath = enUrl ? this.fetchService.generatePath(enUrl) : undefined;
-        const frPath = frUrl ? this.fetchService.generatePath(frUrl) : undefined;
-
-        const enData: LangData = {
-            h1: urlLang === 'en' ? old.h1 : old.metadata?.oppTitle ?? '',
-            doubleH1: urlLang === 'en' ? old.doubleH1 : old.metadata?.oppSectionTitle,
-            contentHash: undefined,
-            lastChecked: undefined,
-            githubSha: undefined,
-            title: old.metadata?.title ?? '',
-            description: old.metadata?.description ?? '',
-            keywords: old.metadata?.keywords ?? '',
-            is404: old.status?.isNew ?? false,
-            isOrphan: old.status?.isOrphan ?? false,
-            noindex: old.status?.noindexEN === true,
-            isArchived: old.status?.archiveStatus === 'archived',
-            linksToPortal: old.status?.linksToPortal ?? false,
-            hasChatbot: false,
-            owner: old.metadata?.owner,
-            email: old.metadata?.email,
-            lastPublished: old.metadata?.lastPublished instanceof Date
-                ? old.metadata.lastPublished.toISOString()
-                : old.metadata?.lastPublished,
-            lastModified: old.metadata?.lastModified instanceof Date
-                ? old.metadata.lastModified.toISOString()
-                : old.metadata?.lastModified,
-            parentPath: old.originalParent ? this.fetchService.generatePath(old.originalParent) : undefined,
-            wordCount: old.metadata?.wordCount ?? -1,
-            linkCount: -1,
-            fleschKincaid: -1,
-            gunningFog: -1,
-            phoneNumbers: [],
-            template: old.metadata?.template ?? PageTemplate.Content,
-            problem: undefined,
-        };
-
-        const frData: LangData = {
-            h1: urlLang === 'fr' ? old.h1 : old.metadata?.oppTitle ?? '',
-            doubleH1: urlLang === 'fr' ? old.doubleH1 : old.metadata?.oppSectionTitle,
-            contentHash: undefined,
-            lastChecked: undefined,
-            githubSha: undefined,
-            title: old.metadata?.titleFR ?? '',
-            description: old.metadata?.descriptionFR ?? '',
-            keywords: old.metadata?.keywordsFR ?? '',
-            is404: old.status?.isNew ?? false,
-            isOrphan: old.status?.isOrphan ?? false,
-            noindex: old.status?.noindexFR === true,
-            isArchived: old.status?.archiveStatus === 'archived',
-            linksToPortal: old.status?.linksToPortal ?? false,
-            hasChatbot: false,
-            owner: old.metadata?.owner,
-            email: old.metadata?.email,
-            lastPublished: old.metadata?.lastPublished instanceof Date
-                ? old.metadata.lastPublished.toISOString()
-                : old.metadata?.lastPublished,
-            lastModified: old.metadata?.lastModified instanceof Date
-                ? old.metadata.lastModified.toISOString()
-                : old.metadata?.lastModified,
-            parentPath: old.originalParent ? this.fetchService.generatePath(old.originalParent) : undefined,
-            wordCount: old.metadata?.wordCount ?? -1,
-            linkCount: -1,
-            fleschKincaid: -1,
-            gunningFog: -1,
-            phoneNumbers: [],
-            template: old.metadata?.template ?? PageTemplate.Content,
-            problem: undefined,
-        };
-
-        const githubEnData: LangData = { ...enData, is404: true, };
-        const githubFrData: LangData = { ...frData, is404: true, };
-
-        return {
-            ...node,
-            data: {
-                lang: urlLang,
-                path: { en: enPath, fr: frPath },
-                status: {
-                    inScope: old.status?.inScope ?? false,
-                    isNew: old.status?.isNew ?? false,
-                    isMoved: old.status?.isMoved ?? false,
-                    isROT: old.status?.isROT ?? false,
-                },
-                task: { en: old.metadata?.task ?? [], fr: old.metadata?.task ?? [] },
-                visits: { en: old.metadata?.visits ?? -1, fr: old.metadata?.visits ?? -1 },
-                vanities: { en: [], fr: [] },
-                live: { en: enData, fr: frData },
-                baseline: { en: { ...githubEnData }, fr: { ...githubFrData } },
-                prototype: { en: { ...githubEnData }, fr: { ...githubFrData } },
-                metadataReview: old.metadataReview,
-                notes: { issue: old.notes?.problem, solution: old.notes?.solution },
-                repoType: 'github',
-                isContainer: old.status?.isContainer ?? false,
-                isCrawled: old.status?.isCrawled ?? false,
-            },
-            children: node.children?.map(child => this.patchLegacyNode(child)) ?? []
-        };
-    }
-
-    private patchLegacyProject(project: Project): Project {
-        if (!project.projectData?.length) return project;
-        return {
-            ...project,
-            projectData: project.projectData.map(node => this.patchLegacyNode(node))
-        };
-    }
+  private patchLegacyProject(project: Project): Project {
+    if (!project.projectData?.length) return project;
+    return {
+      ...project,
+      projectData: project.projectData.map((node) => this.patchLegacyNode(node)),
+    };
+  }
 }

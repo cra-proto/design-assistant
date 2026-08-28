@@ -1,91 +1,89 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { TranslatePipe } from "@ngx-translate/core";
-import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
-import { ProjectStorageService } from '../../../services/storage/project-storage.service';
-import { ProjectStateService } from '../../../services/project-state.service';
-import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { AddUrlsService } from '../../../components/add-urls/add-urls.service';
+import { ProjectStateService } from '../../../services/project-state.service';
+import { ProjectStorageService } from '../../../services/storage/project-storage.service';
 
 @Component({
-    selector: 'aida-import-page',
-    imports: [TranslatePipe, RouterModule, ProgressSpinnerModule],
-    templateUrl: 'import-page.component.html',
-    styles: ``
+  selector: 'aida-import-page',
+  imports: [RouterModule, TranslatePipe, ProgressSpinnerModule],
+  templateUrl: 'import-page.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImportPageComponent implements OnInit {
-    router = inject(Router);
-    route = inject(ActivatedRoute);
-    private projectState = inject(ProjectStateService);
-    private projectStorageService = inject(ProjectStorageService);
-    private addUrlsService = inject(AddUrlsService)
+  router = inject(Router);
+  route = inject(ActivatedRoute);
+  private projectState = inject(ProjectStateService);
+  private projectStorageService = inject(ProjectStorageService);
+  private addUrlsService = inject(AddUrlsService);
 
-    isLoading = false;
+  isLoading = false;
 
-    markForTranslation() {
-        marker('importPage._title');
-    }
+  markForTranslation() {
+    marker('importPage._title');
+  }
 
-    async ngOnInit(): Promise<void> {
-        this.isLoading = true;
+  async ngOnInit(): Promise<void> {
+    this.isLoading = true;
+
+    try {
+      this.route.queryParams.subscribe((params) => {
+        const url = params['url']?.trim();
+        const title = params['title']?.replaceAll('- Canada.ca', '').trim();
+
+        // Check if params exist
+        if (!url) {
+          console.warn('Missing URL parameter. Redirecting to new project.');
+          this.router.navigate(['/new-project']);
+          return;
+        }
 
         try {
-            this.route.queryParams.subscribe(params => {
-                const url = params['url']?.trim();
-                const title = params['title']?.replaceAll("- Canada.ca", "").trim();
-
-                // Check if params exist
-                if (!url) {
-                    console.warn("Missing URL parameter. Redirecting to new project.");
-                    this.router.navigate(['/new-project']);
-                    return;
-                }
-
-                try {
-                    const parsedUrl = new URL(url);
-                    if (parsedUrl.hostname === 'canada.ca' || parsedUrl.hostname === 'www.canada.ca') {
-                        //Add to "Add pages" input
-                        this.addUrlsService.setUrlState({
-                            rawUrls: parsedUrl.href,
-                        });
-                        //Set project name if unnamed
-                        if (title && !this.projectState.getProject().projectName) {
-                            this.projectState.setProjectName(title);
-                        }
-                        //Set highlight signal
-                        this.addUrlsService.setHighlight(true);
-                        this.router.navigate(['/new-project']);
-                        return;
-                    }
-                    else {
-                        const active = this.projectStorageService.getActiveProject();
-                        if (active) {
-                            console.warn("Invalid URL domain. Skipping new project creation and redirecting user to dashboard for previously opened project.")
-                            this.router.navigate(['/dashboard']);
-                            return;
-                        }
-                        else {
-                            console.warn("Invalid URL domain. Redirecting user to create a new project.")
-                            this.router.navigate(['/new-project']);
-                            return;
-                        }
-                    }
-                }
-                catch (urlError) {
-                    // Invalid URL format
-                    console.warn(`Invalid URL format. Redirecting user. ${urlError}`);
-                    this.router.navigate(['/dashboard']);
-                    return;
-                }
+          const parsedUrl = new URL(url);
+          if (parsedUrl.hostname === 'canada.ca' || parsedUrl.hostname === 'www.canada.ca') {
+            //Add to "Add pages" input
+            this.addUrlsService.setUrlState({
+              rawUrls: parsedUrl.href,
             });
-        }
-        catch (error) {
-            console.error(error);
+            //Set project name if unnamed
+            if (title && !this.projectState.getProject().projectName) {
+              this.projectState.setProjectName(title);
+            }
+            //Set highlight signal
+            this.addUrlsService.setHighlight(true);
             this.router.navigate(['/new-project']);
             return;
+          } else {
+            const active = this.projectStorageService.getActiveProject();
+            if (active) {
+              console.warn('Invalid URL domain. Skipping new project creation and redirecting user to dashboard for previously opened project.');
+              this.router.navigate(['/dashboard']);
+              return;
+            } else {
+              console.warn('Invalid URL domain. Redirecting user to create a new project.');
+              this.router.navigate(['/new-project']);
+              return;
+            }
+          }
+        } catch (urlError) {
+          // Invalid URL format
+          console.warn(`Invalid URL format. Redirecting user. ${urlError}`);
+          this.router.navigate(['/dashboard']);
+          return;
         }
-        finally { this.isLoading = false; }
+      });
+    } catch (error) {
+      console.error(error);
+      this.router.navigate(['/new-project']);
+      return;
+    } finally {
+      this.isLoading = false;
     }
+  }
 }

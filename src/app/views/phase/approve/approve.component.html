@@ -1,0 +1,32 @@
+@if (breadcrumb()) {
+  <!--Breadcrumb-->
+  <p-breadcrumb [model]="breadcrumbs">
+    <ng-template let-item pTemplate="item">
+      @if (item.route) {
+        <a [routerLink]="item.route" class="p-menuitem-link">{{ item.label | translate }}</a>
+      } @else {
+        <span class="p-menuitem-text">{{ item.label | translate }}</span>
+      }
+    </ng-template>
+  </p-breadcrumb>
+  <h1>{{ ProjectPhase.Approve | translate }}</h1>
+} @else {
+  <h2>{{ ProjectPhase.Approve | translate }}</h2>
+}
+
+<!--Intro-->
+<p>{{ ProjectPhase.Approve + '.description' | translate }}{{ ProjectPhase.Approve + '.description2' | translate }}</p>
+
+<!--Doormats-->
+<div class="grid py-2 px-4 lg:px-6">
+  <ng-container *ngTemplateOutlet="doormat; context: { path: 'problems', title: ('problems._nav' | translate), description: ('problems.description' | translate) }" />
+  <ng-container *ngTemplateOutlet="doormat; context: { path: 'inventory', title: ('inventory._nav' | translate), description: ('inventory.description' | translate) }" />
+</div>
+
+<!--Doormat template-->
+<ng-template #doormat let-door="title" let-doormat="description" let-path="path">
+  <div class="col-12 md:col-6 lg:col-4">
+    <a [routerLink]="'/' + path" class="text-xl font-semibold">{{ door }}</a>
+    <p class="text-color-secondary mt-2">{{ doormat }}</p>
+  </div>
+</ng-template>

@@ -1,43 +1,35 @@
-import { Component, inject, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from "@ngx-translate/core";
+
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { PasswordModule } from 'primeng/password';
 import { TooltipModule } from 'primeng/tooltip';
-import { DialogModule } from 'primeng/dialog';
 
 import { ExportGitHubService } from '../../../services/github/export-github.service';
+
 import { environment } from '../../../../environments/environment';
 
 @Component({
-    selector: 'aida-pat',
-    imports: [TranslatePipe, FormsModule,
-        ButtonModule, IftaLabelModule, PasswordModule, TooltipModule, DialogModule],
-    templateUrl: './pat.component.html',
-    styles: ``
+  selector: 'aida-pat',
+  imports: [FormsModule, TranslatePipe, ButtonModule, DialogModule, IftaLabelModule, PasswordModule, TooltipModule],
+  templateUrl: './pat.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PatComponent {
-    public exportGitHubService = inject(ExportGitHubService)
+  private readonly exportGitHubService = inject(ExportGitHubService);
 
-    @Input() validateOnBlur = false;
+  protected get pat(): string {
+    return this.exportGitHubService.pat;
+  }
 
-    get pat(): string {
-        return this.exportGitHubService.pat;
-    }
+  protected set pat(value: string) {
+    this.exportGitHubService.pat = value;
+  }
 
-    set pat(value: string) {
-        this.exportGitHubService.pat = value;
-    }
-
-    showHelp = false;
-    defaultOrg = environment.defaultOrg;
-
-    async onPatBlur() {
-        console.log("RUNNING BLUR")
-        if (this.validateOnBlur) {
-            //await this.exportGitHubService.validatePAT();
-        }
-    }
+  protected showHelp = false;
+  protected readonly defaultOrg = environment.defaultOrg;
 }

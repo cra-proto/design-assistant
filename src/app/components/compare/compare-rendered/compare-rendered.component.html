@@ -1,0 +1,123 @@
+<div class="flex flex-column text-color-secondary max-w-max">
+  <!--View options-->
+  <label class="mb-1 font-semibold block" for="views'">{{ 'common.view' | translate }}</label>
+  <div id="views" class="flex flex-row gap-3 my-1" role="radiogroup">
+    @for (view of webViewOptions; track view.value) {
+      <div class="field-radiobutton">
+        <p-radiobutton [inputId]="'show_' + view.value" [name]="view.value" [ngModel]="webSelectedView()" [value]="view.value" (ngModelChange)="onWebViewChange($event)" size="large" />
+        <label [for]="'show_' + view.value" class="cursor-pointer font-semibold flex align-items-center gap-1">
+          <i [class]="view.icon"></i>
+          {{ view.label }}
+        </label>
+      </div>
+    }
+  </div>
+  <!--Toolbar options-->
+  <div class="sticky top-0 z-5 p-0 mb-2 flex flex-wrap lg:flex-nowrap justify-content-between gap-5">
+    @if (webSelectedView() === WebViewType.Diff) {
+      <div class="flex flex-row align-items-center gap-2">
+        <div class="flex flex-nowrap align-items-center">
+          <p-button
+            [ariaLabel]="'compare.rendered.prev' | translate"
+            [pTooltip]="'compare.rendered.prev' | translate"
+            (onClick)="prev()"
+            hideDelay="300"
+            icon="pi pi-chevron-left"
+            showDelay="1000"
+            text
+          />
+          <span class="white-space-nowrap">{{ displayCounter }}</span>
+          <p-button
+            [ariaLabel]="'compare.rendered.next' | translate"
+            [pTooltip]="'compare.rendered.next' | translate"
+            (onClick)="next()"
+            hideDelay="300"
+            icon="pi pi-chevron-right"
+            showDelay="1000"
+            text
+          />
+        </div>
+
+        <p-splitbutton
+          [buttonProps]="{ ariaLabel: 'compare.rendered.accept' | translate }"
+          [menuButtonProps]="{ ariaLabel: 'compare.rendered.acceptOptions' | translate }"
+          [model]="acceptItems"
+          [pTooltip]="'compare.rendered.accept' | translate"
+          (onClick)="toolbarAccept()"
+          class="secondary-outline"
+          hideDelay="300"
+          icon="pi pi-check"
+          label="Accept"
+          outlined
+          severity="success"
+          showDelay="1000"
+          size="small"
+          tooltipPosition="top"
+        />
+        <p-splitbutton
+          [buttonProps]="{ ariaLabel: 'compare.rendered.reject' | translate }"
+          [menuButtonProps]="{ ariaLabel: 'compare.rendered.rejectOptions' | translate }"
+          [model]="rejectItems"
+          [pTooltip]="'compare.rendered.reject' | translate"
+          (onClick)="toolbarReject()"
+          class="secondary-outline"
+          hideDelay="300"
+          icon="pi pi-times"
+          label="Reject"
+          outlined
+          severity="danger"
+          showDelay="1000"
+          size="small"
+          tooltipPosition="top"
+        />
+        @if (displayNumHighlighted) {
+          <span class="text-color-secondary pl-1">{{ displayNumHighlighted }}</span>
+        }
+      </div>
+    } @else {
+      <div>
+        <p-togglebutton
+          [(ngModel)]="toggleEdit"
+          [ariaLabel]="'common.editSave' | translate"
+          [offLabel]="'common.edit' | translate"
+          [onLabel]="'common.save' | translate"
+          (onChange)="toolbarToggleEdit(webSelectedView())"
+          offIcon="pi pi-pen-to-square"
+          onIcon="pi pi-save"
+          styleClass="font-bold border-none w-6rem"
+        />
+        <p-togglebutton
+          [(ngModel)]="toggleCopy"
+          [ariaLabel]="'common.copyCode' | translate"
+          [offLabel]="'common.copyCode' | translate"
+          [onLabel]="'common.copied' | translate"
+          (onChange)="toolbarToggleCopy(webSelectedView())"
+          offIcon="pi pi-clipboard"
+          onIcon=""
+          styleClass="font-bold border-none w-9rem"
+        />
+        @if (getUrl()) {
+          <a [href]="getUrl()" class="p-togglebutton border-none no-underline font-bold" rel="noopener noreferrer" target="_blank">
+            <span class="flex flex-row gap-2 align-items-center"><i class="pi pi-external-link"></i>{{ 'common.openNewTab' | translate }}</span>
+          </a>
+        }
+      </div>
+    }
+    <div class="flex flex-wrap justify-content-end align-items-center gap-2 min-w-min">
+      @for (item of legendItems; track item.text) {
+        <div class="flex align-items-center gap-2">
+          <div
+            [ngStyle]="{
+              'background-color': item.style === 'highlight' ? item.colour : 'transparent',
+              border: item.style === 'line' ? '2px ' + (item.lineStyle || 'solid') + ' ' + item.colour : 'none',
+            }"
+            class="legend-box"
+          ></div>
+          <span class="legend-text">{{ item.text | translate }}</span>
+        </div>
+      }
+    </div>
+  </div>
+  <!--Shadow DOM-->
+  <div [ngClass]="webSelectedView()" class="diff-container p-0" #liveContainer></div>
+</div>

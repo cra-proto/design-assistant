@@ -1,33 +1,28 @@
-import { Component, OnInit, inject, effect } from '@angular/core';
-import { RouterOutlet, RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, effect, inject, OnInit } from '@angular/core';
 import { Title } from '@angular/platform-browser';
+import { ActivatedRoute, Router, RouterModule, RouterOutlet } from '@angular/router';
 
-//Template
-import { HeaderComponent } from './template/header.component';
-import { SidebarComponent } from './template/sidebar.component';
-import { FooterComponent } from './template/footer.component';
-import { CustomTitleStrategy } from './common/custom-title-strategy';
-
-//PrimeNG
 import { PrimeNG } from 'primeng/config';
 
-//Services
-import { ProjectStorageService } from './services/storage/project-storage.service';
-import { ProjectStateService } from './services/project-state.service';
-import { ExportGitHubService } from './services/github/export-github.service';
+import { FooterComponent } from './template/footer.component';
+import { HeaderComponent } from './template/header.component';
+import { SidebarComponent } from './template/sidebar.component';
+
 import { CollaboratorService } from './services/github/collaborator.service';
+import { ExportGitHubService } from './services/github/export-github.service';
+import { ProjectStateService } from './services/project-state.service';
 import { CloudStorageService } from './services/storage/cloud-storage.service';
-import { UserSettingsService } from './services/user-settings.service';
+import { ProjectStorageService } from './services/storage/project-storage.service';
 import { UsageService } from './services/usage.service';
+import { UserSettingsService } from './services/user-settings.service';
+
+import { CustomTitleStrategy } from './common/custom-title-strategy';
 
 @Component({
   selector: 'aida-root',
-  imports: [
-    RouterOutlet, RouterModule,
-    HeaderComponent, SidebarComponent, FooterComponent
-  ],
+  imports: [RouterModule, RouterOutlet, FooterComponent, HeaderComponent, SidebarComponent],
   templateUrl: './app.component.html',
-  styles: ''
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
   CustomTitle = inject(CustomTitleStrategy);
@@ -36,12 +31,12 @@ export class AppComponent implements OnInit {
   router = inject(Router);
   route = inject(ActivatedRoute);
   private projectStorageService = inject(ProjectStorageService);
-  private cloudStorageService = inject(CloudStorageService)
+  private cloudStorageService = inject(CloudStorageService);
   private projectState = inject(ProjectStateService);
   private exportGitHubService = inject(ExportGitHubService);
   private collaboratorService = inject(CollaboratorService);
   private settingsService = inject(UserSettingsService);
-  private usageService = inject(UsageService)
+  private usageService = inject(UsageService);
 
   constructor() {
     // Auto-add current user as collaborator when they sign in
@@ -64,20 +59,20 @@ export class AppComponent implements OnInit {
     this.primeng.ripple.set(true);
 
     // Update settings from url parameter (if present) then remove the param
-    this.route.queryParams.subscribe(params => {
-      const allParams = { ...params }
+    this.route.queryParams.subscribe((params) => {
+      const allParams = { ...params };
 
       // Handle org parameter
       if (params['org'] !== undefined) {
         this.handleStorageParam('myOrg', params['org']);
-        delete allParams['org']
+        delete allParams['org'];
         this.cloudStorageService.loadProjects();
       }
 
       // Handle toolbox parameter
       if (params['toolbox'] !== undefined) {
         this.handleStorageParam('myToolbox', params['toolbox']);
-        delete allParams['toolbox']
+        delete allParams['toolbox'];
         this.settingsService.toolbox.set(localStorage.getItem('myToolbox'));
       }
 
@@ -112,17 +107,16 @@ export class AppComponent implements OnInit {
       const project = await this.projectStorageService.loadProject(active.key, active.storageType);
       if (project) {
         this.projectState.setProject(project); // Update the project state
-        console.log(`Project loaded successfully: ${active.key}`)
+        console.log(`Project loaded successfully: ${active.key}`);
         //Refresh live data if project is missing properties (for patching legacy data)
-        await this.projectState.refreshAll(project.projectData, "live", true);
-        await this.projectState.refreshAll(project.projectData, "baseGH", true, true);
+        await this.projectState.refreshAll(project.projectData, 'live', true);
+        await this.projectState.refreshAll(project.projectData, 'baseGH', true, true);
       } else {
         console.error(`Failed to load project: ${active.key}`); // Show error message
         this.projectStorageService.clearActiveProject();
       }
-    }
-    catch (error) {
-      console.error(`Error loading active project: ${active.key}`, error)
+    } catch (error) {
+      console.error(`Error loading active project: ${active.key}`, error);
       this.projectStorageService.clearActiveProject();
     }
   }

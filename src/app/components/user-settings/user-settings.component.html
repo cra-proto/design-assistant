@@ -1,38 +1,121 @@
 <div class="flex flex-column gap-2">
-    @if(mode==="language" || mode==="all"){
-    <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
-        <span class="text-xs my-1">{{ 'settings.language' | translate }}</span>
-        <p-selectbutton [options]="langOptions" [(ngModel)]="selectedLang"
-                        unselectable="true" optionLabel="label" optionValue="value" class="mb-0">
-            <ng-template pTemplate="item" let-item>
-                {{ item.label | translate }}
-            </ng-template>
+  @if (mode() === 'language' || mode() === 'all') {
+    <div class="flex flex-column border-round p-1 text-color-secondary hover:surface-100 hover:text-primary">
+      <span class="text-xs my-1">{{ 'settings.language' | translate }}</span>
+      <p-selectbutton [(ngModel)]="selectedLang" [options]="langOptions" class="mb-0" optionLabel="label" optionValue="value" unselectable="true">
+        <ng-template let-item pTemplate="item">
+          {{ item.label }}
+        </ng-template>
+      </p-selectbutton>
+    </div>
+  }
+  @if (mode() === 'theme' || mode() === 'all') {
+    <div class="flex flex-column border-round p-1 text-color-secondary hover:surface-100 hover:text-primary">
+      <span class="text-xs my-1">{{ 'settings.theme' | translate }}</span>
+      <div class="flex flex-row gap-2">
+        <p-selectbutton [(ngModel)]="selectedTheme" [options]="themeOptions" (onChange)="changeTheme()" class="mb-0" optionLabel="label" optionValue="value" unselectable="true">
+          <ng-template let-item pTemplate="item">
+            {{ item.label }}
+          </ng-template>
         </p-selectbutton>
-    </div>
-    }
-    @if(mode==="theme" || mode==="all"){
-    <div class="flex flex-column border-round p-1 surface-100 text-color-secondary hover:surface-200 hover:text-primary">
-        <span class="text-xs my-1">{{ 'settings.theme' | translate }}</span>
-        <div class="flex flex-row gap-2">
-            <p-selectbutton [options]="themeOptions" [(ngModel)]="selectedTheme"
-                            unselectable="true" optionLabel="label" optionValue="value" class="mb-0"
-                            (onChange)="changeTheme()">
-                <ng-template pTemplate="item" let-item>
-                    {{ item.label | translate }}
-                </ng-template>
-            </p-selectbutton>
 
-            <p-select [options]="colorSchemes" [(ngModel)]="selectedScheme"
-                      optionLabel="label" optionValue="value" class="mb-0" styleClass="flex-1" appendTo="body"
-                      (onChange)="changeScheme()">
-                <ng-template pTemplate="item" let-item>
-                    {{ item.label | translate }}
-                </ng-template>
-                <ng-template pTemplate="selectedItem" let-selectedItem>
-                    {{ selectedItem.label | translate }}
-                </ng-template>
-            </p-select>
-        </div>
+        <p-select [(ngModel)]="selectedScheme" [options]="colorSchemes" (onChange)="changeScheme()" class="mb-0" class="flex-1" appendTo="body" optionLabel="label" optionValue="value">
+          <ng-template let-item pTemplate="item">
+            {{ item.label }}
+          </ng-template>
+          <ng-template let-selectedItem pTemplate="selectedItem">
+            {{ selectedItem.label }}
+          </ng-template>
+        </p-select>
+      </div>
     </div>
-    }
+  }
+  @if (mode() === 'versions' || mode() === 'all') {
+    <div class="flex flex-column border-round p-1 text-color-secondary hover:surface-100">
+      <p-button
+        [label]="'settings.versions.label' | translate"
+        [pTooltip]="'settings.versions.tooltip' | translate"
+        (click)="showVersionHelp = true"
+        icon="pi pi-question-circle"
+        iconPos="right"
+        severity="secondary"
+        size="small"
+        styleClass="p-0 my-1 hover:text-primary"
+        text
+        tooltipPosition="top"
+        tooltipStyleClass="white-space-nowrap"
+      />
+
+      <div class="flex flex-row gap-2">
+        @for (checkbox of versionOptions; track checkbox.label; let i = $index) {
+          <div class="flex gap-1 align-items-center">
+            <p-checkbox [(ngModel)]="checkbox['value']" [binary]="true" [inputId]="'version' + i" size="large" />
+            <label [for]="'version' + i" class="white-space-nowrap hover:text-primary">{{ checkbox.label }}</label>
+          </div>
+        }
+      </div>
+    </div>
+    <!--Token Help Dialog-->
+    <p-dialog
+      [(visible)]="showVersionHelp"
+      [appendTo]="'body'"
+      [breakpoints]="{ '1199px': '75vw', '575': '90vw' }"
+      [modal]="true"
+      [style]="{ width: '50vw' }"
+      header="{{ 'settings.versions.tooltip' | translate }}"
+    >
+      @for (paragraph of ('settings.versions.help' | translate).split('|'); track paragraph; let first = $first) {
+        <p [class.mt-0]="$first">{{ paragraph }}</p>
+      }
+
+      <div class="flex flex-wrap gap-5">
+        <div>
+          <h2 class="text-lg">{{ 'settings.versions.compareList' | translate }}</h2>
+          <ng-container *ngTemplateOutlet="sourceList; context: { showPreview: true }" />
+        </div>
+        <div>
+          <h2 class="text-lg">{{ 'settings.versions.exportList' | translate }}</h2>
+          <ng-container *ngTemplateOutlet="sourceList; context: { showPreview: false }" />
+        </div>
+      </div>
+      <!--Source list template-->
+      <ng-template #sourceList let-showPreview="showPreview">
+        <ul>
+          <li>{{ 'common.source.live' | translate }}</li>
+          <li [class.line-through]="!settingsService.includeGitHub()">
+            @if (!settingsService.includeGitHub()) {
+              <span class="sr-only"> ({{ 'common.excluded' | translate }})</span>
+            }
+            {{ 'common.source.protoGH' | translate }}
+          </li>
+          <li [class.line-through]="!settingsService.includeGitHub() || !settingsService.includeBaseline()">
+            @if (!settingsService.includeGitHub() || !settingsService.includeBaseline()) {
+              <span class="sr-only"> ({{ 'common.excluded' | translate }})</span>
+            }
+            {{ 'common.source.baseGH' | translate }}
+          </li>
+          <li [class.line-through]="!settingsService.includeLocal()">
+            @if (!settingsService.includeLocal()) {
+              <span class="sr-only"> ({{ 'common.excluded' | translate }})</span>
+            }
+            {{ 'common.source.protoUT' | translate }}
+          </li>
+          <li [class.line-through]="!settingsService.includeLocal() || !settingsService.includeBaseline()">
+            @if (!settingsService.includeLocal() || !settingsService.includeBaseline()) {
+              <span class="sr-only"> ({{ 'common.excluded' | translate }})</span>
+            }
+            {{ 'common.source.baseUT' | translate }}
+          </li>
+          @if (showPreview) {
+            <li [class.line-through]="!settingsService.includePreview()">
+              @if (!settingsService.includePreview()) {
+                <span class="sr-only"> ({{ 'common.excluded' | translate }})</span>
+              }
+              {{ 'common.source.preview' | translate }}
+            </li>
+          }
+        </ul>
+      </ng-template>
+    </p-dialog>
+  }
 </div>

@@ -1,0 +1,70 @@
+<h2 class="text-2xl my-1">{{ 'compare.pageOptions._title' | translate }}</h2>
+<p class="my-1">{{ 'compare.pageOptions.description' | translate }}</p>
+
+<div class="flex flex-column lg:flex-row lg:align-items-center gap-2">
+  <!--Selection-->
+  <div class="flex flex-column text-color-secondary hover:text-primary max-w-max">
+    <span class="text-xs my-1">{{ 'compare.pageOptions.selection' | translate }}</span>
+    <p-iftalabel>
+      <p-select
+        [filter]="true"
+        [loading]="compareService.loading() || compareService.loadingAll()"
+        [ngModel]="compareService.selectedPage()"
+        [options]="pageOptions"
+        (ngModelChange)="onPageSelectionChange($event)"
+        class="w-20rem sm:w-27rem"
+        filterBy="label"
+        inputId="page"
+        loadingIcon="pi pi pi-spin pi-spinner"
+        optionLabel="label"
+        optionValue="path"
+      >
+        <ng-template #item let-page>
+          <div class="flex flex-column">
+            <span class="font-bold -mb-1">{{ page.label }}</span>
+            {{ page.path }}
+          </div>
+        </ng-template></p-select
+      >
+      <label for="page">{{ 'compare.pageOptions.page' | translate }}</label>
+    </p-iftalabel>
+  </div>
+  <!--Versions-->
+  <div class="flex flex-column text-color-secondary hover:text-primary max-w-max">
+    <span class="text-xs my-1">{{ 'compare.pageOptions.versions' | translate }}</span>
+    <div class="flex flex-column sm:flex-row sm:align-content-center gap-1 sm:gap-3 lg:gap-2">
+      <!--Before-->
+      <p-iftalabel>
+        <p-select
+          [loading]="compareService.loading() || compareService.loadingAll() || compareService.loadingBefore()"
+          [ngModel]="compareService.selectedBefore()"
+          [options]="beforeOptions"
+          (ngModelChange)="onBeforeSelectionChange($event)"
+          class="w-20rem sm:w-13rem"
+          inputId="before"
+          loadingIcon="pi pi pi-spin pi-spinner"
+          optionLabel="label"
+          optionValue="value"
+        />
+        <!-- duplicate 'pi' needed on loading icon, p-select strips one out as of 2026-08-13 -->
+        <label for="before">{{ 'common.before' | translate }}</label>
+      </p-iftalabel>
+      <!--After-->
+      <p-iftalabel>
+        <p-select
+          [loading]="compareService.loading() || compareService.loadingAll() || compareService.loadingAfter()"
+          [ngModel]="compareService.selectedAfter()"
+          [options]="afterOptions"
+          (ngModelChange)="onAfterSelectionChange($event)"
+          class="w-20rem sm:w-13rem"
+          inputId="after"
+          loadingIcon="pi pi pi-spin pi-spinner"
+          optionLabel="label"
+          optionValue="value"
+        />
+        <!-- duplicate 'pi' needed on loading icon, p-select strips one out as of 2026-08-13 -->
+        <label for="after">{{ 'common.after' | translate }}</label>
+      </p-iftalabel>
+    </div>
+  </div>
+</div>

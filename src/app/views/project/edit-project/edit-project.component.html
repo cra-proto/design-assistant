@@ -1,138 +1,50 @@
 <h1 id="wb-cont">{{ (hasName ? 'project._nav.edit' : 'project._nav.new') | translate }}</h1>
 
 <!--Messages if user has required actions that affect the app globally-->
-@if (!hasName){
-<p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'project.message.noName' | translate" styleClass="mb-2" />
+@if (!hasName) {
+  <p-message icon="pi pi-info-circle font-bold" severity="info" styleClass="mb-2">
+    {{ 'project.message.noName' | translate }}
+  </p-message>
 }
-@if(!hasRepo){
-<p-message severity="info" icon="pi pi-info-circle font-bold" [text]="'project.message.noRepo' | translate" styleClass="mb-2" />
+@if (!hasRepo) {
+  <p-message icon="pi pi-info-circle font-bold" severity="info" styleClass="mb-2">
+    {{ 'project.message.noRepo' | translate }}
+  </p-message>
 }
 
 <!--Content-->
 <div class="flex flex-column gap-3">
-
-    <!--Row 1-->
-    <div class="flex lg:flex-row flex-column gap-3">
-        <!--Project Card-->
-        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-4 min-w-min">
-            <aida-setup-project />
-        </div>
-        <!--GitHub Card-->
-        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-4 min-w-min">
-            <aida-setup-repo />
-        </div>
-        <!--Collaborators Card-->
-        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-4 min-w-min">
-            <aida-add-collaborators mode="list" />
-        </div>
+  <!--Row 1-->
+  <div class="flex lg:flex-row flex-column gap-3">
+    <!--Project Card-->
+    <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-4 min-w-min">
+      <aida-setup-project />
     </div>
-
-    <!--Row 2-->
-    <div class="flex lg:flex-row flex-column gap-3">
-        <!--Add Pages Card-->
-        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-6 min-w-min">
-            <aida-add-urls />
-        </div>
-        <!--Find Pages Card-->
-        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-6  min-w-min">
-            <aida-find-pages />
-        </div>
+    <!--GitHub Card-->
+    <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-4 min-w-min">
+      <aida-setup-repo />
     </div>
-
-    <!--Row 3-->
-    <!--Current Pages Card-->
-    <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min mb-2">
-        <div class="flex flex-column gap-2 lg:flex-row lg:gap-4 lg:align-items-center">
-            <h2 class="text-2xl my-1">{{'common.viewPages' | translate}}</h2>
-
-            <div class="flex flex-row gap-1">
-                <p-button
-                          [label]="('common.view' | translate) + ' ' + ('project.urls' | translate)"
-                          icon="pi pi-list"
-                          outlined
-                          size="small"
-                          styleClass="secondary-outline w-full min-w-max"
-                          (click)="showUrls = true" />
-                <p-drawer [header]="'common.urls' | translate" [(visible)]="showUrls" position="right" styleClass="w-6">
-                    <aida-project-settings [showLang]="true" [allowBoth]="true" [showScope]="true" [showSource]="true" [allowPreview]="true" [showDisplay]="true">
-                        <p-button icon="pi pi-copy" outlined styleClass="secondary-outline white-space-nowrap" size="small"
-                                  (onClick)="copyToClipboard(projectCache.selectedLang())"
-                                  [label]="'common.copyUrls' | translate" />
-                    </aida-project-settings>
-                    @if(projectCache.selectedLang() === 'both'){
-                    <p-table [value]="pairedPagesForTable()">
-                        <ng-template #header>
-                            <tr>
-                                <th>{{'common.language.english' | translate}}
-                                    <p-button icon="pi pi-copy" text rounded
-                                              (onClick)="copyToClipboard('en')"
-                                              [pTooltip]="'common.copyEnglish' | translate" tooltipPosition="top" />
-                                </th>
-                                <th>{{'common.language.french' | translate}}
-                                    <p-button icon="pi pi-copy" text rounded
-                                              (onClick)="copyToClipboard('fr')"
-                                              [pTooltip]="'common.copyFrench' | translate" tooltipPosition="top" />
-                                </th>
-                            </tr>
-                        </ng-template>
-                        <ng-template #body let-pair>
-                            <tr>
-                                <td>@if (projectCache.selectedDisplay() === 'url') {
-                                    {{ pair.en.url }}
-                                    } @else {
-                                    <a [href]="pair.en.url" target="_blank">{{ pair.en.label }}</a>
-                                    }
-                                </td>
-                                <td>
-                                    @if (projectCache.selectedDisplay() === 'url') {
-                                    {{ pair.fr.url }}
-                                    } @else {
-                                    <a [href]="pair.fr.url" target="_blank">{{ pair.fr.label }}</a>
-                                    }
-                                </td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
-                    }
-                    @else {
-                    <h3>{{ projectCache.selectedLang() === 'en' ? ('common.language.english' | translate) : ('common.language.french' | translate)}}</h3>
-                    <ul>
-                        @for(url of singlePagesForList(); track url.url){
-                        <li>
-                            @if (projectCache.selectedDisplay() === 'url') {
-                            {{url.url}}
-                            } @else {
-                            <a [href]="url.url" target="_blank">{{ url.label }}</a>
-                            }
-                        </li>
-                        }
-                    </ul>
-                    }
-                </p-drawer>
-                <p-button
-                          [label]="('common.view' | translate) + ' ' + ('iaDiagram._title' | translate)"
-                          icon="pi pi-sitemap"
-                          outlined
-                          size="small"
-                          styleClass="secondary-outline w-full min-w-max"
-                          (click)="iaDiagram.openDiagram()" />
-                <p-button
-                          [label]="'inventory._title' | translate"
-                          icon="pi pi-list-check"
-                          outlined
-                          size="small"
-                          styleClass="secondary-outline w-full min-w-max"
-                          routerLink="/inventory" />
-
-            </div>
-
-            <div class="flex flex-row gap-1 lg:justify-content-center lg:align-items-center">
-                <i class="pi pi-copy text-primary text-5xl"></i>
-                <div class="flex flex-column">
-                    <p class="my-0 font-bold text-xl">{{inScopePageCount()}}</p>
-                    <p class="my-0 text-sm lowercase">{{'common.pages' | translate}}</p>
-                </div>
-            </div>
-
-        </div>
+    <!--Collaborators Card-->
+    <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-4 min-w-min">
+      <aida-add-collaborators mode="list" />
     </div>
+  </div>
+
+  <!--Row 2-->
+  <div class="flex lg:flex-row flex-column gap-3">
+    <!--Add Pages Card-->
+    <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-6 min-w-min">
+      <aida-add-urls />
+    </div>
+    <!--Find Pages Card-->
+    <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-6 min-w-min">
+      <aida-find-pages />
+    </div>
+  </div>
+
+  <!--Row 3-->
+  <!--Current Pages Card-->
+  <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min mb-2">
+    <aida-view-pages />
+  </div>
+</div>

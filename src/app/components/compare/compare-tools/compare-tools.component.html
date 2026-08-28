@@ -1,0 +1,71 @@
+<div class="flex flex-row justify-content-between">
+  <div>
+    <h2 class="text-2xl my-1">{{ 'compare.tools._title' | translate }}</h2>
+    <p class="my-1">{{ 'compare.tools.description' | translate }}</p>
+  </div>
+  <!-- Secondary task buttons -->
+  <div class="mt-0 mb-2 flex flex-row lg:flex-column gap-2">
+    <p-button [label]="'common.options' | translate" (onClick)="menu.toggle($event)" icon="pi pi-ellipsis-v" iconPos="right" outlined styleClass="secondary-outline w-full min-w-max" />
+  </div>
+</div>
+<div class="flex flex-row align-items-center gap-2 mt-2">
+  <p-button [label]="'compare.aiOptions.send' | translate" (onClick)="compareAiService.sendToAI()" icon="pi pi pi-sparkles" severity="primary" styleClass="w-full min-w-max" />
+  <p-button [label]="'compare.aiOptions._title' | translate" (onClick)="toggleAiDrawer()" icon="pi pi pi-bars" severity="info" styleClass="w-full min-w-max" />
+  <!--GRADE LEVEL-->
+  <div class="flex flex-row align-items-center gap-2">
+    <i class="pi pi-book text-primary text-5xl"></i>
+    <div>
+      <p class="text-sm text-600 my-1">{{ 'common.readability.gradeLevel' | translate }}</p>
+      <p class="text-xl font-bold my-0">
+        <span [ngClass]="readabilityAfter < 8 ? 'text-green-500' : readabilityAfter < 9 ? 'text-color' : readabilityAfter < 10 ? 'text-orange-500' : 'text-red-500'">
+          @if (readabilityAfter > 0) {
+            {{ readabilityAfter | number: '1.1-2' }}
+          } @else {
+            <i class="pi pi-minus text-lg"></i>
+          }
+        </span>
+        (<span [ngClass]="readabilityChange > 0 ? 'text-red-500' : 'text-green-500'"
+          >{{ readabilityChange > 0 ? '+' : '' }}{{ readabilityChange | number: '1.1-1' }}<i [ngClass]="readabilityChange > 0 ? 'pi pi-arrow-up text-lg' : 'pi pi-arrow-down text-lg'"></i></span
+        >)
+      </p>
+    </div>
+  </div>
+</div>
+
+<!--TOAST MESSAGES-->
+<p-toast />
+
+<!--DROPDOWN MENU-->
+<p-menu [model]="items" [popup]="true" #menu>
+  <ng-template #submenuheader let-item>
+    <span class="text-primary font-bold">{{ item.label | translate }}</span>
+    @if (item.Tooltip) {
+      <p class="text-gray-400 font-light text-xs my-0">{{ item.Tooltip | translate }}</p>
+    }
+  </ng-template>
+  <ng-template #item let-item>
+    <a class="p-menu-item-link">
+      <i [class]="item.icon"></i>
+      <span>{{ item.label | translate }}</span>
+    </a>
+  </ng-template>
+  <ng-template #end>
+    <span class="p-menu-item-link py-0">
+      <span class="text-primary font-bold">{{ 'common.versions' | translate }}</span>
+    </span>
+    <span class="p-menu-item-link py-0 hover:surface-100">
+      <aida-user-settings mode="versions" />
+    </span>
+  </ng-template>
+</p-menu>
+
+<!--DRAWER-->
+<p-drawer
+  [header]="'compare.aiOptions._title' | translate"
+  [style]="{ width: '30rem' }"
+  [visible]="compareService.aiDrawerVisible()"
+  (visibleChange)="compareService.aiDrawerVisible.set($event)"
+  position="right"
+>
+  <aida-compare-ai-options />
+</p-drawer>

@@ -1,37 +1,34 @@
-import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from "@ngx-translate/core";
 import { RouterLink } from '@angular/router';
 
-//PrimeNG modules
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
+import { TranslatePipe } from '@ngx-translate/core';
+
 import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { AvatarModule } from 'primeng/avatar';
-import { AvatarGroupModule } from 'primeng/avatargroup';
-import { TooltipModule } from 'primeng/tooltip';
-import { ProgressBarModule } from 'primeng/progressbar';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DividerModule } from 'primeng/divider';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { TagModule } from 'primeng/tag';
 
-//Custom services and data interfaces
-import { ProjectStateService } from '../../../services/project-state.service';
-import { ProjectPhase, PhaseStatus, CurrentPhase, GitHubRepo } from '../../../common/data.model';
-import { ExportProjectComponent } from '../../../components/export-project/export-project.component';
 import { AddCollaboratorsComponent } from '../../../components/add-collaborators/add-collaborators.component';
+import { ExportProjectComponent } from '../../../components/export-project/export-project.component';
+
+import { ProjectStateService } from '../../../services/project-state.service';
+
 import { environment } from '../../../../environments/environment';
+import { CurrentPhase, GitHubRepo, PhaseStatus, ProjectPhase } from '../../../common/data.model';
 
 @Component({
   selector: 'aida-dashboard',
-  imports: [CommonModule, FormsModule, TranslatePipe, RouterLink,
-    ExportProjectComponent, AddCollaboratorsComponent,
-    ButtonModule, TagModule, AvatarModule, AvatarGroupModule, TooltipModule, ProgressBarModule, CheckboxModule, DividerModule],
+  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, ButtonModule, CheckboxModule, DividerModule, ProgressBarModule, TagModule, AddCollaboratorsComponent, ExportProjectComponent],
   templateUrl: './dashboard.component.html',
-  styles: ``
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent {
   private projectState = inject(ProjectStateService);
-  production = environment.production
+  production = environment.production;
 
   get projectData() {
     return this.projectState.getProject();
@@ -39,12 +36,7 @@ export class DashboardComponent {
 
   //Project phase
   ProjectPhase = ProjectPhase;
-  displayedPhases = [
-    ProjectPhase.Discover,
-    ProjectPhase.Assess,
-    ProjectPhase.Design,
-    ProjectPhase.Approve
-  ];
+  displayedPhases = [ProjectPhase.Discover, ProjectPhase.Assess, ProjectPhase.Design, ProjectPhase.Approve];
 
   //Project status
   PhaseStatus = PhaseStatus;
@@ -55,17 +47,17 @@ export class DashboardComponent {
 
     // Draft = all pending
     if (currentPhase === ProjectPhase.Draft) {
-      return this.displayedPhases.map(phase => ({
+      return this.displayedPhases.map((phase) => ({
         name: phase,
-        status: PhaseStatus.Pending
+        status: PhaseStatus.Pending,
       }));
     }
 
     // Complete = all complete
     if (currentPhase === ProjectPhase.Complete) {
-      return this.displayedPhases.map(phase => ({
+      return this.displayedPhases.map((phase) => ({
         name: phase,
-        status: PhaseStatus.Complete
+        status: PhaseStatus.Complete,
       }));
     }
 
@@ -74,10 +66,7 @@ export class DashboardComponent {
 
     return this.displayedPhases.map((phase, index) => ({
       name: phase,
-      status:
-        index < currentIndex ? PhaseStatus.Complete :
-          index === currentIndex ? PhaseStatus.Current :
-            PhaseStatus.Pending
+      status: index < currentIndex ? PhaseStatus.Complete : index === currentIndex ? PhaseStatus.Current : PhaseStatus.Pending,
     }));
   }
 
@@ -101,7 +90,7 @@ export class DashboardComponent {
 
   //Open GitHub repo in new tab
   openRepo(github: GitHubRepo, type: 'prototype' | 'baseline' = 'prototype') {
-    const url = "https://github.com/" + github.owner + "/" + (type === 'prototype' ? github.repo : github.repo + "-baseline");
+    const url = 'https://github.com/' + github.owner + '/' + (type === 'prototype' ? github.repo : github.repo + '-baseline');
     window.open(url, '_blank');
   }
 
@@ -111,20 +100,34 @@ export class DashboardComponent {
     }
   }
 
-  //Mock data for now
-  selectedItems: { key: string, value: string }[] = [];
+  markForTranslation() {
+    marker('project.phase.discover.bullets');
+    marker('project.phase.discover.description');
+    marker('project.phase.discover.description2');
+    marker('project.phase.assess.bullets');
+    marker('project.phase.assess.description');
+    marker('project.phase.assess.description2');
+    marker('project.phase.design.bullets');
+    marker('project.phase.design.description');
+    marker('project.phase.design.description2');
+    marker('project.phase.approve.bullets');
+    marker('project.phase.approve.description');
+    marker('project.phase.approve.description2');
+  }
 
-  checklist: { key: string, value: string }[] = [
+  //Mock data for now
+  selectedItems: { key: string; value: string }[] = [];
+
+  checklist: { key: string; value: string }[] = [
     { key: 'Metadata', value: 'meta' },
     { key: 'Translations', value: 'translate' },
     { key: 'Validation', value: 'valid' },
     { key: 'Approval', value: 'approve' },
   ];
 
-  assessmentStats = { issuesFound: 23 };
+  assessmentStats = { issuesFound: 24 };
   approvalProgress = 2;
   problemProgress = 15;
   pageProgress = 10;
   //End mock data
 }
-

@@ -1,0 +1,9 @@
+.angular
+.github
+.vscode
+backend/
+frontend/
+dist/
+node_modules/
+public/
+scripts/

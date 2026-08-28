@@ -1,74 +1,61 @@
-<h3>{{'findPages.task._title' | translate}}</h3>
-<p>{{'findPages.task.description' | translate}}</p>
+<h3>{{ 'findPages.task._title' | translate }}</h3>
+<p>{{ 'findPages.task.description' | translate }}</p>
 <!-- Task Selection Section -->
 <p-iftalabel>
-    <p-autoComplete
-                    id="task-autocomplete"
-                    [(ngModel)]="selectedTasks"
-                    [suggestions]="filteredTasks()"
-                    (completeMethod)="filterTasks($event)"
-                    (onSelect)="onTaskSelect($event)"
-                    (onUnselect)="onTaskUnselect($event)"
-                    (onFocus)="onAutocompleteInteraction()"
-                    [dropdown]="airtableService.hasData()"
-                    [virtualScroll]=true
-                    [virtualScrollItemSize]="40"
-                    optionLabel="label"
-                    [placeholder]="airtableService.isLoading() ? 
-     ('findPages.task.loadingTasks' | translate) : 
-     ('findPages.task.searchPlaceholder' | translate)"
-                    styleClass="w-full"
-                    [disabled]="airtableService.isLoading()"
-                    [showEmptyMessage]=true
-                    [emptyMessage]="'findPages.task.noTasksFound' | translate"
-                    fluid
-                    [multiple]="true">
-        <ng-template let-task #item>
-            <div class="flex align-items-center gap-2">
-                <p-tag
-                       [value]="task.urlCount.toString()"
-                       [severity]="task.urlCount === 0 ? 'danger' : 'success'"
-                       [rounded]="true" />
-                <span>{{ task.label }}</span>
-            </div>
-        </ng-template>
-        <ng-template let-selected #selectedItem>{{selected.label}}</ng-template>
-    </p-autoComplete>
-    <label for="task-autocomplete">{{ 'findPages.task.selectTask' | translate }}</label>
+  <p-autocomplete
+    id="task-autocomplete"
+    [(ngModel)]="selectedTasks"
+    [disabled]="airtableService.isLoading()"
+    [dropdown]="airtableService.hasData()"
+    [emptyMessage]="'findPages.task.noTasksFound' | translate"
+    [multiple]="true"
+    [placeholder]="airtableService.isLoading() ? ('findPages.task.loadingTasks' | translate) : ('findPages.task.searchPlaceholder' | translate)"
+    [showEmptyMessage]="true"
+    [suggestions]="filteredTasks()"
+    [virtualScroll]="true"
+    [virtualScrollItemSize]="40"
+    (completeMethod)="filterTasks($event)"
+    (onFocus)="onAutocompleteInteraction()"
+    (onSelect)="onTaskSelect($event)"
+    (onUnselect)="onTaskUnselect($event)"
+    fluid
+    optionLabel="label"
+    styleClass="w-full"
+  >
+    <ng-template #item let-task>
+      <div class="flex align-items-center gap-2">
+        <p-tag [rounded]="true" [severity]="task.urlCount === 0 ? 'danger' : 'success'" [value]="task.urlCount.toString()" />
+        <span>{{ task.label }}</span>
+      </div>
+    </ng-template>
+    <ng-template #selectedItem let-selected>{{ selected.label }}</ng-template>
+  </p-autocomplete>
+  <label for="task-autocomplete">{{ 'findPages.task.selectTask' | translate }}</label>
 </p-iftalabel>
 
 <!-- Loading indicator -->
-@if(airtableService.isLoading()) {
-<div class="mt-2 flex align-items-center gap-2">
-    <p-progressSpinner
-                       styleClass="w-2rem h-2rem"
-                       strokeWidth="4" />
+@if (airtableService.isLoading()) {
+  <div class="mt-2 flex align-items-center gap-2">
+    <p-progressspinner strokeWidth="4" styleClass="w-2rem h-2rem" />
     <span>{{ 'findPages.task.loadingTasks' | translate }}</span>
-</div>
+  </div>
 }
 
 <!-- URLs List Section -->
-@if(taskUrls().length > 0) {
-<h3 class="text-xl my-2">{{'findPages.task.urls' | translate}}</h3>
-<div class="flex flex-row align-items-center gap-2">
-    <p-button
-              [label]="'findPages.task.addToProject' | translate"
-              icon="pi pi-plus"
-              (onClick)="addUrlsToProject()" />
+@if (taskUrls().length > 0) {
+  <h3 class="text-xl my-2">{{ 'findPages.task.urls' | translate }}</h3>
+  <div class="flex flex-row align-items-center gap-2">
+    <p-button [label]="'findPages.task.addToProject' | translate" (onClick)="addUrlsToProject()" icon="pi pi-plus" />
     <p class="text-color-secondary">{{ 'findPages.task.addToProject.description' | translate: { number: selectedTaskUrlsCount() } }}</p>
-</div>
-<div class="flex flex-column gap-2 max-h-64 overflow-y-auto border border-color-border p-2 rounded">
-    @for(item of taskUrls(); track item.url; let i = $index) {
-    <div class="flex align-items-center gap-2">
-        <p-checkbox
-                    [(ngModel)]="taskUrls()[i].selected"
-                    (ngModelChange)="toggleTaskUrl(i, $event)"
-                    [inputId]="'url-' + i"
-                    [binary]="true"
-                    size="large" />
-        <label [for]="'url-' + i" class="break-all">{{item.url}}</label>
-    </div>
+  </div>
+  <div class="flex flex-column gap-2 max-h-64 overflow-y-auto border border-color-border p-2 rounded">
+    @for (item of taskUrls(); track item.url; let i = $index) {
+      <div class="flex align-items-center gap-2">
+        <p-checkbox [(ngModel)]="taskUrls()[i].selected" [binary]="true" [inputId]="'url-' + i" (ngModelChange)="toggleTaskUrl(i, $event)" size="large" />
+        <label [for]="'url-' + i" class="break-all">{{ item.url }}</label>
+      </div>
     }
-</div>
+  </div>
+} @else if (selectedTaskIds().length > 0) {
+  <p>{{ 'findPages.task.noUrls' | translate }}</p>
 }
-@else if(selectedTaskIds().length > 0) { <p>{{ 'findPages.task.noUrls' | translate }}</p> }

@@ -1,17 +1,27 @@
 <div class="flex flex-row">
-    <p-iftalabel class="w-full">
-        <p-password feedback="false" toggleMask id="token" [(ngModel)]="pat" pSize="small" fluid styleClass="w-full"
-                    (onBlur)="onPatBlur()" />
-        <label for="token">{{ 'github.connect.pat.token' | translate }}</label>
-    </p-iftalabel>
-    <p-button icon="pi pi-question-circle" [pTooltip]="'github.connect.pat.token.tooltip' | translate" tooltipPosition="top" severity="info" outlined size="large" styleClass="min-h-full surface-ground secondary-outline" (click)="showHelp = true" />
+  <p-iftalabel class="w-full">
+    <p-password id="token" [(ngModel)]="pat" feedback="false" fluid pSize="small" styleClass="w-full" toggleMask />
+    <label for="token">{{ 'github.connect.pat.token' | translate }}</label>
+  </p-iftalabel>
+  <p-button
+    [pTooltip]="'github.connect.pat.token.tooltip' | translate"
+    (click)="showHelp = true"
+    icon="pi pi-question-circle"
+    outlined
+    severity="info"
+    size="large"
+    styleClass="min-h-full surface-ground secondary-outline"
+    tooltipPosition="top"
+  />
 </div>
 <!--Token Help Dialog-->
-<p-dialog [appendTo]="'body'"
-          header="{{ 'github.connect.pat.token.helpHeader' | translate }}"
-          [(visible)]="showHelp"
-          [modal]="true"
-          [style]="{width: '50vw'}"
-          [breakpoints]="{'1199px': '75vw', '575': '90vw'}">
-    <div class="text-sm" [innerHTML]="('github.connect.pat.token.help'| translate: {defaultOrg: defaultOrg})"></div>
+<p-dialog
+  [(visible)]="showHelp"
+  [appendTo]="'body'"
+  [breakpoints]="{ '1199px': '75vw', '575': '90vw' }"
+  [modal]="true"
+  [style]="{ width: '50vw' }"
+  header="{{ 'github.connect.pat.token.helpHeader' | translate }}"
+>
+  <div [innerHTML]="'github.connect.pat.token.help' | translate: { defaultOrg: defaultOrg }" class="text-sm"></div>
 </p-dialog>

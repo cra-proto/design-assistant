@@ -1,10 +1,10 @@
 .ia-label {
-    white-space: pre-line;
-    display: inline-block;
-    color: var(--text-color) !important;
-    text-decoration: none !important;
+  white-space: pre-line;
+  display: inline-block;
+  color: var(--text-color) !important;
+  text-decoration: none !important;
 }
 
 ::ng-deep .p-tree-node-droppoint {
-    min-height: 0.5rem !important;
+  min-height: 0.5rem !important;
 }

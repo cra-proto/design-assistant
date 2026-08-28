@@ -1,30 +1,30 @@
-<h2 class="text-2xl my-1">{{'project.setup._title' | translate}}</h2>
+<h2 class="text-2xl my-1">{{ 'project.setup._title' | translate }}</h2>
 <div class="flex flex-column gap-2">
-    <!--Name-->
-    <p-iftalabel>
-        <input type="text" id="name" pInputText [(ngModel)]="projectName" fluid (blur)="updateName()" [pKeyFilter]="nameFilter" />
-        <label for="name">{{'project.setup.label.name' | translate}}</label>
-    </p-iftalabel>
-    <!--Phase-->
-    <p-iftalabel>
-        <p-select [options]="phaseOptions" optionValue="value" [(ngModel)]="projectPhase" inputId="phase" styleClass="w-full" fluid>
-            <ng-template #item let-item>
-                {{ item.name | translate }}
-            </ng-template>
-            <ng-template #selectedItem let-item>
-                {{ item.name | translate }}
-            </ng-template>
-        </p-select>
-        <label for="phase">{{'project.setup.label.phase' | translate}}</label>
-    </p-iftalabel>
-    <!--Storage-->
-    <p-selectbutton [options]="storageOptions()" optionValue="value" [(ngModel)]="projectStorage" [unselectable]="true" styleClass="w-full">
-        <ng-template #item let-item>
-            <i [class]="item.icon"></i>
-            <span class="ml-1">{{ item.name | translate }}</span>
-        </ng-template>
-    </p-selectbutton>
-    <p-message severity="info" variant="simple" size="small" icon="pi pi-info-circle">{{ projectStorage === 'local' ?
-        ('project.setup.storage.localWarning' | translate) :
-        ('project.setup.storage.cloudInfo' | translate) }}</p-message>
+  <!--Name-->
+  <p-iftalabel>
+    <input id="name" [(ngModel)]="projectName" [pKeyFilter]="nameFilter" (blur)="updateName()" fluid pInputText type="text" />
+    <label for="name">{{ 'project.setup.label.name' | translate }}</label>
+  </p-iftalabel>
+  <!--Phase-->
+  <p-iftalabel>
+    <p-select [(ngModel)]="projectPhase" [options]="phaseOptions" fluid inputId="phase" optionValue="value" styleClass="w-full">
+      <ng-template #item let-item>
+        {{ item.name | translate }}
+      </ng-template>
+      <ng-template #selectedItem let-item>
+        {{ item.name | translate }}
+      </ng-template>
+    </p-select>
+    <label for="phase">{{ 'project.setup.label.phase' | translate }}</label>
+  </p-iftalabel>
+  <!--Storage-->
+  <p-selectbutton [(ngModel)]="projectStorage" [options]="storageOptions()" [unselectable]="true" optionValue="value" styleClass="w-full">
+    <ng-template #item let-item>
+      <i [class]="item.icon"></i>
+      <span class="ml-1">{{ item.name | translate }}</span>
+    </ng-template>
+  </p-selectbutton>
+  <p-message icon="pi pi-info-circle" severity="info" size="small" variant="simple">{{
+    projectStorage === 'local' ? ('project.setup.storage.localWarning' | translate) : ('project.setup.storage.cloudInfo' | translate)
+  }}</p-message>
 </div>

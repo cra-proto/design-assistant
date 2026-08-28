@@ -1,0 +1,117 @@
+<div class="flex flex-column justify-content-between gap-2 h-full">
+  <div>
+    <p class="mt-0">{{ 'compare.aiOptions.description' | translate }}</p>
+    <p>
+      <strong>{{ 'compare.aiOptions.aiSource' | translate }}</strong> {{ 'common.source.' + compareService.selectedBefore() | translate }}
+    </p>
+    <p-accordion value="1" class="flex flex-column gap-3">
+      <!--TASK OPTIONS-->
+      <p-accordion-panel value="0" class="border-1 border-round-sm border-surface">
+        <p-accordion-header>{{ 'compare.aiOptions.comparison.header' | translate }}</p-accordion-header>
+        <p-accordion-content>
+          <div class="flex flex-row align-items-center">
+            <p class="m-0 text-color-secondary z-2">{{ 'compare.aiOptions.comparison.description' | translate }}</p>
+            <p-button
+              [pTooltip]="'common.help' | translate"
+              (click)="showTaskHelp = true"
+              icon="pi pi-question-circle"
+              rounded
+              severity="secondary"
+              styleClass="p-0 -ml-2 hover:text-primary"
+              text
+              tooltipPosition="top"
+            />
+          </div>
+          @for (task of tasks; track task['value']; let i = $index) {
+            <div class="flex flex-row align-items-center gap-2 mt-2">
+              <p-radiobutton [inputId]="'task' + i" [ngModel]="compareService.selectedTask()" [value]="task['value']" (ngModelChange)="compareService.selectedTask.set($event)" size="large" />
+              <label [for]="'task' + i" class="cursor-pointer font-semibold">{{ task.label }}</label>
+            </div>
+          }
+        </p-accordion-content>
+      </p-accordion-panel>
+      <!--PROMPT OPTIONS-->
+      <p-accordion-panel value="1" class="border-1 border-round-md border-surface">
+        <p-accordion-header>{{ 'compare.aiOptions.prompt.header' | translate }}</p-accordion-header>
+        <p-accordion-content>
+          @if (compareService.selectedTask() === 'prompts') {
+            <p class="m-0 text-color-secondary">{{ 'compare.aiOptions.prompts.description' | translate }}</p>
+            <p-fieldset [legend]="'common.before' | translate">
+              <ng-container *ngTemplateOutlet="prompt; context: { $implicit: 'before' }" />
+            </p-fieldset>
+            <p-fieldset [legend]="'common.after' | translate">
+              <ng-container *ngTemplateOutlet="prompt; context: { $implicit: 'after' }" />
+            </p-fieldset>
+          } @else {
+            <p class="m-0 text-color-secondary">{{ 'compare.aiOptions.prompt.description' | translate }}</p>
+            <ng-container *ngTemplateOutlet="prompt; context: { $implicit: 'after' }" />
+          }
+        </p-accordion-content>
+      </p-accordion-panel>
+      <!--AI OPTIONS-->
+      <p-accordion-panel value="2" class="border-1 border-round-md border-surface">
+        <p-accordion-header>{{ 'compare.aiOptions.model.header' | translate }}</p-accordion-header>
+        <p-accordion-content>
+          @if (compareService.selectedTask() === 'models') {
+            <p class="m-0 text-color-secondary">{{ 'compare.aiOptions.models.description' | translate }}</p>
+            <p-fieldset [legend]="'common.before' | translate">
+              <ng-container *ngTemplateOutlet="model; context: { $implicit: 'before' }" />
+            </p-fieldset>
+            <p-fieldset [legend]="'common.after' | translate">
+              <ng-container *ngTemplateOutlet="model; context: { $implicit: 'after' }" />
+            </p-fieldset>
+          } @else {
+            <p class="m-0 text-color-secondary">{{ 'compare.aiOptions.model.description' | translate }}</p>
+            <ng-container *ngTemplateOutlet="model; context: { $implicit: 'after' }" />
+          }
+        </p-accordion-content>
+      </p-accordion-panel>
+    </p-accordion>
+  </div>
+  <p-button [label]="'compare.aiOptions.send' | translate" (onClick)="compareAiService.sendToAI(); toggleAiDrawer()" icon="pi pi pi-sparkles" severity="primary" styleClass="w-full min-w-max" />
+</div>
+
+<!--AI PROMPT TEMPLATE-->
+<ng-template #prompt let-version>
+  @for (prompt of prompts; track prompt['value']; let i = $index) {
+    <div class="flex flex-row align-items-center gap-2 mt-2">
+      <p-radiobutton [inputId]="'prompt' + version + i" [ngModel]="compareService.selectedModel()" [value]="prompt['value']" (ngModelChange)="compareService.selectedTask.set($event)" size="large" />
+      <label [for]="'prompt' + version + i" class="cursor-pointer font-semibold">{{ prompt.label }}</label>
+    </div>
+  }
+</ng-template>
+
+<!--AI MODEL TEMPLATE-->
+<ng-template #model let-version>
+  <p class="text-color-secondary text-sm mb-0">{{ 'compare.aiOptions.models.free' | translate }}</p>
+  @for (model of freeModels; track model) {
+    <div class="flex flex-row align-items-center gap-2 my-2">
+      <p-radiobutton [inputId]="'model-' + model" [ngModel]="compareService.selectedModel()" [value]="model" (ngModelChange)="compareService.selectedModel.set($event)" size="large" />
+      <label [for]="'model-' + model" class="cursor-pointer font-semibold">{{ model }}</label>
+    </div>
+  }
+  <p class="text-color-secondary text-sm mb-0">{{ 'compare.aiOptions.models.paid' | translate }}</p>
+  @for (model of paidModels; track model.value) {
+    <div class="flex flex-row align-items-center gap-2 mt-2">
+      <p-radiobutton [inputId]="'model-' + model.value" [ngModel]="compareService.selectedModel()" [value]="model.value" (ngModelChange)="compareService.selectedModel.set($event)" />
+      <label [for]="'model-' + model.value" class="cursor-pointer font-semibold">
+        {{ model.value }}
+        <span class="text-color-secondary">({{ model.price }})</span>
+        <span class="bg-red-50 text-orange-500 border-orange-500 border-1 border-round-2xl px-2 ml-1">{{ 'common.paid' | translate }}</span></label
+      >
+    </div>
+  }
+</ng-template>
+
+<p-dialog
+  [(visible)]="showTaskHelp"
+  [appendTo]="'body'"
+  [breakpoints]="{ '1199px': '75vw', '575': '90vw' }"
+  [modal]="true"
+  [style]="{ width: '50vw' }"
+  header="{{ 'compare.aiOptions.comparison.header' | translate }}"
+>
+  @for (paragraph of ('compare.aiOptions.comparison.help' | translate).split('|'); track paragraph; let first = $first) {
+    <p [class.mt-0]="$first" class="text-color-secondary">{{ paragraph }}</p>
+  }
+</p-dialog>

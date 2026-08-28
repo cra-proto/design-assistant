@@ -1,423 +1,604 @@
 <div [class.min-w-min]="projectState.selectedInventoryView === 'table'">
-    <div class="flex flex-row flex-wrap justify-content-between sticky-horizontal">
+  <div class="flex flex-row flex-wrap justify-content-between sticky-horizontal">
+    <div>
+      <h1 id="wb-cont">{{ 'inventory._title' | translate }}</h1>
+      <p>{{ 'inventory.description' | translate }}</p>
+    </div>
+    <!-- Secondary task buttons -->
+    <div class="mt-0 lg:mt-5 mb-2 flex flex-row lg:flex-column gap-2">
+      <p-button
+        [label]="('common.view' | translate) + ' ' + ('iaDiagram.button' | translate)"
+        (click)="iaDiagram.openDiagram()"
+        icon="pi pi-sitemap"
+        outlined
+        size="small"
+        styleClass="secondary-outline w-full min-w-max"
+      />
+      <aida-export-project />
+    </div>
+  </div>
+
+  <div [class.min-w-min]="projectState.selectedInventoryView === 'table'" class="surface-card border-round-lg shadow-2 p-4 mb-3 w-full">
+    <!--Header & Settings-->
+    <div class="flex flex-column lg:flex-row justify-content-between align-items-start sticky-horizontal">
+      <div class="flex flex-column">
+        <h2 class="text-2xl my-1">{{ 'inventory.pages._title' | translate }}</h2>
+        <!--Put a description/instructions here if needed-->
+      </div>
+    </div>
+
+    <div [class.sticky-toolbar-table]="projectState.selectedInventoryView === 'table'" class="sticky-toolbar">
+      <!-- Top toolbar -->
+      <div class="flex flex-row justify-content-between gap-2 h-6rem surface-card">
+        <!-- Top toolbar - View options -->
         <div>
-            <h1 id="wb-cont">{{ 'inventory._title' | translate }}</h1>
-            <p>{{ 'inventory.pages.description' | translate }}</p>
+          <label class="mb-1 font-semibold block" for="views'">{{ 'common.view' | translate }}</label>
+          <div id="views" role="radiogroup">
+            <div class="field-radiobutton">
+              <p-radiobutton value="table" [(ngModel)]="projectState.selectedInventoryView" inputId="viewTable" name="view" />
+              <label for="viewTable">{{ 'inventory.view.table' | translate }}</label>
+            </div>
+            <div class="field-radiobutton">
+              <p-radiobutton value="tree" [(ngModel)]="projectState.selectedInventoryView" inputId="viewTree" name="view" />
+              <label for="viewTree">{{ 'inventory.view.tree' | translate }}</label>
+            </div>
+          </div>
         </div>
-        <!-- Secondary task buttons -->
-        <div class="mt-0 lg:mt-5 mb-2 flex flex-row lg:flex-column gap-2">
-            <p-button [label]="('common.view' | translate) + ' ' + ('iaDiagram._title' | translate)" icon="pi pi-sitemap"
-                      outlined size="small" styleClass="secondary-outline w-full min-w-max"
-                      (click)="iaDiagram.openDiagram()" />
-            <aida-export-project />
+
+        <!-- Top toolbar - Column settings -->
+        @if (projectState.selectedInventoryView === 'table') {
+          <div class="hidden lg:flex flex-column text-color-secondary hover:text-primary max-w-max">
+            <span class="text-xs my-1">{{ 'inventory.columnVis.label' | translate }}</span>
+            <div class="flex flex-row align-content-center gap-2">
+              <!-- Top toolbar - Column settings - Group dropdown -->
+
+              <p-iftalabel>
+                <p-multiselect
+                  [(ngModel)]="selectedGroups"
+                  [maxSelectedLabels]="1"
+                  [options]="groups"
+                  [showHeader]="true"
+                  (onChange)="onGroupSelectionChange()"
+                  class="w-13rem"
+                  inputId="groups"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Show/hide groups"
+                >
+                  <ng-template pTemplate="header">
+                    <div class="px-3 pt-2">
+                      <span class="font-semibold">{{ 'inventory.columnVis.selectGroups' | translate }}</span>
+                    </div>
+                  </ng-template>
+                </p-multiselect>
+                <label for="columns">{{ 'inventory.columnVis.visibleGroups' | translate }}</label>
+              </p-iftalabel>
+
+              <!-- Top toolbar - Column settings - Column dropdown -->
+              <p-iftalabel>
+                <p-multiselect
+                  [(ngModel)]="selectedColumnFields"
+                  [group]="true"
+                  [maxSelectedLabels]="1"
+                  [options]="groupedColumns"
+                  [showHeader]="true"
+                  (onChange)="onColumnSelectionChange()"
+                  class="w-13rem capitalize"
+                  inputId="columns"
+                  optionGroupChildren="items"
+                  optionGroupLabel="label"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Show/hide columns"
+                >
+                  <ng-template pTemplate="header">
+                    <div class="px-3 pt-2">
+                      <span class="font-semibold">{{ 'inventory.columnVis.selectColumns' | translate }}</span>
+                    </div>
+                  </ng-template>
+                </p-multiselect>
+                <label for="columns">{{ 'inventory.columnVis.visibleColumns' | translate }}</label>
+              </p-iftalabel>
+
+              <!-- Top toolbar - Column settings - Reset button -->
+              <div class="flex flex-column h-full gap-1">
+                <p-button [label]="'inventory.columnVis.defaultView' | translate" (onClick)="viewDefault()" class="h-full" outlined size="small" styleClass="h-full w-full secondary-outline p-1" />
+                <p-button [label]="'inventory.columnVis.metadataView' | translate" (onClick)="viewMetadata()" class="h-full" outlined size="small" styleClass="h-full w-full secondary-outline p-1" />
+              </div>
+            </div>
+          </div>
+          <p-button class="flex lg:hidden" icon="pi pi-cog" label="Column settings" severity="secondary" />
+        }
+      </div>
+      <!-- Bulk actions toolbar -->
+      @if (projectState.selectedInventoryView === 'table') {
+        <div class="h-3rm mb-2">
+          <div class="flex flex-row align-items-center gap-2 surface-card">
+            <!-- Bulk actions toolbar - # selected pages -->
+            <p>{{ selectedNodes.length }} pages selected</p>
+
+            <!-- Bulk actions toolbar - Actions -->
+            <p-button
+              [label]="'common.actions' | translate"
+              (onClick)="updateDropdown('actions'); menu.toggle($event)"
+              icon="pi pi-chevron-down"
+              iconPos="right"
+              outlined
+              styleClass="secondary-outline"
+            />
+
+            <!-- Bulk actions toolbar - View -->
+            <p-button
+              [label]="'common.view' | translate"
+              (onClick)="updateDropdown('view'); menu.toggle($event)"
+              icon="pi pi-chevron-down"
+              iconPos="right"
+              outlined
+              severity="secondary"
+              styleClass="secondary-outline"
+            />
+          </div>
         </div>
+      }
     </div>
 
-    <div class="surface-card border-round-lg shadow-2 p-4 mb-3 w-full" [class.min-w-min]="projectState.selectedInventoryView === 'table'">
-        <!--Header & Settings-->
-        <div class="flex flex-column lg:flex-row justify-content-between align-items-start sticky-horizontal">
-            <div class="flex flex-column">
-                <h2 class="text-2xl my-1">{{ 'inventory.pages._title' | translate }}</h2>
-                <!--Put a description/instructions here if needed-->
-            </div>
-        </div>
-
-        <div class="sticky-toolbar" [class.sticky-toolbar-table]="projectState.selectedInventoryView === 'table'">
-            <!-- Top toolbar -->
-            <div class="flex flex-row justify-content-between gap-2 h-6rem surface-card">
-
-                <!-- Top toolbar - View options -->
-                <div>
-                    <label class="mb-1 font-semibold block" for="views'">{{'common.view' | translate}}</label>
-                    <div role="radiogroup" id="views">
-                        <div class="field-radiobutton">
-                            <p-radioButton name="view" value="table" [(ngModel)]="projectState.selectedInventoryView" inputId="viewTable" />
-                            <label for="viewTable">{{ 'inventory.view.table' | translate }}</label>
-                        </div>
-                        <div class="field-radiobutton">
-                            <p-radioButton name="view" value="tree" [(ngModel)]="projectState.selectedInventoryView" inputId="viewTree" />
-                            <label for="viewTree">{{ 'inventory.view.tree' | translate }}</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Top toolbar - Column settings -->
-                @if(projectState.selectedInventoryView === "table"){
-                <div class="hidden lg:flex flex-column text-color-secondary hover:text-primary max-w-max">
-                    <span class="text-xs my-1">{{ 'inventory.columnVis.label' | translate }}</span>
-                    <div class="flex flex-row align-content-center gap-2">
-
-                        <!-- Top toolbar - Column settings - Group dropdown -->
-
-                        <p-iftalabel>
-                            <p-multiSelect inputId="groups" [options]="groups" [(ngModel)]="selectedGroups"
-                                           optionLabel="label" optionValue="value" [showHeader]="true" [maxSelectedLabels]="1"
-                                           placeholder="Show/hide groups" class="w-13rem"
-                                           (onChange)="onGroupSelectionChange()">
-                                <ng-template pTemplate="header">
-                                    <div class="px-3 pt-2">
-                                        <span class="font-semibold">{{'inventory.columnVis.selectGroups' | translate}}</span>
-                                    </div>
-                                </ng-template>
-                            </p-multiSelect>
-                            <label for="columns">{{'inventory.columnVis.visibleGroups' | translate}}</label>
-                        </p-iftalabel>
-
-                        <!-- Top toolbar - Column settings - Column dropdown -->
-                        <p-iftalabel>
-                            <p-multiSelect inputId="columns" [options]="groupedColumns" [(ngModel)]="selectedColumnFields"
-                                           optionLabel="label" optionValue="value" optionGroupLabel="label" optionGroupChildren="items" [group]="true" [showHeader]="true" [maxSelectedLabels]="1"
-                                           placeholder="Show/hide columns" class="w-13rem capitalize"
-                                           (onChange)="onColumnSelectionChange()">
-                                <ng-template pTemplate="header">
-                                    <div class="px-3 pt-2">
-                                        <span class="font-semibold">{{'inventory.columnVis.selectColumns' | translate}}</span>
-                                    </div>
-                                </ng-template>
-                            </p-multiSelect>
-                            <label for="columns">{{'inventory.columnVis.visibleColumns' | translate}}</label>
-                        </p-iftalabel>
-
-                        <!-- Top toolbar - Column settings - Reset button -->
-                        <div class="flex flex-column h-full gap-1">
-                            <p-button [label]="'inventory.columnVis.defaultView' | translate"
-                                      outlined size="small" class="h-full" styleClass="h-full w-full secondary-outline p-1"
-                                      (onClick)="viewDefault()" />
-                            <p-button [label]="'inventory.columnVis.metadataView' | translate"
-                                      outlined size="small" class="h-full" styleClass="h-full w-full secondary-outline p-1"
-                                      (onClick)="viewMetadata()" />
-                        </div>
-                    </div>
-                </div>
-                <p-button severity="secondary" icon="pi pi-cog" label="Column settings" class="flex lg:hidden" />
-                }
-            </div>
-            <!-- Bulk actions toolbar -->
-            @if(projectState.selectedInventoryView === "table"){
-            <div class="h-3rm mb-2">
-                <div class="flex flex-row align-items-center gap-2 surface-card">
-                    <!-- Bulk actions toolbar - # selected pages -->
-                    <p>{{selectedNodes.length}} pages selected</p>
-
-                    <!-- Bulk actions toolbar - Actions -->
-                    <p-button [label]="'common.actions' | translate" icon="pi pi-chevron-down" iconPos="right" outlined styleClass="secondary-outline"
-                              (onClick)="updateDropdown('actions'); menu.toggle($event)" />
-
-                    <!-- Bulk actions toolbar - View -->
-                    <p-button [label]="'common.view' | translate" icon="pi pi-chevron-down" iconPos="right" severity="secondary" outlined styleClass="secondary-outline"
-                              (onClick)="updateDropdown('view'); menu.toggle($event)" />
-                </div>
-
-
-            </div>
+    @if (projectState.selectedInventoryView === 'table') {
+      <p-table
+        [(selection)]="selectedNodes"
+        [customSort]="true"
+        [paginator]="projectState.getProject().baselinePages > 50"
+        [rows]="50"
+        [rowsPerPageOptions]="[25, 50, 100, projectState.getProject().baselinePages]"
+        [scrollable]="false"
+        [value]="tableData()"
+        (sortFunction)="customSort($event)"
+        #dt
+        dataKey="enPath"
+        selectionMode="multiple"
+        size="small"
+        stripedRows
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th></th>
+            @for (group of groupedHeaders; track group.value; let isLast = $last) {
+              <th [attr.colspan]="getVisibleColumnCount(group)" [class]="!isLast ? 'border-right-1 surface-border' : ''">{{ group.label }}</th>
             }
-        </div>
+          </tr>
+          <tr>
+            <!-- Frozen columns -->
+            <th class="sticky-rc surface-card"><p-tableHeaderCheckbox /></th>
+            @for (col of frozenColumns(); track col.field) {
+              <th [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border surface-card sticky-rh' : 'surface-card sticky-rh'" [pSortableColumn]="col.field">
+                <div class="flex align-items-center gap-2">
+                  {{ col.label }}
+                  <p-sortIcon [field]="col.field" />
+                </div>
+              </th>
+            }
+            <!-- Scrollable columns -->
+            @for (col of scrollableColumns(); track col.field) {
+              <th
+                [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border surface-card sticky-r' : 'surface-card sticky-r'"
+                [pSortableColumn]="col.type === 'text' || col.type === 'url' || col.type === 'number' || col.type === 'date' || col.type === 'array' ? col.field : undefined"
+              >
+                @if (col.type === 'boolean' || col.type === 'archive' || col.type === 'noindex') {
+                  <p-button
+                    [icon]="isColumnFiltered(col.field) ? 'pi pi-filter' : 'pi pi-filter-slash'"
+                    [label]="col.label"
+                    [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showTrue' | translate: { column: col.label })"
+                    [severity]="isColumnFiltered(col.field) ? 'primary' : 'contrast'"
+                    (onClick)="toggleColumnFilter(col.field)"
+                    appendTo="body"
+                    hideDelay="0"
+                    iconPos="right"
+                    rounded
+                    showDelay="300"
+                    styleClass="font-bold"
+                    text
+                    tooltipPosition="top"
+                  />
+                } @else if (col.type === 'text' || col.type === 'url' || col.type === 'number' || col.type === 'date' || col.type === 'array') {
+                  <div class="flex align-items-center gap-2">
+                    {{ col.label }}
+                    <p-sortIcon [field]="col.field" />
+                  </div>
+                } @else {
+                  {{ col.label }}
+                }
+              </th>
+            }
+          </tr>
+        </ng-template>
 
-        @if(projectState.selectedInventoryView === "table"){
-        <p-table #dt [value]="tableData()" [(selection)]="selectedNodes" dataKey="enPath" selectionMode="multiple" size="small" stripedRows [scrollable]="false"
-                 (sortFunction)="customSort($event)" [customSort]="true"
-                 [paginator]="projectState.getProject().baselinePages > 50" [rows]="50" [rowsPerPageOptions]="[25, 50, 100, projectState.getProject().baselinePages]">
+        <ng-template let-editing="editing" let-node let-rowIndex="rowIndex" pTemplate="body">
+          <tr [pSelectableRow]="node" [pSelectableRowIndex]="rowIndex">
+            <!-- Frozen columns -->
+            <td class="w-4rem surface-card sticky-c">
+              <div class="flex flex-row justify-content-center align-content-center align-items-center">
+                <p-tableCheckbox [value]="node" size="large" />
+                <p-button [pTooltip]="'common.edit' | translate" (onClick)="edit(node)" appendTo="body" hideDelay="0" icon="pi pi-pen-to-square" rounded showDelay="300" text tooltipPosition="top" />
+              </div>
+            </td>
+            @for (col of frozenColumns(); track col.field) {
+              <td [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border surface-card sticky-h' : 'surface-card sticky-h'">{{ node[col.field] }}</td>
+            }
 
-            <ng-template pTemplate="header">
-                <tr>
-                    <th></th>
-                    @for(group of groupedHeaders; track group.value; let isLast = $last;){
-                    <th [attr.colspan]="getVisibleColumnCount(group)" [class]="!isLast ? 'border-right-1 surface-border' : ''">{{group.label}}</th>
+            <!-- Scrollable columns -->
+            @for (col of scrollableColumns(); track col.field) {
+              <td
+                [ngClass]="{ 'border-right-1': isLastInGroup(col.field), 'surface-border': isLastInGroup(col.field), hasMenu: hasContextMenu(col.group, col.type) }"
+                [pEditableColumn]="node.field"
+                (click)="onLeftClick(node, col)"
+                (contextmenu)="onRightClick($event, node, col)"
+                (touchend)="onTouchEnd()"
+                (touchstart)="onTouchStart($event, node, col)"
+                pEditableColumnField="template"
+              >
+                <!-- Text fields -->
+                @if (col.type === 'text') {
+                  @if (isEditingCell(node, col) && col.group === 'owner') {
+                    TODO: add dropdown with text option
+                  } @else {
+                    {{ node[col.field] }}
+                  }
+                }
+                <!-- Dropdown fields -->
+                @if (col.type === 'template') {
+                  @if (isEditingCell(node, col)) {
+                    <p-iftalabel class="w-10rem">
+                      <p-select
+                        [(ngModel)]="node[col.field]"
+                        [filter]="true"
+                        [options]="templateOptions"
+                        (onChange)="saveCell(node[col.field])"
+                        filterBy="label"
+                        inputId="template"
+                        optionLabel="label"
+                        optionValue="value"
+                        styleClass="w-full"
+                      >
+                        <ng-template #selectedItem let-selectedOption>
+                          {{ selectedOption.label }}
+                        </ng-template>
+                        <ng-template #item let-template>
+                          {{ template.label }}
+                        </ng-template>
+                      </p-select>
+                      <label for="template">{{ col.label }}</label>
+                    </p-iftalabel>
+                  } @else {
+                    {{ node[col.field] | translate }}
+                  }
+                }
+                <!-- Array fields -->
+                @if (col.type === 'array') {
+                  <div class="flex align-items-start">
+                    <ul
+                      [class.line-clamp-1]="!isCellExpanded(col.field, rowIndex, col.field)"
+                      [pTooltip]="expandAll[col.field] ? null : node[col.field]"
+                      class="m-0 pl-0 min-w-max"
+                      appendTo="body"
+                      hideDelay="0"
+                      showDelay="300"
+                      style="list-style-position: inside"
+                      tooltipPosition="top"
+                    >
+                      @for (item of node[col.field]; track item) {
+                        <li [class.text-red-500]="col.field === 'phoneNumbers' && !isKnownNumber(item)">{{ item }}</li>
+                      }
+                    </ul>
+                    @if (!expandAll[col.field] && node[col.field].length > 1) {
+                      <p-button
+                        [icon]="isCellExpanded(col.field, rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                        [pTooltip]="isCellExpanded(col.field, rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
+                        (click)="toggleCell(col.field, rowIndex, col.field)"
+                        appendTo="body"
+                        hideDelay="0"
+                        rounded
+                        showDelay="300"
+                        size="small"
+                        styleClass="-mt-1"
+                        text
+                      />
                     }
-                </tr>
-                <tr>
-                    <!-- Frozen columns -->
-                    <th class="sticky-rc surface-card"><p-tableHeaderCheckbox /></th>
-                    @for(col of frozenColumns(); track col.field){
-                    <th [pSortableColumn]="col.field" [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border surface-card sticky-rh':'surface-card sticky-rh'">
-                        <div class="flex align-items-center gap-2">
-                            {{ col.label }}
-                            <p-sortIcon [field]="col.field" />
-                        </div>
-                    </th>
+                  </div>
+                }
+                <!-- Tag fields -->
+                @if (col.type === 'tags') {
+                  <div class="flex flex-wrap gap-1">
+                    @for (item of node[col.field]; track item.key) {
+                      <p-tag [severity]="item.severity" [value]="item.key | translate" class="white-space-nowrap" />
                     }
-                    <!-- Scrollable columns -->
-                    @for(col of scrollableColumns(); track col.field){
-                    <th [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border surface-card sticky-r':'surface-card sticky-r'"
-                        [pSortableColumn]="(col.type === 'text' || col.type === 'url' || col.type === 'number' || col.type === 'date' || col.type === 'array') ? col.field : undefined">
-                        @if(col.type === 'boolean' || col.type === 'archive' || col.type === 'noindex'){
-                        <p-button [label]="col.label" styleClass="font-bold"
-                                  [icon]="isColumnFiltered(col.field) ? 'pi pi-filter' : 'pi pi-filter-slash'" iconPos="right"
-                                  [severity]="isColumnFiltered(col.field) ? 'primary' : 'contrast'"
-                                  text rounded tooltipPosition="top"
-                                  (onClick)="toggleColumnFilter(col.field)"
-                                  [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showTrue' | translate: {column: (col.label)})"
-                                  appendTo="body" showDelay="300" hideDelay="0" />
-                        } @else if(col.type === 'text' || col.type === 'url' || col.type === 'number' || col.type === 'date' || col.type === 'array') {
-                        <div class="flex align-items-center gap-2">
-                            {{ col.label }}
-                            <p-sortIcon [field]="col.field" />
-                        </div>
-                        }@else{
-                        {{ col.label }}
-                        }
-                    </th>
+                  </div>
+                }
+                <!-- Long text fields (metadata, may need to refactor when we add the notes column) -->
+                @if (col.type === 'longText') {
+                  <div class="flex align-items-start gap-2">
+                    <div [class.line-clamp-3]="!isCellExpanded('metadata', rowIndex, col.field)">
+                      <p-tag
+                        [severity]="node[col.field].length >= 10 && node[col.field].length <= 160 ? 'success' : 'danger'"
+                        appendTo="body"
+                        hideDelay="0"
+                        pTooltip="character count"
+                        showDelay="300"
+                        >{{ node[col.field].length }}</p-tag
+                      >
+                      {{ node[col.field] }}
+                    </div>
+                    @if (!expandAll['metadata']) {
+                      <p-button
+                        [icon]="isCellExpanded('metadata', rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                        [pTooltip]="isCellExpanded('metadata', rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
+                        (click)="toggleCell('metadata', rowIndex, col.field)"
+                        appendTo="body"
+                        hideDelay="0"
+                        rounded
+                        showDelay="300"
+                        size="small"
+                        styleClass="-mt-1"
+                        text
+                      />
                     }
-                </tr>
-            </ng-template>
-
-            <ng-template pTemplate="body" let-node let-rowIndex="rowIndex" let-editing="editing">
-                <tr [pSelectableRow]="node" [pSelectableRowIndex]="rowIndex">
-                    <!-- Frozen columns -->
-                    <td class="w-4rem surface-card sticky-c">
-                        <div class="flex flex-row justify-content-center align-content-center align-items-center">
-                            <p-tableCheckbox [value]="node" size="large" />
-                            <p-button icon="pi pi-pen-to-square" rounded text
-                                      [pTooltip]="'common.edit' | translate" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0"
-                                      (onClick)="edit(node)" />
-                        </div>
-                    </td>
-                    @for(col of frozenColumns(); track col.field){
-                    <td [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border surface-card sticky-h':'surface-card sticky-h'">{{ node[col.field] }}</td>
+                  </div>
+                }
+                <!-- Textarea fields (notes) -->
+                @if (col.type === 'textArea') {
+                  <div class="flex align-items-start gap-2">
+                    @if (isEditingCell(node, col)) {
+                      <p-iftalabel>
+                        <textarea id="note" [(ngModel)]="node[col.field]" (change)="saveCell(node[col.field])" class="min-w-max" autoResize="true" fluid pTextarea rows="3"></textarea>
+                        <label for="note">{{ col.label }}</label>
+                      </p-iftalabel>
+                    } @else {
+                      <div [class.line-clamp-3]="!isCellExpanded('notes', rowIndex, col.field)">
+                        {{ node[col.field] }}
+                      </div>
+                      @if (!expandAll['notes'] && node[col.field].length > 10) {
+                        <p-button
+                          [icon]="isCellExpanded('notes', rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                          [pTooltip]="isCellExpanded('notes', rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
+                          (click)="toggleCell('notes', rowIndex, col.field)"
+                          appendTo="body"
+                          hideDelay="0"
+                          rounded
+                          showDelay="300"
+                          size="small"
+                          styleClass="-mt-1"
+                          text
+                        />
+                      }
                     }
-
-                    <!-- Scrollable columns -->
-                    @for(col of scrollableColumns(); track col.field){
-                    <td [ngClass]="{ 'border-right-1': isLastInGroup(col.field), 'surface-border': isLastInGroup(col.field), 'hasMenu': hasContextMenu(col.group, col.type) }"
-                        (contextmenu)="onRightClick($event, node, col)" (touchstart)="onTouchStart($event, node, col)" (touchend)="onTouchEnd()" (click)="onLeftClick(node, col)"
-                        [pEditableColumn]="node.field" pEditableColumnField="template">
-                        <!-- Text fields -->
-                        @if(col.type === 'text'){
-                        @if(isEditingCell(node, col) && col.group === 'owner') { TODO: add dropdown with text option }
-                        @else { {{ node[col.field] }} }
-                        }
-                        <!-- Dropdown fields -->
-                        @if(col.type === 'template'){
-                        @if(isEditingCell(node, col)) {
-                        <p-iftalabel class="w-10rem">
-                            <p-select [(ngModel)]="node[col.field]" inputId="template" [options]="templateOptions" optionLabel="label" optionValue="value" [filter]="true" filterBy="label" styleClass="w-full"
-                                      (onChange)="saveCell(node[col.field])">
-                                <ng-template #selectedItem let-selectedOption>
-                                    {{ selectedOption.label }}
-                                </ng-template>
-                                <ng-template let-template #item>
-                                    {{ template.label }}
-                                </ng-template>
-                            </p-select>
-                            <label for="template">{{ col.label }}</label>
-                        </p-iftalabel>
-                        }
-                        @else{ {{ node[col.field] | translate }} }
-                        }
-                        <!-- Array fields -->
-                        @if(col.type === 'array'){
-                        <div class="flex align-items-start">
-                            <ul class="m-0 pl-0 min-w-max" style="list-style-position: inside;" [class.line-clamp-1]="!isCellExpanded(col.field,rowIndex, col.field)" [pTooltip]="expandAll[col.field] ? null : node[col.field]" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0">
-                                @for(item of node[col.field]; track item){
-                                <li [class.text-red-500]="col.field === 'phoneNumbers' && !isKnownNumber(item)">{{ item }}</li>
-                                }
-                            </ul>
-                            @if(!expandAll[col.field] && node[col.field].length > 1){
-                            <p-button [icon]="isCellExpanded(col.field,rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                                      text rounded size="small" styleClass="-mt-1"
-                                      (click)="toggleCell(col.field, rowIndex, col.field)"
-                                      [pTooltip]="isCellExpanded(col.field,rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
-                                      appendTo="body" showDelay="300" hideDelay="0" />
-                            }
-                        </div>
-                        }
-                        <!-- Tag fields -->
-                        @if(col.type === 'tags'){
-                        <div class="flex flex-wrap gap-1">
-                            @for(item of node[col.field]; track item.key){
-                            <p-tag [severity]="item.severity" class="white-space-nowrap" [value]="item.key | translate" />
-                            }
-                        </div>
-                        }
-                        <!-- Long text fields (metadata, may need to refactor when we add the notes column) -->
-                        @if(col.type === 'longText'){
-                        <div class="flex align-items-start gap-2">
-                            <div [class.line-clamp-3]="!isCellExpanded('metadata', rowIndex, col.field)">
-                                <p-tag pTooltip="character count" [severity]="node[col.field].length >= 10 && node[col.field].length <= 160 ? 'success' : 'danger'"
-                                       appendTo="body" showDelay="300" hideDelay="0">{{node[col.field].length}}</p-tag>
-                                {{ node[col.field] }}
+                  </div>
+                }
+                <!-- AI text fields (metadata) -->
+                @if (col.type === 'aiText') {
+                  @if (node[col.field]; as field) {
+                    @if (field.status === 'rejected' || field.status === 'noChange') {
+                      <div class="flex align-items-center gap-2">
+                        <p-tag [value]="'common.rejected' | translate" severity="danger" />
+                      </div>
+                    } @else {
+                      <div class="flex align-items-start gap-2">
+                        @if (isEditingCell(node, col, true)) {
+                          <div class="flex flex-column gap-2">
+                            <div class="flex flex-row gap-2">
+                              <p-tag [value]="'common.editing' | translate" class="capitalize" />
+                              <p-tag
+                                [severity]="field.edited.length >= 10 && field.edited.length <= 160 ? 'success' : 'danger'"
+                                [value]="field.edited.length"
+                                class="mx-1"
+                                appendTo="body"
+                                hideDelay="0"
+                                pTooltip="character count"
+                                showDelay="300"
+                              />
                             </div>
-                            @if(!expandAll['metadata']){
-                            <p-button [icon]="isCellExpanded('metadata', rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                                      text rounded size="small" styleClass="-mt-1"
-                                      (click)="toggleCell('metadata',rowIndex, col.field)"
-                                      [pTooltip]="isCellExpanded('metadata', rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
-                                      appendTo="body" showDelay="300" hideDelay="0" />
-                            }
-                        </div>
-                        }
-                        <!-- Textarea fields (notes) -->
-                        @if(col.type === 'textArea'){
-                        <div class="flex align-items-start gap-2">
-                            @if(isEditingCell(node, col)) {
                             <p-iftalabel>
-                                <textarea id="note" autoResize="true" rows="3" pTextarea [(ngModel)]="node[col.field]" class="min-w-max" fluid
-                                          (change)="saveCell(node[col.field])"></textarea>
-                                <label for="note">{{ col.label }}</label>
+                              <textarea
+                                id="metadata"
+                                [(ngModel)]="field.edited"
+                                (blur)="onBlurMetadata()"
+                                (change)="compareMetadata(node, col)"
+                                (paste)="onPasteMetadata(node, col)"
+                                class="min-w-max"
+                                autoResize="true"
+                                fluid
+                                pTextarea
+                                rows="3"
+                              ></textarea>
+                              <label for="metadata">{{ col.label }}</label>
                             </p-iftalabel>
-                            } @else {
-                            <div [class.line-clamp-3]="!isCellExpanded('notes',rowIndex, col.field)">
-                                {{ node[col.field] }}
-                            </div>
-                            @if(!expandAll['notes'] && node[col.field].length > 10){
-                            <p-button [icon]="isCellExpanded('notes',rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                                      text rounded size="small" styleClass="-mt-1"
-                                      (click)="toggleCell('notes',rowIndex, col.field)"
-                                      [pTooltip]="isCellExpanded('notes',rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
-                                      appendTo="body" showDelay="300" hideDelay="0" />
-                            }
-                            }
-                        </div>
-                        }
-                        <!-- AI text fields (metadata) -->
-                        @if(col.type === 'aiText'){
-                        @if(node[col.field]; as field){
-                        @if(field.status === 'rejected' || field.status === 'noChange'){
-                        <div class="flex align-items-center gap-2">
-                            <p-tag severity="danger" [value]="'common.rejected' | translate" />
-                        </div>
+                          </div>
                         } @else {
-                        <div class="flex align-items-start gap-2">
-                            @if(isEditingCell(node, col, true)) {
-                            <div class="flex flex-column gap-2">
-                                <div class="flex flex-row gap-2">
-                                    <p-tag [value]="'common.editing' | translate" class="capitalize" />
-                                    <p-tag [value]="field.edited.length" pTooltip="character count" appendTo="body" showDelay="300" hideDelay="0"
-                                           [severity]="field.edited.length >= 10 && field.edited.length <= 160 ? 'success' : 'danger'" class="mx-1" />
-                                </div>
-                                <p-iftalabel>
-                                    <textarea id="metadata" autoResize="true" rows="3" pTextarea [(ngModel)]="field.edited" (change)="compareMetadata(node, col)" (paste)="onPasteMetadata(node, col)" (blur)="onBlurMetadata()" class="min-w-max" fluid></textarea>
-                                    <label for="metadata">{{ col.label }}</label>
-                                </p-iftalabel>
+                          <div class="flex flex-column gap-2">
+                            <div class="flex flex-row gap-2">
+                              <p-tag
+                                [severity]="field.status === 'edited' ? undefined : field.status.slice(0, 8) === 'approved' ? 'success' : 'secondary'"
+                                [value]="field.status.slice(0, 8) === 'approved' ? ('common.approved' | translate) : ('common.' + field.status | translate)"
+                                class="capitalize"
+                              />
+                              <p-tag
+                                [severity]="
+                                  field.status === 'edited'
+                                    ? field.edited.length >= 10 && field.edited.length <= 160
+                                      ? 'success'
+                                      : 'danger'
+                                    : field.ai.length >= 10 && field.ai.length <= 160
+                                      ? 'success'
+                                      : 'danger'
+                                "
+                                [value]="field.status === 'edited' ? field.edited.length : field.ai.length"
+                                class="mx-1"
+                                appendTo="body"
+                                hideDelay="0"
+                                pTooltip="character count"
+                                showDelay="300"
+                              />
                             </div>
+                            <div [class.line-clamp-3]="!isCellExpanded('metadata', rowIndex, col.field)">
+                              {{ field.status === 'edited' ? field.edited : field.status === 'approvedEdits' ? field.edited : field.ai }}
+                            </div>
+                          </div>
+                          <div class="flex flex-column gap-1 -mt-1">
+                            @if (!expandAll['metadata']) {
+                              <p-button
+                                [icon]="isCellExpanded('metadata', rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                                [pTooltip]="isCellExpanded('metadata', rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
+                                (click)="toggleCell('metadata', rowIndex, col.field)"
+                                appendTo="body"
+                                hideDelay="0"
+                                rounded
+                                showDelay="300"
+                                size="small"
+                                text
+                              />
                             }
-                            @else {
-                            <div class="flex flex-column gap-2">
-                                <div class="flex flex-row gap-2">
-                                    <p-tag [value]="field.status.slice(0,8) === 'approved' ? ('common.approved' | translate) : ('common.'+field.status | translate)" class="capitalize"
-                                           [severity]="field.status === 'edited' ? undefined : field.status.slice(0,8) === 'approved' ? 'success' : 'secondary'" />
-                                    <p-tag [value]="field.status === 'edited' ? field.edited.length : field.ai.length" pTooltip="character count" appendTo="body" showDelay="300" hideDelay="0"
-                                           [severity]="field.status === 'edited' ? field.edited.length >= 10 && field.edited.length <= 160 ? 'success' : 'danger' : field.ai.length >= 10 && field.ai.length <= 160 ? 'success' : 'danger'" class="mx-1" />
-                                </div>
-                                <div [class.line-clamp-3]="!isCellExpanded('metadata',rowIndex, col.field)">
-                                    {{ field.status === 'edited' ? field.edited : field.status === 'approvedEdits' ? field.edited : field.ai }}
-                                </div>
-                            </div>
-                            <div class="flex flex-column gap-1 -mt-1">
-                                @if(!expandAll['metadata']){
-                                <p-button [icon]="isCellExpanded('metadata',rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                                          text rounded size="small"
-                                          (click)="toggleCell('metadata',rowIndex, col.field)"
-                                          [pTooltip]="isCellExpanded('metadata',rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
-                                          appendTo="body" showDelay="300" hideDelay="0" />
-                                }
-                            </div>
-                            }
-                        </div>
+                          </div>
                         }
-                        } @else {
-                        <i class="pi pi-minus text-gray-400 flex justify-content-center p-2"
-                           [pTooltip]="'inventory.tooltip.ai.metadata' | translate" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0"></i>
-                        }
-                        }
-                        <!-- Date fields -->
-                        @if(col.type === 'date'){
-                        <span class="white-space-nowrap">{{ node[col.field] | date:'yyyy-MM-dd' }}</span>
-                        }
-                        <!-- URL fields -->
-                        @if(col.type === 'url'){
-                        <div class="flex flex-row justify-content-between align-items-center gap-2 white-space-nowrap">
-                            <span [pTooltip]="node[col.field]" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0">
-                                {{ node[col.field].split('/').pop() }}
-                            </span>
-                            <p-button icon="pi pi-external-link" rounded outlined size="small" styleClass="secondary-outline"
-                                      [pTooltip]="'common.openNewTab' | translate" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0"
-                                      (onClick)="updateDropdown('newTab', node[col.field]); menu.toggle($event)" />
-                            <!--a [href]="node[col.field]" target="_blank" rel="noopener" [pTooltip]="expandAllUrls ? null : node[col.field]" [class.line-clamp-2]="!expandAllUrls" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0">{{ node[col.field].split('/').pop() }}</a-->
-                        </div>
-                        }
-                        <!-- Boolean fields -->
-                        @if(col.type === 'boolean'){
-                        <i [class]="getBooleanIcon(getBooleanValue(node, col), col.field)" class="flex justify-content-center p-2"
-                           [pTooltip]="getBooleanTooltip(node[col.field], col.field) | translate" tooltipPosition="top"
-                           appendTo="body" showDelay="300" hideDelay="0"></i>
-                        }
-                        <!-- Number fields -->
-                        @if(col.type === 'number'){
-                        @if (node[col.field] === -1) {
-                        <i class="pi pi-minus text-gray-400"></i>
-                        } @else {
-                        {{ node[col.field] | number:'1.0-0':(translate.currentLang() === 'en' ? 'en-CA' : 'fr-CA') }}
-                        }
-                        }
-                        <!-- UPD link -->
-                        @if(col.type === 'upd'){
-                        @if(!node.isNew){
-                        <p-button [pTooltip]="'inventory.openInUPD' | translate" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0"
-                                  rounded outlined severity="info" size="small" styleClass="secondary-outline" icon="pi pi-external-link" iconPos="top"
-                                  (onClick)="openInUPD(node)" class="flex justify-content-center">
-                            <ng-template pTemplate="icon">
-                                <img src="images/upd-icon.svg" width="24" height="24" alt="">
-                            </ng-template>
-                        </p-button>
-                        } @else {
-                        <i class="pi pi-minus text-gray-400 flex justify-content-center p-2"
-                           [pTooltip]="'inventory.notInUPD' | translate" tooltipPosition="top"
-                           appendTo="body" showDelay="300" hideDelay="0"></i>
-                        }
-                        }
-                    </td>
+                      </div>
                     }
-                </tr>
-            </ng-template>
+                  } @else {
+                    <i
+                      [pTooltip]="'inventory.tooltip.ai.metadata' | translate"
+                      class="pi pi-minus text-gray-400 flex justify-content-center p-2"
+                      appendTo="body"
+                      hideDelay="0"
+                      showDelay="300"
+                      tooltipPosition="top"
+                    ></i>
+                  }
+                }
+                <!-- Date fields -->
+                @if (col.type === 'date') {
+                  <span class="white-space-nowrap">{{ node[col.field] | date: 'yyyy-MM-dd' }}</span>
+                }
+                <!-- URL fields -->
+                @if (col.type === 'url') {
+                  <div class="flex flex-row justify-content-between align-items-center gap-2 white-space-nowrap">
+                    <span [pTooltip]="node[col.field]" appendTo="body" hideDelay="0" showDelay="300" tooltipPosition="top">
+                      {{ node[col.field].split('/').pop() }}
+                    </span>
+                    <p-button
+                      [pTooltip]="'common.openNewTab' | translate"
+                      (onClick)="updateDropdown('newTab', node[col.field]); menu.toggle($event)"
+                      appendTo="body"
+                      hideDelay="0"
+                      icon="pi pi-external-link"
+                      outlined
+                      rounded
+                      showDelay="300"
+                      size="small"
+                      styleClass="secondary-outline"
+                      tooltipPosition="top"
+                    />
+                    <!--a [href]="node[col.field]" target="_blank" rel="noopener" [pTooltip]="expandAllUrls ? null : node[col.field]" [class.line-clamp-2]="!expandAllUrls" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0">{{ node[col.field].split('/').pop() }}</a-->
+                  </div>
+                }
+                <!-- Boolean fields -->
+                @if (col.type === 'boolean') {
+                  <i
+                    [class]="getBooleanIcon(getBooleanValue(node, col), col.field)"
+                    [pTooltip]="getBooleanTooltip(node[col.field], col.field) | translate"
+                    class="flex justify-content-center p-2"
+                    appendTo="body"
+                    hideDelay="0"
+                    showDelay="300"
+                    tooltipPosition="top"
+                  ></i>
+                }
+                <!-- Number fields -->
+                @if (col.type === 'number') {
+                  @if (node[col.field] === -1) {
+                    <i class="pi pi-minus text-gray-400"></i>
+                  } @else {
+                    {{ node[col.field] | number: '1.0-0' : (translate.currentLang() === 'en' ? 'en-CA' : 'fr-CA') }}
+                  }
+                }
+                <!-- UPD link -->
+                @if (col.type === 'upd') {
+                  @if (!node.isNew) {
+                    <p-button
+                      [pTooltip]="'inventory.openInUPD' | translate"
+                      (onClick)="openInUPD(node)"
+                      class="flex justify-content-center"
+                      appendTo="body"
+                      hideDelay="0"
+                      icon="pi pi-external-link"
+                      iconPos="top"
+                      outlined
+                      rounded
+                      severity="info"
+                      showDelay="300"
+                      size="small"
+                      styleClass="secondary-outline"
+                      tooltipPosition="top"
+                    >
+                      <ng-template pTemplate="icon">
+                        <img alt="" height="24" src="images/upd-icon.svg" width="24" />
+                      </ng-template>
+                    </p-button>
+                  } @else {
+                    <i
+                      [pTooltip]="'inventory.notInUPD' | translate"
+                      class="pi pi-minus text-gray-400 flex justify-content-center p-2"
+                      appendTo="body"
+                      hideDelay="0"
+                      showDelay="300"
+                      tooltipPosition="top"
+                    ></i>
+                  }
+                }
+              </td>
+            }
+          </tr>
+        </ng-template>
 
-            <ng-template pTemplate="emptymessage">
-                <tr>
-                    <td [attr.colspan]="frozenColumns().length + scrollableColumns().length +1" class="text-center p-4">
-                        {{ 'inventory.emptyMessage' | translate }}
-                    </td>
-                </tr>
-            </ng-template>
-        </p-table>
-        }
-        @else if(projectState.selectedInventoryView === "tree"){
-        <aida-ia-table />
-        }
-    </div>
-
-    <!--Add & Find pages-->
-    @defer (on idle) {
-    <div class="flex md:flex-row flex-column gap-3 sticky-horizontal">
-        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:mb-3 lg:w-6 min-w-min">
-            <aida-add-urls />
-        </div>
-        <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:mb-3 lg:w-6 min-w-min">
-            <aida-find-pages />
-        </div>
-    </div>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="frozenColumns().length + scrollableColumns().length + 1" class="text-center p-4">
+              {{ 'inventory.emptyMessage' | translate }}
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    } @else if (projectState.selectedInventoryView === 'tree') {
+      <aida-ia-table />
     }
+  </div>
 
+  <!--Add & Find pages-->
+  @defer (on idle) {
+    <div class="flex md:flex-row flex-column gap-3 sticky-horizontal">
+      <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:mb-3 lg:w-6 min-w-min">
+        <aida-add-urls />
+      </div>
+      <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:mb-3 lg:w-6 min-w-min">
+        <aida-find-pages />
+      </div>
+    </div>
+  }
 </div>
 
 <!--Dropdown menus-->
-<p-menu #menu [model]="itemsDropdown" [popup]="true">
-    <ng-template #submenuheader let-item>
-        <span [class]="item.styleClass">{{ item.label | translate}}</span>
-    </ng-template>
-    <ng-template #item let-item>
-        <a class="p-menu-item-link">
-            <i [class]="item.icon"></i>
-            <span>{{ item.label | translate}}</span>
-        </a>
-    </ng-template>
+<p-menu [model]="itemsDropdown" [popup]="true" #menu>
+  <ng-template #submenuheader let-item>
+    <span [class]="item.styleClass">{{ item.label | translate }}</span>
+  </ng-template>
+  <ng-template #item let-item>
+    <a class="p-menu-item-link">
+      <i [class]="item.icon"></i>
+      <span>{{ item.label | translate }}</span>
+    </a>
+  </ng-template>
 </p-menu>
 <!--Context Menus-->
-<p-contextMenu #menuContext [model]="itemsContext" />
+<p-contextmenu [model]="itemsContext" #menuContext />
 <!-- Edit node popup-->
-<p-dialog [header]="selectedNode.data?.prototype?.[currentLang].h1" [modal]="true" [maximizable]="true" [(visible)]="editNode" styleClass="w-10" [style]="{ height: '90vh' }">
-    @if(selectedNode) {
-    <aida-edit-node [node]="selectedNode" [isOpen]="editNode" (dialogClose)="editNode = false" />
-    }
+<p-dialog [(visible)]="editNode" [header]="selectedNode.data?.prototype?.[currentLang].h1" [maximizable]="true" [modal]="true" [style]="{ height: '90vh' }" styleClass="w-10">
+  @if (selectedNode) {
+    <aida-edit-node [isOpen]="editNode" [node]="selectedNode" (dialogClose)="editNode = false" />
+  }
 </p-dialog>
 <!--Confirm deletion-->
-<p-confirmDialog key="inventory" />
+<p-confirmdialog key="inventory" />

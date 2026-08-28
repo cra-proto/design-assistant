@@ -1,31 +1,38 @@
-<h1 id="wb-cont">{{ 'switch._title' | translate}}</h1>
-<p>{{'switch.description' | translate }}</p>
+<h1 id="wb-cont">{{ 'switch._title' | translate }}</h1>
+<p>{{ 'switch.description' | translate }}</p>
 
 <!-- Authentication Banner -->
-@if (!authService.isAuthenticated()){
-<p-message severity="info" styleClass="mb-2 sticky top-0 z-2">
-  <div class="flex align-items-center gap-2">
-    <i class="pi pi-info-circle font-bold"></i>
-    <span>{{'switch.authWarning' | translate }}</span>
-  </div>
-</p-message>
+@if (!authService.isAuthenticated()) {
+  <p-message severity="info" styleClass="mb-2 sticky top-0 z-2">
+    <div class="flex align-items-center gap-2">
+      <i class="pi pi-info-circle font-bold"></i>
+      <span>{{ 'switch.authWarning' | translate }}</span>
+    </div>
+  </p-message>
 }
 
 <!-- All Projects -->
 <div class="surface-card border-round-lg shadow-2 p-4 mb-3">
   <div class="flex flex-column-reverse xl:flex-row justify-content-between align-items-start gap-2 mb-3">
-
     <div class="flex flex-column lg:flex-row gap-2 w-full">
       <!--Search-->
       <p-iconfield>
         <p-inputicon styleClass="pi pi-search" />
-        <input id="search" type="text" pInputText [placeholder]="'common.search' | translate" class="min-w-min md:min-w-max w-full" [(ngModel)]="searchTerm" />
+        <input id="search" [(ngModel)]="searchTerm" [placeholder]="'common.search' | translate" class="min-w-min md:min-w-max w-full" pInputText type="text" />
       </p-iconfield>
       <!--Sort-->
-      <p-select id="sort" [options]="sortOptions" [(ngModel)]="selectedSort" [placeholder]="'common.sortBy' | translate" styleClass="min-w-min md:min-w-max" />
+      <p-select id="sort" [(ngModel)]="selectedSort" [options]="sortOptions" [placeholder]="'common.sortBy' | translate" styleClass="min-w-min md:min-w-max" />
       <!--Filter-->
-      <p-multiselect inputId="filter" (onClick)="updateGroupedFilters()" [options]="groupedFilters" [group]="true" [(ngModel)]="selectedFilter" [placeholder]="'common.filter'|translate" styleClass="min-w-min md:min-w-max">
-        <ng-template let-group #group>
+      <p-multiselect
+        [(ngModel)]="selectedFilter"
+        [group]="true"
+        [options]="groupedFilters"
+        [placeholder]="'common.filter' | translate"
+        (onClick)="updateGroupedFilters()"
+        inputId="filter"
+        styleClass="min-w-min md:min-w-max"
+      >
+        <ng-template #group let-group>
           <div class="flex items-center">
             <span>{{ group.label }}</span>
           </div>
@@ -35,140 +42,127 @@
 
     <div class="flex flex-row xl:flex-column gap-2">
       <!--New-->
-      <p-button
-                label="New project"
-                icon="pi pi-plus"
-                outlined
-                size="small"
-                styleClass="white-space-nowrap secondary-outline w-full"
-                (onClick)="newProject()" />
+      <p-button (onClick)="newProject()" icon="pi pi-plus" label="New project" outlined size="small" styleClass="white-space-nowrap secondary-outline w-full" />
       <!--Import-->
-      <p-button
-                label="Import project"
-                icon="pi pi-upload"
-                outlined
-                size="small"
-                styleClass="white-space-nowrap secondary-outline w-full"
-                disabled />
+      <p-button disabled icon="pi pi-upload" label="Import project" outlined size="small" styleClass="white-space-nowrap secondary-outline w-full" />
       <!--RECYCLE BIN-->
-      @if(projectStorageService.getLocalProjectList('deleted').length > 0)
-      {<p-button
-                [label]="currentMode() === 'deleted' ? ('switch.viewSaved' | translate) : ('switch.viewDeleted' | translate)"
-                [icon]="currentMode() === 'deleted' ? 'pi pi-list' : 'pi pi-trash'"
-                outlined
-                size="small"
-                styleClass="white-space-nowrap secondary-outline w-full"
-                (onClick)="toggleProjectView()" />
+      @if (projectStorageService.getLocalProjectList('deleted').length > 0) {
+        <p-button
+          [icon]="currentMode() === 'deleted' ? 'pi pi-list' : 'pi pi-trash'"
+          [label]="currentMode() === 'deleted' ? ('switch.viewSaved' | translate) : ('switch.viewDeleted' | translate)"
+          (onClick)="toggleProjectView()"
+          outlined
+          size="small"
+          styleClass="white-space-nowrap secondary-outline w-full"
+        />
       }
     </div>
-
   </div>
-  @if(currentMode() === 'deleted'){<p class="mt-0 text-sm text-color-secondary">{{'switch.delWarning' | translate}}</p>}
+  @if (currentMode() === 'deleted') {
+    <p class="mt-0 text-sm text-color-secondary">{{ 'switch.delWarning' | translate }}</p>
+  }
   <!--Saved projects-->
-  @if(projects.length> 0){
-  <div class="grid">
-    @for(project of projects; track project.key + project.storageType) {
-    <div class="col-12 md:col-6 lg:col-4">
-      <p-card [styleClass]="currentMode() === 'deleted'
-                              ? 'h-full border-2 border-red-500 cursor-pointer hover:shadow-4'
-                              : 'h-full border-1 surface-border cursor-pointer hover:shadow-3'"
-              (click)="loadProject(project.key, project.id, project.storageType)">
+  @if (projects.length > 0) {
+    <div class="grid">
+      @for (project of projects; track project.key + project.storageType) {
+        <div class="col-12 md:col-6 lg:col-4">
+          <p-card
+            [styleClass]="currentMode() === 'deleted' ? 'h-full border-2 border-red-500 cursor-pointer hover:shadow-4' : 'h-full border-1 surface-border cursor-pointer hover:shadow-3'"
+            (click)="loadProject(project.key, project.id, project.storageType)"
+          >
+            <ng-template pTemplate="header">
+              <div class="flex justify-content-between align-items-start p-3 pb-0">
+                <!--Tags-->
+                <div class="flex gap-2">
+                  @if (projectStorageService.currentActive()?.key === project.key && project.storageType === 'local') {
+                    <p-tag value="Active" [style]="{ 'font-size': '0.75rem' }" icon="pi pi-check" severity="success" />
+                  }
+                  @if (projectStorageService.currentActive()?.key === project.id && project.storageType === 'cloud') {
+                    <p-tag value="Active" [style]="{ 'font-size': '0.75rem' }" icon="pi pi-check" severity="success" />
+                  }
+                  @if (project.storageType === 'local') {
+                    <p-tag value="Local" [style]="{ 'font-size': '0.75rem' }" icon="pi pi-home" severity="secondary" />
+                  }
+                  @if (project.storageType === 'cloud') {
+                    <p-tag value="Cloud" [style]="{ 'font-size': '0.75rem' }" icon="pi pi-cloud" severity="info" />
+                  }
+                  @if (project.storageType === 'cloud' && !collaboratorService.canEditProject(project)) {
+                    <p-tag value="Read-only" [style]="{ 'font-size': '0.75rem' }" icon="pi pi-eye" severity="warn" />
+                  }
+                  @if (project.key === 'autosave') {
+                    <p-tag value="Unsaved" [style]="{ 'font-size': '0.75rem' }" icon="pi pi-exclamation-triangle" severity="danger" />
+                  }
+                </div>
+                <!--Actions-->
+                <div class="flex gap-1">
+                  @if (project.key === 'autosave') {
+                    <p-button (onClick)="showSave = true; $event.stopPropagation()" icon="pi pi-save" pTooltip="Save locally" rounded severity="success" size="small" text />
+                  }
+                  @if (collaboratorService.canEditProject(project) && project.storageType === 'local') {
+                    <p-button (onClick)="uploadToCloud(project, $event)" icon="pi pi-cloud-upload" pTooltip="Upload to cloud" rounded size="small" text />
+                  }
+                  @if (collaboratorService.canEditProject(project) || project.storageType === 'local') {
+                    <p-button (onClick)="deleteProject(project, $event)" icon="pi pi-trash" pTooltip="Delete" rounded severity="danger" size="small" text />
+                  }
+                </div>
+              </div>
+            </ng-template>
 
-        <ng-template pTemplate="header">
-          <div class="flex justify-content-between align-items-start p-3 pb-0">
-            <!--Tags-->
-            <div class="flex gap-2">
-              @if (projectStorageService.currentActive()?.key === project.key && project.storageType === 'local') {
-              <p-tag value="Active" icon="pi pi-check" severity="success" [style]="{'font-size': '0.75rem'}" />
-              }
-              @if (projectStorageService.currentActive()?.key === project.id && project.storageType === 'cloud') {
-              <p-tag value="Active" icon="pi pi-check" severity="success" [style]="{'font-size': '0.75rem'}" />
-              }
-              @if (project.storageType === 'local') {
-              <p-tag value="Local" icon="pi pi-home" severity="secondary" [style]="{'font-size': '0.75rem'}" />
-              }
-              @if (project.storageType === 'cloud') {
-              <p-tag value="Cloud" icon="pi pi-cloud" severity="info" [style]="{'font-size': '0.75rem'}" />
-              }
-              @if (project.storageType === 'cloud' && !collaboratorService.canEditProject(project)) {
-              <p-tag value="Read-only" icon="pi pi-eye" severity="warn" [style]="{'font-size': '0.75rem'}" />
-              }
-              @if (project.key === 'autosave') {
-              <p-tag value="Unsaved" icon="pi pi-exclamation-triangle" severity="danger" [style]="{'font-size': '0.75rem'}" />
-              }
-            </div>
-            <!--Actions-->
-            <div class="flex gap-1">
-              @if (project.key === 'autosave') {
-              <p-button icon="pi pi-save" text rounded size="small" severity="success" pTooltip="Save locally" (onClick)="showSave = true; $event.stopPropagation()" />
-              }
-              @if (collaboratorService.canEditProject(project) && project.storageType === 'local') {
-              <p-button icon="pi pi-cloud-upload" text rounded size="small" pTooltip="Upload to cloud" (onClick)="uploadToCloud(project, $event)" />
-              }
-              @if (collaboratorService.canEditProject(project) || project.storageType === 'local') {
-              <p-button icon="pi pi-trash" text rounded size="small" severity="danger" pTooltip="Delete" (onClick)="deleteProject(project, $event)" />
-              }
-            </div>
-          </div>
-        </ng-template>
+            <ng-template pTemplate="title">
+              <div class="text-xl font-bold -mt-3">
+                {{ project.projectName || ('common.autosave' | translate) }}
+              </div>
+            </ng-template>
 
-        <ng-template pTemplate="title">
-          <div class="text-xl font-bold -mt-3">
-            {{ project.projectName || ('common.autosave' | translate) }}
-          </div>
-        </ng-template>
-
-        <!--Loading-->
-        @if((project.storageType === 'local' && loadingKey === project.key) || (project.storageType === 'cloud' && loadingKey === project.id)){
-        <div class="flex flex-row gap-2 justify-content-center mt-5">
-          <i class="pi pi-spin pi-spinner text-primary-500 text-2xl"></i>
-          <span class="text-sm text-color-secondary" [innerHTML]="'switch.loading'|translate"></span>
+            <!--Loading-->
+            @if ((project.storageType === 'local' && loadingKey === project.key) || (project.storageType === 'cloud' && loadingKey === project.id)) {
+              <div class="flex flex-row gap-2 justify-content-center mt-5">
+                <i class="pi pi-spin pi-spinner text-primary-500 text-2xl"></i>
+                <span [innerHTML]="'switch.loading' | translate" class="text-sm text-color-secondary"></span>
+              </div>
+            } @else {
+              <!--Project details-->
+              <div class="flex flex-column gap-2 text-sm text-color-secondary">
+                <div>
+                  <i class="pi pi-github mr-2"></i>
+                  @if (project?.github?.repo) {
+                    {{ project?.github?.owner }}/{{ project?.github?.repo }}
+                  } @else {
+                    No repository
+                  }
+                </div>
+                <div><i class="pi pi-copy mr-2"></i>Pages: {{ project.inScopePages }}</div>
+                @if (project.phase && project.phase !== 'project.phase.draft') {
+                  <div><i [class]="'pi pi-' + getPhaseIcon(project.phase) + ' mr-2'"></i>Phase: {{ project.phase | translate }}</div>
+                }
+                <div><i class="pi pi-clock mr-2"></i>Modified: {{ project.lastModified | date: 'short' }}</div>
+              </div>
+              <!-- Collaborators -->
+              @if (project.collaborators && project.collaborators.length > 0) {
+                <div class="flex justify-content-between border-top-1 surface-border mt-3 pt-2 -mb-2">
+                  <div class="flex align-items-center gap-2 mt-1">
+                    <i class="pi pi-users mr-2"></i>
+                    <aida-add-collaborators [collabs]="project.collaborators" mode="switch" />
+                  </div>
+                </div>
+              }
+            }
+          </p-card>
         </div>
-        } @else {
-        <!--Project details-->
-        <div class="flex flex-column gap-2 text-sm text-color-secondary">
-          <div>
-            <i class="pi pi-github mr-2"></i>
-            @if (project?.github?.repo){{{project?.github?.owner}}/{{project?.github?.repo}}} @else {No repository}
-          </div>
-          <div>
-            <i class="pi pi-copy mr-2"></i>Pages: {{ project.inScopePages }}
-          </div>
-          @if(project.phase && project.phase !== 'project.phase.draft'){
-          <div>
-            <i [class]="'pi pi-' + getPhaseIcon(project.phase) + ' mr-2'"></i>Phase: {{ project.phase | translate }}
-          </div>
-          }
-          <div>
-            <i class="pi pi-clock mr-2"></i>Modified: {{ project.lastModified | date:'short' }}
-          </div>
-        </div>
-        <!-- Collaborators -->
-        @if(project.collaborators && project.collaborators.length > 0){
-        <div class="flex justify-content-between border-top-1 surface-border mt-3 pt-2 -mb-2">
-          <div class="flex align-items-center gap-2 mt-1">
-            <i class="pi pi-users mr-2"></i>
-            <aida-add-collaborators mode="switch" [collabs]="project.collaborators" />
-          </div>
-        </div>}
-
-        }
-      </p-card>
+      }
     </div>
-    }
-  </div>
   } @else {
-  <!--Fallback if no saved projects-->
-  <p class="text-color-secondary ml-2">{{'switch.noProjects' | translate}}</p>
+    <!--Fallback if no saved projects-->
+    <p class="text-color-secondary ml-2">{{ 'switch.noProjects' | translate }}</p>
   }
 </div>
 
 <!-- Save Project Dialog -->
-<p-dialog [header]="'common.save' | translate" [modal]="true" [(visible)]="showSave" styleClass="max-w-25rem">
-  <p class="text-color-secondary -mt-1">{{'switch.nameWarning' | translate}}</p>
+<p-dialog [(visible)]="showSave" [header]="'common.save' | translate" [modal]="true" styleClass="max-w-25rem">
+  <p class="text-color-secondary -mt-1">{{ 'switch.nameWarning' | translate }}</p>
   <aida-setup-project />
   <div class="flex justify-end gap-2 mt-2">
-    <p-button label="Cancel" severity="secondary" (onClick)="showSave = false" />
-    <p-button label="Save" (onClick)="showSave = false;saveProject()" />
+    <p-button (onClick)="showSave = false" label="Cancel" severity="secondary" />
+    <p-button (onClick)="showSave = false; saveProject()" label="Save" />
   </div>
 </p-dialog>

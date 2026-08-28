@@ -1,20 +1,16 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+
 import { TranslatePipe } from '@ngx-translate/core';
 
-//Components
 import { TabsModule } from 'primeng/tabs';
-import { GetTaskUrlsComponent } from './get-task-pages/get-task-urls.component';
+
 import { GetChildPagesComponent } from './get-child-pages/get-child-pages.component';
+import { GetTaskUrlsComponent } from './get-task-pages/get-task-urls.component';
 
 @Component({
-    selector: 'aida-find-pages',
-    imports: [
-        TranslatePipe,
-        TabsModule, GetTaskUrlsComponent, GetChildPagesComponent
-    ],
-    templateUrl: './find-pages.component.html',
-    styles: ``
+  selector: 'aida-find-pages',
+  imports: [TranslatePipe, TabsModule, GetChildPagesComponent, GetTaskUrlsComponent],
+  templateUrl: './find-pages.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FindPagesComponent {
-
-}
+export class FindPagesComponent {}

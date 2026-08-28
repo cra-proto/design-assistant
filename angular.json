@@ -3,9 +3,7 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
-    "schematicCollections": [
-      "angular-eslint"
-    ]
+    "schematicCollections": ["angular-eslint"]
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -30,10 +28,7 @@
             "outputPath": "dist/design-assistant",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js",
-              "@angular/localize/init"
-            ],
+            "polyfills": ["zone.js", "@angular/localize/init"],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {
@@ -66,15 +61,8 @@
                 "output": "css"
               }
             ],
-            "styles": [
-              "node_modules/primeflex/primeflex.css",
-              "node_modules/primeicons/primeicons.css",
-              "src/styles.css",
-              "diff2html/bundles/css/diff2html.min.css"
-            ],
-            "scripts": [
-              "node_modules/underscore/underscore-min.js"
-            ]
+            "styles": ["node_modules/primeflex/primeflex.css", "node_modules/primeicons/primeicons.css", "src/styles.css", "diff2html/bundles/css/diff2html.min.css"],
+            "scripts": ["node_modules/underscore/underscore-min.js"]
           },
           "configurations": {
             "production": {
@@ -82,13 +70,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2.7MB",
+                  "maximumWarning": "2.5MB",
                   "maximumError": "3MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "2kB",
+                  "maximumError": "4kB"
                 }
               ],
               "outputHashing": "all",
@@ -164,11 +152,7 @@
         "test": {
           "builder": "@angular/build:karma",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing",
-              "@angular/localize/init"
-            ],
+            "polyfills": ["zone.js", "zone.js/testing", "@angular/localize/init"],
             "tsConfig": "tsconfig.spec.json",
             "assets": [
               {
@@ -181,21 +165,14 @@
                 "output": "pdfjs"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ],
-            "scripts": [
-              "node_modules/underscore/underscore-min.js"
-            ]
+            "styles": ["src/styles.css"],
+            "scripts": ["node_modules/underscore/underscore-min.js"]
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         }
       }

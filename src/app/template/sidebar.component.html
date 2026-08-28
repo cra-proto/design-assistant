@@ -1,4 +1,4 @@
-<div class="l-navbar p-3" id="nav-bar">
+<div id="nav-bar" class="l-navbar p-3">
   <nav class="flex flex-column justify-content-between h-full">
     <div>
       <!-- App Title -->
@@ -11,101 +11,81 @@
 
       <!-- Project Views -->
       <div class="mb-0 md:mb-4">
-        <div class="hidden md:flex justify-content-between align-items-center text-lg text-primary-200 hover:text-primary-400 hover:font-bold cursor-pointer"
-             (click)="toggleSection('project')" (keydown)="toggleOnEnter($event, 'project')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.project" aria-controls="project">
+        <div
+          [attr.aria-expanded]="isExpanded.project"
+          (click)="toggleSection('project')"
+          (keydown)="toggleOnEnter($event, 'project')"
+          class="hidden md:flex justify-content-between align-items-center text-lg text-primary-200 hover:text-primary-400 hover:font-bold cursor-pointer"
+          aria-controls="project"
+          role="button"
+          tabindex="0"
+        >
           <span id="menu-project">{{ 'nav.project' | translate }}</span>
           <span class="material-icons">{{ isExpanded.project ? 'expand_less' : 'expand_more' }}</span>
         </div>
-        <div id="project" role="region" aria-labelledby="menu-project" [class.md:hidden]="!isExpanded.project">
+        <div id="project" [class.md:hidden]="!isExpanded.project" aria-labelledby="menu-project" role="region">
           @if (projectLoaded) {
-          <a [routerLink]="['/dashboard']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
-             class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
-            <span class="material-icons text-2xl">view_quilt</span>
-            <span class="hidden md:inline text-md">{{ 'dashboard._nav' | translate }}</span>
-          </a>
-          <a [routerLink]="['/edit-project']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
-             class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
-            <span class="material-icons text-2xl">edit</span>
-            <span class="hidden md:inline text-md">{{ 'project._nav.edit' | translate }}</span>
-          </a>
+            <ng-container *ngTemplateOutlet="link; context: { path: 'dashboard', icon: 'view_quilt', text: ('dashboard._nav' | translate) }" />
+            <ng-container *ngTemplateOutlet="link; context: { path: 'edit-project', icon: 'edit', text: ('project._nav.edit' | translate) }" />
           } @else {
-          <a [routerLink]="['/new-project']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
-             class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
-            <span class="material-icons text-2xl">add</span>
-            <span class="hidden md:inline text-md">{{ 'project._nav.new' | translate }}</span>
-          </a>
+            <ng-container *ngTemplateOutlet="link; context: { path: 'new-project', icon: 'add', text: ('project._nav.new' | translate) }" />
           }
-          <a [routerLink]="['/switch-project']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
-             class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
-            <span class="material-icons text-2xl">folder_open</span>
-            <span class="hidden md:inline text-md">{{ 'switch._nav' | translate }}</span>
-          </a>
+          <ng-container *ngTemplateOutlet="link; context: { path: 'switch-project', icon: 'folder_open', text: ('switch._nav' | translate) }" />
         </div>
       </div>
       <!-- Mobile divider -->
       <hr class="border-primary-300 md:hidden" />
       <!-- Task Views -->
       <div class="mb-0 md:mb-4">
-        <div class="hidden md:flex justify-content-between align-items-center text-lg text-primary-200 hover:text-primary-400 hover:font-bold cursor-pointer"
-             (click)="toggleSection('tasks')" (keydown)="toggleOnEnter($event, 'tasks')" tabindex="0" role="button" [attr.aria-expanded]="isExpanded.tasks" aria-controls="tasks">
+        <div
+          [attr.aria-expanded]="isExpanded.tasks"
+          (click)="toggleSection('tasks')"
+          (keydown)="toggleOnEnter($event, 'tasks')"
+          class="hidden md:flex justify-content-between align-items-center text-lg text-primary-200 hover:text-primary-400 hover:font-bold cursor-pointer"
+          aria-controls="tasks"
+          role="button"
+          tabindex="0"
+        >
           <span id="menu-tasks">{{ 'nav.tasks' | translate }}</span>
           <span class="material-icons">{{ isExpanded.tasks ? 'expand_less' : 'expand_more' }}</span>
         </div>
-        <div id="tasks" role="region" aria-labelledby="menu-tasks" [class.md:hidden]="!isExpanded.tasks">
-          <a [routerLink]="['/inventory']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
-             class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
-            <span class="material-icons text-2xl">checklist_rtl</span>
-            <span class="hidden md:inline text-md">{{ 'inventory._nav' | translate }}</span>
-          </a>
-          <a [routerLink]="['/export-pages']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']" (click)="projectCache.checkLocalStatus()"
-             class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
-            <span class="material-icons-outlined text-2xl">drive_folder_upload</span>
-            <span class="hidden md:inline text-md">{{ 'exportPages._nav' | translate }}</span>
-          </a>
-          @if(sandbox){
-          <a [routerLink]="['/compare']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']" (click)="projectCache.checkLocalStatus(); projectCache.checkPreviewStatus()"
-             class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
-            <span class="material-icons-outlined text-2xl">library_books</span>
-            <span class="hidden md:inline text-md">{{ 'compare._nav' | translate }}</span>
-          </a>
+        <div id="tasks" [class.md:hidden]="!isExpanded.tasks" aria-labelledby="menu-tasks" role="region">
+          <ng-container *ngTemplateOutlet="link; context: { path: 'add-pages', icon: 'note_add', text: ('addPages._nav' | translate), isOutlined: true }" />
+          <ng-container *ngTemplateOutlet="link; context: { path: 'ia-diagram', icon: 'lan', text: ('iaDiagram._nav' | translate), isOutlined: true }" />
+          <ng-container *ngTemplateOutlet="link; context: { path: 'inventory', icon: 'checklist_rtl', text: ('inventory._nav' | translate) }" />
+          <ng-container *ngTemplateOutlet="link; context: { path: 'export-pages', icon: 'drive_folder_upload', text: ('exportPages._nav' | translate), isOutlined: true, onClick: checkLocalStatus }" />
+          @if (!production) {
+            <ng-container *ngTemplateOutlet="link; context: { path: 'compare', icon: 'library_books', text: ('compare._nav' | translate), isOutlined: true, onClick: checkStatus }" />
+            <!--ng-container *ngTemplateOutlet="link; context: { path: 'problems', icon: 'troubleshoot', text: ('problems._nav' | translate), isOutlined: true}"/>
+          <ng-container *ngTemplateOutlet="link; context: { path: 'search', icon: 'manage_search', text: ('search._nav' | translate), isOutlined: true}"/-->
           }
         </div>
-        <!--Icons for upcoming task nav
-        <span class="material-icons text-2xl">library_books</span>
-        <span class="hidden md:inline text-md">Pages</span><br>
-        <span class="material-icons text-2xl">troubleshoot</span>
-        <span class="hidden md:inline text-md">Problems</span><br>
-        <span class="material-icons-outlined text-2xl">manage_search</span>
-        <span class="hidden md:inline text-md">GREP search</span>
-        -->
       </div>
     </div>
 
     <!-- App Info -->
     <div>
-      <a [routerLink]="['/standalone']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
-         class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
-        <span class="material-icons text-2xl">home_repair_service</span>
-        <span class="hidden md:inline text-md">{{ 'standalone._nav' | translate }}</span>
-      </a>
-      @if(!production){
-      <a [routerLink]="['/help']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
-         class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
-        <span class="material-icons text-2xl">help_outline</span>
-        <span class="hidden md:inline text-md">{{ 'help._nav' | translate }}</span>
-      </a>
+      <ng-container *ngTemplateOutlet="link; context: { path: 'standalone', icon: 'home_repair_service', text: ('standalone._nav' | translate) }" />
+      @if (!production) {
+        <ng-container *ngTemplateOutlet="link; context: { path: 'help', icon: 'help_outline', text: ('help._nav' | translate) }" />
       }
-      <a [routerLink]="['/about-us']" [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
-         class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
-        <span class="material-icons text-2xl">wysiwyg</span>
-        <span class="hidden md:inline text-md">{{ 'about._nav' | translate }}</span>
-      </a>
-      <a (click)="mailtoService.openMailto(mailtoService.generateFeedbackMailto())" (keydown.enter)="mailtoService.openMailto(mailtoService.generateFeedbackMailto())" tabindex="0"
-         class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600">
-        <span class="material-icons text-2xl">feedback</span>
-        <span class="hidden md:inline text-md">{{ 'feedback._nav' | translate }}</span>
-      </a>
+      <ng-container *ngTemplateOutlet="link; context: { path: 'about-us', icon: 'wysiwyg', text: ('about._nav' | translate) }" />
+      <ng-container *ngTemplateOutlet="link; context: { path: '', icon: 'feedback', text: ('feedback._nav' | translate), onClick: mailTo }" />
     </div>
-
   </nav>
 </div>
+
+<!--Link template-->
+<ng-template #link let-icon="icon" let-isOutlined="isOutlined" let-onClick="onClick" let-path="path" let-text="text">
+  <a
+    [routerLink]="path ? ['/' + path] : null"
+    [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
+    (click)="onClick?.()"
+    (keydown.enter)="onClick?.()"
+    class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600 cursor-pointer"
+    tabindex="0"
+  >
+    <span [class]="isOutlined ? 'material-icons-outlined' : 'material-icons' + ' text-2xl'">{{ icon }}</span>
+    <span class="hidden md:inline text-md">{{ text }}</span>
+  </a>
+</ng-template>

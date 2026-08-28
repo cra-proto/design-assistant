@@ -1,0 +1,71 @@
+<h1 id="wb-cont">{{ 'standalone._title' | translate }}</h1>
+<p [innerHTML]="'standalone.description' | translate"></p>
+
+<!--a href="javascript:(function(){
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent(document.title);
+    window.open(`http://localhost:4200/import-page?org=CRA&?url=${url}&title=${title}`, '_blank');
+})();" class="text-xl font-semibold">{{'standalone.tool1._title' | translate}}</a-->
+
+<h2>{{ 'standalone.bookmarklet._title' | translate }}</h2>
+<p>{{ 'standalone.bookmarklet.description' | translate }}</p>
+<div class="grid py-2 px-4 lg:px-6">
+  <div class="col-12 md:col-6 lg:col-4">
+    <a [href]="aidaBookmarklet" (click)="$event.preventDefault()" class="text-xl font-semibold">{{ 'standalone.bookmarklet1._title' | translate }}</a>
+    <p class="text-color-secondary mt-2">
+      {{ 'standalone.bookmarklet1.description' | translate }}<br />
+      <strong>{{ 'common.modified' | translate }}: </strong>2026-02-01
+    </p>
+  </div>
+  <div class="col-12 md:col-6 lg:col-4">
+    <a [href]="githubToggleBookmarklet" (click)="$event.preventDefault()" class="text-xl font-semibold">{{ 'standalone.bookmarklet2._title' | translate }}</a>
+    <p class="text-color-secondary mt-2">
+      {{ 'standalone.bookmarklet2.description' | translate }}<br />
+      <strong>{{ 'common.modified' | translate }}: </strong>2026-06-12
+    </p>
+  </div>
+  <div class="col-12 md:col-6 lg:col-4">
+    <a [href]="githubNewTabBookmarklet" (click)="$event.preventDefault()" class="text-xl font-semibold">{{ 'standalone.bookmarklet4._title' | translate }}</a>
+    <p class="text-color-secondary mt-2">
+      {{ 'standalone.bookmarklet4.description' | translate }}<br />
+      <strong>{{ 'common.modified' | translate }}: </strong>2026-06-12
+    </p>
+  </div>
+  <div class="col-12 md:col-6 lg:col-4">
+    <a [href]="linkCheckerBookmarklet" (click)="$event.preventDefault()" class="text-xl font-semibold">{{ 'standalone.bookmarklet3._title' | translate }}</a>
+    <p class="text-color-secondary mt-2">
+      {{ 'standalone.bookmarklet3.description' | translate }}<br />
+      <strong>{{ 'common.modified' | translate }}: </strong>2026-03-23
+    </p>
+  </div>
+  <div class="col-12 md:col-6 lg:col-4">
+    <a [href]="nightModeBookmarklet" (click)="$event.preventDefault()" class="text-xl font-semibold">{{ 'standalone.bookmarklet.nightMode._title' | translate }}</a>
+    <p class="text-color-secondary mt-2">
+      {{ 'standalone.bookmarklet.nightMode.description' | translate }}<br />
+      <strong>{{ 'common.modified' | translate }}: </strong>2026-07-17
+    </p>
+  </div>
+</div>
+<h2>Tools</h2>
+<div class="grid py-2 px-4 lg:px-6">
+  <div class="col-12 md:col-6 lg:col-4">
+    <a class="text-xl font-semibold" routerLink="/standalone/tool-3">{{ 'standalone.tool._title' | translate }} 1</a>
+    <p class="text-color-secondary mt-2">{{ 'standalone.tool.description' | translate }}</p>
+  </div>
+  <div class="col-12 md:col-6 lg:col-4">
+    <a class="text-xl font-semibold" routerLink="/standalone/tool-3">{{ 'standalone.tool._title' | translate }} 2</a>
+    <p class="text-color-secondary mt-2">{{ 'standalone.tool.description' | translate }}</p>
+  </div>
+  <div class="col-12 md:col-6 lg:col-4">
+    <a class="text-xl font-semibold" routerLink="/standalone/tool-3">{{ 'standalone.tool._title' | translate }} 3</a>
+    <p class="text-color-secondary mt-2">{{ 'standalone.tool.description' | translate }}</p>
+  </div>
+</div>
+
+@if (myToolbox() === 'CRA' || myToolbox() === 'ADMIN') {
+  <!--ADD ANYTHING UNIQUE TO CRA HERE-->
+}
+
+@if (myToolbox() === 'DEV' || myToolbox() === 'ADMIN') {
+  <aida-dev-tools />
+}
