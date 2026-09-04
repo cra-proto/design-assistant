@@ -110,7 +110,7 @@ export const handler = async (event: any): Promise<any> => {
                     'HTTP-Referer': process.env.ALLOWED_ORIGIN || '',
                     'X-Title': 'AIDA - AI Design Assistant',
                 },
-                timeout: 115000, // 115s, under Lambda's 120s timeout
+                timeout: 295000, // 295s, under Lambda's 300s timeout
             }
         );
 
