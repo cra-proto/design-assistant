@@ -659,6 +659,7 @@
 	"inventory.menu.status.filter.remove": "Remove flagged pages filter",
 	"inventory.menu.tasks.collapseAll": "Collapse all tasks",
 	"inventory.menu.tasks.expandAll": "Expand all tasks",
+	"inventory.menu.updateStatus": "Update status",
 	"inventory.menu.vanities.collapseAll": "Collapse all vanity URLs",
 	"inventory.menu.vanities.expandAll": "Expand all vanity URLs",
 	"inventory.notInUPD": "Not in UPD",

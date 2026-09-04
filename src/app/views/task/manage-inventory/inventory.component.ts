@@ -11,7 +11,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ContextMenu, ContextMenuModule } from 'primeng/contextmenu';
 import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
-import { MenuModule } from 'primeng/menu';
+import { Menu, MenuModule } from 'primeng/menu';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SelectModule } from 'primeng/select';
@@ -47,6 +47,12 @@ import {
 import { isKnownNumber } from '../../../common/phone-numbers.config';
 import { InventoryPrompts } from '../../../common/prompts/inventory.prompts';
 import { InventoryPromptKey } from '../../../common/prompts/prompt.model';
+
+export interface BooleanToggleItem extends MenuItem {
+  type: 'booleanToggle';
+  onYes: () => void;
+  onNo: () => void;
+}
 
 @Component({
   selector: 'aida-inventory',
@@ -558,7 +564,7 @@ export class InventoryComponent implements OnInit {
   /**********************************************************
    *                                                         *
    *    START OF FUNCTIONS                                   *
-   *    refresh, generate metadata, edit                     *
+   *    refresh, generate metadata, edit, bulk edit          *
    *                                                         *
    **********************************************************/
 
@@ -747,6 +753,55 @@ export class InventoryComponent implements OnInit {
     if (target) target[last] = value;
   }
 
+  /** Edit booleans for all selected pages */
+  protected bulkSetBooleanField(dataSection: string[], value: boolean): void {
+    let changed = false;
+
+    for (const flatNode of this.selectedNodes) {
+      const path = this.lang === 'fr' ? flatNode.frPath : flatNode.enPath;
+      const node = this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, this.lang);
+      if (!node) continue;
+
+      if (dataSection.includes('lang')) {
+        const enSection = dataSection.map((k) => (k === 'lang' ? 'en' : k));
+        const frSection = dataSection.map((k) => (k === 'lang' ? 'fr' : k));
+        const currentValueEN = this.getNestedValue(node.data, enSection);
+        const currentValueFR = this.getNestedValue(node.data, frSection);
+        if (currentValueEN !== value || currentValueFR !== value) {
+          this.setNestedValue(node.data, enSection, value);
+          this.setNestedValue(node.data, frSection, value);
+          changed = true;
+        }
+      } else {
+        const currentValue = this.getNestedValue(node.data, dataSection);
+        if (currentValue !== value) {
+          this.setNestedValue(node.data, dataSection, value);
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) {
+      this.projectState.setModifiedDate();
+    }
+  }
+
+  private readonly bulkEditableFields: { dataSection: string[]; labelKey: string }[] = [
+    { dataSection: ['status', 'inScope'], labelKey: 'inventory.header.inScope' },
+    //{ dataSection: ['status', 'isNew'], labelKey: 'inventory.header.isNew' },
+    //{ dataSection: ['status', 'isMoved'], labelKey: 'inventory.header.isMoved' },
+    { dataSection: ['status', 'isROT'], labelKey: 'inventory.header.isROT' },
+    { dataSection: ['prototype', 'lang', 'isArchived'], labelKey: 'inventory.header.archiveStatus' },
+    { dataSection: ['prototype', 'lang', 'noindex'], labelKey: 'inventory.header.noindex' },
+  ];
+
+  protected readonly menu = viewChild<Menu>('menu');
+
+  protected handleBoolToggle(action: () => void): void {
+    action();
+    this.menu()?.hide();
+  }
+
   /**********************************************************
    *                                                         *
    *    END OF FUNCTIONS                                   *
@@ -809,6 +864,21 @@ export class InventoryComponent implements OnInit {
                 },
               },
             ],
+          },
+          {
+            label: this.translate.instant('inventory.menu.updateStatus'),
+            styleClass: 'text-primary-500',
+            items: this.bulkEditableFields.map(
+              (field) =>
+                ({
+                  type: 'booleanToggle',
+                  label: this.translate.instant(field.labelKey),
+                  icon: this.getBooleanIcon(true, field.dataSection[field.dataSection.length - 1]),
+                  disabled: numPages === 0,
+                  onYes: () => this.bulkSetBooleanField(field.dataSection, true),
+                  onNo: () => this.bulkSetBooleanField(field.dataSection, false),
+                }) as BooleanToggleItem,
+            ),
           },
           {
             label: this.translate.instant('inventory.menu.delete'),
