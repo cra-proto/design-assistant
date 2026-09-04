@@ -542,6 +542,12 @@ export class InventoryComponent implements OnInit {
     return this.scrollableColumns().some((col) => (byField ? col.field === key : col.group === key));
   }
 
+  /** Set max rows per page to the total pages in project */
+  protected get rowsPerPageOptions(): number[] {
+    const total = this.projectState.getProject().baselinePages;
+    return [25, 50, 100].filter((n) => n < total).concat(total);
+  }
+
   /**********************************************************
    *                                                         *
    *    END OF VIEW SETTINGS                                 *

@@ -1,7 +1,7 @@
 <h1 id="wb-cont">{{ repoType() === 'github' ? ('exportPages.github._title' | translate) : ('exportPages.zip._title' | translate) }}</h1>
 
 <!-- Authentication Banner -->
-@if (!exportGitHubService.token() && !authService.isAuthenticated() && repoType() === 'github') {
+@if (!exportGitHubService.user() && repoType() === 'github') {
   <p-message severity="info" styleClass="mb-2 sticky top-0 z-2">
     <div class="flex align-items-center gap-2">
       <i class="pi pi-info-circle font-bold"></i>

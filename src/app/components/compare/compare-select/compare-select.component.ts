@@ -83,20 +83,20 @@ export class CompareSelectComponent implements OnInit {
    */
   async onPageSelectionChange(path: string) {
     this.compareService.loading.set(true);
-    const versionsToCheck = this.compareService.getVersionsToCheck(path);
     try {
       this.compareService.selectedPage.set(path);
       if (!this.compareService.selectedPage()) return;
       // Clear current HTML (but not cache)
       this.compareService.originalHtml.set(undefined);
       this.compareService.modifiedHtml.set(undefined);
+      this.compareService.undoStack.clear();
       //Check the versions
+      const versionsToCheck = this.compareService.getVersionsToCheck(path);
       const validVersions: CompareVersion[] = ['ai'];
       for (const { url, version } of versionsToCheck) {
         await this.compareService.checkVersion(url, version, validVersions);
       }
-      //Add valid versions to dropdown menu
-      this.allOptions = validVersions;
+      this.allOptions = validVersions; //Add valid versions to dropdown menu
       //Load the comparison
       await this.onBeforeSelectionChange(this.compareService.selectedBefore());
       await this.onAfterSelectionChange(this.compareService.selectedAfter());

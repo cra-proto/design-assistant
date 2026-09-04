@@ -8,19 +8,15 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AccordionModule } from 'primeng/accordion';
 import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { FieldsetModule } from 'primeng/fieldset';
-import { IftaLabelModule } from 'primeng/iftalabel';
 import { RadioButtonModule } from 'primeng/radiobutton';
-import { SliderModule } from 'primeng/slider';
-import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
 
 import { CompareAiService } from '../compare-ai.service';
 import { AiTaskOption, CompareService } from '../compare.service';
 
-import { AI_FREE_MODELS, AI_PAID_MODELS } from '../../../common/prompts/ai-models.config';
+import { AI_FREE_MODELS, AI_PAID_MODELS } from '../../../common/ai-models.config';
 import { PagePromptKey } from '../../../common/prompts/prompt.model';
 
 /**
@@ -30,21 +26,7 @@ import { PagePromptKey } from '../../../common/prompts/prompt.model';
  */
 @Component({
   selector: 'aida-compare-ai-options',
-  imports: [
-    CommonModule,
-    FormsModule,
-    TranslatePipe,
-    AccordionModule,
-    ButtonModule,
-    CheckboxModule,
-    DialogModule,
-    FieldsetModule,
-    IftaLabelModule,
-    RadioButtonModule,
-    SliderModule,
-    TextareaModule,
-    TooltipModule,
-  ],
+  imports: [CommonModule, FormsModule, TranslatePipe, AccordionModule, ButtonModule, DialogModule, FieldsetModule, RadioButtonModule, TooltipModule],
   templateUrl: './compare-ai-options.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -52,6 +34,8 @@ export class CompareAiOptionsComponent {
   protected readonly compareService = inject(CompareService);
   protected readonly compareAiService = inject(CompareAiService);
   private readonly translate = inject(TranslateService);
+
+  protected readonly admin = localStorage.getItem('myOrg')?.toUpperCase() === 'ADMIN' ? true : false;
 
   /** AI model radio buttons */
   protected readonly freeModels = AI_FREE_MODELS;

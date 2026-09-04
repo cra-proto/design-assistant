@@ -26,7 +26,7 @@
             showDelay="1000"
             text
           />
-          <span class="white-space-nowrap">{{ displayCounter }}</span>
+          <span class="white-space-nowrap">{{ displayCounter() }}</span>
           <p-button
             [ariaLabel]="'compare.rendered.next' | translate"
             [pTooltip]="'compare.rendered.next' | translate"
@@ -41,9 +41,9 @@
         <p-splitbutton
           [buttonProps]="{ ariaLabel: 'compare.rendered.accept' | translate }"
           [menuButtonProps]="{ ariaLabel: 'compare.rendered.acceptOptions' | translate }"
-          [model]="acceptItems"
+          [model]="acceptItems()"
           [pTooltip]="'compare.rendered.accept' | translate"
-          (onClick)="toolbarAccept()"
+          (onClick)="processDiffChange('accept')"
           class="secondary-outline"
           hideDelay="300"
           icon="pi pi-check"
@@ -57,9 +57,9 @@
         <p-splitbutton
           [buttonProps]="{ ariaLabel: 'compare.rendered.reject' | translate }"
           [menuButtonProps]="{ ariaLabel: 'compare.rendered.rejectOptions' | translate }"
-          [model]="rejectItems"
+          [model]="rejectItems()"
           [pTooltip]="'compare.rendered.reject' | translate"
-          (onClick)="toolbarReject()"
+          (onClick)="processDiffChange('reject')"
           class="secondary-outline"
           hideDelay="300"
           icon="pi pi-times"
@@ -75,31 +75,33 @@
         }
       </div>
     } @else {
-      <div>
-        <p-togglebutton
-          [(ngModel)]="toggleEdit"
-          [ariaLabel]="'common.editSave' | translate"
-          [offLabel]="'common.edit' | translate"
-          [onLabel]="'common.save' | translate"
-          (onChange)="toolbarToggleEdit(webSelectedView())"
-          offIcon="pi pi-pen-to-square"
-          onIcon="pi pi-save"
-          styleClass="font-bold border-none w-6rem"
+      <div class="flex flex-row gap-1 align-items-center">
+        <p-button
+          [disabled]="webSelectedView() === WebViewType.Original && !enableOriginalEdits()"
+          [icon]="editing() ? 'pi pi-save' : 'pi pi-pen-to-square'"
+          [label]="editing() ? ('common.save' | translate) : ('common.edit' | translate)"
+          (onClick)="toggleEditing(webSelectedView())"
+          outlined
+          styleClass="secondary-outline"
         />
-        <p-togglebutton
-          [(ngModel)]="toggleCopy"
-          [ariaLabel]="'common.copyCode' | translate"
-          [offLabel]="'common.copyCode' | translate"
-          [onLabel]="'common.copied' | translate"
-          (onChange)="toolbarToggleCopy(webSelectedView())"
-          offIcon="pi pi-clipboard"
-          onIcon=""
-          styleClass="font-bold border-none w-9rem"
+        <p-button
+          [icon]="copying() ? 'pi pi-checkmark' : 'pi pi-clipboard'"
+          [label]="copying() ? ('common.copied' | translate) : ('common.copyCode' | translate)"
+          (onClick)="toggleCopying(webSelectedView())"
+          outlined
+          styleClass="secondary-outline"
         />
         @if (getUrl()) {
-          <a [href]="getUrl()" class="p-togglebutton border-none no-underline font-bold" rel="noopener noreferrer" target="_blank">
-            <span class="flex flex-row gap-2 align-items-center"><i class="pi pi-external-link"></i>{{ 'common.openNewTab' | translate }}</span>
+          <a [href]="getUrl()" class="secondary-outline no-underline" outlined pButton rel="noopener noreferrer" target="_blank">
+            <span class="pButtonLabel"><i class="pi pi-external-link mr-2"></i>{{ 'common.openNewTab' | translate }}</span>
           </a>
+        }
+        @if (webSelectedView() === WebViewType.Original) {
+          @if (!enableOriginalEdits()) {
+            <p-button [label]="'common.enableEdits' | translate" (onClick)="enableOriginalEdits.set(true)" icon="pi pi-file-edit" outlined severity="warn" styleClass="secondary-outline" />
+          } @else {
+            <p-message icon="pi pi-exclamation-triangle" severity="warn">{{ 'compare.rendered.originalEditsMessage' | translate }}</p-message>
+          }
         }
       </div>
     }
@@ -121,3 +123,5 @@
   <!--Shadow DOM-->
   <div [ngClass]="webSelectedView()" class="diff-container p-0" #liveContainer></div>
 </div>
+
+<p-toast />

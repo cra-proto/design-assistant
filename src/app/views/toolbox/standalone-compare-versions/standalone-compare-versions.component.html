@@ -9,7 +9,14 @@
     <p-tabpanels class="shadow-1">
       <!-- Rendered page -->
       <p-tabpanel value="0">
-        <aida-compare-rendered [afterContent]="modifiedHtml()" [beforeContent]="originalHtml()" (contentChanged)="onContentChanged($event)" />
+        <aida-compare-rendered
+          [afterContent]="modifiedHtml()"
+          [beforeContent]="originalHtml()"
+          [canUndo]="undoStack.canUndo()"
+          (contentChanged)="onContentChanged($event)"
+          (hasChanges)="onHasChanges($event)"
+          (undoChanges)="onUndo()"
+        />
       </p-tabpanel>
       <!-- Source code -->
       <!--p-tabpanel value="1">

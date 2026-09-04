@@ -14,6 +14,7 @@ export interface htmlProcessingResult {
   };
   version?: CompareVersion;
   url?: string;
+  edited?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -163,7 +164,8 @@ export class HtmlNormalizationService {
 
   // 3b. Resolve AJAX-loaded content from anchors on same page
   private async processSamePageAjaxReplacements(doc: Document): Promise<boolean> {
-    const elements = doc.querySelectorAll('[data-ajax-replace^="#"], [data-ajax-after^="#"], [data-ajax-append^="#"], [data-ajax-before^="#"], [data-ajax-prepend^="#"]');
+    const root = doc.querySelector('main') ?? doc;
+    const elements = root.querySelectorAll('[data-ajax-replace^="#"], [data-ajax-after^="#"], [data-ajax-append^="#"], [data-ajax-before^="#"], [data-ajax-prepend^="#"]');
 
     if (!elements.length) return false;
 
@@ -198,7 +200,8 @@ export class HtmlNormalizationService {
     let found = false;
 
     const processElements = async (): Promise<void> => {
-      const ajaxElements = doc.querySelectorAll('[data-ajax-replace^="/"], [data-ajax-after^="/"], [data-ajax-append^="/"], [data-ajax-before^="/"], [data-ajax-prepend^="/"]');
+      const root = doc.querySelector('main') ?? doc;
+      const ajaxElements = root.querySelectorAll('[data-ajax-replace^="/"], [data-ajax-after^="/"], [data-ajax-append^="/"], [data-ajax-before^="/"], [data-ajax-prepend^="/"]');
 
       if (!ajaxElements.length) return;
       else {
@@ -300,7 +303,8 @@ export class HtmlNormalizationService {
       }, obj);
     };
 
-    const jsonElements = doc.querySelectorAll<HTMLElement>('[data-wb-jsonmanager]');
+    const root = doc.querySelector('main') ?? doc;
+    const jsonElements = root.querySelectorAll<HTMLElement>('[data-wb-jsonmanager]');
     if (!jsonElements.length) return found;
 
     const jsonDataMap = new Map<string, unknown>();

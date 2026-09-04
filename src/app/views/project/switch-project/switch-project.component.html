@@ -2,7 +2,7 @@
 <p>{{ 'switch.description' | translate }}</p>
 
 <!-- Authentication Banner -->
-@if (!authService.isAuthenticated()) {
+@if (!exportGitHubService.user()) {
   <p-message severity="info" styleClass="mb-2 sticky top-0 z-2">
     <div class="flex align-items-center gap-2">
       <i class="pi pi-info-circle font-bold"></i>
@@ -75,22 +75,22 @@
                 <!--Tags-->
                 <div class="flex gap-2">
                   @if (projectStorageService.currentActive()?.key === project.key && project.storageType === 'local') {
-                    <p-tag value="Active" [style]="{ 'font-size': '0.75rem' }" icon="pi pi-check" severity="success" />
+                    <p-tag [value]="'switch.tag.active' | translate" icon="pi pi-check" severity="success" />
                   }
                   @if (projectStorageService.currentActive()?.key === project.id && project.storageType === 'cloud') {
-                    <p-tag value="Active" [style]="{ 'font-size': '0.75rem' }" icon="pi pi-check" severity="success" />
+                    <p-tag value="Active" icon="pi pi-check" severity="success" />
                   }
                   @if (project.storageType === 'local') {
-                    <p-tag value="Local" [style]="{ 'font-size': '0.75rem' }" icon="pi pi-home" severity="secondary" />
+                    <p-tag [value]="'project.setup.storage.local' | translate" icon="pi pi-desktop" severity="secondary" />
                   }
                   @if (project.storageType === 'cloud') {
-                    <p-tag value="Cloud" [style]="{ 'font-size': '0.75rem' }" icon="pi pi-cloud" severity="info" />
+                    <p-tag [value]="'project.setup.storage.cloud' | translate" icon="pi pi-cloud" severity="info" />
                   }
                   @if (project.storageType === 'cloud' && !collaboratorService.canEditProject(project)) {
-                    <p-tag value="Read-only" [style]="{ 'font-size': '0.75rem' }" icon="pi pi-eye" severity="warn" />
+                    <p-tag [value]="'switch.tag.readonly' | translate" icon="pi pi-eye" severity="warn" />
                   }
                   @if (project.key === 'autosave') {
-                    <p-tag value="Unsaved" [style]="{ 'font-size': '0.75rem' }" icon="pi pi-exclamation-triangle" severity="danger" />
+                    <p-tag [value]="'switch.tag.unsaved' | translate" icon="pi pi-exclamation-triangle" severity="danger" />
                   }
                 </div>
                 <!--Actions-->
@@ -128,7 +128,7 @@
                   @if (project?.github?.repo) {
                     {{ project?.github?.owner }}/{{ project?.github?.repo }}
                   } @else {
-                    No repository
+                    {{ 'switch.noRepo' | translate }}
                   }
                 </div>
                 <div><i class="pi pi-copy mr-2"></i>Pages: {{ project.inScopePages }}</div>

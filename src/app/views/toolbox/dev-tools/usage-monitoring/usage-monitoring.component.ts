@@ -1,12 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-
-import { firstValueFrom } from 'rxjs';
 
 import { SelectItem } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -19,66 +16,11 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 
+import { CollaboratorService } from '../../../../services/github/collaborator.service';
+import { UsageRecord, UsageService, UsageStats } from '../../../../services/usage.service';
 import { UserSettingsService } from '../../../../services/user-settings.service';
 
-import { environment } from '../../../../../environments/environment';
-
 //TODO: Add option to filter by user
-
-interface UsageStats {
-  uniqueUsersTotal: number;
-  uniqueUsersGitHub: number;
-  uniqueUsersAnonymous: number;
-
-  totalGenerations: number;
-  metadataGenerations: number;
-  pageGenerations: number;
-
-  uniqueProjects: number;
-  localProjects: number;
-  cloudProjects: number;
-
-  uniqueUrls: number;
-  enUrls: number;
-  frUrls: number;
-
-  exportCountGit: number;
-  enPageCountGit: number;
-  frPageCountGit: number;
-
-  uniqueReposGit: number;
-  prototypeReposGit: number;
-  baselineReposGit: number;
-
-  exportCountLocal: number;
-  enPageCountLocal: number;
-  frPageCountLocal: number;
-
-  uniqueReposLocal: number;
-  prototypeReposLocal: number;
-  baselineReposLocal: number;
-
-  uniqueOrgCount: number;
-}
-
-interface UsageRecord {
-  pk: string;
-  sk: string;
-  feature: string;
-  projectId: string;
-  org: string;
-  userId: string;
-  pageUrl: string;
-  model: string;
-  promptType?: string;
-  promptVersion: number;
-  generatedAt: string;
-  statusDescEN: string;
-  statusDescFR: string;
-  statusKeywordsEN: string;
-  statusKeywordsFR: string;
-  lastUpdated: string;
-}
 
 interface DonutFilter {
   field: string;
@@ -115,9 +57,12 @@ const STATUS_FIELDS: Record<string, (keyof UsageRecord)[]> = {
 })
 export class UsageMonitoringComponent implements OnInit {
   private readonly translate = inject(TranslateService);
-  private readonly http = inject(HttpClient);
+  private readonly usageService = inject(UsageService);
   private readonly settingsService = inject(UserSettingsService);
+  private readonly collaboratorService = inject(CollaboratorService);
   protected readonly currentLang = this.settingsService.currentLang;
+
+  protected readonly admin = localStorage.getItem('myOrg')?.toUpperCase() === 'ADMIN' ? true : false;
 
   // Breadcrumbs
   protected readonly breadcrumbs = [{ label: 'dev._title', route: '/dev' }, { label: 'dev.monitoring._title' }];
@@ -330,12 +275,10 @@ export class UsageMonitoringComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const [statsResult, itemsResult] = await Promise.all([
-        firstValueFrom(this.http.get<UsageStats>(environment.usageFunctionUrl)),
-        firstValueFrom(this.http.get<{ items: UsageRecord[] }>(`${environment.usageFunctionUrl}?feature=${this.selectedFeature()}`)),
-      ]);
+      const statsResult = await this.usageService.loadGlobal();
+      const itemsResult = await this.usageService.loadFeature(this.selectedFeature());
       this.stats.set(statsResult);
-      this.featureItems.set(itemsResult.items);
+      this.featureItems.set(itemsResult);
     } catch (err: unknown) {
       this.error.set(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -348,8 +291,8 @@ export class UsageMonitoringComponent implements OnInit {
     this.featureItemsLoading.set(true);
     this.featureItemsError.set(null);
     try {
-      const result = await firstValueFrom(this.http.get<{ items: UsageRecord[] }>(`${environment.usageFunctionUrl}?feature=${feature}`));
-      this.featureItems.set(result.items);
+      const result = await this.usageService.loadFeature(feature);
+      this.featureItems.set(result);
     } catch (err: unknown) {
       this.featureItemsError.set(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -387,4 +330,29 @@ export class UsageMonitoringComponent implements OnInit {
       0,
     );
   });
+
+  /** Delete test data from AIDA developers */
+  protected deleteTestData() {
+    this.usageService.deleteUserRecords('57812460').subscribe({
+      next: (res) => console.log(`Deleted ${res.deleted} records`),
+      error: (err) => console.error('Delete failed', err),
+    });
+    this.load();
+  }
+
+  protected async unmaskUserIds() {
+    const records = this.featureItems();
+    const loginCache = new Map<string, string>();
+    const updated = await Promise.all(
+      records.map(async (record) => {
+        if (!loginCache.has(record.userId)) {
+          const login = await this.collaboratorService.getLogin(record.userId);
+          loginCache.set(record.userId, login);
+        }
+        return { ...record, userId: loginCache.get(record.userId)! };
+      }),
+    );
+
+    this.featureItems.set(updated);
+  }
 }

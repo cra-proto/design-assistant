@@ -1,13 +1,15 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
-import { createPatch } from 'diff';
-import { Diff2HtmlUI } from 'diff2html/lib/ui/js/diff2html-ui-slim';
+import { TranslateService } from '@ngx-translate/core';
+
 import type { Diff2HtmlUIConfig } from 'diff2html/lib/ui/js/diff2html-ui-slim';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CompareSourceService {
+  private readonly translate = inject(TranslateService);
+
   //Update source code views
 
   async generateSourceContent(
@@ -64,10 +66,12 @@ export class CompareSourceService {
   ): Promise<void> {
     try {
       //Import diff modules
-      //const [{ createPatch }, { default: Diff2HtmlUI }] = await Promise.all([
-      //  import('diff'),
-      //  import('diff2html/lib/ui/js/diff2html-ui-slim'),
-      //]);
+      const [{ createPatch }, diff2htmlModule] = await Promise.all([import('diff'), import('diff2html/lib/ui/js/diff2html-ui-slim')]);
+      const Diff2HtmlUI = (diff2htmlModule as any).Diff2HtmlUI ?? (diff2htmlModule as any).default?.Diff2HtmlUI; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+      if (!Diff2HtmlUI) {
+        throw new Error('Diff2HtmlUI export not found in diff2html-ui-slim module');
+      }
 
       // Data used for diff
       const patch = createPatch('', originalHtml, modifiedHtml, originalUrl, modifiedUrl, {
@@ -82,6 +86,16 @@ export class CompareSourceService {
         matching: 'words',
         synchronisedScroll: true,
         highlight: true,
+        rawTemplates: {
+          'generic-empty-diff': `
+<tr>
+    <td class="d2h-info">
+        <div class="{{contentClass}} d2h-info">
+            ${this.translate.instant('compare.source.fileWithoutChanges')}
+        </div>
+    </td>
+</tr>`,
+        },
       };
 
       // Clear previous content
@@ -91,6 +105,7 @@ export class CompareSourceService {
       const diff2 = new Diff2HtmlUI(container, patch, diffOptions);
       diff2.highlightCode();
       diff2.draw();
+      this.applyDiff2HtmlTheme();
     } catch (error) {
       console.error('Error generating diff2html:', error);
       container.innerHTML = '<p class="p-error">Error generating diff view.</p>';
@@ -105,16 +120,13 @@ export class CompareSourceService {
   }
 
   //Toggle theme for light/dark mode
-  public loadPrismTheme(): void {
+  private loadPrismTheme(): void {
     const isDarkMode = document.documentElement.classList.contains('dark-mode');
-
-    //Prism
     const existingLink = document.getElementById('prism-theme') as HTMLLinkElement;
-
-    const newHref = isDarkMode ? 'css/prism-okaidia.min.css' : 'css/prism.min.css';
+    const newHref = isDarkMode ? '/css/prism-okaidia.min.css' : '/css/prism.min.css';
 
     if (existingLink) {
-      if (existingLink.href.endsWith(newHref)) return; // already loaded
+      if (existingLink.href.endsWith(newHref)) return;
       existingLink.href = newHref;
     } else {
       const link = document.createElement('link');
@@ -123,10 +135,12 @@ export class CompareSourceService {
       link.href = newHref;
       document.head.appendChild(link);
     }
+  }
 
-    //Diff2Html
-    const diffWrappers = document.querySelectorAll('.d2h-wrapper');
-    diffWrappers.forEach((diffWrapper) => {
+  //Apply dark/light color scheme to diff2html wrapper elements
+  private applyDiff2HtmlTheme(): void {
+    const isDarkMode = document.documentElement.classList.contains('dark-mode');
+    document.querySelectorAll('.d2h-wrapper').forEach((diffWrapper) => {
       diffWrapper.classList.remove('d2h-dark-color-scheme', 'd2h-light-color-scheme');
       diffWrapper.classList.add(isDarkMode ? 'd2h-dark-color-scheme' : 'd2h-light-color-scheme');
     });

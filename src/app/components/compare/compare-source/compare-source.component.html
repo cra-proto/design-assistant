@@ -1,4 +1,4 @@
-<div class="flex flex-column text-color-secondary min-w-max">
+<div class="flex flex-column text-color-secondary w-full">
   <!--View options-->
   <label class="mb-1 font-semibold block" for="views'">{{ 'common.view' | translate }}</label>
   <div id="views" class="flex flex-row gap-3 my-1" role="radiogroup">
@@ -7,11 +7,69 @@
         <p-radiobutton [inputId]="'show_' + view.value" [name]="view.value" [ngModel]="sourceSelectedView()" [value]="view.value" (ngModelChange)="onSourceViewChange($event)" size="large" />
         <label [for]="'show_' + view.value" class="cursor-pointer font-semibold flex align-items-center gap-1">
           <i [class]="view.icon"></i>
-          {{ view.label | translate }}
+          {{ view.label }}
         </label>
       </div>
     }
   </div>
-  <!--Shadow DOM-->
+  <!--Toolbar options-->
+  <div class="sticky top-0 z-5 p-0 mb-2 flex flex-wrap lg:flex-nowrap justify-content-between gap-5">
+    @if (sourceSelectedView() === SourceViewType.LineByLine || sourceSelectedView() === SourceViewType.SideBySide) {
+      <div class="flex flex-row gap-2 align-items-center">
+        @if (canUndo()) {
+          <p-button [label]="'compare.button.undo' | translate" (onClick)="undoChanges.emit()" icon="pi pi-refresh" outlined styleClass="secondary-outline" />
+        }
+      </div>
+    } @else {
+      <div class="flex flex-row gap-1 align-items-center">
+        <p-button
+          [disabled]="sourceSelectedView() === SourceViewType.Original && !enableOriginalEdits()"
+          [icon]="editing() ? 'pi pi-save' : 'pi pi-pen-to-square'"
+          [label]="editing() ? ('common.save' | translate) : ('common.edit' | translate)"
+          (onClick)="toggleEditing(sourceSelectedView())"
+          outlined
+          styleClass="secondary-outline"
+        />
+        @if (canUndo()) {
+          <p-button [label]="'compare.button.undo' | translate" (onClick)="undoChanges.emit()" icon="pi pi-refresh" outlined styleClass="secondary-outline" />
+        }
+        <p-button
+          [icon]="copying() ? 'pi pi-checkmark' : 'pi pi-clipboard'"
+          [label]="copying() ? ('common.copied' | translate) : ('common.copyCode' | translate)"
+          (onClick)="toggleCopying(sourceSelectedView())"
+          outlined
+          styleClass="secondary-outline"
+        />
+        @if (getUrl()) {
+          <a [href]="getUrl()" class="secondary-outline no-underline" outlined pButton rel="noopener noreferrer" target="_blank">
+            <span class="pButtonLabel"><i class="pi pi-external-link mr-2"></i>{{ 'common.openNewTab' | translate }}</span>
+          </a>
+        }
+        @if (sourceSelectedView() === SourceViewType.Original) {
+          @if (!enableOriginalEdits()) {
+            <p-button [label]="'common.enableEdits' | translate" (onClick)="enableOriginalEdits.set(true)" icon="pi pi-file-edit" outlined severity="warn" styleClass="secondary-outline" />
+          } @else {
+            <p-message icon="pi pi-exclamation-triangle" severity="warn">{{ 'compare.rendered.originalEditsMessage' | translate }}</p-message>
+          }
+        }
+      </div>
+    }
+    <div class="flex flex-wrap justify-content-end align-items-center gap-2 min-w-min">
+      @for (item of legendItems; track item.text) {
+        <div class="flex align-items-center gap-2">
+          <div
+            [ngStyle]="{
+              'background-color': item.style === 'highlight' ? item.colour : 'transparent',
+              border: item.style === 'line' ? '2px ' + (item.lineStyle || 'solid') + ' ' + item.colour : 'none',
+            }"
+            class="legend-box"
+          ></div>
+          <span class="legend-text">{{ item.text | translate }}</span>
+        </div>
+      }
+    </div>
+  </div>
+  <!--Diff container-->
   <div [ngClass]="sourceSelectedView()" class="diff-container p-0" #sourceContainer></div>
+  <p-contextmenu [model]="snippetItems()" #snippetMenu />
 </div>

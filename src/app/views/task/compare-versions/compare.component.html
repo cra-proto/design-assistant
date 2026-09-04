@@ -9,25 +9,39 @@
       <aida-compare-tools />
     </div>
   </div>
-  <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+  <div class="surface-card border-round-lg shadow-2 p-4 w-full">
     <p-tabs value="0" class="mt-3">
       <p-tablist>
         <p-tab value="0"><i class="pi pi-eye mr-1"></i>{{ 'compare.tab.rendered' | translate }}</p-tab>
-        <!--p-tab value="1"><i class="pi pi-code mr-1"></i>{{ 'compare.tab.source' | translate }}</p-tab-->
+        <p-tab value="1"><i class="pi pi-code mr-1"></i>{{ 'compare.tab.source' | translate }}</p-tab>
         <!--p-tab value="2"><i class="pi pi-exclamation-triangle mr-1"></i>{{ 'compare.tab.problems' | translate }}</p-tab-->
       </p-tablist>
       <p-tabpanels class="shadow-1">
         <!-- Rendered page -->
         <p-tabpanel value="0">
-          <aida-compare-rendered [afterContent]="compareService.modifiedHtml()" [beforeContent]="compareService.originalHtml()" (contentChanged)="onContentChanged($event)" />
+          <aida-compare-rendered
+            [afterContent]="compareService.modifiedHtml()"
+            [beforeContent]="compareService.originalHtml()"
+            [canUndo]="compareService.undoStack.canUndo()"
+            (contentChanged)="onContentChanged($event)"
+            (hasChanges)="onHasChanges($event)"
+            (undoChanges)="onUndo()"
+          />
         </p-tabpanel>
         <!-- Source code -->
-        <!--p-tabpanel value="1">
-          <aida-compare-source [beforeContent]="compareService.originalHtml()" [afterContent]="compareService.modifiedHtml()"></aida-compare-source>
-        </p-tabpanel-->
+        <p-tabpanel value="1">
+          <aida-compare-source
+            [afterContent]="compareService.modifiedHtml()"
+            [beforeContent]="compareService.originalHtml()"
+            [canUndo]="compareService.undoStack.canUndo()"
+            (contentChanged)="onContentChanged($event)"
+            (hasChanges)="onHasChanges($event)"
+            (undoChanges)="onUndo()"
+          />
+        </p-tabpanel>
         <!-- Problems -->
         <!--p-tabpanel value="2">
-          <aida-compare-problems [beforeContent]="compareService.originalHtml()" [afterContent]="compareService.modifiedHtml()"></aida-compare-problems>
+          <aida-compare-problems [afterContent]="compareService.modifiedHtml()" [beforeContent]="compareService.originalHtml()"></aida-compare-problems>
         </p-tabpanel-->
       </p-tabpanels>
     </p-tabs>

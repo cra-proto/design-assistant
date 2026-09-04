@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { FilterService, MenuItem, MessageService } from 'primeng/api';
+import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
@@ -22,9 +22,8 @@ import { AddCollaboratorsComponent } from '../../../components/add-collaborators
 import { SetupProjectComponent } from '../../../components/setup-project/setup-project.component';
 
 import { CollaboratorService } from '../../../services/github/collaborator.service';
-import { GitHubAuthService } from '../../../services/github/github-auth.service';
+import { ExportGitHubService } from '../../../services/github/export-github.service';
 import { ProjectStateService } from '../../../services/project-state.service';
-import { CloudStorageService } from '../../../services/storage/cloud-storage.service';
 import { ProjectStorageService } from '../../../services/storage/project-storage.service';
 
 import { ProjectMetadata, ProjectPhase } from '../../../common/data.model';
@@ -59,13 +58,11 @@ export class SwitchProjectComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly projectState = inject(ProjectStateService);
   protected readonly projectStorageService = inject(ProjectStorageService);
-  protected readonly authService = inject(GitHubAuthService);
-  private readonly cloudStorageService = inject(CloudStorageService);
+  protected readonly exportGitHubService = inject(ExportGitHubService);
   protected readonly collaboratorService = inject(CollaboratorService);
 
   private readonly router = inject(Router);
   private readonly message = inject(MessageService);
-  private readonly filterService = inject(FilterService);
 
   // Project list signal
   private readonly allProjects = signal<ProjectMetadata[]>([]);
@@ -252,7 +249,7 @@ export class SwitchProjectComponent implements OnInit {
       this.loadingKey = id;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     try {
       const project = await this.projectStorageService.loadProject(this.loadingKey, storageType);
@@ -405,29 +402,5 @@ export class SwitchProjectComponent implements OnInit {
       Complete: 'verified',
     };
     return iconMap[phase || 'Draft'] || 'pencil';
-  }
-
-  private async loadCloudProject(cloudId: string) {
-    const project = await this.cloudStorageService.getProject(cloudId);
-    if (!project?.projectData) return;
-
-    /* Parse the content and load it into the state
-    const state = JSON.parse(project.content);
-    this.projectState.setActiveStep(state.activeStep);
-    this.projectState.setUrlData(state.urlData);
-    this.projectState.setBreadcrumbData(state.breadcrumbData);
-    this.projectState.setSearchData(state.searchData);
-    this.projectState.setIaData(state.iaData);
-    this.projectState.setGitHubData(state.gitHubData);
-*/
-    // Navigate to the project
-    this.router.navigate(['/']);
-  }
-
-  private async deleteCloudProject(cloudId: string) {
-    const success = await this.cloudStorageService.deleteProject(cloudId);
-    if (success) {
-      console.log('Cloud project deleted');
-    }
   }
 }

@@ -39,6 +39,10 @@ export class ViewPagesComponent {
     return this.projectState.getAllPages(lang, this.projectCache.selectedSource(), this.projectCache.selectedScope());
   });
 
+  protected readonly singlePageCount = computed(() => {
+    return this.singlePagesForList().length;
+  });
+
   //URL drawer - Copy
   protected async copyToClipboard(lang: 'en' | 'fr' | 'both'): Promise<void> {
     const pairs = this.pairedPagesForTable();

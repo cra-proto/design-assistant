@@ -727,6 +727,17 @@ export class FetchService {
     }
   }
 
+  /** Checks if a string is a valid URL */
+  public isValidUrl(value: string | undefined | null): value is string {
+    if (!value) return false;
+    try {
+      const parsed = new URL(value);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  }
+
   //Get url language
   getLang(url: string): 'en' | 'fr' | null {
     if (url.includes('/en/') || url.endsWith('en.html') || url.startsWith('en/')) return 'en';

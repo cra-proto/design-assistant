@@ -134,8 +134,10 @@
 
 .hasMenu:hover {
   background-color: var(--p-primary-100) !important;
+  cursor: help;
 }
 
 html.dark-mode .hasMenu:hover {
   background-color: var(--p-primary-500) !important;
+  cursor: help;
 }

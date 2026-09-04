@@ -27,6 +27,7 @@ import { UserSettingsService } from '../../../../services/user-settings.service'
   selector: 'aida-color-generator',
   standalone: true,
   imports: [
+    CommonModule,
     FormsModule,
     RouterLink,
     TranslatePipe,
@@ -39,7 +40,6 @@ import { UserSettingsService } from '../../../../services/user-settings.service'
     ColorPickerComponent,
     CopyPresetComponent,
     UserSettingsComponent,
-    CommonModule,
   ],
   templateUrl: './color-generator.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

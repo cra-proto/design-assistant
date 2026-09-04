@@ -24,7 +24,6 @@ import { SignInBannerComponent } from '../../../components/sign-in/sign-in-banne
 
 import { FetchService } from '../../../services/fetch.service';
 import { ExportGitHubService } from '../../../services/github/export-github.service';
-import { GitHubAuthService } from '../../../services/github/github-auth.service';
 import { HtmlNormalizationService } from '../../../services/html-normalization.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
@@ -96,7 +95,6 @@ interface ExportMessage {
 })
 export class ExportComponent implements OnInit {
   private readonly projectState = inject(ProjectStateService);
-  protected readonly authService = inject(GitHubAuthService);
   protected readonly exportGitHubService = inject(ExportGitHubService);
   private readonly fetchService = inject(FetchService);
   private readonly translate = inject(TranslateService);

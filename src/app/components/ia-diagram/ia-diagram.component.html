@@ -1,7 +1,23 @@
 <div class="fullscreen-overlay surface-card">
   <div class="flex flex-row justify-content-between align-items-center pl-2 mx-3 border-bottom-1 border-200">
     <h1 class="mb-2">{{ 'iaDiagram._title' | translate }}</h1>
-    <p-button [attr.aria-label]="'common.close' | translate" (onClick)="iaDiagram.closeDiagram()" icon="pi pi-times" rounded text />
+    <div class="flex flex-row align-items-end">
+      <div class="flex flex-wrap gap-3 min-w-min -mb-2">
+        @for (item of legendItems; track item.text) {
+          <div class="flex align-items-center gap-1">
+            @for (colour of item.context; track $index) {
+              <div [ngClass]="colour" class="legend-box border-2 border-primary border-round shadow-2"></div>
+            }
+            <span class="legend-text">{{ item.text | translate }}</span>
+          </div>
+        }
+        <div class="flex align-items-center gap-1">
+          <i class="pi pi-times text-red-500"></i>
+          <span class="legend-text">{{ 'editNode.isOrphan' | translate }}</span>
+        </div>
+      </div>
+      <p-button [attr.aria-label]="'common.close' | translate" (onClick)="iaDiagram.closeDiagram()" class="align-items-start mb-1" icon="pi pi-times" rounded text />
+    </div>
   </div>
 
   <div class="overflow-auto">
@@ -59,6 +75,6 @@
 
 <p-dialog [(visible)]="editNode" [header]="selectedNode.data?.prototype?.[projectCache.selectedLang()].h1" [maximizable]="true" [modal]="true" [style]="{ height: '90vh' }" styleClass="w-10">
   @if (selectedNode) {
-    <aida-edit-node [isOpen]="editNode" [node]="selectedNode" (dialogClose)="editNode = false" />
+    <aida-edit-node [initialShowNotes]="showNotes" [isOpen]="editNode" [node]="selectedNode" (dialogClose)="closeDialog()" />
   }
 </p-dialog>

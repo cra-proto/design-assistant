@@ -38,11 +38,32 @@ export class CompareComponent {
 
   // Handle accept/reject changes
   onContentChanged(event: { beforeContent: htmlProcessingResult; afterContent: htmlProcessingResult }): void {
-    // Update your signals
+    // Push old content to undo stack
+    const originalHtml = this.compareService.originalHtml() ?? this.compareService.modifiedHtml();
+    const modifiedHtml = this.compareService.modifiedHtml() ?? this.compareService.originalHtml();
+    if (originalHtml && modifiedHtml)
+      this.compareService.undoStack.push({
+        beforeContent: originalHtml,
+        afterContent: modifiedHtml,
+      });
+
+    // Update signals with new content
     this.compareService.originalHtml.set(event.beforeContent);
     this.compareService.modifiedHtml.set(event.afterContent);
 
     // TODO: Update cache so user doesn't lose progress when navigating to other pages in project
     // this.compareService.setDiffCache(pageId, event.beforeContent, event.afterContent);
+  }
+
+  onHasChanges(event: boolean): void {
+    this.compareService.hasChanges.set(event);
+    console.log(event);
+  }
+
+  onUndo(): void {
+    const snapshot = this.compareService.undoStack.pop();
+    if (!snapshot) return;
+    this.compareService.originalHtml.set(snapshot.beforeContent);
+    this.compareService.modifiedHtml.set(snapshot.afterContent);
   }
 }

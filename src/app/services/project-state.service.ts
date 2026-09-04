@@ -1718,7 +1718,7 @@ export class ProjectStateService {
     }
   }
 
-  private findNodeWhere(nodes: TreeNode[], condition: (node: TreeNode) => boolean): TreeNode | null {
+  public findNodeWhere(nodes: TreeNode[], condition: (node: TreeNode) => boolean): TreeNode | null {
     for (const node of nodes) {
       if (condition(node)) return node;
       if (node.children?.length) {

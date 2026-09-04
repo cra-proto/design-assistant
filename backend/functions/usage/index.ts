@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import * as crypto from 'crypto';
 
@@ -353,6 +353,50 @@ async function updateUserId(body: any): Promise<APIGatewayProxyResult> {
     };
 }
 
+/** For deleting test data from specific users */
+async function deleteUserRecords(body: any): Promise<APIGatewayProxyResult> {
+    const corsHeaders = getCorsHeaders();
+    const { userId } = body;
+
+    if (!userId) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ error: 'userId is required' })
+        };
+    }
+
+    // Scan for all records belonging to this user
+    const result = await docClient.send(new ScanCommand({
+        TableName: USAGE_TABLE,
+        FilterExpression: 'userId = :userId',
+        ExpressionAttributeValues: { ':userId': userId }
+    }));
+
+    const items = result.Items ?? [];
+
+    if (items.length === 0) {
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'No records found for this user', deleted: 0 })
+        };
+    }
+
+    await Promise.all(items.map(item =>
+        docClient.send(new DeleteCommand({
+            TableName: USAGE_TABLE,
+            Key: { pk: item.pk, sk: item.sk }
+        }))
+    ));
+
+    return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({ message: 'User records deleted successfully', deleted: items.length })
+    };
+}
+
 export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
     const corsHeaders = getCorsHeaders();
     const httpMethod = event.requestContext?.http?.method || event.httpMethod;
@@ -384,6 +428,8 @@ export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
         switch (feature) {
             case 'update-user':
                 return updateUserId(body);
+            case 'delete-user':
+                return deleteUserRecords(body);
             case 'metadata':
                 return trackMetadata(body);
             case 'export':

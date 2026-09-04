@@ -14,7 +14,13 @@ export class CollaboratorService {
   canEditProject(project: ProjectMetadata | Project): boolean {
     const currentUser = this.exportGitHubService.user(); // OAuth or PAT
     if (!currentUser) return false;
-    return project.collaborators.some((c) => c.id === currentUser.id);
+    return project.collaborators.some((c) => {
+      if (c.id != null && currentUser.id != null) {
+        return c.id === currentUser.id;
+      } else {
+        return !!c.login && !!currentUser.login && c.login.toLowerCase() === currentUser.login.toLowerCase();
+      }
+    });
   }
 
   // Get current user to add to new projects
@@ -234,5 +240,31 @@ export class CollaboratorService {
   // Get collaborator emails (for requesting access)
   public getCollaboratorEmails(collabs: GitHubUser[]): string[] {
     return collabs.filter((collab): collab is GitHubUser & { email: string } => !!collab.email && collab.email.trim() !== '').map((collab) => collab.email);
+  }
+
+  /** Get GitHub login from id */
+  public async getLogin(userID: string): Promise<string> {
+    const token = this.exportGitHubService.token();
+
+    const headers = token
+      ? {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+        }
+      : undefined;
+
+    try {
+      const response = await fetch(`https://api.github.com/user/${userID}`, { headers });
+      if (!response.ok) {
+        console.error(`Failed to fetch user details for ${userID}: ${response.status}`);
+        return userID;
+      } else {
+        const userData = await response.json();
+        return userData.login;
+      }
+    } catch (error) {
+      console.error(`Error fetching username for ${userID}:`, error);
+      return userID;
+    }
   }
 }

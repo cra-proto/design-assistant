@@ -1,6 +1,6 @@
 // Update all page dropdowns with thier valid versions (speeds up page switching)
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { Params, Router } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -9,6 +9,7 @@ import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
 import { MenuModule } from 'primeng/menu';
+import { MessageModule } from 'primeng/message';
 import { ToastModule } from 'primeng/toast';
 
 import { UserSettingsComponent } from '../../user-settings/user-settings.component';
@@ -21,7 +22,7 @@ import { CompareService } from '../compare.service';
 
 @Component({
   selector: 'aida-compare-tools',
-  imports: [CommonModule, TranslatePipe, ButtonModule, DrawerModule, MenuModule, ToastModule, CompareAiOptionsComponent, UserSettingsComponent],
+  imports: [CommonModule, TranslatePipe, ButtonModule, DrawerModule, MenuModule, MessageModule, ToastModule, CompareAiOptionsComponent, UserSettingsComponent],
   templateUrl: './compare-tools.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -34,19 +35,23 @@ export class CompareToolsComponent {
   protected readonly compareAiService = inject(CompareAiService);
   private readonly fetchService = inject(FetchService);
 
-  readabilityBefore = 0;
-  readabilityAfter = 0;
-  readabilityChange = 0;
+  protected readonly readabilityBefore = signal(0);
+  protected readonly readabilityAfter = signal(0);
+  protected readonly readabilityChange = signal(0);
 
   constructor() {
     effect(() => {
       const originalHTML = this.compareService.originalHtml()?.html ?? '';
       const modifiedHTML = this.compareService.modifiedHtml()?.html ?? '';
+      //Calculate readability scores
       const originalRead = this.fetchService.getReadability(this.fetchService.stringToDoc(originalHTML));
       const modifiedRead = this.fetchService.getReadability(this.fetchService.stringToDoc(modifiedHTML));
-      this.readabilityBefore = Math.max(0, Math.min(originalRead.fleschKincaid, originalRead.gunningFog));
-      this.readabilityAfter = Math.max(0, Math.min(modifiedRead.fleschKincaid, modifiedRead.gunningFog));
-      this.readabilityChange = this.readabilityAfter - this.readabilityBefore;
+      const before = Math.max(0, Math.min(originalRead.fleschKincaid, originalRead.gunningFog));
+      const after = Math.max(0, Math.min(modifiedRead.fleschKincaid, modifiedRead.gunningFog));
+      //Set scores
+      this.readabilityBefore.set(before);
+      this.readabilityAfter.set(after);
+      this.readabilityChange.set(after - before);
     });
   }
 

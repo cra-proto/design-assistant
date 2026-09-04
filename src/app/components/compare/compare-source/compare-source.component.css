@@ -8,9 +8,24 @@
 }
 
 .diff-container.original {
-  border-color: #f3a59d;
+  border-color: #ffb6ba;
 }
 
 .diff-container.modified {
-  border-color: #83d5a8;
+  border-color: #97f295;
+}
+
+:host-context(.dark-mode) .diff-container.original {
+  border-color: rgba(248, 81, 73, 0.4);
+}
+
+:host-context(.dark-mode) .diff-container.modified {
+  border-color: rgba(46, 160, 67, 0.4);
+}
+
+.legend-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex-shrink: 0;
 }

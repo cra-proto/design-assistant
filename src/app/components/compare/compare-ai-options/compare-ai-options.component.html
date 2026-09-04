@@ -90,16 +90,18 @@
       <label [for]="'model-' + model" class="cursor-pointer font-semibold">{{ model }}</label>
     </div>
   }
-  <p class="text-color-secondary text-sm mb-0">{{ 'compare.aiOptions.models.paid' | translate }}</p>
-  @for (model of paidModels; track model.value) {
-    <div class="flex flex-row align-items-center gap-2 mt-2">
-      <p-radiobutton [inputId]="'model-' + model.value" [ngModel]="compareService.selectedModel()" [value]="model.value" (ngModelChange)="compareService.selectedModel.set($event)" />
-      <label [for]="'model-' + model.value" class="cursor-pointer font-semibold">
-        {{ model.value }}
-        <span class="text-color-secondary">({{ model.price }})</span>
-        <span class="bg-red-50 text-orange-500 border-orange-500 border-1 border-round-2xl px-2 ml-1">{{ 'common.paid' | translate }}</span></label
-      >
-    </div>
+  @if (admin) {
+    <p class="text-color-secondary text-sm mb-0">{{ 'compare.aiOptions.models.paid' | translate }}</p>
+    @for (model of paidModels; track model.value) {
+      <div class="flex flex-row align-items-center gap-2 mt-2">
+        <p-radiobutton [inputId]="'model-' + model.value" [ngModel]="compareService.selectedModel()" [value]="model.value" (ngModelChange)="compareService.selectedModel.set($event)" />
+        <label [for]="'model-' + model.value" class="cursor-pointer font-semibold">
+          {{ model.value }}
+          <span class="text-color-secondary">({{ model.price }})</span>
+          <span class="bg-red-50 text-orange-500 border-orange-500 border-1 border-round-2xl px-2 ml-1">{{ 'common.paid' | translate }}</span></label
+        >
+      </div>
+    }
   }
 </ng-template>
 

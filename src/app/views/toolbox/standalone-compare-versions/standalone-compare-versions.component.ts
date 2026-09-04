@@ -10,6 +10,8 @@ import { CompareSourceComponent } from '../../../components/compare/compare-sour
 
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
 
+import { DiffUndoStack } from '../../../components/compare/compare-undo.store';
+
 @Component({
   selector: 'aida-standalone-compare-versions',
   imports: [TranslatePipe, TabsModule, CompareRenderedComponent, CompareSourceComponent],
@@ -24,13 +26,8 @@ export class StandaloneCompareComponent implements OnInit {
   // Signals
   protected readonly originalHtml = signal<htmlProcessingResult | undefined>(undefined);
   protected readonly modifiedHtml = signal<htmlProcessingResult | undefined>(undefined);
-
-  // Handle accept/reject changes
-  protected onContentChanged(event: { beforeContent: htmlProcessingResult; afterContent: htmlProcessingResult }): void {
-    // Update signals
-    this.originalHtml.set(event.beforeContent);
-    this.modifiedHtml.set(event.afterContent);
-  }
+  protected readonly hasChanges = signal<boolean>(false);
+  public readonly undoStack = new DiffUndoStack();
 
   ngOnInit() {
     // Update settings from url parameter (if present) then remove the param
@@ -61,5 +58,35 @@ export class StandaloneCompareComponent implements OnInit {
   private async loadContent(url: string): Promise<htmlProcessingResult | undefined> {
     const fetchType = url.startsWith('http://cra-ut.isvcs.net/') || url.startsWith('https://canada-preview.adobecqms.net/') ? 'proxy' : 'url';
     return await this.htmlNormalizationService.normalizeHTML(url, fetchType);
+  }
+
+  /** Handle accept/reject changes */
+  protected onContentChanged(event: { beforeContent: htmlProcessingResult; afterContent: htmlProcessingResult }): void {
+    // Push old content to undo stack
+    const originalHtml = this.originalHtml() ?? this.modifiedHtml();
+    const modifiedHtml = this.modifiedHtml() ?? this.originalHtml();
+    if (originalHtml && modifiedHtml)
+      this.undoStack.push({
+        beforeContent: originalHtml,
+        afterContent: modifiedHtml,
+      });
+
+    // Update signals with new content
+    this.originalHtml.set(event.beforeContent);
+    this.modifiedHtml.set(event.afterContent);
+  }
+
+  /** Track if any changes exist to accept/reject */
+  onHasChanges(event: boolean): void {
+    this.hasChanges.set(event);
+    console.log(event);
+  }
+
+  /** Undo accepted/rejected changes */
+  onUndo(): void {
+    const snapshot = this.undoStack.pop();
+    if (!snapshot) return;
+    this.originalHtml.set(snapshot.beforeContent);
+    this.modifiedHtml.set(snapshot.afterContent);
   }
 }

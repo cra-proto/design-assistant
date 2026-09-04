@@ -4,6 +4,8 @@ import { TreeNode } from 'primeng/api';
 
 import { UserSettingsService } from './user-settings.service';
 
+export type NodeContext = 'new' | 'rot' | 'move' | 'navChild' | 'navChildTemp' | 'template';
+
 @Injectable({ providedIn: 'root' })
 export class TreeNodeStyleService {
   private theme = inject(UserSettingsService);
@@ -73,11 +75,11 @@ export class TreeNodeStyleService {
     'bg-primary-100 hover:bg-primary-50 text-black',
   ];
 
-  get contextStyles(): Record<string, string> {
+  get contextStyles(): Record<NodeContext, string> {
     return this.theme.darkMode() ? this.contextStylesDark : this.contextStylesLight;
   }
 
-  contextStylesLight: Record<string, string> = {
+  contextStylesLight: Record<NodeContext, string> = {
     new: 'bg-green-200 hover:bg-green-300 border-dashed text-black',
     rot: 'bg-red-200 hover:bg-red-300 border-dashed text-black',
     move: 'bg-yellow-200 hover:bg-yellow-300 border-dashed text-black',
@@ -86,7 +88,7 @@ export class TreeNodeStyleService {
     template: 'surface-200 hover:surface-300 text-black',
   };
 
-  contextStylesDark: Record<string, string> = {
+  contextStylesDark: Record<NodeContext, string> = {
     new: 'bg-green-700 hover:bg-green-600 border-dashed text-white',
     rot: 'bg-red-700 hover:bg-red-600 border-dashed text-white',
     move: 'bg-yellow-700 hover:bg-yellow-600 border-dashed text-black',

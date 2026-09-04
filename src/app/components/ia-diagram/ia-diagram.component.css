@@ -12,3 +12,10 @@
 .z-200 {
   z-index: 200 !important;
 }
+
+.legend-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}

@@ -51,13 +51,19 @@ export class EditNodeComponent {
 
   public readonly node = input.required<TreeNode>();
   public readonly isOpen = input<boolean>(false);
+  public readonly initialShowNotes = input<boolean>(false);
   dialogClose = output<void>();
 
   private readonly originalData = signal<TreeNodeData | null>(null);
-  protected readonly hasChanges = signal(false);
-  protected readonly moveError = signal(false);
+  protected readonly selectedLanguage = signal<'en' | 'fr' | 'both'>(this.projectState.detectPrimaryLanguage());
+  protected readonly selectedVersion = signal<'prototype' | 'live' | 'baseline'>('prototype');
   protected readonly pathEN = signal<string>('');
   protected readonly pathFR = signal<string>('');
+  protected readonly hasChanges = signal<boolean>(false);
+  protected readonly moveError = signal<boolean>(false);
+  protected readonly editsEnabled = signal<boolean>(false);
+  protected readonly urlEditsEnabled = signal<boolean>(false);
+  protected readonly toggleNotes = signal<boolean>(this.initialShowNotes());
 
   protected markChanges() {
     this.hasChanges.set(true);
@@ -68,13 +74,15 @@ export class EditNodeComponent {
       const node = this.node();
       const open = this.isOpen();
       if (open && node?.data) {
-        this.selectedVersion.set('prototype');
         this.originalData.set(structuredClone(node.data));
-        this.editsEnabled.set(false);
-        this.urlEditsEnabled.set(false);
-        this.moveError.set(false);
+        this.selectedVersion.set('prototype');
         this.pathEN.set(node.data.path.en.split('/').pop());
         this.pathFR.set(node.data.path.fr.split('/').pop());
+        this.hasChanges.set(false);
+        this.moveError.set(false);
+        this.editsEnabled.set(false);
+        this.urlEditsEnabled.set(false);
+        this.toggleNotes.set(this.initialShowNotes());
       }
     });
   }
@@ -82,12 +90,14 @@ export class EditNodeComponent {
   protected save() {
     this.projectState.setModifiedDate();
     this.hasChanges.set(false);
+    this.toggleNotes.set(false);
     this.originalData.set(structuredClone(this.node().data));
     this.dialogClose.emit();
   }
   protected cancel() {
     Object.assign(this.node().data, structuredClone(this.originalData()));
     this.hasChanges.set(false);
+    this.toggleNotes.set(false);
     this.dialogClose.emit();
   }
   protected enableEdits(): void {
@@ -145,8 +155,6 @@ export class EditNodeComponent {
   }
 
   //Language options
-  protected readonly selectedLanguage = signal<'en' | 'fr' | 'both'>(this.projectState.detectPrimaryLanguage());
-
   protected get languageOptions() {
     return [
       { label: this.translate.instant('common.language.english'), value: 'en' },
@@ -156,8 +164,6 @@ export class EditNodeComponent {
   }
 
   //Version options
-  protected readonly selectedVersion = signal<'prototype' | 'live' | 'baseline'>('prototype');
-
   protected get versionOptions() {
     return [
       { label: this.translate.instant('common.version.prototype'), value: 'prototype' },
@@ -179,8 +185,6 @@ export class EditNodeComponent {
   });
 
   //Reset editsEnabled whenever selectedVersion changes
-  protected readonly editsEnabled = signal(false);
-  protected readonly urlEditsEnabled = signal(false);
   protected readonly versionWatcher = effect(() => {
     this.selectedVersion();
     this.editsEnabled.set(false);
@@ -208,6 +212,25 @@ export class EditNodeComponent {
     if (enDays === null && frDays === null) return null;
     return Math.max(enDays ?? 0, frDays ?? 0);
   });
+
+  //Notes
+  protected editNotes() {
+    const node = this.node();
+    if (!node.data?.notes) {
+      node.data.notes = { issue: '', solution: '' };
+    }
+    this.toggleNotes.set(!this.toggleNotes());
+  }
+
+  protected get noteConfig(): { label: string; icon: string } {
+    const node = this.node();
+    const hasNotes = (node.data?.notes?.issue.length ?? 0) + (node.data?.notes?.solution.length ?? 0) > 0;
+
+    if (this.toggleNotes()) {
+      return { label: this.translate.instant('editNode.notes.save'), icon: 'pi pi-save' };
+    }
+    return hasNotes ? { label: this.translate.instant('editNode.notes.edit'), icon: 'pi pi-file-edit' } : { label: this.translate.instant('editNode.notes.add'), icon: 'pi pi-file-plus' };
+  }
 
   //Parent page dropdown
   protected readonly enPages = computed(() => this.projectState.getAllPages('en', 'live', 'all'));

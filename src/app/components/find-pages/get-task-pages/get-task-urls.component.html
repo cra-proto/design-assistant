@@ -35,9 +35,9 @@
 
 <!-- Loading indicator -->
 @if (airtableService.isLoading()) {
-  <div class="mt-2 flex align-items-center gap-2">
-    <p-progressspinner strokeWidth="4" styleClass="w-2rem h-2rem" />
-    <span>{{ 'findPages.task.loadingTasks' | translate }}</span>
+  <div class="mt-2 flex flex-row justify-content-center align-items-center gap-2">
+    <p-progressspinner class="w-2rem h-2rem m-0" strokeWidth="5" />
+    <span>{{ 'findPages.task.loadingTasks' | translate }}<span class="loading-dots"></span></span>
   </div>
 }
 

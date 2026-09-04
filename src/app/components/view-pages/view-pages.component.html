@@ -55,7 +55,7 @@
           </ng-template>
         </p-table>
       } @else {
-        <h3>{{ projectCache.selectedLang() === 'en' ? ('common.language.english' | translate) : ('common.language.french' | translate) }}</h3>
+        <h3>{{ projectCache.selectedLang() === 'en' ? ('common.language.english' | translate) : ('common.language.french' | translate) }} ({{ singlePageCount() }})</h3>
         <ul>
           @for (url of singlePagesForList(); track url.url) {
             <li>
@@ -84,7 +84,7 @@
     <i class="pi pi-copy text-primary text-5xl"></i>
     <div class="flex flex-column">
       <p class="my-0 font-bold text-xl">{{ inScopePageCount() }}</p>
-      <p class="my-0 text-sm lowercase">{{ 'common.pages' | translate }}</p>
+      <p class="my-0 text-sm lowercase">{{ 'common.inScopePages' | translate }}</p>
     </div>
   </div>
 </div>

@@ -29,3 +29,7 @@
   background: var(--p-inputtext-disabled-background) !important;
   color: var(--p-inputtext-disabled-color) !important;
 }
+
+.min-h-6rem {
+  min-height: 6rem;
+}

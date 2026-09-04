@@ -1,12 +1,67 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 
 import { UserSettingsService } from './user-settings.service';
 
 import { environment } from '../../environments/environment';
 import { MetadataReview } from '../common/data.model';
+
+export interface UsageStats {
+  uniqueUsersTotal: number;
+  uniqueUsersGitHub: number;
+  uniqueUsersAnonymous: number;
+
+  totalGenerations: number;
+  metadataGenerations: number;
+  pageGenerations: number;
+
+  uniqueProjects: number;
+  localProjects: number;
+  cloudProjects: number;
+
+  uniqueUrls: number;
+  enUrls: number;
+  frUrls: number;
+
+  exportCountGit: number;
+  enPageCountGit: number;
+  frPageCountGit: number;
+
+  uniqueReposGit: number;
+  prototypeReposGit: number;
+  baselineReposGit: number;
+
+  exportCountLocal: number;
+  enPageCountLocal: number;
+  frPageCountLocal: number;
+
+  uniqueReposLocal: number;
+  prototypeReposLocal: number;
+  baselineReposLocal: number;
+
+  uniqueOrgCount: number;
+}
+
+export interface UsageRecord {
+  pk: string;
+  sk: string;
+  feature: string;
+  projectId: string;
+  org: string;
+  userId: string;
+  pageUrl: string;
+  model: string;
+  promptType?: string;
+  promptVersion: number;
+  generatedAt: string;
+  statusDescEN: string;
+  statusDescFR: string;
+  statusKeywordsEN: string;
+  statusKeywordsFR: string;
+  lastUpdated: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class UsageService {
@@ -15,6 +70,7 @@ export class UsageService {
 
   private readonly apiUrl = environment.usageFunctionUrl;
 
+  /** Track acceptance of generated metadata */
   async trackMetadata(
     projectId: string,
     orgId: string,
@@ -64,20 +120,7 @@ export class UsageService {
     }
   }
 
-  async updateUserId(tempUserId: string, githubUserId: string): Promise<void> {
-    try {
-      await firstValueFrom(
-        this.http.post(this.apiUrl, {
-          feature: 'update-user',
-          tempUserId,
-          githubUserId,
-        }),
-      );
-    } catch (error) {
-      console.warn('User ID update failed silently:', error);
-    }
-  }
-
+  /** Track GitHub and Local file exports */
   async trackExport(projectId: string, orgId: string, storageType: string, repoType: string, repo: string, exportTarget: string, pageCountEN: number, pageCountFR: number): Promise<void> {
     try {
       await firstValueFrom(
@@ -97,5 +140,36 @@ export class UsageService {
     } catch (error) {
       console.warn('Export tracking failed silently:', error);
     }
+  }
+
+  /** Get global stats */
+  async loadGlobal(): Promise<UsageStats> {
+    return await firstValueFrom(this.http.get<UsageStats>(this.apiUrl));
+  }
+
+  /** Get feature stats */
+  async loadFeature(feature: string): Promise<UsageRecord[]> {
+    const result = await firstValueFrom(this.http.get<{ items: UsageRecord[] }>(`${this.apiUrl}?feature=${feature}`));
+    return result.items;
+  }
+
+  /** Update temporary userID's with GitHub userID's when user logs in */
+  async updateUserId(tempUserId: string, githubUserId: string): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.post(this.apiUrl, {
+          feature: 'update-user',
+          tempUserId,
+          githubUserId,
+        }),
+      );
+    } catch (error) {
+      console.warn('User ID update failed silently:', error);
+    }
+  }
+
+  /** Delete records for a specific user (intended for deleting AIDA developer records) */
+  deleteUserRecords(userId: string): Observable<{ message: string; deleted: number }> {
+    return this.http.post<{ message: string; deleted: number }>(this.apiUrl, { feature: 'delete-user', userId });
   }
 }

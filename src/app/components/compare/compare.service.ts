@@ -6,8 +6,9 @@ import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { UserSettingsService } from '../../services/user-settings.service';
 
+import { AI_FREE_MODELS, AiFreeModelOptions, AiPaidModelOptions } from '../../common/ai-models.config';
 import { CompareVersion, SourceVersion } from '../../common/data.model';
-import { AI_FREE_MODELS, AiFreeModelOptions, AiPaidModelOptions } from '../../common/prompts/ai-models.config';
+import { DiffUndoStack } from './compare-undo.store';
 
 export type AiTaskOption = 'default' | 'models' | 'prompts';
 
@@ -38,6 +39,8 @@ export class CompareService {
   public readonly loadingBefore = signal<boolean>(false);
   public readonly loadingAfter = signal<boolean>(false);
   public readonly loadingAll = signal<boolean>(false);
+
+  public readonly hasChanges = signal<boolean>(false);
 
   public readonly aiDrawerVisible = signal<boolean>(false);
   public readonly selectedTask = signal<AiTaskOption>('default');
@@ -124,4 +127,6 @@ export class CompareService {
       this.setCachedStatus(url, false);
     }
   }
+
+  public readonly undoStack = new DiffUndoStack();
 }
