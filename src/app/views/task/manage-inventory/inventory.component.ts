@@ -123,7 +123,7 @@ export class InventoryComponent implements OnInit {
   private touchTimer: ReturnType<typeof setTimeout> | null = null; // Touch is alternative to right click for mobile cibtext menus
 
   protected editNode = false; // Tracks if currently making dialog edits
-  protected selectedNode: TreeNode = {}; // TreeNode data for edit node dialog (not flattened!)
+  protected selectedNode: TreeNode | undefined = undefined; // TreeNode data for edit node dialog (not flattened!)
 
   private readonly sortField = signal<string | null>(null);
   private readonly sortOrder = signal<number>(1); // 1 = ascending, -1 = descending
@@ -1185,7 +1185,7 @@ export class InventoryComponent implements OnInit {
 
   protected edit(node: FlattenedTreeNode) {
     const path = this.lang === 'fr' ? node.frPath : node.enPath;
-    this.selectedNode = this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, this.lang) ?? {};
+    this.selectedNode = this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, this.lang) ?? undefined;
     this.editNode = true;
   }
 

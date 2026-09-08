@@ -218,13 +218,17 @@ export class EditNodeComponent {
     const node = this.node();
     if (!node.data?.notes) {
       node.data.notes = { issue: '', solution: '' };
+    } else if (!node?.data?.notes?.issue) {
+      node.data.notes.issue = '';
+    } else if (!node?.data?.notes?.solution) {
+      node.data.notes.solution = '';
     }
     this.toggleNotes.set(!this.toggleNotes());
   }
 
   protected get noteConfig(): { label: string; icon: string } {
     const node = this.node();
-    const hasNotes = (node.data?.notes?.issue.length ?? 0) + (node.data?.notes?.solution.length ?? 0) > 0;
+    const hasNotes = (node.data?.notes?.issue?.length ?? 0) + (node.data?.notes?.solution?.length ?? 0) > 0;
 
     if (this.toggleNotes()) {
       return { label: this.translate.instant('editNode.notes.save'), icon: 'pi pi-save' };
