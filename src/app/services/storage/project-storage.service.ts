@@ -7,8 +7,9 @@ import { UserSettingsService } from '../user-settings.service';
 import { CloudStorageService } from './cloud-storage.service';
 import { LocalStorageService } from './local-storage.service';
 
+import { version as appVersion } from '../../../../package.json';
 import { environment } from '../../../environments/environment';
-import { LangData, PageTemplate, Project, ProjectMetadata, ProjectPhase, ProjectTreeNodeData } from '../../common/data.model';
+import { LangData, PageTemplate, Project, ProjectMetadata, ProjectPhase, ProjectTreeNodeData, TreeNodeData } from '../../common/data.model';
 
 export interface ActiveProject {
   key: string;
@@ -536,6 +537,7 @@ export class ProjectStorageService {
       noindex: old.status?.noindexEN === true,
       isArchived: old.status?.archiveStatus === 'archived',
       linksToPortal: old.status?.linksToPortal ?? false,
+      linksToSignIn: undefined as unknown as boolean, // This will get populated via refreshAll
       hasChatbot: false,
       owner: old.metadata?.owner,
       email: old.metadata?.email,
@@ -565,6 +567,7 @@ export class ProjectStorageService {
       noindex: old.status?.noindexFR === true,
       isArchived: old.status?.archiveStatus === 'archived',
       linksToPortal: old.status?.linksToPortal ?? false,
+      linksToSignIn: undefined as unknown as boolean, // This will get populated via refreshAll
       hasChatbot: false,
       owner: old.metadata?.owner,
       email: old.metadata?.email,
@@ -610,11 +613,35 @@ export class ProjectStorageService {
     };
   }
 
+  /** Resets all lastChecked fields (use when adding new data fields) */
+  private updateLastChecked(tree: TreeNode[]): void {
+    const traverse = (nodes: TreeNode<TreeNodeData>[]) => {
+      for (const node of nodes) {
+        if (node.data?.live?.en) node.data.live.en.lastChecked = undefined;
+        if (node.data?.live?.fr) node.data.live.fr.lastChecked = undefined;
+        if (node.data?.baseline?.en) node.data.baseline.en.lastChecked = undefined;
+        if (node.data?.baseline?.fr) node.data.baseline.fr.lastChecked = undefined;
+        if (node.data?.prototype?.en) node.data.prototype.en.lastChecked = undefined;
+        if (node.data?.prototype?.fr) node.data.prototype.fr.lastChecked = undefined;
+        if (node.children?.length) traverse(node.children);
+      }
+    };
+    traverse(tree);
+  }
+
+  /** Patch older project data. If new mandatory variables are added, bump up the major or minor version numbers to trigger a data refresh */
   private patchLegacyProject(project: Project): Project {
     if (!project.projectData?.length) return project;
-    return {
+    project = {
       ...project,
       projectData: project.projectData.map((node) => this.patchLegacyNode(node)),
     };
+    const [major, minor] = (project.version ?? '0.0.0').split('.').map(Number);
+    const needsRefresh = major === 0 && minor < 6;
+    if (needsRefresh) {
+      this.updateLastChecked(project.projectData);
+      project.version = appVersion;
+    }
+    return project;
   }
 }

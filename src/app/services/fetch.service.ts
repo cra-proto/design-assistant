@@ -7,7 +7,7 @@ import rs from 'text-readability';
 
 import { environment } from '../../environments/environment';
 import { PageTemplate, UrlVersion } from '../common/data.model';
-import { isPortalDomain } from '../common/portal-domains.config';
+import { isPortalDomain, isSignInLink } from '../common/portal-domains.config';
 
 export interface JsonMetadata {
   owner?: string; // jrc:content.json gcContributor
@@ -33,6 +33,7 @@ export interface PageMetadata {
   noindex?: boolean; // True if page is not indexed for search
   isArchived: boolean; // True if page has archive banner
   linksToPortal: boolean; // True if page links to a portal
+  linksToSignIn: boolean; // True if page links to the CRA sign-in page
   hasChatbot: boolean; // True if page has chatbot
   //Data
   parentPath?: string; // For page move detection
@@ -286,8 +287,10 @@ export class FetchService {
     // Get archive status
     const isArchived = doc.querySelector('.gc-archv') !== null;
 
-    // Get portal link status
-    const linksToPortal = Array.from(doc.querySelectorAll('a')).some((link) => isPortalDomain(link.href));
+    // Get portal & sign-in link status
+    const allLinks = doc.querySelectorAll('a');
+    const linksToPortal = Array.from(allLinks).some((link) => isPortalDomain(link.href));
+    const linksToSignIn = Array.from(allLinks).some((link) => isSignInLink(link.href));
 
     //Has ChatBot
     const hasChatbot = !!doc.querySelector('chatbot');
@@ -436,6 +439,7 @@ export class FetchService {
       noindex,
       isArchived,
       linksToPortal,
+      linksToSignIn,
       hasChatbot,
       parentPath,
       wordCount,
