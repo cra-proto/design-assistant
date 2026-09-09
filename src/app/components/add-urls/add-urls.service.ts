@@ -400,6 +400,7 @@ export class AddUrlsService {
       noindex: pageDataEN?.noindex ?? false,
       isArchived: pageDataEN?.isArchived ?? false,
       linksToPortal: pageDataEN?.linksToPortal ?? false,
+      linksToSignIn: pageDataEN?.linksToSignIn ?? false,
       hasChatbot: pageDataEN?.hasChatbot ?? false,
       // jrc:content.json
       owner: jsonDataEN?.owner,
@@ -435,6 +436,7 @@ export class AddUrlsService {
       noindex: pageDataFR?.noindex ?? false,
       isArchived: pageDataFR?.isArchived ?? false,
       linksToPortal: pageDataFR?.linksToPortal ?? false,
+      linksToSignIn: pageDataFR?.linksToSignIn ?? false,
       hasChatbot: pageDataFR?.hasChatbot ?? false,
       // jrc:content.json
       owner: jsonDataFR?.owner,

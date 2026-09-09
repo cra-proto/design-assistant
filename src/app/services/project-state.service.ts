@@ -30,6 +30,7 @@ import {
   TableColumn,
   TreeNodeAction,
   TreeNodeData,
+  TreeNodeTypes,
 } from '../common/data.model';
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
@@ -323,6 +324,24 @@ export class ProjectStateService {
     };
     traverse(this.project().projectData);
     this.setProjectTree(currentTree);
+  }
+
+  /** Get a nested value from the TreeNode */
+  public getNestedValue(obj: TreeNodeData, path: string[]): TreeNodeTypes {
+    return path.reduce((current: unknown, key: string) => (current && typeof current === 'object' ? (current as Record<string, unknown>)[key] : undefined), obj as unknown) as TreeNodeTypes;
+  }
+
+  /** Set a nested value in the TreeNode */
+  public setNestedValue(obj: TreeNodeData, path: string[], value: TreeNodeTypes): void {
+    const last = path[path.length - 1];
+    const target = path.slice(0, -1).reduce(
+      (current: Record<string, unknown>, key: string) => {
+        if (!current[key] || typeof current[key] !== 'object') current[key] = {};
+        return current[key] as Record<string, unknown>;
+      },
+      obj as unknown as Record<string, unknown>,
+    );
+    if (target) target[last] = value;
   }
 
   // Check if URL already exists in tree
@@ -623,6 +642,7 @@ export class ProjectStateService {
           //Data
           template: data.prototype?.[lang].template ?? '',
           linksToPortal: data.live?.en.linksToPortal ?? data.live?.fr.linksToPortal ?? false,
+          linksToSignIn: data.live?.en.linksToSignIn ?? data.live?.fr.linksToSignIn ?? false,
           hasChatbot: data.live?.en.hasChatbot ?? data.live?.fr.hasChatbot ?? false,
           task: data.task?.[lang] ?? [],
           visits: data.visits?.[lang] ?? undefined,
@@ -712,6 +732,7 @@ export class ProjectStateService {
       //Data
       { field: 'template', label: this.translate.instant('inventory.header.template'), type: 'template', group: 'pageData', visibleByDefault: true, dataSection: ['prototype', 'lang', 'template'] },
       { field: 'linksToPortal', label: this.translate.instant('inventory.header.linksToPortal'), type: 'boolean', group: 'pageData', visibleByDefault: false, dataSection: [] },
+      { field: 'linksToSignIn', label: this.translate.instant('inventory.header.linksToSignIn'), type: 'boolean', group: 'pageData', visibleByDefault: false, dataSection: [] },
       { field: 'hasChatbot', label: this.translate.instant('inventory.header.hasChatbot'), type: 'boolean', group: 'pageData', visibleByDefault: false, dataSection: [] },
       { field: 'task', label: this.translate.instant('inventory.header.task'), type: 'array', group: 'pageData', visibleByDefault: false, dataSection: [] },
       { field: 'visits', label: this.translate.instant('inventory.header.visits'), type: 'number', group: 'pageData', visibleByDefault: true, dataSection: [] },
@@ -805,6 +826,7 @@ export class ProjectStateService {
         //Data
         this.translate.instant('inventory.header.template'),
         this.translate.instant('inventory.header.linksToPortal'),
+        this.translate.instant('inventory.header.linksToSignIn'),
         this.translate.instant('inventory.header.hasChatbot'),
         this.translate.instant('inventory.header.task'),
         this.translate.instant('inventory.header.visits'),
@@ -863,6 +885,7 @@ export class ProjectStateService {
             //Data
             this.translate.instant(data.prototype?.[lang]?.template ?? ''),
             data.prototype?.en?.linksToPortal || data.prototype?.fr?.linksToPortal ? yes : no,
+            data.prototype?.en?.linksToSignIn || data.prototype?.fr?.linksToSignIn ? yes : no,
             data.prototype?.en?.hasChatbot || data.prototype?.fr?.hasChatbot ? yes : no,
             JSON.stringify(data.task?.[lang]?.join('; ') ?? ''),
             data.visits?.[lang] ?? -1,
@@ -1190,7 +1213,7 @@ export class ProjectStateService {
     return breadcrumbs;
   }
 
-  public async refreshNode(node: TreeNode, urlVersion: SourceVersion, fetchLive = false) {
+  public async refreshNode(node: TreeNode, urlVersion: SourceVersion, fetchLive = false, missingOnly = false) {
     const version = urlVersion.startsWith('proto') ? 'prototype' : urlVersion.startsWith('base') ? 'baseline' : 'live';
     const source = fetchLive ? 'live' : urlVersion;
     const sourceType = source.endsWith('UT') ? 'local' : source.endsWith('GH') ? 'github' : 'live';
@@ -1254,6 +1277,7 @@ export class ProjectStateService {
           noindex: pageData.noindex ?? false,
           isArchived: pageData.isArchived ?? false,
           linksToPortal: pageData.linksToPortal ?? false,
+          linksToSignIn: pageData?.linksToSignIn ?? false,
           hasChatbot: pageData.hasChatbot ?? false,
           //Data
           parentPath: pageData.parentPath,
@@ -1275,7 +1299,7 @@ export class ProjectStateService {
               }),
         };
 
-        data[version]!.en = { ...data[version]!.en, ...updated };
+        data[version]!.en = missingOnly ? this.mergeMissingOnly(data[version]!.en, updated) : { ...data[version]!.en, ...updated };
       } catch {
         data[version]!.en = { ...data[version]!.en, lastChecked: new Date().toISOString(), is404: true };
       }
@@ -1327,6 +1351,7 @@ export class ProjectStateService {
           noindex: pageData.noindex ?? false,
           isArchived: pageData.isArchived ?? false,
           linksToPortal: pageData.linksToPortal ?? false,
+          linksToSignIn: pageData?.linksToSignIn ?? false,
           hasChatbot: pageData.hasChatbot ?? false,
           //Data
           parentPath: pageData.parentPath,
@@ -1348,7 +1373,7 @@ export class ProjectStateService {
               }),
         };
 
-        data[version]!.fr = { ...data[version]!.fr, ...updated };
+        data[version]!.fr = missingOnly ? this.mergeMissingOnly(data[version]!.fr, updated) : { ...data[version]!.fr, ...updated };
       } catch {
         data[version]!.fr = { ...data[version]!.fr, lastChecked: new Date().toISOString(), is404: true };
       }
@@ -1369,15 +1394,26 @@ export class ProjectStateService {
     this.setModifiedDate();
   }
 
-  public async refreshAll(nodes: TreeNode[], urlVersion: SourceVersion, onlyNeverChecked = false, fetchLive = false) {
+  private mergeMissingOnly<T extends object>(existing: T | undefined, updates: Partial<T>): T {
+    const result = { ...(existing ?? {}) } as T;
+    for (const key of Object.keys(updates) as (keyof T)[]) {
+      if (result[key] === undefined) {
+        console.log(`mergeMissingOnly: filling ${String(key)} (was undefined) →`, updates[key]);
+        result[key] = updates[key] as T[keyof T];
+      }
+    }
+    return result;
+  }
+
+  public async refreshAll(nodes: TreeNode[], urlVersion: SourceVersion, onlyNeverChecked = false, fetchLive = false, onlyMissing = false) {
     const version = urlVersion.startsWith('proto') ? 'prototype' : urlVersion.startsWith('base') ? 'baseline' : 'live';
     for (const node of nodes) {
       const needsRefresh = onlyNeverChecked ? !node.data?.[version]?.en?.lastChecked || !node.data?.[version]?.fr?.lastChecked : true;
       if (needsRefresh) {
-        await this.refreshNode(node, urlVersion, fetchLive);
+        await this.refreshNode(node, urlVersion, fetchLive, onlyMissing);
       }
       if (node.children?.length) {
-        await this.refreshAll(node.children, urlVersion, onlyNeverChecked, fetchLive);
+        await this.refreshAll(node.children, urlVersion, onlyNeverChecked, fetchLive, onlyMissing);
       }
     }
   }
@@ -1435,6 +1471,7 @@ export class ProjectStateService {
       noindex: false,
       isArchived: false,
       linksToPortal: false,
+      linksToSignIn: false,
       hasChatbot: false,
       //jrc:content.json
       owner: parent.data.prototype.en.owner ?? '',

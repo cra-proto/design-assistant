@@ -93,12 +93,14 @@ export class IaDiagramComponent {
 
   protected editNode = false;
   protected showNotes = false;
-  protected selectedNode: TreeNode = {};
+  protected selectedNode: TreeNode | undefined = undefined;
 
   closeDialog() {
     this.editNode = false;
     this.showNotes = false;
+    this.selectedNode = undefined;
   }
+
   protected onMenuClick(event: MouseEvent, node: TreeNode) {
     if (!node.data.path[this.primaryLang]) return;
     const projectNode = this.projectState.findNodeByPath(this.projectData().projectData, node.data.path[this.primaryLang], this.primaryLang);
@@ -127,7 +129,7 @@ export class IaDiagramComponent {
     ];
 
     // Action: View notes
-    if ((projectNode.data?.notes?.issue.length ?? 0) + (projectNode.data?.notes?.solution.length ?? 0) > 0) {
+    if ((projectNode.data?.notes?.issue?.length ?? 0) + (projectNode.data?.notes?.solution?.length ?? 0) > 0) {
       this.items[0].items!.push({
         label: this.translate.instant(`common.viewNotes`),
         icon: 'pi pi-list',

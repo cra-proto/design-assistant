@@ -88,3 +88,11 @@ export function isPortalDomain(url: string): boolean {
     return false;
   }
 }
+
+/** EN & FR paths for CRA's sign-in page */
+export const SIGN_IN_PATH: string[] = ['/en/revenue-agency/services/e-services/cra-login-services.html', '/fr/agence-revenu/services/services-electroniques/services-ouverture-session-arc.html'];
+
+/** Check if a URL points to a sign-in page */
+export function isSignInLink(url: string): boolean {
+  return SIGN_IN_PATH.some((signin) => url.endsWith(signin));
+}

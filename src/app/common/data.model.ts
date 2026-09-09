@@ -242,6 +242,7 @@ export interface LangData {
   noindex: boolean; // True if page is not indexed for search
   isArchived: boolean; // True if page has archive banner
   linksToPortal: boolean; // True if page links to a portal
+  linksToSignIn: boolean; // True if page links to a sign-in page
   hasChatbot: boolean; // True if page has chatbot
   // jrc:content.json
   owner?: string; // gcContributor
@@ -288,6 +289,7 @@ export interface FlattenedTreeNode {
   //Data
   template: string;
   linksToPortal: boolean;
+  linksToSignIn: boolean;
   hasChatbot: boolean;
   task: string[];
   visits: number | undefined;

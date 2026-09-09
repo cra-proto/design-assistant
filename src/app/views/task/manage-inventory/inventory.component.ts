@@ -31,19 +31,7 @@ import { OpenRouterService } from '../../../services/ai/openrouter.service';
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 
-import {
-  COLUMN_GROUPS,
-  ColumnGroups,
-  FIELD_FILTERS,
-  FlattenedTreeNode,
-  MetadataField,
-  MetadataReview,
-  MetadataReviewStatus,
-  PageTemplate,
-  TableColumn,
-  TreeNodeData,
-  TreeNodeTypes,
-} from '../../../common/data.model';
+import { COLUMN_GROUPS, ColumnGroups, FIELD_FILTERS, FlattenedTreeNode, MetadataField, MetadataReview, MetadataReviewStatus, PageTemplate, TableColumn } from '../../../common/data.model';
 import { isKnownNumber } from '../../../common/phone-numbers.config';
 import { InventoryPrompts } from '../../../common/prompts/inventory.prompts';
 import { InventoryPromptKey } from '../../../common/prompts/prompt.model';
@@ -123,7 +111,7 @@ export class InventoryComponent implements OnInit {
   private touchTimer: ReturnType<typeof setTimeout> | null = null; // Touch is alternative to right click for mobile cibtext menus
 
   protected editNode = false; // Tracks if currently making dialog edits
-  protected selectedNode: TreeNode = {}; // TreeNode data for edit node dialog (not flattened!)
+  protected selectedNode: TreeNode | undefined = undefined; // TreeNode data for edit node dialog (not flattened!)
 
   private readonly sortField = signal<string | null>(null);
   private readonly sortOrder = signal<number>(1); // 1 = ascending, -1 = descending
@@ -720,37 +708,21 @@ export class InventoryComponent implements OnInit {
     if ((type === 'boolean' || type === 'template') && dataSection.includes('lang')) {
       const enSection = dataSection.map((k) => (k === 'lang' ? 'en' : k));
       const frSection = dataSection.map((k) => (k === 'lang' ? 'fr' : k));
-      const currentValueEN = this.getNestedValue(node.data, enSection);
-      const currentValueFR = this.getNestedValue(node.data, frSection);
+      const currentValueEN = this.projectState.getNestedValue(node.data, enSection);
+      const currentValueFR = this.projectState.getNestedValue(node.data, frSection);
       if (currentValueEN !== newValue || currentValueFR !== newValue) {
-        this.setNestedValue(node.data, enSection, newValue);
-        this.setNestedValue(node.data, frSection, newValue);
+        this.projectState.setNestedValue(node.data, enSection, newValue);
+        this.projectState.setNestedValue(node.data, frSection, newValue);
         this.projectState.setModifiedDate();
       }
     } else {
       const section = dataSection.map((k) => (k === 'lang' ? this.lang : k));
-      const currentValue = this.getNestedValue(node.data, section);
+      const currentValue = this.projectState.getNestedValue(node.data, section);
       if (currentValue !== newValue) {
-        this.setNestedValue(node.data, section, newValue);
+        this.projectState.setNestedValue(node.data, section, newValue);
         this.projectState.setModifiedDate();
       }
     }
-  }
-
-  private getNestedValue(obj: TreeNodeData, path: string[]): TreeNodeTypes {
-    return path.reduce((current: unknown, key: string) => (current && typeof current === 'object' ? (current as Record<string, unknown>)[key] : undefined), obj as unknown) as TreeNodeTypes;
-  }
-
-  private setNestedValue(obj: TreeNodeData, path: string[], value: TreeNodeTypes): void {
-    const last = path[path.length - 1];
-    const target = path.slice(0, -1).reduce(
-      (current: Record<string, unknown>, key: string) => {
-        if (!current[key] || typeof current[key] !== 'object') current[key] = {};
-        return current[key] as Record<string, unknown>;
-      },
-      obj as unknown as Record<string, unknown>,
-    );
-    if (target) target[last] = value;
   }
 
   /** Edit booleans for all selected pages */
@@ -765,17 +737,17 @@ export class InventoryComponent implements OnInit {
       if (dataSection.includes('lang')) {
         const enSection = dataSection.map((k) => (k === 'lang' ? 'en' : k));
         const frSection = dataSection.map((k) => (k === 'lang' ? 'fr' : k));
-        const currentValueEN = this.getNestedValue(node.data, enSection);
-        const currentValueFR = this.getNestedValue(node.data, frSection);
+        const currentValueEN = this.projectState.getNestedValue(node.data, enSection);
+        const currentValueFR = this.projectState.getNestedValue(node.data, frSection);
         if (currentValueEN !== value || currentValueFR !== value) {
-          this.setNestedValue(node.data, enSection, value);
-          this.setNestedValue(node.data, frSection, value);
+          this.projectState.setNestedValue(node.data, enSection, value);
+          this.projectState.setNestedValue(node.data, frSection, value);
           changed = true;
         }
       } else {
-        const currentValue = this.getNestedValue(node.data, dataSection);
+        const currentValue = this.projectState.getNestedValue(node.data, dataSection);
         if (currentValue !== value) {
-          this.setNestedValue(node.data, dataSection, value);
+          this.projectState.setNestedValue(node.data, dataSection, value);
           changed = true;
         }
       }
@@ -1185,7 +1157,7 @@ export class InventoryComponent implements OnInit {
 
   protected edit(node: FlattenedTreeNode) {
     const path = this.lang === 'fr' ? node.frPath : node.enPath;
-    this.selectedNode = this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, this.lang) ?? {};
+    this.selectedNode = this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, this.lang) ?? undefined;
     this.editNode = true;
   }
 
