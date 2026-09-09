@@ -41,8 +41,14 @@ jobs:
         working-directory: backend/terraform
         run: terraform workspace select ${{ inputs.environment }}
 
-      - name: Import DynamoDB tables
+      - name: Import S3 bucket and related resources
         working-directory: backend/terraform
         run: |
-          terraform import -var-file="${{ inputs.environment }}.tfvars" aws_dynamodb_table.usage design-assistant-usage || echo "usage already imported"
-          terraform import -var-file="${{ inputs.environment }}.tfvars" aws_dynamodb_table.prompts design-assistant-prompts || echo "prompts already imported"
+          terraform import -var-file="${{ inputs.environment }}.tfvars" aws_s3_bucket.project_content design-assistant-project-content
+          terraform import -var-file="${{ inputs.environment }}.tfvars" aws_s3_bucket_public_access_block.project_content design-assistant-project-content
+          terraform import -var-file="${{ inputs.environment }}.tfvars" aws_s3_bucket_server_side_encryption_configuration.project_content design-assistant-project-content
+          terraform import -var-file="${{ inputs.environment }}.tfvars" aws_iam_role_policy.lambda_s3_policy design-assistant-lambda-role:design-assistant-lambda-s3-policy
+
+      - name: Terraform Plan
+        working-directory: backend/terraform
+        run: terraform plan -var-file="${{ inputs.environment }}.tfvars"

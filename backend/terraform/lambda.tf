@@ -210,6 +210,7 @@ resource "aws_lambda_function" "projects" {
   environment {
     variables = {
       TABLE_NAME = aws_dynamodb_table.projects.name
+      CONTENT_BUCKET  = aws_s3_bucket.project_content.bucket
       ALLOWED_ORIGINS = join(",", var.allowed_origins)
     }
   }
@@ -461,4 +462,25 @@ resource "aws_lambda_permission" "usage_function_invoke" {
 output "usage_function_url" {
   description = "Direct Lambda Function URL for Usage tracking"
   value       = aws_lambda_function_url.usage.function_url
+}
+
+# S3 policy for project content storage
+resource "aws_iam_role_policy" "lambda_s3_policy" {
+  name = "${var.app_name}-lambda-s3-policy"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ]
+        Resource = "${aws_s3_bucket.project_content.arn}/*"
+      }
+    ]
+  })
 }
