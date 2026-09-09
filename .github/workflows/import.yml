@@ -1,4 +1,4 @@
-name: Terraform Import DynamoDB
+name: Terraform Import Shared Resources
 
 on:
   workflow_dispatch:
@@ -41,14 +41,82 @@ jobs:
         working-directory: backend/terraform
         run: terraform workspace select ${{ inputs.environment }}
 
-      - name: Import S3 bucket and related resources
+      - name: Import shared resources (skips if already imported)
         working-directory: backend/terraform
         run: |
-          terraform import -var-file="${{ inputs.environment }}.tfvars" aws_s3_bucket.project_content design-assistant-project-content
-          terraform import -var-file="${{ inputs.environment }}.tfvars" aws_s3_bucket_public_access_block.project_content design-assistant-project-content
-          terraform import -var-file="${{ inputs.environment }}.tfvars" aws_s3_bucket_server_side_encryption_configuration.project_content design-assistant-project-content
-          terraform import -var-file="${{ inputs.environment }}.tfvars" aws_iam_role_policy.lambda_s3_policy design-assistant-lambda-role:design-assistant-lambda-s3-policy
+          VF="-var-file=${{ inputs.environment }}.tfvars"
+          terraform import $VF aws_dynamodb_table.projects design-assistant-projects || echo "skip: projects table"
+          terraform import $VF aws_dynamodb_table.usage design-assistant-usage || echo "skip: usage table"
+          terraform import $VF aws_dynamodb_table.prompts design-assistant-prompts || echo "skip: prompts table"
+          terraform import $VF aws_s3_bucket.project_content design-assistant-project-content || echo "skip: s3 bucket"
+          terraform import $VF aws_s3_bucket_public_access_block.project_content design-assistant-project-content || echo "skip: s3 public access block"
+          terraform import $VF aws_s3_bucket_server_side_encryption_configuration.project_content design-assistant-project-content || echo "skip: s3 encryption"
+          terraform import $VF aws_iam_role.lambda_role design-assistant-lambda-role || echo "skip: iam role"
+          terraform import $VF aws_iam_role_policy.lambda_secrets_policy design-assistant-lambda-role:design-assistant-lambda-secrets-policy || echo "skip: secrets policy"
+          terraform import $VF aws_iam_role_policy.lambda_dynamodb_policy design-assistant-lambda-role:design-assistant-lambda-dynamodb-policy || echo "skip: dynamodb policy"
+          terraform import $VF aws_iam_role_policy.lambda_s3_policy design-assistant-lambda-role:design-assistant-lambda-s3-policy || echo "skip: s3 policy"
+          terraform import $VF aws_iam_role_policy_attachment.lambda_basic_execution design-assistant-lambda-role/arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole || echo "skip: basic execution attachment"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build Lambda Airtable function
+        working-directory: backend/functions/airtable
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+
+      - name: Build Lambda OAuth function
+        working-directory: backend/functions/github-oauth
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+
+      - name: Build Lambda OpenRouter function
+        working-directory: backend/functions/openrouter
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+
+      - name: Build Lambda Projects function
+        working-directory: backend/functions/projects
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+
+      - name: Build Lambda Usage function
+        working-directory: backend/functions/usage
+        run: |
+          npm ci
+          npm run build
+          cp package*.json dist/
+          cd dist
+          npm ci --production
+          zip -r -q lambda.zip .
+          mv lambda.zip ..
+      
       - name: Terraform Plan
         working-directory: backend/terraform
         run: terraform plan -var-file="${{ inputs.environment }}.tfvars"
