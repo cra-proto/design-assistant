@@ -1398,7 +1398,6 @@ export class ProjectStateService {
     const result = { ...(existing ?? {}) } as T;
     for (const key of Object.keys(updates) as (keyof T)[]) {
       if (result[key] === undefined) {
-        console.log(`mergeMissingOnly: filling ${String(key)} (was undefined) →`, updates[key]);
         result[key] = updates[key] as T[keyof T];
       }
     }

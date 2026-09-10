@@ -636,7 +636,9 @@ export class ProjectStorageService {
       ...project,
       projectData: project.projectData.map((node) => this.patchLegacyNode(node)),
     };
-    const [major, minor] = (project.version ?? '0.0.0').split('.').map(Number);
+    const [major, minor] = String(project.version ?? '0.0.0')
+      .split('.')
+      .map(Number);
     const needsRefresh = major === 0 && minor < 6;
     if (needsRefresh) {
       this.updateLastChecked(project.projectData);

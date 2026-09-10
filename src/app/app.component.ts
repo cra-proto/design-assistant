@@ -109,7 +109,9 @@ export class AppComponent implements OnInit {
         this.projectState.setProject(project); // Update the project state
         console.log(`Project loaded successfully: ${active.key}`);
         //Refresh live data if project is missing properties (for patching legacy data)
-        const [major, minor] = (project.version ?? '0.0.0').split('.').map(Number);
+        const [major, minor] = String(project.version ?? '0.0.0')
+          .split('.')
+          .map(Number);
         const onlyMissing = major > 0 || (major === 0 && minor >= 6);
         await this.projectState.refreshAll(project.projectData, 'live', true);
         await this.projectState.refreshAll(project.projectData, 'baseGH', true, true, onlyMissing);
