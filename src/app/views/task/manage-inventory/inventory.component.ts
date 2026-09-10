@@ -308,6 +308,7 @@ export class InventoryComponent implements OnInit {
       noindex: 'pi pi-android text-orange-500',
       isOrphan: 'pi pi-exclamation-circle text-red-500',
       linksToPortal: 'pi pi-external-link text-blue-500',
+      linksToSignIn: 'pi pi-sign-in text-green-500',
       hasChatbot: 'pi pi-comments text-blue-500',
     };
 
@@ -1278,6 +1279,8 @@ export class InventoryComponent implements OnInit {
     marker('inventory.tooltip.boolean.isROT.false');
     marker('inventory.tooltip.boolean.linksToPortal.true');
     marker('inventory.tooltip.boolean.linksToPortal.false');
+    marker('inventory.tooltip.boolean.linksToSignIn.true');
+    marker('inventory.tooltip.boolean.linksToSignIn.false');
     marker('inventory.tooltip.boolean.isArchived.true');
     marker('inventory.tooltip.boolean.isArchived.false');
     marker('inventory.tooltip.boolean.noindex.true');
@@ -1291,8 +1294,6 @@ export class InventoryComponent implements OnInit {
     marker('inventory.contextMenu.isMoved.false');
     marker('inventory.contextMenu.isROT.true');
     marker('inventory.contextMenu.isROT.false');
-    marker('inventory.contextMenu.linksToPortal.true');
-    marker('inventory.contextMenu.linksToPortal.false');
     marker('inventory.contextMenu.isOrphan.true');
     marker('inventory.contextMenu.isOrphan.false');
     marker('inventory.contextMenu.isArchived.true');

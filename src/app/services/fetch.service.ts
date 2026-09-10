@@ -287,10 +287,8 @@ export class FetchService {
     // Get archive status
     const isArchived = doc.querySelector('.gc-archv') !== null;
 
-    // Get portal & sign-in link status
-    const allLinks = doc.querySelectorAll('a');
-    const linksToPortal = Array.from(allLinks).some((link) => isPortalDomain(link.href));
-    const linksToSignIn = Array.from(allLinks).some((link) => isSignInLink(link.href));
+    // Get portal link status
+    const linksToPortal = Array.from(doc.querySelectorAll('a')).some((link) => isPortalDomain(link.href));
 
     //Has ChatBot
     const hasChatbot = !!doc.querySelector('chatbot');
@@ -362,6 +360,8 @@ export class FetchService {
       .map((a) => a.innerText.trim())
       .join('');
     const isNavigational = mainText.length > 0 && linkText.length / mainText.length >= 0.7;
+    // Get sign-in link status
+    const linksToSignIn = Array.from(mainLinks).some((link) => isSignInLink(link.href));
     //PDF download pages
     const hasPdfDownloadLink = doc.querySelector('a[href$=".pdf"].btn.stretched-link') !== null;
     const hasThumbnailContainer = doc.querySelector('.thumbnail') !== null;

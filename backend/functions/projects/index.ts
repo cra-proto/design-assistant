@@ -1,5 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand, ScanCommandOutput, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -21,6 +22,7 @@ function validateOrg(org: string | undefined): string {
     return org;
 }
 
+//DynamoDB
 const client = new DynamoDBClient({ region: process.env.AWS_REGION || "ca-central-1" });
 const docClient = DynamoDBDocumentClient.from(client, {
     marshallOptions: {
@@ -29,9 +31,9 @@ const docClient = DynamoDBDocumentClient.from(client, {
 });
 const TABLE_NAME = process.env.TABLE_NAME || "design-assistant-projects";
 
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',')
-    : ['http://localhost:4200'];
+//S3 Bucket
+const s3Client = new S3Client({ region: process.env.AWS_REGION || "ca-central-1" });
+const CONTENT_BUCKET = process.env.CONTENT_BUCKET || "design-assistant-project-content";
 
 interface Project {
     id: string;
@@ -61,7 +63,8 @@ interface Project {
     storageType: string;
     repoType: string;
     org: string; // Cloud-set variable for project filtering
-    content: string; // JSON stringified projectData TreeNode[] (if filesize becomes an issue, replace with reference to S3 bucket)
+    content?: string; // JSON stringified projectData TreeNode[] (being phased out and replaced by S3 bucket)
+    contentKey?: string; // Reference to S3 bucket with JSON stringified projectData TreeNode[]
 }
 
 // Function to get CORS headers based on request origin
@@ -193,7 +196,19 @@ export const getProject = async (event: APIGatewayProxyEvent): Promise<APIGatewa
         }
 
         // Parse the stored content back to full project structure
-        const fullProject = JSON.parse(result.Item.content);
+        let fullProject: any;
+        if (result.Item.contentKey) {
+            // Newer format - retrieve content from S3
+            const s3Result = await s3Client.send(new GetObjectCommand({
+                Bucket: CONTENT_BUCKET,
+                Key: result.Item.contentKey,
+            }));
+            const bodyString = await s3Result.Body?.transformToString();
+            fullProject = JSON.parse(bodyString || '{}');
+        } else {
+            // Legacy format - content still in DynamoDB
+            fullProject = JSON.parse(result.Item.content);
+        }
 
         return {
             statusCode: 200,
@@ -254,10 +269,12 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
         }
 
         const now = Date.now();
+        const projectId = projectData.id || uuidv4();
+        const contentKey = `projects/${projectId}.json`;
 
         // Create project object
         const project: Project = {
-            id: projectData.id || uuidv4(),
+            id: projectId,
             key: projectData.key,
             version: projectData.version,
             projectName: projectData.projectName,
@@ -279,7 +296,7 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
             storageType: 'cloud',
             repoType: projectData.repoType,
             org: validateOrg(projectData.org),
-            content: JSON.stringify(projectData), // Store the entire project state
+            contentKey, // Store reference to the entire project state
         };
 
         console.log('Project to save:', JSON.stringify(project, null, 2));
@@ -338,6 +355,15 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
                 }
             }
         }
+        // Save to S3 bucket
+        console.log('Uploading content to S3:', contentKey);
+        await s3Client.send(new PutObjectCommand({
+            Bucket: CONTENT_BUCKET,
+            Key: contentKey,
+            Body: JSON.stringify(projectData),
+            ContentType: 'application/json',
+        }));
+
         // Save to DynamoDB
         console.log('Saving to DynamoDB...');
         await docClient.send(new PutCommand({
@@ -419,6 +445,18 @@ export const deleteProject = async (event: APIGatewayProxyEvent): Promise<APIGat
                 headers: corsHeaders,
                 body: JSON.stringify({ error: 'Not authorized to delete this project' })
             };
+        }
+
+        // Delete S3 content if it exists
+        if (existing.Item.contentKey) {
+            try {
+                await s3Client.send(new DeleteObjectCommand({
+                    Bucket: CONTENT_BUCKET,
+                    Key: existing.Item.contentKey,
+                }));
+            } catch (s3Error) {
+                console.error('Failed to delete S3 content (continuing with DynamoDB delete):', s3Error);
+            }
         }
 
         // Delete from DynamoDB
