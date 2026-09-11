@@ -51,7 +51,9 @@ export class OpenRouterService {
   async sendToAI(config: PromptConfig, content: string, preferredModel?: string, temperature = 0): Promise<OpenRouterResponse> {
     this.state.set({ loading: true, error: null, respondingModel: null });
 
-    const models = preferredModel ? [preferredModel, ...AI_FREE_MODELS.filter((m) => m !== preferredModel)] : AI_FREE_MODELS;
+    const MAX_FALLBACK_MODELS = 3;
+
+    const models = (preferredModel ? [preferredModel, ...AI_FREE_MODELS.filter((m) => m !== preferredModel)] : AI_FREE_MODELS).slice(0, MAX_FALLBACK_MODELS);
 
     try {
       const systemPrompt = this.aiPromptService.composePrompt(config);

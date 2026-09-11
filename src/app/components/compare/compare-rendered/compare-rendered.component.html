@@ -77,7 +77,7 @@
     } @else {
       <div class="flex flex-row gap-1 align-items-center">
         <p-button
-          [disabled]="webSelectedView() === WebViewType.Original && !enableOriginalEdits()"
+          [disabled]="(webSelectedView() === WebViewType.Original && !enableOriginalEdits()) || (webSelectedView() === WebViewType.Modified && jobPending())"
           [icon]="editing() ? 'pi pi-save' : 'pi pi-pen-to-square'"
           [label]="editing() ? ('common.save' | translate) : ('common.edit' | translate)"
           (onClick)="toggleEditing(webSelectedView())"
@@ -102,6 +102,8 @@
           } @else {
             <p-message icon="pi pi-exclamation-triangle" severity="warn">{{ 'compare.rendered.originalEditsMessage' | translate }}</p-message>
           }
+        } @else if (jobPending()) {
+          <p-message icon="pi pi-spinner pi-spin" severity="contrast">{{ 'compare.waitingForAI' | translate }}</p-message>
         }
       </div>
     }
@@ -123,5 +125,3 @@
   <!--Shadow DOM-->
   <div [ngClass]="webSelectedView()" class="diff-container p-0" #liveContainer></div>
 </div>
-
-<p-toast />

@@ -11,11 +11,14 @@
 @if (compareService.hasChanges()) {
   <p-message icon="pi pi-info-circle font-bold" severity="info">{{ 'compare.tools.hasChanges' | translate }}</p-message>
 }
+@if (jobPending()) {
+  <p-message icon="pi pi-spinner pi-spin" severity="info">{{ 'compare.waitingForAI' | translate }}</p-message>
+}
 <div class="flex flex-row align-items-center gap-2">
   <p-button
     [disabled]="compareService.hasChanges()"
     [label]="'compare.aiOptions.send' | translate"
-    [loading]="openrouterService.state().loading"
+    [loading]="jobPending()"
     (onClick)="compareAiService.sendToAI()"
     icon="pi pi pi-sparkles"
     severity="primary"
@@ -24,7 +27,7 @@
   <p-button
     [disabled]="compareService.hasChanges()"
     [label]="'compare.aiOptions._title' | translate"
-    [loading]="openrouterService.state().loading"
+    [loading]="jobPending()"
     (onClick)="toggleAiDrawer()"
     icon="pi pi pi-bars"
     severity="info"
@@ -53,9 +56,6 @@
     </div>
   </div>
 </div>
-
-<!--TOAST MESSAGES-->
-<p-toast />
 
 <!--DROPDOWN MENU-->
 <p-menu [model]="items" [popup]="true" #menu>

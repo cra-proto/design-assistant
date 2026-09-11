@@ -12,6 +12,7 @@ import { TranslatePipe } from '@ngx-translate/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DevToolsComponent {
+  //TODO: add an indicator for when static files need updating (vanity URLs, phone numbers, etc. should be updated monthly, CDTS templates should be reviewed bi-anually, etc. )
   /**
    * Translation markers for visual separators in translation files.
    * These keys (feature._) create visual breaks between feature sections.

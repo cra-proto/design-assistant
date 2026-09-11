@@ -50,6 +50,7 @@ export class CompareSourceComponent implements OnDestroy {
   public readonly beforeContent = input<htmlProcessingResult | undefined>();
   public readonly afterContent = input<htmlProcessingResult | undefined>();
   public readonly canUndo = input<boolean>(false);
+  public readonly jobPending = input<boolean>(false);
 
   // Adjust inputs if one is undefined so we can render page with no changes
   private readonly resolvedBefore = computed(() => this.beforeContent() ?? this.afterContent());

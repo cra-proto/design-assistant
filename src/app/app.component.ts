@@ -1,8 +1,10 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, OnInit } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterModule, RouterOutlet } from '@angular/router';
 
 import { PrimeNG } from 'primeng/config';
+import { ToastModule } from 'primeng/toast';
 
 import { FooterComponent } from './template/footer.component';
 import { HeaderComponent } from './template/header.component';
@@ -20,7 +22,7 @@ import { CustomTitleStrategy } from './common/custom-title-strategy';
 
 @Component({
   selector: 'aida-root',
-  imports: [RouterModule, RouterOutlet, FooterComponent, HeaderComponent, SidebarComponent],
+  imports: [CommonModule, RouterModule, RouterOutlet, ToastModule, FooterComponent, HeaderComponent, SidebarComponent],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

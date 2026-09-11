@@ -1,6 +1,6 @@
 // Update all page dropdowns with thier valid versions (speeds up page switching)
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { Params, Router } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -10,7 +10,6 @@ import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
 import { MenuModule } from 'primeng/menu';
 import { MessageModule } from 'primeng/message';
-import { ToastModule } from 'primeng/toast';
 
 import { UserSettingsComponent } from '../../user-settings/user-settings.component';
 import { CompareAiOptionsComponent } from '../compare-ai-options/compare-ai-options.component';
@@ -19,14 +18,14 @@ import { OpenRouterService } from '../../../services/ai/openrouter.service';
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
+import { CompareService } from '../../../views/task/compare-versions/compare.service';
 import { CompareAiService } from '../compare-ai.service';
-import { CompareService } from '../compare.service';
 
 import { SourceVersion } from '../../../common/data.model';
 
 @Component({
   selector: 'aida-compare-tools',
-  imports: [CommonModule, TranslatePipe, ButtonModule, DrawerModule, MenuModule, MessageModule, ToastModule, CompareAiOptionsComponent, UserSettingsComponent],
+  imports: [CommonModule, TranslatePipe, ButtonModule, DrawerModule, MenuModule, MessageModule, CompareAiOptionsComponent, UserSettingsComponent],
   templateUrl: './compare-tools.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -44,6 +43,8 @@ export class CompareToolsComponent {
   protected readonly readabilityBefore = signal(0);
   protected readonly readabilityAfter = signal(0);
   protected readonly readabilityChange = signal(0);
+
+  public readonly jobPending = input<boolean>(false);
 
   constructor() {
     effect(() => {

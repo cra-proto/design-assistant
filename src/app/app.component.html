@@ -6,3 +6,23 @@
   </main>
   <aida-footer />
 </div>
+<p-toast />
+<p-toast key="html">
+  <ng-template #message let-message>
+    <i
+      [ngClass]="{
+        'pi-check-circle': message.severity === 'success',
+        'pi-info-circle': message.severity === 'info',
+        'pi-exclamation-triangle': message.severity === 'warn',
+        'pi-times-circle': message.severity === 'error',
+      }"
+      class="p-toast-message-icon p-icon pi"
+      aria-hidden="true"
+      data-pc-section="messageicon"
+    ></i>
+    <div class="p-toast-message-text" data-pc-section="messagetext">
+      <div class="p-toast-summary" data-pc-section="summary">{{ message.summary }}</div>
+      <div [innerHTML]="message.detail" class="p-toast-detail" data-pc-section="detail"></div>
+    </div>
+  </ng-template>
+</p-toast>

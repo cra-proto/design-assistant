@@ -14,6 +14,8 @@ export interface PageEditState {
   undoStack: DiffUndoStack;
 }
 
+export type AiJobStatus = 'pending' | 'done' | 'error';
+
 /*
  * Use this service to cache temporary variables related to the active project
  */
@@ -268,5 +270,25 @@ export class ProjectCacheService {
 
   public getPageUndoStack(path: string): DiffUndoStack | undefined {
     return this.pageEdits().get(path)?.undoStack;
+  }
+
+  // Track AI jobs
+
+  private readonly aiJobs = signal<Map<string, AiJobStatus>>(new Map());
+
+  public getAiJobStatus(path: string): AiJobStatus | undefined {
+    return this.aiJobs().get(path);
+  }
+
+  public setAiJobStatus(path: string, status: AiJobStatus): void {
+    const map = new Map(this.aiJobs());
+    map.set(path, status);
+    this.aiJobs.set(map);
+  }
+
+  public clearAiJobStatus(path: string): void {
+    const map = new Map(this.aiJobs());
+    map.delete(path);
+    this.aiJobs.set(map);
   }
 }

@@ -249,7 +249,7 @@ export class SwitchProjectComponent implements OnInit {
       this.loadingKey = id;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     try {
       const project = await this.projectStorageService.loadProject(this.loadingKey, storageType);

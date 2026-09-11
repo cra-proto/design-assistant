@@ -1,10 +1,10 @@
 import { Injectable, signal } from '@angular/core';
 
-import { htmlProcessingResult } from '../../services/html-normalization.service';
+import { htmlProcessingResult } from '../../../services/html-normalization.service';
 
-import { AI_FREE_MODELS, AiFreeModelOptions, AiPaidModelOptions } from '../../common/ai-models.config';
-import { SourceVersion } from '../../common/data.model';
-import { PagePromptKey } from '../../common/prompts/prompt.model';
+import { AI_FREE_MODELS, AiFreeModelOptions, AiPaidModelOptions } from '../../../common/ai-models.config';
+import { SourceVersion } from '../../../common/data.model';
+import { PagePromptKey } from '../../../common/prompts/prompt.model';
 
 export type AiTaskOption = 'default' | 'models' | 'prompts';
 export type AiTenseOption = 'past' | 'present' | 'future';

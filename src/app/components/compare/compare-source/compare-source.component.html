@@ -23,7 +23,7 @@
     } @else {
       <div class="flex flex-row gap-1 align-items-center">
         <p-button
-          [disabled]="sourceSelectedView() === SourceViewType.Original && !enableOriginalEdits()"
+          [disabled]="(sourceSelectedView() === SourceViewType.Original && !enableOriginalEdits()) || (sourceSelectedView() === SourceViewType.Modified && jobPending())"
           [icon]="editing() ? 'pi pi-save' : 'pi pi-pen-to-square'"
           [label]="editing() ? ('common.save' | translate) : ('common.edit' | translate)"
           (onClick)="toggleEditing(sourceSelectedView())"
@@ -51,6 +51,8 @@
           } @else {
             <p-message icon="pi pi-exclamation-triangle" severity="warn">{{ 'compare.rendered.originalEditsMessage' | translate }}</p-message>
           }
+        } @else if (jobPending()) {
+          <p-message icon="pi pi-spinner pi-spin" severity="contrast">{{ 'compare.waitingForAI' | translate }}</p-message>
         }
       </div>
     }

@@ -820,6 +820,8 @@ export class ProjectStateService {
         this.translate.instant('inventory.header.isROT'),
         this.translate.instant('inventory.header.archiveStatus'),
         this.translate.instant('inventory.header.noindex'),
+        //Problems
+        this.translate.instant('inventory.header.isOrphan'),
         //Notes
         this.translate.instant('inventory.header.issue'),
         this.translate.instant('inventory.header.solution'),
@@ -829,6 +831,7 @@ export class ProjectStateService {
         this.translate.instant('inventory.header.linksToSignIn'),
         this.translate.instant('inventory.header.hasChatbot'),
         this.translate.instant('inventory.header.task'),
+        this.translate.instant('inventory.header.phoneNumbers'),
         this.translate.instant('inventory.header.visits'),
         this.translate.instant('common.readability.gradeLevel'),
         this.translate.instant('inventory.header.wordCount'),
@@ -879,6 +882,8 @@ export class ProjectStateService {
             data.status?.isROT ? yes : no,
             data.prototype?.en?.isArchived || data.prototype?.fr?.isArchived ? yes : no,
             data.prototype?.en?.noindex || data.prototype?.fr?.noindex ? yes : no,
+            //Problems
+            data.prototype?.en?.isOrphan || data.prototype?.fr?.isOrphan ? yes : no,
             //Notes
             JSON.stringify(data.notes?.issue ?? ''),
             JSON.stringify(data.notes?.solution ?? ''),
@@ -888,6 +893,7 @@ export class ProjectStateService {
             data.prototype?.en?.linksToSignIn || data.prototype?.fr?.linksToSignIn ? yes : no,
             data.prototype?.en?.hasChatbot || data.prototype?.fr?.hasChatbot ? yes : no,
             JSON.stringify(data.task?.[lang]?.join('; ') ?? ''),
+            JSON.stringify([...new Set([...(data.prototype?.en?.phoneNumbers ?? []), ...(data.prototype?.fr?.phoneNumbers ?? [])])].join('; ')),
             data.visits?.[lang] ?? -1,
             Math.min(data.prototype?.[lang]?.fleschKincaid ?? -1, data.prototype?.[lang]?.gunningFog ?? -1),
             data.prototype?.[lang]?.wordCount ?? -1,
@@ -905,9 +911,9 @@ export class ProjectStateService {
             JSON.stringify(data.prototype?.en?.keywords ?? ''),
             JSON.stringify(data.prototype?.fr?.keywords ?? ''),
             //Move info
-            data.prototype?.en?.parentPath !== data.live?.en?.parentPath ? (data.live?.en?.parentPath ?? '') : '',
+            data.live?.en?.parentPath ?? '',
             data.prototype?.en?.parentPath !== data.live?.en?.parentPath ? (data.prototype?.en?.parentPath ?? '') : '',
-            data.prototype?.fr?.parentPath !== data.live?.fr?.parentPath ? (data.live?.fr?.parentPath ?? '') : '',
+            data.live?.fr?.parentPath ?? '',
             data.prototype?.fr?.parentPath !== data.live?.fr?.parentPath ? (data.prototype?.fr?.parentPath ?? '') : '',
           ].join(','),
         );
@@ -937,7 +943,7 @@ export class ProjectStateService {
   //For tree testing in Optimal Workshop or similar tools
   public exportAsTreeCsv() {
     const tree = this.project().projectData;
-    const lang = this.detectPrimaryLanguage();
+    const rootChildren = tree[0]?.children ?? [];
 
     // Calculate max depth
     const getMaxDepth = (nodes: TreeNode<TreeNodeData>[], depth = 0): number => {
@@ -950,23 +956,18 @@ export class ProjectStateService {
       return maxDepth;
     };
 
-    const maxDepth = getMaxDepth(tree);
+    const maxDepth = getMaxDepth(rootChildren);
     const rows: string[] = [];
 
     // Generate headers
-    const headers: string[] = [];
+    const levelLabels: string[] = [];
     for (let i = 0; i <= maxDepth; i++) {
-      if (i === 0) {
-        headers.push('Top level');
-      } else if (i === 1) {
-        headers.push('2nd level');
-      } else if (i === 2) {
-        headers.push('3rd level');
-      } else {
-        headers.push(`${i + 1}th level`);
-      }
+      levelLabels.push(this.getLevelLabel(i + 1));
     }
+
+    const headers = [...levelLabels.map((l) => `${l} EN`), ...levelLabels.map((l) => `${l} FR`)];
     rows.push(headers.join(','));
+    const columnsPerLang = maxDepth + 1;
 
     // Walk tree and build rows
     const walk = (nodes: TreeNode<TreeNodeData>[], depth: number) => {
@@ -975,8 +976,9 @@ export class ProjectStateService {
         if (!data) continue;
 
         // Create a row with empty cells up to current depth
-        const row: string[] = new Array(maxDepth + 1).fill('');
-        row[depth] = `"${data.prototype?.[lang].h1 ?? ''}"`;
+        const row: string[] = new Array(columnsPerLang * 2).fill('');
+        row[depth] = `"${data.prototype?.en.h1 ?? ''}"`;
+        row[columnsPerLang + depth] = `"${data.prototype?.fr.h1 ?? ''}"`;
 
         rows.push(row.join(','));
 
@@ -986,9 +988,10 @@ export class ProjectStateService {
       }
     };
 
-    walk(tree, 0);
+    walk(rootChildren, 0);
 
-    const blob = new Blob([rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
 
     const proj = this.project();
@@ -999,6 +1002,20 @@ export class ProjectStateService {
     a.click();
 
     URL.revokeObjectURL(url);
+  }
+
+  private getOrdinalSuffix(n: number, lang: 'en' | 'fr'): string {
+    if (lang === 'fr') {
+      return n === 1 ? 'er' : 'e';
+    }
+    const category = new Intl.PluralRules('en', { type: 'ordinal' }).select(n);
+    const suffixes: Record<string, string> = { one: 'st', two: 'nd', few: 'rd', other: 'th' };
+    return suffixes[category] ?? 'th';
+  }
+
+  private getLevelLabel(n: number): string {
+    const lang = this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en';
+    return lang === 'fr' ? `Niveau ${n}${this.getOrdinalSuffix(n, lang)}` : `${n}${this.getOrdinalSuffix(n, lang)} level`;
   }
 
   // Generate url fragment (for repo names and new pages)

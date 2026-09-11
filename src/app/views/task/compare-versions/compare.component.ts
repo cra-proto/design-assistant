@@ -11,12 +11,12 @@ import { CompareSelectComponent } from '../../../components/compare/compare-sele
 import { CompareSourceComponent } from '../../../components/compare/compare-source/compare-source.component';
 import { CompareToolsComponent } from '../../../components/compare/compare-tools/compare-tools.component';
 
-import { CompareService } from '../../../components/compare/compare.service';
 import { FetchService } from '../../../services/fetch.service';
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
+import { CompareService } from './compare.service';
 
 @Component({
   selector: 'aida-compare-versions',
@@ -65,5 +65,10 @@ export class CompareComponent {
 
   protected get canUndo(): boolean {
     return this.projectCache.getPageUndoStack(this.compareService.selectedPage())?.canUndo() ?? false;
+  }
+
+  /** TODO: feed this into rendered & source components to lock after edits during pending AI jobs */
+  protected get aiJobPending(): boolean {
+    return this.projectCache.getAiJobStatus(this.compareService.selectedPage()) === 'pending';
   }
 }
