@@ -1,6 +1,8 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 
-import { TreeNode } from 'primeng/api';
+import { TranslateService } from '@ngx-translate/core';
+
+import { MessageService, TreeNode } from 'primeng/api';
 
 import { FetchService } from '../fetch.service';
 import { GitHubAuthService } from './github-auth.service';
@@ -17,6 +19,8 @@ export interface GitHubFileRequest {
 
 @Injectable({ providedIn: 'root' })
 export class ExportGitHubService {
+  private readonly translate = inject(TranslateService);
+  private readonly messageService = inject(MessageService);
   private readonly fetchService = inject(FetchService);
   private readonly authService = inject(GitHubAuthService);
   private readonly templateOrg = environment.templateOrg;
@@ -84,6 +88,13 @@ export class ExportGitHubService {
 
       if (!userResponse.ok) {
         this.clearPAT();
+        this.messageService.add({
+          key: 'html',
+          severity: 'error',
+          summary: this.translate.instant('github.connect.pat.error.summary'),
+          detail: this.translate.instant('github.connect.pat.error.detail') + this.translate.instant('github.connect.pat.token.link'),
+          sticky: true,
+        });
       } else {
         const user = await userResponse.json();
         this.patUser.set(this.mapGitHubUser(user));

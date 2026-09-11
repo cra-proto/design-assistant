@@ -9,7 +9,6 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SplitButtonModule } from 'primeng/splitbutton';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 
 import { FetchService } from '../../../services/fetch.service';
@@ -33,7 +32,7 @@ export interface ViewOption<T = string> {
  * Format your url or string content through the normalizeHTML function in html-normalization.service convert it to an htmlProcessingResult */
 @Component({
   selector: 'aida-compare-rendered',
-  imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, MessageModule, RadioButtonModule, SplitButtonModule, ToastModule, TooltipModule],
+  imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, MessageModule, RadioButtonModule, SplitButtonModule, TooltipModule],
   templateUrl: './compare-rendered.component.html',
   styleUrl: './compare-rendered.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,6 +47,7 @@ export class CompareRenderedComponent implements AfterViewInit, OnDestroy {
   public readonly beforeContent = input<htmlProcessingResult | undefined>();
   public readonly afterContent = input<htmlProcessingResult | undefined>();
   public readonly canUndo = input<boolean>(false);
+  public readonly jobPending = input<boolean>(false);
 
   // Adjust inputs if one is undefined so we can render page with no changes
   private readonly resolvedBefore = computed(() => this.beforeContent() ?? this.afterContent());

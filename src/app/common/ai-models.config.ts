@@ -3,7 +3,7 @@ export type AiPaidModelOptions = (typeof AI_PAID_MODELS)[number]['value'];
 
 export type PriceTier = '$' | '$$' | '$$$';
 
-export const AI_FREE_MODELS = ['nvidia/nemotron-3-ultra-550b-a55b:free', 'openai/gpt-oss-20b:free', 'nvidia/nemotron-3-super-120b-a12b:free'] as const;
+export const AI_FREE_MODELS = ['openrouter/free', 'nvidia/nemotron-3-ultra-550b-a55b:free', 'openai/gpt-oss-20b:free', 'nvidia/nemotron-3-super-120b-a12b:free'] as const;
 
 export const AI_PAID_MODELS = [
   { value: 'openai/gpt-oss-20b', price: '$' },

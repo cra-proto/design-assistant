@@ -6,7 +6,6 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DividerModule } from 'primeng/divider';
-import { ToastModule } from 'primeng/toast';
 
 import { SignInButtonComponent } from '../components/sign-in/sign-in-button/sign-in-button.component';
 
@@ -17,7 +16,7 @@ import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'aida-header',
-  imports: [CommonModule, TranslatePipe, ButtonModule, DividerModule, ToastModule, SignInButtonComponent],
+  imports: [CommonModule, TranslatePipe, ButtonModule, DividerModule, SignInButtonComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

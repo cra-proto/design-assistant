@@ -6,7 +6,7 @@
       <aida-compare-select />
     </div>
     <div class="surface-card border-round-lg shadow-2 p-4 w-full xl:w-6 min-w-min">
-      <aida-compare-tools />
+      <aida-compare-tools [jobPending]="aiJobPending" />
     </div>
   </div>
   <div class="surface-card border-round-lg shadow-2 p-4 w-full">
@@ -23,6 +23,7 @@
             [afterContent]="compareService.modifiedHtml()"
             [beforeContent]="compareService.originalHtml()"
             [canUndo]="canUndo"
+            [jobPending]="aiJobPending"
             (contentChanged)="onContentChanged($event)"
             (hasChanges)="onHasChanges($event)"
             (undoChanges)="onUndo()"
@@ -34,6 +35,7 @@
             [afterContent]="compareService.modifiedHtml()"
             [beforeContent]="compareService.originalHtml()"
             [canUndo]="canUndo"
+            [jobPending]="aiJobPending"
             (contentChanged)="onContentChanged($event)"
             (hasChanges)="onHasChanges($event)"
             (undoChanges)="onUndo()"
