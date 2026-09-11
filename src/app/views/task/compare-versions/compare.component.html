@@ -22,7 +22,7 @@
           <aida-compare-rendered
             [afterContent]="compareService.modifiedHtml()"
             [beforeContent]="compareService.originalHtml()"
-            [canUndo]="compareService.undoStack.canUndo()"
+            [canUndo]="canUndo"
             (contentChanged)="onContentChanged($event)"
             (hasChanges)="onHasChanges($event)"
             (undoChanges)="onUndo()"
@@ -33,7 +33,7 @@
           <aida-compare-source
             [afterContent]="compareService.modifiedHtml()"
             [beforeContent]="compareService.originalHtml()"
-            [canUndo]="compareService.undoStack.canUndo()"
+            [canUndo]="canUndo"
             (contentChanged)="onContentChanged($event)"
             (hasChanges)="onHasChanges($event)"
             (undoChanges)="onUndo()"

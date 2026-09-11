@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { IftaLabelModule } from 'primeng/iftalabel';
@@ -9,10 +8,11 @@ import { SelectModule } from 'primeng/select';
 
 import { FetchService } from '../../../services/fetch.service';
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
+import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { CompareService } from '../compare.service';
 
-import { ALL_SOURCES, CompareVersion, SourceVersion } from '../../../common/data.model';
+import { ALL_SOURCES, SourceVersion } from '../../../common/data.model';
 
 /**
  * Reviewed: 2026-08-19 (ng21)
@@ -28,6 +28,7 @@ import { ALL_SOURCES, CompareVersion, SourceVersion } from '../../../common/data
 export class CompareSelectComponent implements OnInit {
   private readonly projectState = inject(ProjectStateService);
   protected readonly compareService = inject(CompareService);
+  private readonly projectCache = inject(ProjectCacheService);
   private translate = inject(TranslateService);
   private fetchService = inject(FetchService);
   private htmlNormalizationService = inject(HtmlNormalizationService);
@@ -41,39 +42,23 @@ export class CompareSelectComponent implements OnInit {
     }
   }
 
-  markForTranslation() {
-    marker('common.source.ai');
-  }
-
   /** Page dropdown options */
   get pageOptions() {
     return this.projectState.getAllPages('en', 'live', 'inScope');
   }
 
-  /** All potential "Versions" for the {@link beforeOptions} and {@link afterOptions} version dropdowns
+  /** All potential "Versions" for the {@link versionOptions} dropdowns
    *
    * Updated via {@link onPageSelectionChange} to remove versions we can't fetch
    */
-  allOptions: CompareVersion[] = [...ALL_SOURCES, 'ai'];
+  allOptions: SourceVersion[] = [...ALL_SOURCES];
 
-  /** Before dropdown options from filtered {@link allOptions} (removes AI) */
-  get beforeOptions() {
-    return this.allOptions
-      .filter((value) => value !== 'ai')
-      .map((value) => ({
-        label: this.translate.instant(`common.source.${value}`),
-        value: value,
-      }));
-  }
-
-  /** After dropdown options from filtered {@link allOptions} (removes LIVE) */
-  get afterOptions() {
-    return this.allOptions
-      .filter((value) => value !== 'live')
-      .map((value) => ({
-        label: this.translate.instant(`common.source.${value}`),
-        value: value,
-      }));
+  /** Before & after dropdown options from filtered {@link allOptions} */
+  get versionOptions() {
+    return this.allOptions.map((value) => ({
+      label: this.translate.instant(`common.source.${value}`),
+      value: value,
+    }));
   }
 
   /** On page change:
@@ -89,17 +74,26 @@ export class CompareSelectComponent implements OnInit {
       // Clear current HTML (but not cache)
       this.compareService.originalHtml.set(undefined);
       this.compareService.modifiedHtml.set(undefined);
-      this.compareService.undoStack.clear();
       //Check the versions
-      const versionsToCheck = this.compareService.getVersionsToCheck(path);
-      const validVersions: CompareVersion[] = ['ai'];
+      const versionsToCheck = this.projectCache.getVersionsToCheck(path);
+      const validVersions: SourceVersion[] = [];
       for (const { url, version } of versionsToCheck) {
-        await this.compareService.checkVersion(url, version, validVersions);
+        await this.projectCache.checkVersion(url, version, validVersions);
       }
       this.allOptions = validVersions; //Add valid versions to dropdown menu
-      //Load the comparison
-      await this.onBeforeSelectionChange(this.compareService.selectedBefore());
-      await this.onAfterSelectionChange(this.compareService.selectedAfter());
+
+      const cached = this.projectCache.getPageEdit(path);
+      if (cached) {
+        //Restore the comparison with cached edits if available
+        this.compareService.selectedBefore.set(cached.originalHtml.version as SourceVersion);
+        this.compareService.selectedAfter.set(cached.modifiedHtml.version as SourceVersion);
+        this.compareService.originalHtml.set(cached.originalHtml);
+        this.compareService.modifiedHtml.set(cached.modifiedHtml);
+      } else {
+        //Load the comparison with unedited content from cache or source
+        await this.onBeforeSelectionChange(this.compareService.selectedBefore());
+        await this.onAfterSelectionChange(this.compareService.selectedAfter());
+      }
     } finally {
       this.compareService.loading.set(false);
     }
@@ -128,11 +122,11 @@ export class CompareSelectComponent implements OnInit {
    ** Uses {@link fetchVersion} to fetch selected version from project cache, if available, or runs fresh fetch
    ** Sets modifiedHtml
    */
-  async onAfterSelectionChange(version: CompareVersion) {
+  async onAfterSelectionChange(version: SourceVersion) {
     this.compareService.loadingAfter.set(true);
     try {
       this.compareService.selectedAfter.set(version);
-      const result = version !== 'ai' ? await this.fetchVersion(version) : ({ ...this.compareService.originalHtml(), version } as htmlProcessingResult);
+      const result = await this.fetchVersion(version);
       // Set modified HTML
       this.compareService.modifiedHtml.set(result);
     } finally {
@@ -151,20 +145,20 @@ export class CompareSelectComponent implements OnInit {
     const url = this.fetchService.generateUrl(this.compareService.selectedPage(), version, project.github.owner, project.github.repo);
 
     // Check cache for content
-    const cachedContent = this.compareService.getCachedHtml(url);
-    if (cachedContent) return cachedContent;
+    const cachedContent = this.projectCache.getCachedHtml(url);
+    if (cachedContent) return { ...cachedContent, version };
 
     // Fetch HTML content
     const fetchType = version === 'preview' || version.endsWith('UT') ? 'proxy' : 'url';
     const htmlContent = await this.htmlNormalizationService.normalizeHTML(url, fetchType);
 
     // Save HTML content to cache
-    if (htmlContent?.url) this.compareService.setCachedHtml(htmlContent.url, htmlContent);
+    if (htmlContent?.url) this.projectCache.setCachedHtml(htmlContent.url, htmlContent);
 
     // Set HTML processing result
     return {
       ...htmlContent,
-      version: version,
+      version,
     } as htmlProcessingResult;
   }
 }

@@ -15,10 +15,14 @@ import { ToastModule } from 'primeng/toast';
 import { UserSettingsComponent } from '../../user-settings/user-settings.component';
 import { CompareAiOptionsComponent } from '../compare-ai-options/compare-ai-options.component';
 
+import { OpenRouterService } from '../../../services/ai/openrouter.service';
 import { FetchService } from '../../../services/fetch.service';
+import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { CompareAiService } from '../compare-ai.service';
 import { CompareService } from '../compare.service';
+
+import { SourceVersion } from '../../../common/data.model';
 
 @Component({
   selector: 'aida-compare-tools',
@@ -31,9 +35,11 @@ export class CompareToolsComponent {
   private readonly router = inject(Router);
   protected readonly messageService = inject(MessageService);
   private readonly projectState = inject(ProjectStateService);
+  private readonly projectCache = inject(ProjectCacheService);
   protected readonly compareService = inject(CompareService);
   protected readonly compareAiService = inject(CompareAiService);
   private readonly fetchService = inject(FetchService);
+  protected readonly openrouterService = inject(OpenRouterService);
 
   protected readonly readabilityBefore = signal(0);
   protected readonly readabilityAfter = signal(0);
@@ -103,9 +109,9 @@ export class CompareToolsComponent {
           {
             label: this.translate.instant('compare.tools.cache.reset'),
             icon: 'pi pi-trash text-red-500',
-            disabled: !this.compareService.loadingAll(),
+            disabled: this.compareService.loadingAll(),
             command: () => {
-              this.compareService.clearCache();
+              this.projectCache.clearHtmlAndStatusCache();
             },
           },
         ],
@@ -172,10 +178,10 @@ export class CompareToolsComponent {
       // Check all versions
       for (const path of allPaths) {
         if (signal.aborted) break;
-        const versionsToCheck = this.compareService.getVersionsToCheck(path);
-        const validVersions = ['ai'];
+        const versionsToCheck = this.projectCache.getVersionsToCheck(path);
+        const validVersions: SourceVersion[] = [];
         for (const { url, version } of versionsToCheck) {
-          await this.compareService.checkVersion(url, version, validVersions);
+          await this.projectCache.checkVersion(url, version, validVersions);
         }
       }
     } finally {

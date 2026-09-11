@@ -38,7 +38,7 @@
         <p-select
           [loading]="compareService.loading() || compareService.loadingAll() || compareService.loadingBefore()"
           [ngModel]="compareService.selectedBefore()"
-          [options]="beforeOptions"
+          [options]="versionOptions"
           (ngModelChange)="onBeforeSelectionChange($event)"
           class="w-20rem sm:w-13rem"
           inputId="before"
@@ -54,7 +54,7 @@
         <p-select
           [loading]="compareService.loading() || compareService.loadingAll() || compareService.loadingAfter()"
           [ngModel]="compareService.selectedAfter()"
-          [options]="afterOptions"
+          [options]="versionOptions"
           (ngModelChange)="onAfterSelectionChange($event)"
           class="w-20rem sm:w-13rem"
           inputId="after"

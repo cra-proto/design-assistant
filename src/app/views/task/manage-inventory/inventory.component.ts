@@ -1281,6 +1281,8 @@ export class InventoryComponent implements OnInit {
     marker('inventory.tooltip.boolean.linksToPortal.false');
     marker('inventory.tooltip.boolean.linksToSignIn.true');
     marker('inventory.tooltip.boolean.linksToSignIn.false');
+    marker('inventory.tooltip.boolean.hasChatbot.true');
+    marker('inventory.tooltip.boolean.hasChatbot.false');
     marker('inventory.tooltip.boolean.isArchived.true');
     marker('inventory.tooltip.boolean.isArchived.false');
     marker('inventory.tooltip.boolean.noindex.true');

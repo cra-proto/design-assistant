@@ -5,6 +5,7 @@ export const RoleFragment: Record<RoleKey, string> = {
   [RoleKey.ContentDesigner]: 'You are an expert web content designer with 10 years of experience in the Canadian public service.',
   [RoleKey.AccessibilityExpert]: 'You are a web accessibility expert.',
   [RoleKey.Translator]: 'You are an expert government translator for Canadian English and French.',
+  [RoleKey.HTMLeditor]: 'You are a precise HTML text editor.',
   [RoleKey.None]: '',
 };
 

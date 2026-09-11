@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal, untracked, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -93,7 +93,7 @@ interface ExportMessage {
   templateUrl: './export.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ExportComponent implements OnInit {
+export class ExportComponent {
   private readonly projectState = inject(ProjectStateService);
   protected readonly exportGitHubService = inject(ExportGitHubService);
   private readonly fetchService = inject(FetchService);
@@ -145,10 +145,6 @@ export class ExportComponent implements OnInit {
       //Update table when owner or repo changes
       untracked(() => this.compareFiles());
     });
-  }
-
-  ngOnInit() {
-    this.projectCache.checkGitHubStatus();
   }
 
   // Computed signals

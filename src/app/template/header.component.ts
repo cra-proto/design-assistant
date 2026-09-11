@@ -85,6 +85,7 @@ export class HeaderComponent {
         severity: 'error',
         summary: this.translate.instant('save.toast.fail'),
         detail: this.translate.instant('save.toast.fail.details'),
+        sticky: true,
       });
     }
   }

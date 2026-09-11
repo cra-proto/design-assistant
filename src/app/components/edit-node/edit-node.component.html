@@ -347,6 +347,18 @@
                   </div>
                   <div class="flex align-items-center">
                     <p-checkbox
+                      [(ngModel)]="node().data[selectedVersion()].en.linksToSignIn"
+                      [binary]="true"
+                      [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
+                      (ngModelChange)="markChanges()"
+                      inputId="linksToSignIn"
+                    />
+                    <label [class.text-red-500]="node().data[selectedVersion()].en.linksToSignIn !== node().data[selectedVersion()].fr.linksToSignIn" class="ml-2" for="linksToSignIn">
+                      {{ 'editNode.linksToSignIn' | translate }}
+                    </label>
+                  </div>
+                  <div class="flex align-items-center">
+                    <p-checkbox
                       [(ngModel)]="node().data[selectedVersion()].en.hasChatbot"
                       [binary]="true"
                       [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
@@ -680,6 +692,18 @@
                     />
                     <label [class.text-red-500]="node().data[selectedVersion()].en.linksToPortal !== node().data[selectedVersion()].fr.linksToPortal" class="ml-2" for="linksToPortal-fr">
                       {{ 'editNode.linksToPortal' | translate }}
+                    </label>
+                  </div>
+                  <div class="flex align-items-center">
+                    <p-checkbox
+                      [(ngModel)]="node().data[selectedVersion()].fr.linksToSignIn"
+                      [binary]="true"
+                      [disabled]="selectedVersion() === 'prototype' ? !urlEditsEnabled() : !editsEnabled()"
+                      (ngModelChange)="markChanges()"
+                      inputId="linksToSignIn-fr"
+                    />
+                    <label [class.text-red-500]="node().data[selectedVersion()].en.linksToSignIn !== node().data[selectedVersion()].fr.linksToSignIn" class="ml-2" for="linksToSignIn-fr">
+                      {{ 'editNode.linksToSignIn' | translate }}
                     </label>
                   </div>
                   <div class="flex align-items-center">
