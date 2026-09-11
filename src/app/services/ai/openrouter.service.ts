@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { AiPromptService } from './prompt.service';
 
 import { environment } from '../../../environments/environment';
+import { AI_FREE_MODELS } from '../../common/ai-models.config';
 import { PromptConfig } from '../../common/prompts/prompt.model';
 
 export interface ChatMessage {
@@ -33,24 +34,12 @@ export interface AiRequestState {
   respondingModel: string | null; // Surfaces which fallback model answered
 }
 
-// Free models available on OpenRouter — update as needed
-export const OpenRouterModels = {
-  first: 'qwen/qwen3-next-80b-a3b-instruct:free',
-  second: 'nvidia/nemotron-3-nano-30b-a3b:free',
-  third: 'stepfun/step-3.5-flash:free',
-} as const;
-
-export type ModelKey = keyof typeof OpenRouterModels;
-
 @Injectable({ providedIn: 'root' })
 export class OpenRouterService {
   private http = inject(HttpClient);
   private aiPromptService = inject(AiPromptService);
 
   private readonly apiUrl = environment.openrouterFunctionUrl;
-
-  // Default fallback chain — free models in preference order
-  readonly defaultModels: string[] = [OpenRouterModels.first, OpenRouterModels.second, OpenRouterModels.third];
 
   readonly state = signal<AiRequestState>({
     loading: false,
@@ -59,11 +48,14 @@ export class OpenRouterService {
   });
 
   // Returns full OpenRouter response
-  async sendToAI(config: PromptConfig, content: string, models: string[] = this.defaultModels, temperature = 0): Promise<OpenRouterResponse> {
+  async sendToAI(config: PromptConfig, content: string, preferredModel?: string, temperature = 0): Promise<OpenRouterResponse> {
     this.state.set({ loading: true, error: null, respondingModel: null });
+
+    const models = preferredModel ? [preferredModel, ...AI_FREE_MODELS.filter((m) => m !== preferredModel)] : AI_FREE_MODELS;
 
     try {
       const systemPrompt = this.aiPromptService.composePrompt(config);
+      console.log(systemPrompt);
 
       const response = await firstValueFrom(
         this.http.post<OpenRouterResponse>(this.apiUrl, {
@@ -89,8 +81,8 @@ export class OpenRouterService {
   }
 
   // Returns just the text from the OpenRouter response
-  async getTextFromAI(config: PromptConfig, content: string, models: string[] = this.defaultModels, temperature = 0): Promise<string> {
-    const response = await this.sendToAI(config, content, models, temperature);
+  async getTextFromAI(config: PromptConfig, content: string, preferredModel?: string, temperature = 0): Promise<string> {
+    const response = await this.sendToAI(config, content, preferredModel, temperature);
     return response.choices?.[0]?.message?.content ?? '';
   }
 }

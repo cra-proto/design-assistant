@@ -375,4 +375,3 @@ export interface ProjectMetadata {
 export const ALL_SOURCES = ['live', 'preview', 'protoGH', 'baseGH', 'protoUT', 'baseUT'] as const;
 export type SourceVersion = (typeof ALL_SOURCES)[number];
 export type UrlVersion = SourceVersion | 'upd';
-export type CompareVersion = SourceVersion | 'ai';

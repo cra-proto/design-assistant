@@ -87,4 +87,21 @@ Return only updated HTML code with no other commentary.
     rubric: [RubricKey.NoCommentary, RubricKey.PreserveHtmlStructure],
     output: OutputKey.Html,
   },
+  [PagePromptKey.Tense]: {
+    role: RoleKey.HTMLeditor,
+    task: `Your only task is to rewrite the tense of all human-readable sentences in the HTML content below to {{TARGET_TENSE}} tense.
+#PRESERVE EXACTLY (character-for-character, unchanged):
+- All HTML tags, attributes, attribute values, classes, ids, and inline styles
+- All whitespace, line breaks, and indentation
+- URLs, href/src values, code samples, <script>/<style> contents, HTML entities, numbers, dates, proper nouns
+- Direct quotations attributed to a speaker (leave their original tense intact)
+#CONTENT RULES:
+- Change verb tense only. Do not reword, rephrase, correct grammar, fix typos, summarize, or expand any sentence beyond what the tense change itself requires.
+- Do not add, remove, or reorder any content, tags, or attributes.
+- If text has no verb or unclear tense (headings, labels, button text, standalone nouns), leave it unchanged.
+- Apply tense consistently across the entire document — every text node, including alt text, table cells, and nested elements, not just the first paragraph.`,
+    rubric: [RubricKey.NoCommentary, RubricKey.PreserveHtmlStructure],
+    output: OutputKey.Html,
+    available: true,
+  },
 };

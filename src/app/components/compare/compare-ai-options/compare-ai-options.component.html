@@ -6,30 +6,32 @@
     </p>
     <p-accordion value="1" class="flex flex-column gap-3">
       <!--TASK OPTIONS-->
-      <p-accordion-panel value="0" class="border-1 border-round-sm border-surface">
-        <p-accordion-header>{{ 'compare.aiOptions.comparison.header' | translate }}</p-accordion-header>
-        <p-accordion-content>
-          <div class="flex flex-row align-items-center">
-            <p class="m-0 text-color-secondary z-2">{{ 'compare.aiOptions.comparison.description' | translate }}</p>
-            <p-button
-              [pTooltip]="'common.help' | translate"
-              (click)="showTaskHelp = true"
-              icon="pi pi-question-circle"
-              rounded
-              severity="secondary"
-              styleClass="p-0 -ml-2 hover:text-primary"
-              text
-              tooltipPosition="top"
-            />
-          </div>
-          @for (task of tasks; track task['value']; let i = $index) {
-            <div class="flex flex-row align-items-center gap-2 mt-2">
-              <p-radiobutton [inputId]="'task' + i" [ngModel]="compareService.selectedTask()" [value]="task['value']" (ngModelChange)="compareService.selectedTask.set($event)" size="large" />
-              <label [for]="'task' + i" class="cursor-pointer font-semibold">{{ task.label }}</label>
+      @if (!prod) {
+        <p-accordion-panel value="0" class="border-1 border-round-sm border-surface">
+          <p-accordion-header>{{ 'compare.aiOptions.comparison.header' | translate }}</p-accordion-header>
+          <p-accordion-content>
+            <div class="flex flex-row align-items-center">
+              <p class="m-0 text-color-secondary z-2">{{ 'compare.aiOptions.comparison.description' | translate }}</p>
+              <p-button
+                [pTooltip]="'common.help' | translate"
+                (click)="showTaskHelp = true"
+                icon="pi pi-question-circle"
+                rounded
+                severity="secondary"
+                styleClass="p-0 -ml-2 hover:text-primary"
+                text
+                tooltipPosition="top"
+              />
             </div>
-          }
-        </p-accordion-content>
-      </p-accordion-panel>
+            @for (task of tasks; track task['value']; let i = $index) {
+              <div class="flex flex-row align-items-center gap-2 mt-2">
+                <p-radiobutton [inputId]="'task' + i" [ngModel]="compareService.selectedTask()" [value]="task['value']" (ngModelChange)="compareService.selectedTask.set($event)" size="large" />
+                <label [for]="'task' + i" class="cursor-pointer font-semibold">{{ task.label }}</label>
+              </div>
+            }
+          </p-accordion-content>
+        </p-accordion-panel>
+      }
       <!--PROMPT OPTIONS-->
       <p-accordion-panel value="1" class="border-1 border-round-md border-surface">
         <p-accordion-header>{{ 'compare.aiOptions.prompt.header' | translate }}</p-accordion-header>
@@ -45,6 +47,17 @@
           } @else {
             <p class="m-0 text-color-secondary">{{ 'compare.aiOptions.prompt.description' | translate }}</p>
             <ng-container *ngTemplateOutlet="prompt; context: { $implicit: 'after' }" />
+          }
+          @if (compareService.selectedPrompt() === 'Tense') {
+            <div class="ml-5 mt-2">
+              <p class="m-0 text-color-secondary">{{ 'compare.aiOptions.prompt.tense' | translate }}</p>
+              @for (tense of tenses; track tense['value']; let i = $index) {
+                <div class="flex flex-row align-items-center gap-2 mt-2">
+                  <p-radiobutton [inputId]="'tense' + i" [ngModel]="compareService.selectedTense()" [value]="tense['value']" (ngModelChange)="compareService.selectedTense.set($event)" size="large" />
+                  <label [for]="'tense' + i" class="cursor-pointer font-semibold">{{ tense.label }}</label>
+                </div>
+              }
+            </div>
           }
         </p-accordion-content>
       </p-accordion-panel>
@@ -68,14 +81,27 @@
       </p-accordion-panel>
     </p-accordion>
   </div>
-  <p-button [label]="'compare.aiOptions.send' | translate" (onClick)="compareAiService.sendToAI(); toggleAiDrawer()" icon="pi pi pi-sparkles" severity="primary" styleClass="w-full min-w-max" />
+  <p-button
+    [label]="'compare.aiOptions.send' | translate"
+    [loading]="openrouterService.state().loading"
+    (onClick)="compareAiService.sendToAI(); toggleAiDrawer()"
+    icon="pi pi pi-sparkles"
+    severity="primary"
+    styleClass="w-full min-w-max"
+  />
 </div>
 
 <!--AI PROMPT TEMPLATE-->
 <ng-template #prompt let-version>
   @for (prompt of prompts; track prompt['value']; let i = $index) {
     <div class="flex flex-row align-items-center gap-2 mt-2">
-      <p-radiobutton [inputId]="'prompt' + version + i" [ngModel]="compareService.selectedModel()" [value]="prompt['value']" (ngModelChange)="compareService.selectedTask.set($event)" size="large" />
+      <p-radiobutton
+        [inputId]="'prompt' + version + i"
+        [ngModel]="compareService.selectedPrompt()"
+        [value]="prompt['value']"
+        (ngModelChange)="compareService.selectedPrompt.set($event)"
+        size="large"
+      />
       <label [for]="'prompt' + version + i" class="cursor-pointer font-semibold">{{ prompt.label }}</label>
     </div>
   }

@@ -15,12 +15,21 @@
   <p-button
     [disabled]="compareService.hasChanges()"
     [label]="'compare.aiOptions.send' | translate"
+    [loading]="openrouterService.state().loading"
     (onClick)="compareAiService.sendToAI()"
     icon="pi pi pi-sparkles"
     severity="primary"
     styleClass="w-full min-w-max"
   />
-  <p-button [disabled]="compareService.hasChanges()" [label]="'compare.aiOptions._title' | translate" (onClick)="toggleAiDrawer()" icon="pi pi pi-bars" severity="info" styleClass="w-full min-w-max" />
+  <p-button
+    [disabled]="compareService.hasChanges()"
+    [label]="'compare.aiOptions._title' | translate"
+    [loading]="openrouterService.state().loading"
+    (onClick)="toggleAiDrawer()"
+    icon="pi pi pi-bars"
+    severity="info"
+    styleClass="w-full min-w-max"
+  />
   <!--GRADE LEVEL-->
   <div class="flex flex-row align-items-center gap-2">
     <i class="pi pi-book text-primary text-5xl"></i>

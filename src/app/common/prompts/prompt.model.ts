@@ -28,6 +28,7 @@ function markForTranslation() {
   marker('aiPrompt.page.headings');
   marker('aiPrompt.page.doormats');
   marker('aiPrompt.page.plainLanguage');
+  marker('aiPrompt.page.tense');
 
   marker('aiPrompt.problem.alerts');
 }
@@ -38,6 +39,7 @@ export interface PromptConfig {
   rubric: RubricKey[]; // Shared
   output: OutputKey; // Shared
   jsonSchema?: string; // Unique schema
+  available?: boolean; // Hides prompt in prod if not ready
 }
 
 //Shared fragments
@@ -47,6 +49,7 @@ export enum RoleKey {
   SeoExpert = 'aiPrompt.role.seoExpert',
   AccessibilityExpert = 'aiPrompt.role.accessibilityExpert',
   Translator = 'aiPrompt.role.translator',
+  HTMLeditor = 'aiPrompt.role.htmlEditor',
 }
 
 export enum OutputKey {
@@ -78,6 +81,7 @@ export enum PagePromptKey {
   Headings = 'aiPrompt.page.headings',
   Doormats = 'aiPrompt.page.doormats',
   PlainLanguage = 'aiPrompt.page.plainLanguage',
+  Tense = 'aiPrompt.page.tense',
 }
 
 //Problem task fragments
