@@ -23,8 +23,8 @@
 }
 
 @if (breadcrumbs().length > 0) {
-  <div [class.sm:-mt-4]="production">
-    <p-breadcrumb [model]="breadcrumbs()" styleClass="pt-0 pl-0 text-color-secondary">
+  <div [class.sm:-mt-4]="removeMargin">
+    <p-breadcrumb [model]="breadcrumbs()" styleClass="pt-1 pl-0 text-color-secondary">
       <ng-template let-item pTemplate="item">
         @if (item.route) {
           <a [routerLink]="item.route" class="p-menuitem-link">{{ item.label | translate }}</a>

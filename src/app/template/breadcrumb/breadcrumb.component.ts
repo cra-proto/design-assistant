@@ -59,6 +59,10 @@ export class BreadcrumbComponent {
     { initialValue: this.buildBreadcrumbs() },
   );
 
+  get removeMargin() {
+    return this.projectDisplay.projectLabel && this.production;
+  }
+
   private buildBreadcrumbs(): MenuItem[] {
     const snapshot = this.getDeepestSnapshot(this.router.routerState.snapshot.root);
     const key = snapshot.data['breadcrumbKey'] as string | undefined;
