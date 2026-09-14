@@ -3,7 +3,7 @@
     {{ (sandbox ? '_app.env.sandbox' : '_app.env.dev') | translate }}
   </div>
 } @else if (projectDisplay.projectLabel && isProjectRoute()) {
-  <div class="sticky top-0 z-50 flex justify-content-end align-items-center gap-2 white-space-nowrap">
+  <div class="sticky top-0 z-50 flex align-items-center gap-2 white-space-nowrap ml-auto max-w-max">
     @if (projectDisplay.tagLabel) {
       <p-tag [icon]="projectDisplay.tagIcon" [pTooltip]="projectDisplay.tagTooltip" [severity]="projectDisplay.tagSeverity" [value]="projectDisplay.tagLabel" tooltipPosition="left" />
     }
