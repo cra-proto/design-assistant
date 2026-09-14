@@ -1,6 +1,30 @@
-<div class="flex flex-row justify-content-between align-items-start gap-2">
-  @if (breadcrumbs().length > 0) {
-    <p-breadcrumb [model]="breadcrumbs()" styleClass="pt-1 pl-0 text-color-secondary">
+@if (!production) {
+  <div class="sticky top-0 z-50 flex justify-content-center border-round-bottom-lg bg-primary h-1.5">
+    {{ (sandbox ? '_app.env.sandbox' : '_app.env.dev') | translate }}
+  </div>
+} @else if (projectDisplay.projectLabel && isProjectRoute()) {
+  <div class="sticky top-0 z-50 flex justify-content-end align-items-center gap-2 white-space-nowrap">
+    @if (projectDisplay.tagLabel) {
+      <p-tag [icon]="projectDisplay.tagIcon" [pTooltip]="projectDisplay.tagTooltip" [severity]="projectDisplay.tagSeverity" [value]="projectDisplay.tagLabel" tooltipPosition="left" />
+    }
+    <a
+      [ngClass]="rla.isActive ? ['bg-primary-50', 'text-primary-500'] : ['surface-card', 'text-color-secondary']"
+      class="no-underline border-round-bottom-xl"
+      #rla="routerLinkActive"
+      routerLink="/project/edit"
+      routerLinkActive
+    >
+      <div class="border-1 border-top-none border-round-bottom-xl border-dashed surface-border py-1 px-3">
+        <i [class]="'text-primary font-semibold mr-1 ' + projectDisplay.icon" [pTooltip]="projectDisplay.iconTooltip" tooltipPosition="left"></i>
+        <span class="text-sm">{{ projectDisplay.projectLabel }}</span>
+      </div>
+    </a>
+  </div>
+}
+
+@if (breadcrumbs().length > 0) {
+  <div [class.sm:-mt-4]="production">
+    <p-breadcrumb [model]="breadcrumbs()" styleClass="pt-0 pl-0 text-color-secondary">
       <ng-template let-item pTemplate="item">
         @if (item.route) {
           <a [routerLink]="item.route" class="p-menuitem-link">{{ item.label | translate }}</a>
@@ -9,24 +33,5 @@
         }
       </ng-template>
     </p-breadcrumb>
-  } @else {
-    <span></span>
-  }
-  @if (production) {
-    <div class="sticky top-0 z-50 flex justify-content-center border-round-bottom-lg bg-primary h-1.5">
-      {{ (sandbox ? '_app.env.sandbox' : '_app.env.dev') | translate }}
-    </div>
-  } @else if (projectDisplay.projectLabel && isProjectRoute()) {
-    <div class="sticky top-0 z-50 flex justify-content-end align-items-center gap-2 surface-card text-color-secondary white-space-nowrap">
-      @if (projectDisplay.tagLabel) {
-        <p-tag [icon]="projectDisplay.tagIcon" [pTooltip]="projectDisplay.tagTooltip" [severity]="projectDisplay.tagSeverity" [value]="projectDisplay.tagLabel" tooltipPosition="left" />
-      }
-      <a [routerLinkActive]="['bg-primary-50', 'text-primary-500']" class="no-underline border-round-bottom-xl" routerLink="/project/edit">
-        <div class="border-1 border-top-none border-round-bottom-xl border-dashed surface-border py-1 px-3">
-          <i [class]="'text-primary font-semibold mr-1 ' + projectDisplay.icon" [pTooltip]="projectDisplay.iconTooltip" tooltipPosition="left"></i>
-          <span class="text-sm">{{ projectDisplay.projectLabel }}</span>
-        </div>
-      </a>
-    </div>
-  }
-</div>
+  </div>
+}

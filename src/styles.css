@@ -521,4 +521,5 @@ h1:not(.noline) {
 
 h1 + p {
   margin-top: 0.5rem;
+  max-width: 130ch;
 }

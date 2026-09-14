@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRouteSnapshot, isActive, NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
@@ -34,7 +35,7 @@ const BREADCRUMB_ANCESTORS: Record<string, MenuItem[]> = {
 
 @Component({
   selector: 'aida-breadcrumb',
-  imports: [RouterLink, RouterLinkActive, TranslatePipe, BreadcrumbModule, TagModule, Tooltip],
+  imports: [CommonModule, RouterLink, RouterLinkActive, TranslatePipe, BreadcrumbModule, TagModule, Tooltip],
   templateUrl: './breadcrumb.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -93,7 +94,7 @@ export class BreadcrumbComponent {
     const isSignedIn = !!this.exportGitHubService.user();
 
     const signInToUploadToCloud = isCollaborator && !isSignedIn && hasCollaborators ? this.translate.instant('project.global.signInToUpload') : undefined;
-    const cantUploadToCloud = !isCollaborator && !isSignedIn && hasCollaborators ? this.translate.instant('project.global.cantUpload') : undefined;
+    const cantUploadToCloud = !isCollaborator && hasCollaborators ? this.translate.instant('project.global.cantUpload') : undefined;
 
     const projectLabel = projectName && cantUploadToCloud ? this.translate.instant('project.global.copyOf') + ' ' + projectName : (projectName ?? '');
 

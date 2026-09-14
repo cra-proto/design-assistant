@@ -318,10 +318,15 @@ export class HtmlNormalizationService {
         const jsonConfig = parseJsonConfig(jsonConfigAttr);
         if (!jsonConfig?.['url'] || !jsonConfig?.['name']) return;
 
-        const { url, jsonKey } = parseJsonUrl(jsonConfig['url'] as string);
-        let fullUrl = `${origin}${url}`;
-
         try {
+          const rawUrl = jsonConfig['url'];
+          if (typeof rawUrl !== 'string') {
+            console.warn(`Skipping JSON manager "${jsonConfig['name']}" - url is not a string:`, rawUrl);
+            return;
+          }
+          const { url, jsonKey } = parseJsonUrl(rawUrl);
+          let fullUrl = `${origin}${url}`;
+
           let jsonData: unknown = await this.fetchUrl(fullUrl, 'json');
           if (!jsonData && origin !== 'https://www.canada.ca') {
             fullUrl = `https://www.canada.ca${url}`;
