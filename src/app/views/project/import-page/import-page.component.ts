@@ -40,7 +40,7 @@ export class ImportPageComponent implements OnInit {
         // Check if params exist
         if (!url) {
           console.warn('Missing URL parameter. Redirecting to new project.');
-          this.router.navigate(['/new-project']);
+          this.router.navigate(['/project/new']);
           return;
         }
 
@@ -57,30 +57,30 @@ export class ImportPageComponent implements OnInit {
             }
             //Set highlight signal
             this.addUrlsService.setHighlight(true);
-            this.router.navigate(['/new-project']);
+            this.router.navigate(['/project/new']);
             return;
           } else {
             const active = this.projectStorageService.getActiveProject();
             if (active) {
               console.warn('Invalid URL domain. Skipping new project creation and redirecting user to dashboard for previously opened project.');
-              this.router.navigate(['/dashboard']);
+              this.router.navigate(['/project/dashboard']);
               return;
             } else {
               console.warn('Invalid URL domain. Redirecting user to create a new project.');
-              this.router.navigate(['/new-project']);
+              this.router.navigate(['/project/new']);
               return;
             }
           }
         } catch (urlError) {
           // Invalid URL format
           console.warn(`Invalid URL format. Redirecting user. ${urlError}`);
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/project/dashboard']);
           return;
         }
       });
     } catch (error) {
       console.error(error);
-      this.router.navigate(['/new-project']);
+      this.router.navigate(['/project/new']);
       return;
     } finally {
       this.isLoading = false;

@@ -7,12 +7,12 @@ import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DividerModule } from 'primeng/divider';
 
-import { SignInButtonComponent } from '../components/sign-in/sign-in-button/sign-in-button.component';
+import { SignInButtonComponent } from '../../components/sign-in/sign-in-button/sign-in-button.component';
 
-import { ProjectStateService } from '../services/project-state.service';
-import { UserSettingsService } from '../services/user-settings.service';
+import { ProjectStateService } from '../../services/project-state.service';
+import { UserSettingsService } from '../../services/user-settings.service';
 
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'aida-header',

@@ -1,10 +1,8 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { DoormatKey, DoormatsComponent } from '../../../components/doormats/doormats.component';
 
 import { ProjectPhase } from '../../../common/data.model';
 
@@ -15,14 +13,11 @@ import { ProjectPhase } from '../../../common/data.model';
  */
 @Component({
   selector: 'aida-design',
-  imports: [CommonModule, RouterLink, TranslatePipe, BreadcrumbModule],
+  imports: [TranslatePipe, DoormatsComponent],
   templateUrl: 'design.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DesignComponent {
-  protected readonly breadcrumbs = [{ label: 'dashboard._title', route: '/dashboard' }, { label: ProjectPhase.Design }];
-  /** Set breadcrumb to false if reusing these doormats on another page */
-  public readonly breadcrumb = input<boolean>(true);
-
   protected readonly ProjectPhase = ProjectPhase;
+  protected readonly designDoormats: DoormatKey[] = ['exportPages', 'compare'];
 }

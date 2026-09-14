@@ -12,7 +12,7 @@ export class IaDiagramService {
     const currentUrl = this.router.url;
     sessionStorage.setItem('ia_diagram_return_url', currentUrl);
     // Open diagram
-    this.router.navigate(['/ia-diagram']);
+    this.router.navigate(['/tasks/ia-diagram']);
   }
   closeDiagram(): void {
     // Get previous URL from storage

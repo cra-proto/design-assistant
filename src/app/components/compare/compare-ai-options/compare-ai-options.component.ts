@@ -14,7 +14,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { TooltipModule } from 'primeng/tooltip';
 
 import { OpenRouterService } from '../../../services/ai/openrouter.service';
-import { AiTaskOption, AiTenseOption, CompareService } from '../../../views/task/compare-versions/compare.service';
+import { AiTaskOption, AiTenseOption, CompareService } from '../../../views/tasks/compare-versions/compare.service';
 import { CompareAiService } from '../compare-ai.service';
 
 import { environment } from '../../../../environments/environment';

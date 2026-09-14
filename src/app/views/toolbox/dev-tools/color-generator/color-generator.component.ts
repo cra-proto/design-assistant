@@ -1,12 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { BadgeModule } from 'primeng/badge';
-import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
 import { PrimeNG } from 'primeng/config';
 import { DividerModule } from 'primeng/divider';
@@ -26,21 +24,7 @@ import { UserSettingsService } from '../../../../services/user-settings.service'
 @Component({
   selector: 'aida-color-generator',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterLink,
-    TranslatePipe,
-    BadgeModule,
-    BreadcrumbModule,
-    ButtonModule,
-    DividerModule,
-    MessageModule,
-    TagModule,
-    ColorPickerComponent,
-    CopyPresetComponent,
-    UserSettingsComponent,
-  ],
+  imports: [CommonModule, FormsModule, TranslatePipe, BadgeModule, ButtonModule, DividerModule, MessageModule, TagModule, ColorPickerComponent, CopyPresetComponent, UserSettingsComponent],
   templateUrl: './color-generator.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -49,8 +33,6 @@ export class ColorGeneratorComponent {
   protected readonly settingsService = inject(UserSettingsService);
 
   protected readonly customShades = signal<Record<string, Record<number, string>>>({});
-
-  protected readonly breadcrumbs = [{ label: 'dev._title', route: '/dev' }, { label: 'dev.colors._title' }];
 
   protected onColorChange(event: { hex: string; shades: Record<number, string> }, color: 'primary' | 'red' | 'green' | 'purple') {
     this.customShades.update((current) => ({ ...current, [color]: event.shades }));

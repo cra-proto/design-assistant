@@ -6,9 +6,10 @@ import { ActivatedRoute, Router, RouterModule, RouterOutlet } from '@angular/rou
 import { PrimeNG } from 'primeng/config';
 import { ToastModule } from 'primeng/toast';
 
-import { FooterComponent } from './template/footer.component';
-import { HeaderComponent } from './template/header.component';
-import { SidebarComponent } from './template/sidebar.component';
+import { BreadcrumbComponent } from './template/breadcrumb/breadcrumb.component';
+import { FooterComponent } from './template/footer/footer.component';
+import { HeaderComponent } from './template/header/header.component';
+import { SidebarComponent } from './template/sidebar/sidebar.component';
 
 import { CollaboratorService } from './services/github/collaborator.service';
 import { ExportGitHubService } from './services/github/export-github.service';
@@ -22,7 +23,7 @@ import { CustomTitleStrategy } from './common/custom-title-strategy';
 
 @Component({
   selector: 'aida-root',
-  imports: [CommonModule, RouterModule, RouterOutlet, ToastModule, FooterComponent, HeaderComponent, SidebarComponent],
+  imports: [CommonModule, RouterModule, RouterOutlet, ToastModule, BreadcrumbComponent, FooterComponent, HeaderComponent, SidebarComponent],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

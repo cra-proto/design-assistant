@@ -18,7 +18,7 @@ import { OpenRouterService } from '../../../services/ai/openrouter.service';
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
-import { CompareService } from '../../../views/task/compare-versions/compare.service';
+import { CompareService } from '../../../views/tasks/compare-versions/compare.service';
 import { CompareAiService } from '../compare-ai.service';
 
 import { SourceVersion } from '../../../common/data.model';
@@ -135,7 +135,7 @@ export class CompareToolsComponent {
       return;
     }
     const params: Params = { before: beforeUrl, after: afterUrl };
-    const treeLink = this.router.createUrlTree(['/standalone/compare-versions'], { queryParams: params });
+    const treeLink = this.router.createUrlTree(['/standalone/compare'], { queryParams: params });
     const shareLink = `${window.location.origin}${this.router.serializeUrl(treeLink)}`;
 
     navigator.clipboard

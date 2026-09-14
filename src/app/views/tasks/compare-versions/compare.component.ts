@@ -67,7 +67,6 @@ export class CompareComponent {
     return this.projectCache.getPageUndoStack(this.compareService.selectedPage())?.canUndo() ?? false;
   }
 
-  /** TODO: feed this into rendered & source components to lock after edits during pending AI jobs */
   protected get aiJobPending(): boolean {
     return this.projectCache.getAiJobStatus(this.compareService.selectedPage()) === 'pending';
   }

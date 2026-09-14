@@ -1,9 +1,9 @@
 <h1 id="wb-cont">{{ 'switch._title' | translate }}</h1>
-<p>{{ 'switch.description' | translate }}</p>
+<p>{{ 'switch.description' | translate }}{{ 'switch.description2' | translate }}</p>
 
 <!-- Authentication Banner -->
 @if (!exportGitHubService.user()) {
-  <p-message severity="info" styleClass="mb-2 sticky top-0 z-2">
+  <p-message severity="info" styleClass="mb-2 sticky top-1.5 z-2">
     <div class="flex align-items-center gap-2">
       <i class="pi pi-info-circle font-bold"></i>
       <span>{{ 'switch.authWarning' | translate }}</span>

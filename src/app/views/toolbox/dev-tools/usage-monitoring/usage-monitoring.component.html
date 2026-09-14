@@ -1,15 +1,8 @@
-<p-breadcrumb [model]="breadcrumbs">
-  <ng-template let-item pTemplate="item">
-    @if (item.route) {
-      <a [routerLink]="item.route" class="p-menuitem-link">{{ item.label | translate }}</a>
-    } @else {
-      <span class="p-menuitem-text">{{ item.label | translate }}</span>
-    }
-  </ng-template>
-</p-breadcrumb>
-
 <div class="flex flex-row justify-content-between align-items-center">
-  <h1 id="wb-cont">{{ 'dev.monitoring._title' | translate }}</h1>
+  <div class="flex flex-column">
+    <h1 id="wb-cont">{{ 'dev.monitoring._title' | translate }}</h1>
+    <p>{{ 'dev.monitoring.description' | translate }}{{ 'dev.monitoring.description2' | translate }}</p>
+  </div>
   @if (admin) {
     <div class="flex gap-2">
       <p-button [label]="'dev.monitoring.deleteTestData' | translate" (onClick)="deleteTestData()" icon="pi pi-trash" outlined severity="danger" />

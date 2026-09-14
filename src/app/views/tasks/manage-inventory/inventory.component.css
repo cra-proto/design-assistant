@@ -2,7 +2,7 @@
 .sticky-toolbar {
   position: sticky;
   left: calc(var(--nav-width));
-  top: 0;
+  top: 1.5rem;
   z-index: 20;
   margin-left: -1.5rem;
   padding-left: 1.5rem;
@@ -66,7 +66,7 @@
 /* Table row - headers */
 .sticky-r {
   position: sticky;
-  top: 9rem;
+  top: 10.5rem;
   z-index: 12;
   margin-left: -1.5rem;
   padding-left: 1.5rem;
@@ -81,7 +81,7 @@
 .sticky-rh {
   position: sticky;
   left: calc(var(--nav-width) + 2rem);
-  top: 9rem;
+  top: 10.5rem;
   z-index: 14;
   margin-left: -1.5rem;
   padding-left: 1.5rem;
@@ -98,7 +98,7 @@
 .sticky-rc {
   position: sticky;
   left: calc(var(--nav-width));
-  top: 9rem;
+  top: 10.5rem;
   z-index: 14;
   margin-left: -1.5rem;
   padding-left: 1.5rem;

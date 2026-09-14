@@ -25,7 +25,6 @@ import {
   PageTemplate,
   Project,
   ProjectPhase,
-  ProjectTreeNodeData,
   SourceVersion,
   TableColumn,
   TreeNodeAction,
@@ -284,7 +283,7 @@ export class ProjectStateService {
   // Get project tree
   public readonly getProjectTree = computed(() => this.project().projectData);
 
-  public setProjectTree(tree: TreeNode<ProjectTreeNodeData>[]) {
+  public setProjectTree(tree: TreeNode<TreeNodeData>[]) {
     const baselineCount = this.countPages('baseline');
     const inScopeCount = this.countPages('inScope');
     this.project.update((curr) => ({
@@ -299,7 +298,7 @@ export class ProjectStateService {
   // Count pages
   private countPages(mode: 'inScope' | 'baseline' = 'inScope'): number {
     let count = 0;
-    const traverse = (nodes: TreeNode<ProjectTreeNodeData>[]) => {
+    const traverse = (nodes: TreeNode<TreeNodeData>[]) => {
       for (const node of nodes) {
         if (mode === 'inScope' && node.data?.status.inScope) count++;
         else if (mode === 'baseline') {
@@ -422,6 +421,45 @@ export class ProjectStateService {
     };
     traverse(this.project().projectData);
     return pages;
+  }
+
+  /** Get all paths starting at a specific node */
+  public getSubtreePaths(node: TreeNode<TreeNodeData>, lang: 'en' | 'fr'): string[] {
+    const paths: string[] = [];
+    if (node.data) paths.push(node.data.path[lang]);
+    const walk = (currentNode: TreeNode<TreeNodeData>) => {
+      (currentNode.children ?? []).forEach((child) => {
+        if (child.data) paths.push(child.data.path[lang]);
+        walk(child);
+      });
+    };
+    walk(node);
+    return paths;
+  }
+
+  /** Get max child page depth from a specific node */
+  public getSubtreeMaxDepth(node: TreeNode<TreeNodeData>): number {
+    if (!node.children?.length) return 0;
+    return 1 + Math.max(...node.children.map((child) => this.getSubtreeMaxDepth(child)));
+  }
+
+  /** Get max in-scope child page depth from a specific node */
+  public getInScopeMaxDepth(node: TreeNode<TreeNodeData>): number | undefined {
+    const findMinInScopeDepth = (currentNode: TreeNode<TreeNodeData>): number | undefined => {
+      if (currentNode.data?.status.inScope) return 0;
+      if (!currentNode.children?.length) return undefined;
+      const childDepths = currentNode.children
+        .map((child) => findMinInScopeDepth(child))
+        .filter((depth): depth is number => depth !== undefined)
+        .map((depth) => depth + 1);
+
+      return childDepths.length > 0 ? Math.min(...childDepths) : undefined;
+    };
+
+    const minInScopeDepth = findMinInScopeDepth(node);
+    if (minInScopeDepth === undefined) return undefined;
+
+    return this.getSubtreeMaxDepth(node) - minInScopeDepth;
   }
 
   //Template options
@@ -1004,7 +1042,8 @@ export class ProjectStateService {
     URL.revokeObjectURL(url);
   }
 
-  private getOrdinalSuffix(n: number, lang: 'en' | 'fr'): string {
+  public getOrdinalSuffix(n: number): string {
+    const lang = this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en';
     if (lang === 'fr') {
       return n === 1 ? 'er' : 'e';
     }
@@ -1013,9 +1052,10 @@ export class ProjectStateService {
     return suffixes[category] ?? 'th';
   }
 
+  /** Returns Niveau # or # level with ordinal suffix */
   private getLevelLabel(n: number): string {
-    const lang = this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en';
-    return lang === 'fr' ? `Niveau ${n}${this.getOrdinalSuffix(n, lang)}` : `${n}${this.getOrdinalSuffix(n, lang)} level`;
+    const level = n + this.getOrdinalSuffix(n);
+    return this.translate.instant('common.level', { level });
   }
 
   // Generate url fragment (for repo names and new pages)
@@ -1145,7 +1185,7 @@ export class ProjectStateService {
     return additionalPages;
   }
 
-  // Used to check if child pages will be deleted during a delete operation
+  /** Return all nodes under the specified parent node (used to check if child pages will be deleted during a delete operation) */
   private collectAllDescendants(node: TreeNode<TreeNodeData>): TreeNode<TreeNodeData>[] {
     const descendants: TreeNode<TreeNodeData>[] = [];
 
@@ -1160,6 +1200,13 @@ export class ProjectStateService {
 
     collect(node);
     return descendants;
+  }
+
+  /** Return all nodes at the specified depth from the specified parent node (used for hiding specific levels in the IA diagram) */
+  public getNodesAtRelativeDepth(node: TreeNode<TreeNodeData>, depth: number): TreeNode<TreeNodeData>[] {
+    if (depth === 0) return [node];
+    if (!node.children?.length) return [];
+    return node.children.flatMap((child) => this.getNodesAtRelativeDepth(child, depth - 1));
   }
 
   deleteNode(nodeToDelete: TreeNode) {

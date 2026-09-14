@@ -30,7 +30,7 @@ export class ExportProjectComponent {
         command: () => {
           this.projectState.getProject().repoType = 'github';
           this.projectCache.checkLocalStatus();
-          this.router.navigate(['/export-pages']);
+          this.router.navigate(['/tasks/export-pages']);
         },
       },
       {
@@ -39,7 +39,7 @@ export class ExportProjectComponent {
         command: () => {
           this.projectState.getProject().repoType = 'local';
           this.projectCache.checkLocalStatus();
-          this.router.navigate(['/export-pages']);
+          this.router.navigate(['/tasks/export-pages']);
         },
       },
       {

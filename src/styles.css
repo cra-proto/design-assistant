@@ -497,3 +497,29 @@ html.dark-mode .p-togglebutton:not(.p-togglebutton-checked):not(.p-disabled) {
   border-top: none !important;
   border-right: none !important;
 }
+
+.z-50 {
+  z-index: 50;
+}
+
+.h-1\.5 {
+  height: 1.5rem;
+}
+.top-1\.5 {
+  top: 1.5rem;
+}
+
+h1:not(.noline) {
+  border-bottom-color: var(--p-primary-500); /* fallback for browsers without border-image support */
+  border-bottom-style: solid;
+  border-bottom-width: 6px;
+  border-image-source: linear-gradient(to right, var(--p-primary-500) 72px, rgba(0, 0, 0, 0) 72px);
+  border-image-slice: 1;
+  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+h1 + p {
+  margin-top: 0.5rem;
+  max-width: 130ch;
+}

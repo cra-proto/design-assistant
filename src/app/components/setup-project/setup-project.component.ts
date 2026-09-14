@@ -57,10 +57,10 @@ export class SetupProjectComponent {
       .replace(/[']{2,}/g, "'");
     this.projectState.setProjectName(this.projectName);
     // Manage routes for named projects
-    if (this.router.url === '/new-project' && this.projectName) {
-      this.router.navigate(['/edit-project']);
-    } else if (this.router.url === '/edit-project' && !this.projectName) {
-      this.router.navigate(['/new-project']);
+    if (this.router.url === '/project/new' && this.projectName) {
+      this.router.navigate(['/project/edit']);
+    } else if (this.router.url === '/edit' && !this.projectName) {
+      this.router.navigate(['/project/new']);
     }
   }
 
