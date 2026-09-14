@@ -1,11 +1,9 @@
 import { ChangeDetectionStrategy, Component, effect, ElementRef, inject, signal, viewChildren } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputTextModule } from 'primeng/inputtext';
@@ -67,7 +65,7 @@ type PreviewConfig = MessagePreviewConfig | ButtonPreviewConfig | CardPreviewCon
 @Component({
   selector: 'aida-design-patterns',
   standalone: true,
-  imports: [FormsModule, RouterLink, TranslatePipe, BreadcrumbModule, ButtonModule, IftaLabelModule, InputTextModule, MessageModule, SelectModule, TabsModule, TextareaModule, TooltipModule],
+  imports: [FormsModule, TranslatePipe, ButtonModule, IftaLabelModule, InputTextModule, MessageModule, SelectModule, TabsModule, TextareaModule, TooltipModule],
   templateUrl: './design-patterns.component.html',
   styleUrl: './design-patterns.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -76,8 +74,6 @@ export class DesignPatternsComponent {
   private settingsService = inject(UserSettingsService);
 
   protected readonly codeContainers = viewChildren<ElementRef>('codeContainer');
-
-  breadcrumbs = [{ label: 'dev._title', route: '/dev' }, { label: 'dev.patterns._title' }];
 
   private prismLoaded = false;
   public readonly copiedIndex = signal<string | null>(null);

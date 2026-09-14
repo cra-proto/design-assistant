@@ -77,14 +77,14 @@ export class SignInButtonComponent implements OnInit {
             command: () => {
               this.projectStorageService.clearActiveProject();
               this.projectState.resetProject();
-              this.router.navigate(['/new-project']);
+              this.router.navigate(['/project/new']);
             },
           },
           {
             label: this.translate.instant('common.search'),
             icon: 'pi pi-search',
             command: () => {
-              this.router.navigate(['/switch-project']);
+              this.router.navigate(['/project/switch']);
             },
           },
         ],

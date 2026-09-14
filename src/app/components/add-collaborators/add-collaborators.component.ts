@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -25,7 +25,7 @@ import { GitHubUser } from '../../common/data.model';
 export type CollaboratorMode = 'list' | 'dashboard' | 'switch';
 
 /**
- * Reviewed: 2026-08-13 (ng21)
+ * Reviewed: 2026-09-11 (ng21)
  *
  * Handles adding, removing, and displaying GitHub collaborators in a list or as a group.
  */
@@ -49,7 +49,7 @@ export type CollaboratorMode = 'list' | 'dashboard' | 'switch';
   templateUrl: './add-collaborators.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AddCollaboratorsComponent implements OnInit {
+export class AddCollaboratorsComponent {
   private readonly translate = inject(TranslateService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly projectState = inject(ProjectStateService);
@@ -105,12 +105,19 @@ export class AddCollaboratorsComponent implements OnInit {
   protected readonly collabFilter = /^[a-zA-Z0-9-]*$/;
 
   // Initialize dropdown with org members
-  async ngOnInit() {
-    const owner = this.projectData().github.owner;
-    if (owner) {
-      this.orgMembers.set(await this.collaboratorService.getOrgMembers(owner));
-      this.filteredCollaborators.set([...this.orgMembers()]);
-    }
+  constructor() {
+    effect(() => {
+      const owner = this.projectState.getGitHub().owner;
+      if (owner) {
+        this.setMembers(owner);
+      }
+    });
+  }
+
+  /** Populate dropdown list with members of a GitHub org */
+  async setMembers(owner: string) {
+    this.orgMembers.set(await this.collaboratorService.getOrgMembers(owner));
+    this.filteredCollaborators.set([...this.orgMembers()]);
   }
 
   /** Filter collaborators:

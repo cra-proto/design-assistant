@@ -4,11 +4,11 @@ import { RouterModule } from '@angular/router';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { MailtoService } from '../services/mailto.service';
-import { ProjectCacheService } from '../services/project-cache.service';
-import { ProjectStateService } from '../services/project-state.service';
+import { MailtoService } from '../../services/mailto.service';
+import { ProjectCacheService } from '../../services/project-cache.service';
+import { ProjectStateService } from '../../services/project-state.service';
 
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 /**
  * Reviewed: 2026-08-13 (ng21)

@@ -8,7 +8,9 @@ import { DashboardComponent } from './views/project/dashboard/dashboard.componen
 import { EditProjectComponent } from './views/project/edit-project/edit-project.component';
 import { SwitchProjectComponent } from './views/project/switch-project/switch-project.component';
 
-// Phase views (topic pages)
+// Topic pages
+import { ProjectComponent } from './views/project/project.component';
+import { TasksComponent } from './views/tasks/tasks.component';
 import { DiscoverComponent } from './views/phase/discover/discover.component';
 import { AssessComponent } from './views/phase/assess/assess.component';
 import { DesignComponent } from './views/phase/design/design.component';
@@ -30,9 +32,9 @@ export const landingGuard = () => {
   const router = inject(Router);
   const projectStorageService = inject(ProjectStorageService);
   if (projectStorageService.hasActiveProject()) {
-    return router.createUrlTree(['/dashboard']);
+    return router.createUrlTree(['project/dashboard']);
   } else {
-    return router.createUrlTree(['/new-project']);
+    return router.createUrlTree(['project/new']);
   }
 };
 
@@ -41,7 +43,7 @@ export const editProjectGuard = () => {
   const projectState = inject(ProjectStateService);
   const name = projectState.getProject().projectName;
   if (!name) {
-    return router.createUrlTree(['/new-project']);
+    return router.createUrlTree(['/project/new']);
   }
   return true;
 };
@@ -51,75 +53,98 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [landingGuard],
+    title: environment.production ? '_app._title' : environment.sandbox ? '_app._title.sandbox' : '_app._title.dev',
     children: [],
   },
   {
-    path: 'dashboard',
-    component: DashboardComponent,
-    title: environment.production ? '_app._title' : environment.sandbox ? '_app._title.sandbox' : '_app._title.dev',
+    path: 'project',
+    component: ProjectComponent,
+    title: 'nav.project',
   },
   {
-    path: 'switch-project',
+    path: 'project/dashboard',
+    component: DashboardComponent,
+    title: 'dashboard._title',
+    data: { breadcrumbKey: 'project' },
+  },
+  {
+    path: 'project/switch',
     component: SwitchProjectComponent,
     title: 'switch._title',
+    data: { breadcrumbKey: 'project' },
   },
   {
-    path: 'new-project',
+    path: 'project/new',
     component: EditProjectComponent,
     title: 'project._nav.new',
+    data: { breadcrumbKey: 'project' },
   },
   {
-    path: 'edit-project',
+    path: 'project/edit',
     component: EditProjectComponent,
     canActivate: [editProjectGuard],
     title: 'project._nav.edit',
+    data: { breadcrumbKey: 'project' },
   },
   //PHASE TOPIC PAGES
   {
-    path: 'discover',
+    path: 'project/dashboard/discover',
     component: DiscoverComponent,
-    title: 'phase.discover._nav',
+    title: 'project.phase.discover',
+    data: { breadcrumbKey: 'project.dashboard' },
   },
   {
-    path: 'assess',
+    path: 'project/dashboard/assess',
     component: AssessComponent,
-    title: 'phase.assess._nav',
+    title: 'project.phase.assess',
+    data: { breadcrumbKey: 'project.dashboard' },
   },
   {
-    path: 'design',
+    path: 'project/dashboard/design',
     component: DesignComponent,
-    title: 'phase.design._nav',
+    title: 'project.phase.design',
+    data: { breadcrumbKey: 'project.dashboard' },
   },
   {
-    path: 'approve',
+    path: 'project/dashboard/approve',
     component: ApproveComponent,
-    title: 'phase.approve._nav',
+    title: 'project.phase.approve',
+    data: { breadcrumbKey: 'project.dashboard' },
   },
   //TASK PATHS
   {
-    path: 'add-pages',
-    loadComponent: () => import('./views/task/add-pages/add-pages.component').then((m) => m.AddPagesComponent),
+    path: 'tasks',
+    component: TasksComponent,
+    title: 'nav.tasks',
+  },
+  {
+    path: 'tasks/add-pages',
+    loadComponent: () => import('./views/tasks/add-pages/add-pages.component').then((m) => m.AddPagesComponent),
     title: 'addPages._title',
+    data: { breadcrumbKey: 'tasks' },
   },
   {
-    path: 'inventory',
-    loadComponent: () => import('./views/task/manage-inventory/inventory.component').then((m) => m.InventoryComponent),
+    path: 'tasks/inventory',
+    loadComponent: () => import('./views/tasks/manage-inventory/inventory.component').then((m) => m.InventoryComponent),
     title: 'inventory._title',
+    data: { breadcrumbKey: 'tasks' },
   },
   {
-    path: 'ia-diagram',
+    path: 'tasks/ia-diagram',
     loadComponent: () => import('./components/ia-diagram/ia-diagram.component').then((m) => m.IaDiagramComponent),
     title: 'iaDiagram._title',
   },
   {
-    path: 'export-pages',
-    loadComponent: () => import('./views/task/export-pages/export.component').then((m) => m.ExportComponent),
+    path: 'tasks/export-pages',
+    loadComponent: () => import('./views/tasks/export-pages/export.component').then((m) => m.ExportComponent),
     title: 'exportPages._nav',
+    data: { breadcrumbKey: 'tasks' },
   },
   {
-    path: 'compare',
-    loadComponent: () => import('./views/task/compare-versions/compare.component').then((m) => m.CompareComponent),
+    path: 'tasks/compare',
+    loadComponent: () => import('./views/tasks/compare-versions/compare.component').then((m) => m.CompareComponent),
     title: 'compare._title',
+    data: { breadcrumbKey: 'tasks' },
   },
   //UTILITY PATHS
   {
@@ -150,9 +175,10 @@ export const routes: Routes = [
     title: 'standalone._title',
   },
   {
-    path: 'standalone/compare-versions',
+    path: 'standalone/compare',
     loadComponent: () => import('./views/toolbox/standalone-compare-versions/standalone-compare-versions.component').then((m) => m.StandaloneCompareComponent),
     title: 'compare._title',
+    data: { breadcrumbKey: 'standalone' },
   },
   //DEV PAGES
   {
@@ -163,22 +189,26 @@ export const routes: Routes = [
   {
     path: 'dev/monitoring',
     loadComponent: () => import('./views/toolbox/dev-tools/usage-monitoring/usage-monitoring.component').then((m) => m.UsageMonitoringComponent),
-    title: 'dev.usage._title',
+    title: 'dev.monitoring._title',
+    data: { breadcrumbKey: 'dev' },
   },
   {
     path: 'dev/color-generator',
     loadComponent: () => import('./views/toolbox/dev-tools/color-generator/color-generator.component').then((m) => m.ColorGeneratorComponent),
     title: 'dev.colors._title',
+    data: { breadcrumbKey: 'dev' },
   },
   {
     path: 'dev/design-patterns',
     loadComponent: () => import('./views/toolbox/dev-tools/design-patterns/design-patterns.component').then((m) => m.DesignPatternsComponent),
     title: 'dev.patterns._title',
+    data: { breadcrumbKey: 'dev' },
   },
   {
     path: 'dev/prompt-editor',
     loadComponent: () => import('./views/toolbox/dev-tools/prompt-editor/prompt-editor.component').then((m) => m.PromptEditorComponent),
     title: 'dev.prompts._title',
+    data: { breadcrumbKey: 'dev' },
   },
   //404
   {

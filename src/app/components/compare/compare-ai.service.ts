@@ -7,7 +7,7 @@ import { MessageService } from 'primeng/api';
 import { OpenRouterService } from '../../services/ai/openrouter.service';
 import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
-import { CompareService } from '../../views/task/compare-versions/compare.service';
+import { CompareService } from '../../views/tasks/compare-versions/compare.service';
 
 import { PagePrompts } from '../../common/prompts/page.prompts';
 import { PagePromptKey } from '../../common/prompts/prompt.model';

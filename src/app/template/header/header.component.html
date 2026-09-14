@@ -39,9 +39,4 @@
       </p-button>
     </div>
   </div>
-  @if (!production) {
-    <div class="sticky top-0 z-2 border-round-bottom-lg bg-primary text-center w-full">
-      {{ (sandbox ? '_app.env.sandbox' : '_app.env.dev') | translate }}
-    </div>
-  }
 </header>

@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { UserSettingsService } from '../services/user-settings.service';
+import { UserSettingsService } from '../../services/user-settings.service';
 
-import { version as appVersion } from '../../../package.json';
+import { version as appVersion } from '../../../../package.json';
 
 /**
  * Reviewed: 2026-08-13 (ng21)

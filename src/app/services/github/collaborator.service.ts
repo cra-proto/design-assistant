@@ -11,16 +11,21 @@ export class CollaboratorService {
   private exportGitHubService = inject(ExportGitHubService);
 
   // Check if current user is a collaborator
-  canEditProject(project: ProjectMetadata | Project): boolean {
+  canEditProject(project: ProjectMetadata | Project, user?: number): boolean {
     const currentUser = this.exportGitHubService.user(); // OAuth or PAT
-    if (!currentUser) return false;
-    return project.collaborators.some((c) => {
-      if (c.id != null && currentUser.id != null) {
-        return c.id === currentUser.id;
-      } else {
-        return !!c.login && !!currentUser.login && c.login.toLowerCase() === currentUser.login.toLowerCase();
-      }
-    });
+    if (currentUser) {
+      return project.collaborators.some((c) => {
+        if (c.id != null && currentUser.id != null) {
+          return c.id === currentUser.id;
+        } else {
+          return !!c.login && !!currentUser.login && c.login.toLowerCase() === currentUser.login.toLowerCase();
+        }
+      });
+    } else if (user) {
+      return project.collaborators.some((c) => {
+        return c.id === user;
+      });
+    } else return false;
   }
 
   // Get current user to add to new projects

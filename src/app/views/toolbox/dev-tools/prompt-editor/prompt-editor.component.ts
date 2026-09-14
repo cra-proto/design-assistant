@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, ElementRef, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -9,7 +8,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { ColorSchemeType } from 'diff2html/lib/types';
 import type { Diff2HtmlUIConfig } from 'diff2html/lib/ui/js/diff2html-ui-slim';
 
-import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { FieldsetModule } from 'primeng/fieldset';
@@ -54,9 +52,7 @@ interface TabConfig {
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     TranslatePipe,
-    BreadcrumbModule,
     ButtonModule,
     CheckboxModule,
     FieldsetModule,
@@ -77,9 +73,6 @@ export class PromptEditorComponent {
   private readonly settingsService = inject(UserSettingsService);
   private readonly openRouterService = inject(OpenRouterService);
   private readonly aiPromptService = inject(AiPromptService);
-
-  // Breadcrumbs
-  protected readonly breadcrumbs = [{ label: 'dev._title', route: '/dev' }, { label: 'dev.prompts._title' }];
 
   constructor() {
     effect(() => {

@@ -1,12 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { SelectItem } from 'primeng/api';
-import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { DividerModule } from 'primeng/divider';
@@ -37,21 +35,7 @@ const STATUS_FIELDS: Record<string, (keyof UsageRecord)[]> = {
 
 @Component({
   selector: 'aida-usage-monitoring',
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterLink,
-    TranslatePipe,
-    BreadcrumbModule,
-    ButtonModule,
-    ChartModule,
-    DividerModule,
-    IftaLabelModule,
-    SelectButtonModule,
-    SelectModule,
-    SkeletonModule,
-    ToggleButtonModule,
-  ],
+  imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, ChartModule, DividerModule, IftaLabelModule, SelectButtonModule, SelectModule, SkeletonModule, ToggleButtonModule],
   templateUrl: 'usage-monitoring.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -63,9 +47,6 @@ export class UsageMonitoringComponent implements OnInit {
   protected readonly currentLang = this.settingsService.currentLang;
 
   protected readonly admin = localStorage.getItem('myOrg')?.toUpperCase() === 'ADMIN' ? true : false;
-
-  // Breadcrumbs
-  protected readonly breadcrumbs = [{ label: 'dev._title', route: '/dev' }, { label: 'dev.monitoring._title' }];
 
   // Global stats (always loaded)
   protected readonly stats = signal<UsageStats | null>(null);

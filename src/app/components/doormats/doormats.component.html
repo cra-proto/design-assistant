@@ -1,0 +1,16 @@
+<div class="grid py-2 px-4 lg:px-6">
+  @for (key of keys(); track key) {
+    @if (items[key]; as item) {
+      @if (!isHiddenInProd(key) || !prod) {
+        <div class="col-12 md:col-6 lg:col-4">
+          @if (isExternal(key)) {
+            <a [href]="item.path | translate" class="text-xl font-semibold" target="_blank"> {{ item.titleKey | translate }}<i class="pi pi-external-link ml-2 text-lg"></i></a>
+          } @else {
+            <a [routerLink]="item.path ? item.path : undefined" class="text-xl font-semibold">{{ item.titleKey | translate }}</a>
+          }
+          <p class="text-color-secondary mt-2">{{ item.descriptionKey | translate }}</p>
+        </div>
+      }
+    }
+  }
+</div>
