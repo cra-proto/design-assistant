@@ -1,4 +1,4 @@
-<div [class.min-w-min]="projectState.selectedInventoryView === 'table'">
+<div [class.min-w-min]="projectState.selectedInventoryView() === 'table'">
   <div class="flex flex-row flex-wrap justify-content-between sticky-horizontal">
     <div>
       <h1 id="wb-cont">{{ 'inventory._title' | translate }}</h1>
@@ -18,7 +18,7 @@
     </div>
   </div>
 
-  <div [class.min-w-min]="projectState.selectedInventoryView === 'table'" class="surface-card border-round-lg shadow-2 p-4 mb-3 w-full">
+  <div [class.min-w-min]="projectState.selectedInventoryView() === 'table'" class="surface-card border-round-lg shadow-2 p-4 mb-3 w-full">
     <!--Header & Settings-->
     <div class="flex flex-column lg:flex-row justify-content-between align-items-start sticky-horizontal">
       <div class="flex flex-column">
@@ -27,7 +27,7 @@
       </div>
     </div>
 
-    <div [class.sticky-toolbar-table]="projectState.selectedInventoryView === 'table'" class="sticky-toolbar">
+    <div [class.sticky-toolbar-table]="projectState.selectedInventoryView() === 'table'" class="sticky-toolbar">
       <!-- Top toolbar -->
       <div class="flex flex-row justify-content-between gap-2 h-6rem surface-card">
         <!-- Top toolbar - View options -->
@@ -46,7 +46,7 @@
         </div>
 
         <!-- Top toolbar - Column settings -->
-        @if (projectState.selectedInventoryView === 'table') {
+        @if (projectState.selectedInventoryView() === 'table') {
           <div class="hidden lg:flex flex-column text-color-secondary hover:text-primary max-w-max">
             <span class="text-xs my-1">{{ 'inventory.columnVis.label' | translate }}</span>
             <div class="flex flex-row align-content-center gap-2">
@@ -54,11 +54,11 @@
 
               <p-iftalabel>
                 <p-multiselect
-                  [(ngModel)]="selectedGroups"
                   [maxSelectedLabels]="1"
-                  [options]="groups"
+                  [ngModel]="selectedGroups()"
+                  [options]="groups()"
                   [showHeader]="true"
-                  (onChange)="onGroupSelectionChange()"
+                  (onChange)="onGroupSelectionChange($event)"
                   class="w-13rem"
                   inputId="groups"
                   optionLabel="label"
@@ -77,11 +77,12 @@
               <!-- Top toolbar - Column settings - Column dropdown -->
               <p-iftalabel>
                 <p-multiselect
-                  [(ngModel)]="selectedColumnFields"
                   [group]="true"
                   [maxSelectedLabels]="1"
-                  [options]="groupedColumns"
+                  [ngModel]="selectedColumnFields()"
+                  [options]="groupedColumns()"
                   [showHeader]="true"
+                  (ngModelChange)="selectedColumnFields.set($event)"
                   (onChange)="onColumnSelectionChange()"
                   class="w-13rem capitalize"
                   inputId="columns"
@@ -111,7 +112,7 @@
         }
       </div>
       <!-- Bulk actions toolbar -->
-      @if (projectState.selectedInventoryView === 'table') {
+      @if (projectState.selectedInventoryView() === 'table') {
         <div class="h-3rm mb-2">
           <div class="flex flex-row align-items-center gap-2 surface-card">
             <!-- Bulk actions toolbar - # selected pages -->
@@ -142,7 +143,7 @@
       }
     </div>
 
-    @if (projectState.selectedInventoryView === 'table') {
+    @if (projectState.selectedInventoryView() === 'table') {
       <p-table
         [(selection)]="selectedNodes"
         [customSort]="true"
@@ -160,9 +161,9 @@
       >
         <ng-template pTemplate="header">
           <tr>
-            <th></th>
-            @for (group of groupedHeaders; track group.value; let isLast = $last) {
-              <th [attr.colspan]="getVisibleColumnCount(group)" [class]="!isLast ? 'border-right-1 surface-border' : ''">{{ group.label }}</th>
+            <th class="sticky-rdh"></th>
+            @for (group of groupedHeaders(); track group.value; let isLast = $last) {
+              <th [attr.colspan]="getVisibleColumnCount(group)" [class]="!isLast ? 'border-right-1 surface-border sticky-rdh' : 'sticky-rdh'">{{ group.label }}</th>
             }
           </tr>
           <tr>
@@ -184,19 +185,15 @@
               >
                 @if (col.type === 'boolean' || col.type === 'archive' || col.type === 'noindex') {
                   <p-button
+                    [aidaTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showTrue' | translate: { column: col.label })"
                     [icon]="isColumnFiltered(col.field) ? 'pi pi-filter' : 'pi pi-filter-slash'"
                     [label]="col.label"
-                    [pTooltip]="isColumnFiltered(col.field) ? ('inventory.filter.showAll' | translate) : ('inventory.filter.showTrue' | translate: { column: col.label })"
                     [severity]="isColumnFiltered(col.field) ? 'primary' : 'contrast'"
                     (onClick)="toggleColumnFilter(col.field)"
-                    appendTo="body"
-                    hideDelay="0"
                     iconPos="right"
                     rounded
-                    showDelay="300"
                     styleClass="font-bold"
                     text
-                    tooltipPosition="top"
                   />
                 } @else if (col.type === 'text' || col.type === 'url' || col.type === 'number' || col.type === 'date' || col.type === 'array') {
                   <div class="flex align-items-center gap-2">
@@ -217,7 +214,7 @@
             <td class="w-4rem surface-card sticky-c">
               <div class="flex flex-row justify-content-center align-content-center align-items-center">
                 <p-tableCheckbox [value]="node" size="large" />
-                <p-button [pTooltip]="'common.edit' | translate" (onClick)="edit(node)" appendTo="body" hideDelay="0" icon="pi pi-pen-to-square" rounded showDelay="300" text tooltipPosition="top" />
+                <p-button [aidaTooltip]="'common.edit' | translate" (onClick)="edit(node)" icon="pi pi-pen-to-square" rounded text />
               </div>
             </td>
             @for (col of frozenColumns(); track col.field) {
@@ -274,29 +271,19 @@
                 <!-- Array fields -->
                 @if (col.type === 'array') {
                   <div class="flex align-items-start">
-                    <ul
-                      [class.line-clamp-1]="!isCellExpanded(col.field, rowIndex, col.field)"
-                      [pTooltip]="expandAll[col.field] ? null : node[col.field]"
-                      class="m-0 pl-0 min-w-max"
-                      appendTo="body"
-                      hideDelay="0"
-                      showDelay="300"
-                      style="list-style-position: inside"
-                      tooltipPosition="top"
-                    >
-                      @for (item of node[col.field]; track item) {
-                        <li [class.text-red-500]="col.field === 'phoneNumbers' && !isKnownNumber(item)">{{ item }}</li>
-                      }
-                    </ul>
+                    <span [aidaTooltip]="expandAll[col.field] ? null : node[col.field]">
+                      <ul [class.line-clamp-1]="!isCellExpanded(col.field, rowIndex, col.field)" class="m-0 pl-0 min-w-max" style="list-style-position: inside">
+                        @for (item of node[col.field]; track item) {
+                          <li [class.text-red-500]="col.field === 'phoneNumbers' && !isKnownNumber(item)">{{ item }}</li>
+                        }
+                      </ul>
+                    </span>
                     @if (!expandAll[col.field] && node[col.field].length > 1) {
                       <p-button
+                        [aidaTooltip]="isCellExpanded(col.field, rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
                         [icon]="isCellExpanded(col.field, rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                        [pTooltip]="isCellExpanded(col.field, rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
                         (click)="toggleCell(col.field, rowIndex, col.field)"
-                        appendTo="body"
-                        hideDelay="0"
                         rounded
-                        showDelay="300"
                         size="small"
                         styleClass="-mt-1"
                         text
@@ -316,25 +303,17 @@
                 @if (col.type === 'longText') {
                   <div class="flex align-items-start gap-2">
                     <div [class.line-clamp-3]="!isCellExpanded('metadata', rowIndex, col.field)">
-                      <p-tag
-                        [severity]="node[col.field].length >= 10 && node[col.field].length <= 160 ? 'success' : 'danger'"
-                        appendTo="body"
-                        hideDelay="0"
-                        pTooltip="character count"
-                        showDelay="300"
-                        >{{ node[col.field].length }}</p-tag
-                      >
+                      <p-tag [aidaTooltip]="'common.characterCount' | translate" [severity]="node[col.field].length >= 10 && node[col.field].length <= 160 ? 'success' : 'danger'"
+                        >{{ node[col.field].length }}
+                      </p-tag>
                       {{ node[col.field] }}
                     </div>
                     @if (!expandAll['metadata']) {
                       <p-button
+                        [aidaTooltip]="isCellExpanded('metadata', rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
                         [icon]="isCellExpanded('metadata', rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                        [pTooltip]="isCellExpanded('metadata', rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
                         (click)="toggleCell('metadata', rowIndex, col.field)"
-                        appendTo="body"
-                        hideDelay="0"
                         rounded
-                        showDelay="300"
                         size="small"
                         styleClass="-mt-1"
                         text
@@ -356,13 +335,10 @@
                       </div>
                       @if (!expandAll['notes'] && node[col.field].length > 10) {
                         <p-button
+                          [aidaTooltip]="isCellExpanded('notes', rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
                           [icon]="isCellExpanded('notes', rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                          [pTooltip]="isCellExpanded('notes', rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
                           (click)="toggleCell('notes', rowIndex, col.field)"
-                          appendTo="body"
-                          hideDelay="0"
                           rounded
-                          showDelay="300"
                           size="small"
                           styleClass="-mt-1"
                           text
@@ -385,13 +361,10 @@
                             <div class="flex flex-row gap-2">
                               <p-tag [value]="'common.editing' | translate" class="capitalize" />
                               <p-tag
+                                [aidaTooltip]="'common.characterCount' | translate"
                                 [severity]="field.edited.length >= 10 && field.edited.length <= 160 ? 'success' : 'danger'"
                                 [value]="field.edited.length"
                                 class="mx-1"
-                                appendTo="body"
-                                hideDelay="0"
-                                pTooltip="character count"
-                                showDelay="300"
                               />
                             </div>
                             <p-iftalabel>
@@ -419,6 +392,7 @@
                                 class="capitalize"
                               />
                               <p-tag
+                                [aidaTooltip]="'common.characterCount' | translate"
                                 [severity]="
                                   field.status === 'edited'
                                     ? field.edited.length >= 10 && field.edited.length <= 160
@@ -430,10 +404,6 @@
                                 "
                                 [value]="field.status === 'edited' ? field.edited.length : field.ai.length"
                                 class="mx-1"
-                                appendTo="body"
-                                hideDelay="0"
-                                pTooltip="character count"
-                                showDelay="300"
                               />
                             </div>
                             <div [class.line-clamp-3]="!isCellExpanded('metadata', rowIndex, col.field)">
@@ -443,13 +413,10 @@
                           <div class="flex flex-column gap-1 -mt-1">
                             @if (!expandAll['metadata']) {
                               <p-button
+                                [aidaTooltip]="isCellExpanded('metadata', rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
                                 [icon]="isCellExpanded('metadata', rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                                [pTooltip]="isCellExpanded('metadata', rowIndex, col.field) ? ('common.collapse' | translate) : ('common.expand' | translate)"
                                 (click)="toggleCell('metadata', rowIndex, col.field)"
-                                appendTo="body"
-                                hideDelay="0"
                                 rounded
-                                showDelay="300"
                                 size="small"
                                 text
                               />
@@ -459,14 +426,7 @@
                       </div>
                     }
                   } @else {
-                    <i
-                      [pTooltip]="'inventory.tooltip.ai.metadata' | translate"
-                      class="pi pi-minus text-gray-400 flex justify-content-center p-2"
-                      appendTo="body"
-                      hideDelay="0"
-                      showDelay="300"
-                      tooltipPosition="top"
-                    ></i>
+                    <span [aidaTooltip]="'inventory.tooltip.ai.metadata' | translate"><i class="pi pi-minus text-gray-400 flex justify-content-center p-2"></i></span>
                   }
                 }
                 <!-- Date fields -->
@@ -476,77 +436,56 @@
                 <!-- URL fields -->
                 @if (col.type === 'url') {
                   <div class="flex flex-row justify-content-between align-items-center gap-2 white-space-nowrap">
-                    <span [pTooltip]="node[col.field]" appendTo="body" hideDelay="0" showDelay="300" tooltipPosition="top">
+                    <span [aidaTooltip]="node[col.field]">
                       {{ node[col.field].split('/').pop() }}
                     </span>
                     <p-button
-                      [pTooltip]="'common.openNewTab' | translate"
+                      [aidaTooltip]="'common.openNewTab' | translate"
                       (onClick)="updateDropdown('newTab', node[col.field]); menu.toggle($event)"
                       appendTo="body"
-                      hideDelay="0"
                       icon="pi pi-external-link"
                       outlined
                       rounded
-                      showDelay="300"
                       size="small"
                       styleClass="secondary-outline"
-                      tooltipPosition="top"
                     />
-                    <!--a [href]="node[col.field]" target="_blank" rel="noopener" [pTooltip]="expandAllUrls ? null : node[col.field]" [class.line-clamp-2]="!expandAllUrls" tooltipPosition="top" appendTo="body" showDelay="300" hideDelay="0">{{ node[col.field].split('/').pop() }}</a-->
                   </div>
                 }
                 <!-- Boolean fields -->
                 @if (col.type === 'boolean') {
-                  <i
-                    [class]="getBooleanIcon(getBooleanValue(node, col), col.field)"
-                    [pTooltip]="getBooleanTooltip(node[col.field], col.field) | translate"
-                    class="flex justify-content-center p-2"
-                    appendTo="body"
-                    hideDelay="0"
-                    showDelay="300"
-                    tooltipPosition="top"
-                  ></i>
+                  <span [aidaTooltip]="getBooleanTooltip(node[col.field], col.field) | translate" class="flex justify-content-center p-2">
+                    <i [class]="getBooleanIcon(getBooleanValue(node, col), col.field)"></i>
+                  </span>
                 }
                 <!-- Number fields -->
                 @if (col.type === 'number') {
                   @if (node[col.field] === -1) {
                     <i class="pi pi-minus text-gray-400"></i>
                   } @else {
-                    {{ node[col.field] | number: '1.0-0' : (translate.currentLang() === 'en' ? 'en-CA' : 'fr-CA') }}
+                    {{ node[col.field] | number: '1.0-0' : numberLocale() }}
                   }
                 }
                 <!-- UPD link -->
                 @if (col.type === 'upd') {
                   @if (!node.isNew) {
                     <p-button
-                      [pTooltip]="'inventory.openInUPD' | translate"
+                      [aidaTooltip]="'inventory.openInUPD' | translate"
                       (onClick)="openInUPD(node)"
                       class="flex justify-content-center"
-                      appendTo="body"
-                      hideDelay="0"
                       icon="pi pi-external-link"
                       iconPos="top"
                       outlined
                       rounded
                       severity="info"
-                      showDelay="300"
                       size="small"
                       styleClass="secondary-outline"
-                      tooltipPosition="top"
                     >
                       <ng-template pTemplate="icon">
                         <img alt="" height="24" src="images/upd-icon.svg" width="24" />
                       </ng-template>
                     </p-button>
                   } @else {
-                    <i
-                      [pTooltip]="'inventory.notInUPD' | translate"
-                      class="pi pi-minus text-gray-400 flex justify-content-center p-2"
-                      appendTo="body"
-                      hideDelay="0"
-                      showDelay="300"
-                      tooltipPosition="top"
-                    ></i>
+                    <span [aidaTooltip]="'inventory.notInUPD' | translate"><i class="pi pi-minus text-gray-400 flex justify-content-center p-2"></i></span>
                   }
                 }
               </td>
@@ -562,7 +501,7 @@
           </tr>
         </ng-template>
       </p-table>
-    } @else if (projectState.selectedInventoryView === 'tree') {
+    } @else if (projectState.selectedInventoryView() === 'tree') {
       <aida-ia-table />
     }
   </div>

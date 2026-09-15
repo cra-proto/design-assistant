@@ -3,7 +3,8 @@
 
 :root {
   --header-height: 3rem;
-  --nav-width: 4.8rem;
+  --mobile-nav-width: 4.8rem;
+  --desktop-nav-width: calc(var(--mobile-nav-width) + 8.1rem);
   --body-font: 'Noto Sans', sans-serif;
   --z-fixed: 100;
   --aida-border-width: 1.5px;
@@ -31,7 +32,7 @@ div.container {
   min-height: 97vh;
   display: flex;
   flex-direction: column;
-  padding-left: var(--nav-width);
+  padding-left: var(--mobile-nav-width);
 }
 
 main.container {
@@ -43,7 +44,7 @@ main.container {
   position: fixed;
   top: 0;
   left: 0;
-  width: var(--nav-width);
+  width: var(--mobile-nav-width);
   height: 100vh;
   transition: width 0.3s ease;
   z-index: var(--z-fixed);
@@ -58,11 +59,11 @@ main.container {
 /* ========== Desktop Layout ========== */
 @media screen and (min-width: 768px) {
   .l-navbar {
-    width: calc(var(--nav-width) + 7rem);
+    width: var(--desktop-nav-width);
   }
 
   div.container {
-    padding-left: calc(var(--nav-width) + 7rem);
+    padding-left: var(--desktop-nav-width);
   }
 }
 
@@ -505,8 +506,8 @@ html.dark-mode .p-togglebutton:not(.p-togglebutton-checked):not(.p-disabled) {
 .h-1\.5 {
   height: 1.5rem;
 }
-.top-1\.5 {
-  top: 1.5rem;
+.min-h-1\.5 {
+  min-height: 1.5rem;
 }
 
 h1:not(.noline) {
@@ -522,4 +523,97 @@ h1:not(.noline) {
 h1 + p {
   margin-top: 0.5rem;
   max-width: 130ch;
+}
+
+/* AIDA Custom tooltip CSS */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--p-primary-600);
+  color: var(--p-surface-0);
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--p-border-radius-md);
+  font-size: 1rem;
+  font-weight: 500;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  width: max-content;
+  max-width: 16rem;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.1s ease,
+    visibility 0.1s ease;
+}
+
+[data-tooltip]::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 0.25rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 0.4rem solid transparent;
+  border-right: 0.4rem solid transparent;
+  border-top: 0.4rem solid var(--p-surface-600);
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.1s ease,
+    visibility 0.1s ease;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:hover::before {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.3s;
+}
+
+/* Position variants for cells near screen edges */
+[data-tooltip-pos='right']::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+[data-tooltip-pos='right']::before {
+  left: auto;
+  right: 0.6rem;
+  transform: none;
+}
+
+[data-tooltip-pos='left']::after {
+  left: 0;
+  right: auto;
+  transform: none;
+}
+[data-tooltip-pos='left']::before {
+  left: 0.6rem;
+  right: auto;
+  transform: none;
+}
+
+[data-tooltip-pos='bottom']::after {
+  bottom: auto;
+  top: 100%;
+  transform: translateX(-50%) translateY(0.25rem);
+}
+[data-tooltip-pos='bottom']::before {
+  bottom: auto;
+  top: 100%;
+  transform: translateX(-50%) translateY(-0.05rem);
+  border-top-color: transparent;
+  border-bottom-color: var(--p-surface-600);
 }

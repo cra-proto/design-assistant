@@ -25,6 +25,7 @@ import { CollaboratorService } from '../../../services/github/collaborator.servi
 import { ExportGitHubService } from '../../../services/github/export-github.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { ProjectStorageService } from '../../../services/storage/project-storage.service';
+import { UserSettingsService } from '../../../services/user-settings.service';
 
 import { ProjectMetadata, ProjectPhase } from '../../../common/data.model';
 
@@ -60,6 +61,7 @@ export class SwitchProjectComponent implements OnInit {
   protected readonly projectStorageService = inject(ProjectStorageService);
   protected readonly exportGitHubService = inject(ExportGitHubService);
   protected readonly collaboratorService = inject(CollaboratorService);
+  private readonly settingsService = inject(UserSettingsService);
 
   private readonly router = inject(Router);
   private readonly message = inject(MessageService);
@@ -73,6 +75,7 @@ export class SwitchProjectComponent implements OnInit {
 
   protected loadingKey: string | null = null;
   protected showSave = false;
+  private presetFilterApplied = false;
 
   constructor() {
     // Watch for project list changes and reload
@@ -80,6 +83,22 @@ export class SwitchProjectComponent implements OnInit {
       this.projectStorageService.projectListChanged(); // Watch for changes
       console.log('Project list changed, reloading...');
       this.loadProjects(this.currentMode()); // Load projects
+    });
+    effect(() => {
+      const projects = this.allProjects();
+      if (this.presetFilterApplied || projects.length === 0) return;
+
+      this.updateGroupedFilters();
+
+      const userId = Number(this.settingsService.userId());
+      if (!Number.isNaN(userId)) {
+        const match = projects.flatMap((p) => p.collaborators).find((c) => c.id === userId);
+        if (!match) return;
+        else {
+          this.selectedFilter.set([match.login, 'Local']);
+          this.presetFilterApplied = true;
+        }
+      }
     });
   }
 

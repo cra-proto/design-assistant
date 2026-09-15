@@ -25,11 +25,10 @@
         </div>
         <div id="project" [class.md:hidden]="!isExpanded.project" aria-labelledby="menu-project" role="region">
           @if (projectLoaded) {
-            <ng-container *ngTemplateOutlet="link; context: { path: 'project/dashboard', icon: 'view_quilt', text: ('dashboard._nav' | translate) }" />
-            <ng-container *ngTemplateOutlet="link; context: { path: 'project/edit', icon: 'edit', text: ('project._nav.edit' | translate) }" />
-          } @else {
-            <ng-container *ngTemplateOutlet="link; context: { path: 'project/new', icon: 'add', text: ('project._nav.new' | translate) }" />
+            <!--ng-container *ngTemplateOutlet="link; context: { path: 'project/dashboard', icon: 'view_quilt', text: ('dashboard._nav' | translate) }" /-->
           }
+          <ng-container *ngTemplateOutlet="link; context: { path: 'project/edit', icon: 'edit', text: ('project._nav.edit' | translate) }" />
+          <ng-container *ngTemplateOutlet="link; context: { path: 'project/edit', icon: 'add', text: ('project._nav.new' | translate), onClick: newProject }" />
           <ng-container *ngTemplateOutlet="link; context: { path: 'project/switch', icon: 'folder_open', text: ('switch._nav' | translate) }" />
         </div>
       </div>
@@ -51,15 +50,17 @@
         </div>
         <div id="tasks" [class.md:hidden]="!isExpanded.tasks" aria-labelledby="menu-tasks" role="region">
           <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/add-pages', icon: 'note_add', text: ('addPages._nav' | translate), isOutlined: true }" />
-          <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/ia-diagram', icon: 'lan', text: ('iaDiagram._nav' | translate), isOutlined: true }" />
-          <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/inventory', icon: 'checklist_rtl', text: ('inventory._nav' | translate) }" />
-          <ng-container
-            *ngTemplateOutlet="link; context: { path: 'tasks/export-pages', icon: 'drive_folder_upload', text: ('exportPages._nav' | translate), isOutlined: true, onClick: checkLocalStatus }"
-          />
-          @if (!production) {
-            <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/compare', icon: 'library_books', text: ('compare._nav' | translate), isOutlined: true, onClick: checkStatus }" />
-            <!--ng-container *ngTemplateOutlet="link; context: { path: 'tasks/problems', icon: 'troubleshoot', text: ('problems._nav' | translate), isOutlined: true}"/>
+          @if (hasPages) {
+            <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/ia-diagram', icon: 'lan', text: ('iaDiagram._nav' | translate), isOutlined: true }" />
+            <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/inventory', icon: 'checklist_rtl', text: ('inventory._nav' | translate) }" />
+            <ng-container
+              *ngTemplateOutlet="link; context: { path: 'tasks/export-pages', icon: 'drive_folder_upload', text: ('exportPages._nav' | translate), isOutlined: true, onClick: checkLocalStatus }"
+            />
+            @if (!production) {
+              <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/compare', icon: 'library_books', text: ('compare._nav' | translate), isOutlined: true, onClick: checkStatus }" />
+              <!--ng-container *ngTemplateOutlet="link; context: { path: 'tasks/problems', icon: 'troubleshoot', text: ('problems._nav' | translate), isOutlined: true}"/>
           <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/search', icon: 'manage_search', text: ('search._nav' | translate), isOutlined: true}"/-->
+            }
           }
         </div>
       </div>
@@ -82,8 +83,8 @@
   <a
     [routerLink]="path ? ['/' + path] : null"
     [routerLinkActive]="['bg-primary-500', 'text-primary-50']"
-    (click)="onClick?.()"
-    (keydown.enter)="onClick?.()"
+    (click)="onClick?.($event)"
+    (keydown.enter)="onClick?.($event)"
     class="flex align-items-center gap-3 py-1 px-2 m-1 border-round no-underline hover:bg-primary-600 cursor-pointer"
     tabindex="0"
   >
@@ -91,3 +92,5 @@
     <span class="hidden md:inline text-md">{{ text }}</span>
   </a>
 </ng-template>
+
+<p-confirmpopup />

@@ -1242,7 +1242,7 @@ export class ProjectStateService {
   }
 
   //Store settings for inventory table
-  public selectedInventoryView: 'table' | 'tree' = 'table';
+  public readonly selectedInventoryView = signal<'table' | 'tree'>('table');
 
   // Get breadcrumb chain by url
   public getBreadcrumbChain(path: string, lang: 'en' | 'fr' = 'en'): { title: string; link: string }[] {
