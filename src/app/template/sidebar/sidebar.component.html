@@ -24,7 +24,7 @@
           <span class="material-icons">{{ isExpanded.project ? 'expand_less' : 'expand_more' }}</span>
         </div>
         <div id="project" [class.md:hidden]="!isExpanded.project" aria-labelledby="menu-project" role="region">
-          @if (hasPages) {
+          @if (hasPages || projectLoaded) {
             <!--ng-container *ngTemplateOutlet="link; context: { path: 'project/dashboard', icon: 'view_quilt', text: ('dashboard._nav' | translate) }" /-->
             <ng-container *ngTemplateOutlet="link; context: { path: 'project/edit', icon: 'edit', text: ('project._nav.edit' | translate) }" />
           }
