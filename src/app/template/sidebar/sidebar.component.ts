@@ -66,7 +66,7 @@ export class SidebarComponent {
 
   protected readonly newProject = (event?: MouseEvent | KeyboardEvent) => {
     event?.preventDefault();
-    if (!this.projectLoaded) {
+    if (this.hasPages) {
       this.confirmationService.confirm({
         target: event?.target as EventTarget,
         message: this.translate.instant('project.new.confirmMessage'),
@@ -87,7 +87,7 @@ export class SidebarComponent {
           styleClass: 'secondary-outline',
         },
         reject: () => {
-          return;
+          this.router.navigate(['/project/edit']);
         },
       });
     } else {

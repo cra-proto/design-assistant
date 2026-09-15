@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -25,7 +26,7 @@ import { TreeNodeData } from '../../common/data.model';
 
 @Component({
   selector: 'aida-ia-diagram',
-  imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, DialogModule, MenuModule, OrganizationChartModule, TooltipModule, EditNodeComponent, ProjectSettingsComponent],
+  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, ButtonModule, DialogModule, MenuModule, OrganizationChartModule, TooltipModule, EditNodeComponent, ProjectSettingsComponent],
   templateUrl: './ia-diagram.component.html',
   styleUrl: './ia-diagram.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +54,7 @@ export class IaDiagramComponent {
 
   protected readonly projectTree = computed(() => {
     let tree = this.projectState.getProject().projectData;
+    if (!tree) return [];
     //Adjustments for full tree or custom root
     if (this.selectedTree() !== 'full') {
       const custom = this.projectState.findNodeByPath(tree, this.selectedTree(), this.primaryLang);
@@ -424,24 +426,26 @@ export class IaDiagramComponent {
 
   protected get legendItems() {
     const items: { context: string[]; text: string }[] = [];
+    const tree = this.projectTree();
+    if (tree.length === 0) return items;
 
     const mainColours = this.treeNodeStyleService.bgColors;
     const allColours = this.treeNodeStyleService.contextStyles;
 
-    const depth = this.projectState.getInScopeMaxDepth(this.projectTree()[0]);
+    const depth = this.projectState.getInScopeMaxDepth(tree[0]);
     if (depth) {
       const inScopeColours = Array.from({ length: depth + 1 }, (_, i) => mainColours[i]);
       items.push({ context: inScopeColours, text: this.translate.instant('editNode.inScope') });
     }
 
-    const hasOutOfScope = this.projectState.findNodeWhere(this.projectTree(), (node) => node.data?.status?.inScope === false) !== null;
+    const hasOutOfScope = this.projectState.findNodeWhere(tree, (node) => node.data?.status?.inScope === false) !== null;
     if (hasOutOfScope) {
       items.push({ context: [allColours['template']], text: this.translate.instant('iaDiagram.outOfScope') });
     }
 
-    const hasNew = this.projectState.findNodeWhere(this.projectTree(), (node) => node.data?.status?.isNew === true) !== null;
-    const hasMoves = this.projectState.findNodeWhere(this.projectTree(), (node) => node.data?.status?.isMoved === true) !== null;
-    const hasROT = this.projectState.findNodeWhere(this.projectTree(), (node) => node.data?.status?.isROT === true) !== null;
+    const hasNew = this.projectState.findNodeWhere(tree, (node) => node.data?.status?.isNew === true) !== null;
+    const hasMoves = this.projectState.findNodeWhere(tree, (node) => node.data?.status?.isMoved === true) !== null;
+    const hasROT = this.projectState.findNodeWhere(tree, (node) => node.data?.status?.isROT === true) !== null;
 
     //Dynamic rescue link colour swatches
     const inScopePaths = new Set(this.projectState.getAllPages(this.primaryLang, 'live', 'inScope').map((p) => p.path));
@@ -469,7 +473,9 @@ export class IaDiagramComponent {
   }
 
   get hasIaOrphan() {
+    const tree = this.projectTree();
+    if (tree.length === 0) return false;
     const lang = this.projectCache.selectedLang() ?? 'en';
-    return this.projectState.findNodeWhere(this.projectTree(), (node) => node.data?.live?.[lang].isOrphan === true) !== null;
+    return this.projectState.findNodeWhere(tree, (node) => node.data?.live?.[lang].isOrphan === true) !== null;
   }
 }

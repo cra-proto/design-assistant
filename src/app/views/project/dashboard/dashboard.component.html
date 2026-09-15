@@ -103,9 +103,9 @@
       <!-- Phases -->
       <div class="flex flex-column md:flex-row gap-3 flex-1">
         <!-- Discover -->
-        <ng-container *ngTemplateOutlet="phase; context: { path: 'project/dashboard/discover', phase: ProjectPhase.Discover, icon: 'pi pi-search text-orange-500', stats: discover, ready: true }" />
+        <ng-container *ngTemplateOutlet="phase; context: { path: 'tasks/discover', phase: ProjectPhase.Discover, icon: 'pi pi-search text-orange-500', stats: discover, ready: true }" />
         <!-- Assess -->
-        <ng-container *ngTemplateOutlet="phase; context: { path: 'project/dashboard/assess', phase: ProjectPhase.Assess, icon: 'pi pi-chart-line text-blue-500', stats: assess, ready: false }" />
+        <ng-container *ngTemplateOutlet="phase; context: { path: 'tasks/assess', phase: ProjectPhase.Assess, icon: 'pi pi-chart-line text-blue-500', stats: assess, ready: false }" />
       </div>
     </div>
     <div class="flex flex-column gap-3 w-full">
@@ -120,13 +120,13 @@
       <!-- Phases -->
       <div class="flex flex-column md:flex-row gap-3 flex-1">
         <!-- Design -->
-        <ng-container *ngTemplateOutlet="phase; context: { path: 'project/dashboard/design', phase: ProjectPhase.Design, icon: 'pi pi-pencil text-purple-500', stats: design, ready: false }" />
+        <ng-container *ngTemplateOutlet="phase; context: { path: 'tasks/design', phase: ProjectPhase.Design, icon: 'pi pi-pencil text-purple-500', stats: design, ready: false }" />
         <!-- Approve -->
         <ng-container
           *ngTemplateOutlet="
             phase;
             context: {
-              path: 'project/dashboard/approve',
+              path: 'tasks/approve',
               phase: ProjectPhase.Approve,
               icon: (selectedItems.length / checklist.length) * 100 === 100 ? 'pi pi-check-circle text-green-500' : 'pi pi-check-circle text-red-500',
               stats: approve,

@@ -536,7 +536,7 @@ h1 + p {
   bottom: calc(100% + 0.5rem);
   left: 50%;
   transform: translateX(-50%);
-  background: var(--p-primary-600);
+  background: var(--p-surface-600);
   color: var(--p-surface-0);
   padding: 0.35rem 0.6rem;
   border-radius: var(--p-border-radius-md);

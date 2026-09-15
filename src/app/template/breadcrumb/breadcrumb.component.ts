@@ -19,17 +19,16 @@ import { UserSettingsService } from '../../services/user-settings.service';
 
 import { environment } from '../../../environments/environment';
 
-const HOME: MenuItem = { icon: 'pi pi-home', route: '/' };
+const HOME: MenuItem = { label: 'common.home', route: '/', icon: 'pi pi-home' };
 const PROJECT: MenuItem = { label: 'nav.project', route: '/project' };
-const PROJECT_DASHBOARD: MenuItem = { label: 'dashboard._title', route: '/project/dashboard' };
 const TASKS: MenuItem = { label: 'nav.tasks', route: '/tasks' };
 const STANDALONE: MenuItem = { label: 'standalone._title', route: '/standalone' };
 const DEV: MenuItem = { label: 'dev._title', route: '/dev' };
 
 const BREADCRUMB_ANCESTORS: Record<string, MenuItem[]> = {
-  project: [HOME, PROJECT],
-  'project.dashboard': [HOME, PROJECT, PROJECT_DASHBOARD],
-  tasks: [HOME, TASKS],
+  home: [HOME],
+  'home.project': [HOME, PROJECT],
+  'home.tasks': [HOME, TASKS],
   standalone: [STANDALONE],
   dev: [DEV],
 };

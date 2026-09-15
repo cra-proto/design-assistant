@@ -2,22 +2,24 @@
   <div class="flex flex-row justify-content-between align-items-center pl-2 mx-3 border-bottom-1 border-200">
     <h1 class="mb-2 noline">{{ 'iaDiagram._title' | translate }}</h1>
     <div class="flex flex-row align-items-end">
-      <div class="flex flex-wrap gap-3 min-w-min -mb-2">
-        @for (item of legendItems; track item.text) {
-          <div class="flex align-items-center gap-1">
-            @for (colour of item.context; track $index) {
-              <div [ngClass]="colour" class="legend-box border-2 border-primary border-round shadow-2"></div>
-            }
-            <span class="legend-text">{{ item.text | translate }}</span>
-          </div>
-        }
-        @if (hasIaOrphan) {
-          <div class="flex align-items-center gap-1">
-            <i class="pi pi-times text-red-500"></i>
-            <span class="legend-text">{{ 'editNode.isOrphan' | translate }}</span>
-          </div>
-        }
-      </div>
+      @if (legendItems) {
+        <div class="flex flex-wrap gap-3 min-w-min -mb-2">
+          @for (item of legendItems; track item.text) {
+            <div class="flex align-items-center gap-1">
+              @for (colour of item.context; track $index) {
+                <div [ngClass]="colour" class="legend-box border-2 border-primary border-round shadow-2"></div>
+              }
+              <span class="legend-text">{{ item.text | translate }}</span>
+            </div>
+          }
+          @if (hasIaOrphan) {
+            <div class="flex align-items-center gap-1">
+              <i class="pi pi-times text-red-500"></i>
+              <span class="legend-text">{{ 'editNode.isOrphan' | translate }}</span>
+            </div>
+          }
+        </div>
+      }
       <p-button [attr.aria-label]="'common.close' | translate" (onClick)="iaDiagram.closeDiagram()" class="align-items-start mb-1" icon="pi pi-times" rounded text />
     </div>
   </div>
@@ -27,49 +29,60 @@
     <div class="flex flex-row absolute z-1 ml-4">
       <aida-project-settings [showLang]="true" [showViewIA]="true" ] />
     </div>
-    <!--IA Diagram-->
-    <p-organization-chart [value]="projectTree()">
-      <ng-template let-node pTemplate="default">
-        <!--ORPHAN STATUS-->
-        @if (projectCache.selectedLang() === 'en' ? node.data.live.en.isOrphan : node.data.live.fr.isOrphan) {
-          <div class="-mt-6 mb-6">
-            <i [pTooltip]="'iaDiagram.tooltip.orphan' | translate" class="pi pi-times text-red-500" tooltipPosition="top" tooltipStyleClass="z-200"></i>
+    @if (projectTree().length > 0) {
+      <!--IA Diagram-->
+      <p-organization-chart [value]="projectTree()">
+        <ng-template let-node pTemplate="default">
+          <!--ORPHAN STATUS-->
+          @if (projectCache.selectedLang() === 'en' ? node.data.live.en.isOrphan : node.data.live.fr.isOrphan) {
+            <div class="-mt-6 mb-6">
+              <i [pTooltip]="'iaDiagram.tooltip.orphan' | translate" class="pi pi-times text-red-500" tooltipPosition="top" tooltipStyleClass="z-200"></i>
+            </div>
+          }
+          <!--PAGE-->
+          <p-button (click)="onMenuClick($event, node)" class="absolute top-0 right-0 -mt-1 -mr-1" icon="pi pi-ellipsis-h" size="small" text />
+          <div (dragleave)="onDragLeave(node)" (dragover)="onDragOver($event, node)" (dragstart)="onDragStart(node)" (drop)="onDrop()" class="h-full">
+            <p class="pb-2">
+              <a
+                [class.cursor-move]="projectCache.selectedViewIA() === 'changes'"
+                [href]="projectCache.selectedLang() === 'en' ? `https://www.canada.ca/${node.data.path.en}` : `https://www.canada.ca/${node.data.path.fr}`"
+                [innerHTML]="getH1Display(node)"
+                (click)="$event.preventDefault()"
+                target="_blank"
+              ></a>
+            </p>
+            @if (node.data.collapsedChildren?.length || node.data.hiddenChildrenUrls?.length) {
+              <i
+                [pTooltip]="'iaDiagram.tooltip.hiddenPages' | translate: { number: node.data.collapsedChildren?.length + node.data.hiddenChildrenUrls?.length }"
+                class="pi pi-eye-slash text-sm text-color-secondary opacity-70 absolute bottom-0 right-0 mb-1 mr-2"
+                tooltipPosition="top"
+                tooltipStyleClass="z-200"
+              ></i>
+            }
+            @if (!node.data.isCrawled && !node.data.isNavChild && !node.data.status.isNew && projectCache.selectedViewIA() === 'changes') {
+              <p-button
+                [loading]="addUrlsService.urlState().isAdding"
+                (click)="addUrlsService.addChildren(node, primaryLang)"
+                class="absolute left-50 -translate-x-50 bottom-0 -mb-1"
+                icon="pi pi-plus-circle"
+                rounded
+                size="small"
+                text
+              />
+            }
           </div>
-        }
-        <!--PAGE-->
-        <p-button (click)="onMenuClick($event, node)" class="absolute top-0 right-0 -mt-1 -mr-1" icon="pi pi-ellipsis-h" size="small" text />
-        <div (dragleave)="onDragLeave(node)" (dragover)="onDragOver($event, node)" (dragstart)="onDragStart(node)" (drop)="onDrop()" class="h-full">
-          <p class="pb-2">
-            <a
-              [class.cursor-move]="projectCache.selectedViewIA() === 'changes'"
-              [href]="projectCache.selectedLang() === 'en' ? `https://www.canada.ca/${node.data.path.en}` : `https://www.canada.ca/${node.data.path.fr}`"
-              [innerHTML]="getH1Display(node)"
-              (click)="$event.preventDefault()"
-              target="_blank"
-            ></a>
-          </p>
-          @if (node.data.collapsedChildren?.length || node.data.hiddenChildrenUrls?.length) {
-            <i
-              [pTooltip]="'iaDiagram.tooltip.hiddenPages' | translate: { number: node.data.collapsedChildren?.length + node.data.hiddenChildrenUrls?.length }"
-              class="pi pi-eye-slash text-sm text-color-secondary opacity-70 absolute bottom-0 right-0 mb-1 mr-2"
-              tooltipPosition="top"
-              tooltipStyleClass="z-200"
-            ></i>
-          }
-          @if (!node.data.isCrawled && !node.data.isNavChild && !node.data.status.isNew && projectCache.selectedViewIA() === 'changes') {
-            <p-button
-              [loading]="addUrlsService.urlState().isAdding"
-              (click)="addUrlsService.addChildren(node, primaryLang)"
-              class="absolute left-50 -translate-x-50 bottom-0 -mb-1"
-              icon="pi pi-plus-circle"
-              rounded
-              size="small"
-              text
-            />
-          }
+        </ng-template>
+      </p-organization-chart>
+    } @else {
+      <div class="flex justify-content-center mt-8">
+        <div class="flex flex-column gap-2">
+          <p>{{ 'inventory.emptyMessage' | translate }}</p>
+          <a class="no-underline" pButton routerLink="/tasks/add-pages">
+            <span class="flex gap-2" pButtonLabel><span class="material-icons-outlined">note_add</span>{{ 'addPages._nav' | translate }}</span>
+          </a>
         </div>
-      </ng-template>
-    </p-organization-chart>
+      </div>
+    }
   </div>
 </div>
 <!--Context Menu-->

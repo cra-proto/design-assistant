@@ -31,18 +31,17 @@ import { ProjectStateService } from './services/project-state.service';
 export const landingGuard = () => {
   const router = inject(Router);
   const projectStorageService = inject(ProjectStorageService);
-  if (projectStorageService.hasActiveProject()) {
-    return router.createUrlTree(['project/dashboard']);
-  } else {
+  if (!projectStorageService.hasActiveProject()) {
     return router.createUrlTree(['project/new']);
   }
+  return true;
 };
 
 export const editProjectGuard = () => {
   const router = inject(Router);
   const projectState = inject(ProjectStateService);
-  const name = projectState.getProject().projectName;
-  if (!name) {
+  const hasPages = projectState.getProject().baselinePages > 0;
+  if (!hasPages) {
     return router.createUrlTree(['/project/new']);
   }
   return true;
@@ -52,6 +51,7 @@ export const routes: Routes = [
   //PROJECT PATHS
   {
     path: '',
+    component: DashboardComponent,
     canActivate: [landingGuard],
     title: environment.production ? '_app._title' : environment.sandbox ? '_app._title.sandbox' : '_app._title.dev',
     children: [],
@@ -60,74 +60,76 @@ export const routes: Routes = [
     path: 'project',
     component: ProjectComponent,
     title: 'nav.project',
+    data: { breadcrumbKey: 'home' },
   },
   {
     path: 'project/dashboard',
     component: DashboardComponent,
     title: 'dashboard._title',
-    data: { breadcrumbKey: 'project' },
+    data: { breadcrumbKey: 'home.project' },
   },
   {
     path: 'project/switch',
     component: SwitchProjectComponent,
     title: 'switch._title',
-    data: { breadcrumbKey: 'project' },
+    data: { breadcrumbKey: 'home.project' },
   },
   {
     path: 'project/new',
     component: EditProjectComponent,
     title: 'project._nav.new',
-    data: { breadcrumbKey: 'project' },
+    data: { breadcrumbKey: 'home.project' },
   },
   {
     path: 'project/edit',
     component: EditProjectComponent,
     canActivate: [editProjectGuard],
     title: 'project._nav.edit',
-    data: { breadcrumbKey: 'project' },
+    data: { breadcrumbKey: 'home.project' },
   },
   //PHASE TOPIC PAGES
   {
-    path: 'project/dashboard/discover',
+    path: 'tasks/discover',
     component: DiscoverComponent,
     title: 'project.phase.discover',
-    data: { breadcrumbKey: 'project.dashboard' },
+    data: { breadcrumbKey: 'home.tasks' },
   },
   {
-    path: 'project/dashboard/assess',
+    path: 'tasks/assess',
     component: AssessComponent,
     title: 'project.phase.assess',
-    data: { breadcrumbKey: 'project.dashboard' },
+    data: { breadcrumbKey: 'home.tasks' },
   },
   {
-    path: 'project/dashboard/design',
+    path: 'tasks/design',
     component: DesignComponent,
     title: 'project.phase.design',
-    data: { breadcrumbKey: 'project.dashboard' },
+    data: { breadcrumbKey: 'home.tasks' },
   },
   {
-    path: 'project/dashboard/approve',
+    path: 'tasks/approve',
     component: ApproveComponent,
     title: 'project.phase.approve',
-    data: { breadcrumbKey: 'project.dashboard' },
+    data: { breadcrumbKey: 'home.tasks' },
   },
   //TASK PATHS
   {
     path: 'tasks',
     component: TasksComponent,
     title: 'nav.tasks',
+    data: { breadcrumbKey: 'home' },
   },
   {
     path: 'tasks/add-pages',
     loadComponent: () => import('./views/tasks/add-pages/add-pages.component').then((m) => m.AddPagesComponent),
     title: 'addPages._title',
-    data: { breadcrumbKey: 'tasks' },
+    data: { breadcrumbKey: 'home.tasks' },
   },
   {
     path: 'tasks/inventory',
     loadComponent: () => import('./views/tasks/manage-inventory/inventory.component').then((m) => m.InventoryComponent),
     title: 'inventory._title',
-    data: { breadcrumbKey: 'tasks' },
+    data: { breadcrumbKey: 'home.tasks' },
   },
   {
     path: 'tasks/ia-diagram',
@@ -138,13 +140,13 @@ export const routes: Routes = [
     path: 'tasks/export-pages',
     loadComponent: () => import('./views/tasks/export-pages/export.component').then((m) => m.ExportComponent),
     title: 'exportPages._nav',
-    data: { breadcrumbKey: 'tasks' },
+    data: { breadcrumbKey: 'home.tasks' },
   },
   {
     path: 'tasks/compare',
     loadComponent: () => import('./views/tasks/compare-versions/compare.component').then((m) => m.CompareComponent),
     title: 'compare._title',
-    data: { breadcrumbKey: 'tasks' },
+    data: { breadcrumbKey: 'home.tasks' },
   },
   //UTILITY PATHS
   {
@@ -162,11 +164,13 @@ export const routes: Routes = [
     path: 'help',
     loadComponent: () => import('./views/utility/help/help.component').then((m) => m.HelpComponent),
     title: 'help._title',
+    data: { breadcrumbKey: 'home' },
   },
   {
     path: 'about-us',
     loadComponent: () => import('./views/utility/about-us/about.component').then((m) => m.AboutComponent),
     title: 'about._title',
+    data: { breadcrumbKey: 'home' },
   },
   //TOOLBOX PAGES
   {

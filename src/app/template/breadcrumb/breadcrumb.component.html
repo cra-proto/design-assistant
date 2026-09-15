@@ -27,7 +27,9 @@
     <p-breadcrumb [model]="breadcrumbs()" styleClass="pt-1 pl-0 text-color-secondary">
       <ng-template let-item pTemplate="item">
         @if (item.route && item.icon) {
-          <a [class]="item.icon" [routerLink]="item.route" class="p-menuitem-link no-underline"></a>
+          <a [class]="item.icon" [routerLink]="item.route" class="p-menuitem-text no-underline">
+            <span class="sr-only">{{ item.label | translate }}</span>
+          </a>
         } @else if (item.route && item.label) {
           <a [routerLink]="item.route" class="p-menuitem-link">{{ item.label | translate }}</a>
         } @else if (item.label) {
