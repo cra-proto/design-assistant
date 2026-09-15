@@ -518,11 +518,22 @@ h1:not(.noline) {
   border-image-slice: 1;
   margin-bottom: 0.5rem;
   margin-top: 0.5rem;
+  letter-spacing: 0.01em;
 }
 
+/*After H1*/
 h1 + p {
   margin-top: 0.5rem;
   max-width: 130ch;
+}
+
+/*Before H1*/
+p:has(+ h1) {
+  margin-bottom: -0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--p-surface-400);
 }
 
 /* AIDA Custom tooltip CSS */

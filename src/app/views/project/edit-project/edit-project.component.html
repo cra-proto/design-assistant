@@ -1,5 +1,8 @@
-<h1 id="wb-cont">{{ (hasName ? 'project._nav.edit' : 'project._nav.new') | translate }}</h1>
-<p>{{ 'project.edit.description' | translate }}{{ 'project.edit.description2' | translate }}</p>
+@if (projectState.getProject().projectName) {
+  <p>{{ projectState.getProject().projectName }}</p>
+}
+<h1 id="wb-cont">{{ (hasName || hasPages ? 'project._nav.edit' : 'project._nav.new') | translate }}</h1>
+<p>{{ (hasName || hasPages ? 'project.edit.description' : 'project.new.description') | translate }}{{ 'project.edit.description2' | translate }}</p>
 
 <!--Messages if user has required actions that affect the app globally-->
 @if (!hasName) {

@@ -1,6 +1,9 @@
 <div [class.min-w-min]="projectState.selectedInventoryView() === 'table'">
   <div class="flex flex-row flex-wrap justify-content-between sticky-horizontal">
     <div>
+      @if (projectName) {
+        <p>{{ projectName }}</p>
+      }
       <h1 id="wb-cont">{{ 'inventory._title' | translate }}</h1>
       <p>{{ 'inventory.description' | translate }}{{ 'inventory.description2' | translate }}</p>
     </div>

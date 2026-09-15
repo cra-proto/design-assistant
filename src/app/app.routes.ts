@@ -40,9 +40,22 @@ export const landingGuard = () => {
 export const editProjectGuard = () => {
   const router = inject(Router);
   const projectState = inject(ProjectStateService);
-  const hasPages = projectState.getProject().baselinePages > 0;
-  if (!hasPages) {
+  const hasPages = !!projectState.getProject().baselinePages;
+  const hasName = !!projectState.getProject().projectName;
+  if (!hasPages && !hasName) {
     return router.createUrlTree(['/project/new']);
+  }
+  return true;
+};
+
+export const newProjectGuard = () => {
+  const projectState = inject(ProjectStateService);
+  const projectStorageService = inject(ProjectStorageService);
+  const hasPages = !!projectState.getProject().baselinePages;
+  const hasName = !!projectState.getProject().projectName;
+  if (hasPages || hasName) {
+    projectStorageService.clearActiveProject();
+    projectState.resetProject();
   }
   return true;
 };
@@ -77,6 +90,7 @@ export const routes: Routes = [
   {
     path: 'project/new',
     component: EditProjectComponent,
+    canActivate: [newProjectGuard],
     title: 'project._nav.new',
     data: { breadcrumbKey: 'home.project' },
   },

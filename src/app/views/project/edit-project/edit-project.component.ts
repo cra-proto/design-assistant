@@ -31,6 +31,11 @@ export class EditProjectComponent {
     return !!name;
   }
 
+  get hasPages(): boolean {
+    const pages = this.projectState.getProject().baselinePages;
+    return !!pages;
+  }
+
   get hasRepo(): boolean {
     const repo = this.projectState.getProject().github.repo;
     return !!repo;

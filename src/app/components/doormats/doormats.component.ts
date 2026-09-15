@@ -19,6 +19,7 @@ export const DOORMATS = {
   //Project
   dashboard: { path: '/project/dashboard', titleKey: 'dashboard._title', descriptionKey: 'dashboard.description' },
   editProject: { path: '/project/edit', titleKey: 'project._nav.edit', descriptionKey: 'project.edit.description' },
+  newProject: { path: '/project/new', titleKey: 'project._nav.new', descriptionKey: 'project.new.description' },
   switchProject: { path: '/project/switch', titleKey: 'switch._title', descriptionKey: 'switch.description' },
   //Tasks
   addPages: { path: '/tasks/add-pages', titleKey: 'addPages._nav', descriptionKey: 'addPages.description' },

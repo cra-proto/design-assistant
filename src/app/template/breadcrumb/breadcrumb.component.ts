@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRouteSnapshot, isActive, NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { filter, map, startWith } from 'rxjs/operators';
@@ -114,5 +115,9 @@ export class BreadcrumbComponent {
     const iconTooltip = project.storageType === 'cloud' ? this.translate.instant('project.setup.storage.cloudInfo') : this.translate.instant('project.setup.storage.localWarning');
 
     return { projectLabel, icon, iconTooltip, tagLabel, tagTooltip, tagSeverity, tagIcon };
+  }
+
+  markForTranslation() {
+    marker('common.home');
   }
 }

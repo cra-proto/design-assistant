@@ -80,6 +80,7 @@ export class InventoryComponent implements OnInit {
   protected readonly iaDiagram = inject(IaDiagramService);
 
   // Variables
+  protected readonly projectName = this.projectState.getProject().projectName;
   private readonly lang = this.projectState.detectPrimaryLanguage();
   private readonly github = this.projectState.getProject().github;
 

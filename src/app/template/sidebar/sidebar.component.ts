@@ -38,14 +38,16 @@ export class SidebarComponent {
   protected production = environment.production;
   protected sandbox = environment.sandbox;
 
-  protected get projectLoaded(): boolean {
-    const name = this.projectState.getProject().projectName;
-    return !!name;
+  protected get hasName(): boolean {
+    return !!this.projectState.getProject().projectName;
   }
 
   protected get hasPages(): boolean {
-    const count = this.projectState.getProject().baselinePages;
-    return !!count;
+    return !!this.projectState.getProject().baselinePages;
+  }
+
+  protected isActive(path?: string): boolean {
+    return !!path && this.router.url === '/' + path;
   }
 
   // Section toggle state
@@ -66,22 +68,20 @@ export class SidebarComponent {
 
   protected readonly newProject = (event?: MouseEvent | KeyboardEvent) => {
     event?.preventDefault();
-    if (this.hasPages) {
+    if (this.hasPages && !this.hasName) {
       this.confirmationService.confirm({
         target: event?.target as EventTarget,
         message: this.translate.instant('project.new.confirmMessage'),
         icon: 'pi pi-exclamation-circle text-red-500',
         acceptButtonProps: {
-          label: this.translate.instant('common.overwrite'),
+          acceptLabel: this.translate.instant('common.overwrite'),
           severity: 'danger',
         },
         accept: () => {
-          this.projectStorageService.clearActiveProject();
-          this.projectState.resetProject();
           this.router.navigate(['/project/new']);
         },
         rejectButtonProps: {
-          label: this.translate.instant('common.cancel'),
+          rejectLabel: this.translate.instant('common.cancel'),
           severity: 'secondary',
           outlined: true,
           styleClass: 'secondary-outline',
@@ -91,8 +91,6 @@ export class SidebarComponent {
         },
       });
     } else {
-      this.projectStorageService.clearActiveProject();
-      this.projectState.resetProject();
       this.router.navigate(['/project/new']);
     }
   };
@@ -100,11 +98,13 @@ export class SidebarComponent {
   protected readonly mailTo = () => {
     this.mailtoService.openMailto(this.mailtoService.generateFeedbackMailto());
   };
-  protected readonly checkStatus = () => {
+  protected readonly compareVersions = () => {
     this.projectCache.checkLocalStatus();
     this.projectCache.checkPreviewStatus();
+    this.router.navigate(['/tasks/compare']);
   };
-  protected readonly checkLocalStatus = () => {
+  protected readonly exportPages = () => {
     this.projectCache.checkLocalStatus();
+    this.router.navigate(['/tasks/export-pages']);
   };
 }
