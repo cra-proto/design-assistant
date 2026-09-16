@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { ConfirmationService, MenuItem, SelectItem, SelectItemGroup, SortEvent, TreeNode } from 'primeng/api';
+import { ConfirmationService, MenuItem, SelectItemGroup, SortEvent, TreeNode } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ContextMenu, ContextMenuModule } from 'primeng/contextmenu';
@@ -18,7 +18,6 @@ import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
-import { TooltipModule } from 'primeng/tooltip';
 
 import { AddUrlsComponent } from '../../../components/add-urls/add-urls.component';
 import { EditNodeComponent } from '../../../components/edit-node/edit-node.component';
@@ -35,6 +34,7 @@ import { COLUMN_GROUPS, ColumnGroups, FIELD_FILTERS, FlattenedTreeNode, Metadata
 import { isKnownNumber } from '../../../common/phone-numbers.config';
 import { InventoryPrompts } from '../../../common/prompts/inventory.prompts';
 import { InventoryPromptKey } from '../../../common/prompts/prompt.model';
+import { TooltipDirective } from '../../../common/tooltip.directive';
 
 export interface BooleanToggleItem extends MenuItem {
   type: 'booleanToggle';
@@ -60,12 +60,12 @@ export interface BooleanToggleItem extends MenuItem {
     TableModule,
     TagModule,
     TextareaModule,
-    TooltipModule,
     AddUrlsComponent,
     EditNodeComponent,
     ExportProjectComponent,
     FindPagesComponent,
     IaTableComponent,
+    TooltipDirective,
   ],
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.css',
@@ -80,6 +80,7 @@ export class InventoryComponent implements OnInit {
   protected readonly iaDiagram = inject(IaDiagramService);
 
   // Variables
+  protected readonly projectName = this.projectState.getProject().projectName;
   private readonly lang = this.projectState.detectPrimaryLanguage();
   private readonly github = this.projectState.getProject().github;
 
@@ -101,8 +102,8 @@ export class InventoryComponent implements OnInit {
 
   public selectedNodes: FlattenedTreeNode[] = []; // Flattened TreeNode data (for bulk actions - refresh, generate metadata, delete etc.)
 
-  public selectedColumnFields: string[] = []; // Multiselect column data
-  public selectedGroups: string[] = []; // Multiselect group data
+  protected readonly selectedColumnFields = signal<string[]>([]); // Multiselect column data
+  protected readonly selectedGroups = signal<string[]>([]); // Multiselect group data
 
   private currentEditNode: FlattenedTreeNode | undefined; // Flattened TreeNode data (for individual actions - edit node, context menus etc.)
   private currentEditCol: TableColumn | undefined; // Table column (for determining which field is being edited or accessing other column properties)
@@ -130,25 +131,28 @@ export class InventoryComponent implements OnInit {
   protected itemsContext: MenuItem[] = []; // context menu items (dynamically built)
   protected itemsDropdown: MenuItem[] = []; // dropdown menu items (dynamically built)
 
+  protected readonly numberLocale = computed(() => (this.translate.currentLang() === 'en' ? 'en-CA' : 'fr-CA'));
+
   /***********************************************************/
 
   // Update column visibility on first load
   ngOnInit() {
     this.loadColumnVisibility(); // Loads previous settings
-    this.updateVisibleColumns(); // Updates table
   }
 
   private loadColumnVisibility() {
     const storedColumns = localStorage.getItem(this.COLUMN_KEY);
     const storedGroups = localStorage.getItem(this.GROUP_KEY);
     if (storedColumns && storedGroups) {
-      this.selectedGroups = JSON.parse(storedGroups);
-      this.selectedColumnFields = JSON.parse(storedColumns);
+      this.selectedGroups.set(JSON.parse(storedGroups));
+      this.selectedColumnFields.set(JSON.parse(storedColumns));
     } else {
       // Use default values
-      this.selectedColumnFields = this.allColumns()
-        .filter((col) => col.visibleByDefault && !col.frozen) //We exclude frozen here since visibility is not toggleable for those
-        .map((col) => col.field);
+      this.selectedColumnFields.set(
+        this.allColumns()
+          .filter((col) => col.visibleByDefault && !col.frozen) //We exclude frozen here since visibility is not toggleable for those
+          .map((col) => col.field),
+      );
     }
     // Sync selected groups from selected fields
     this.syncSelectedGroups();
@@ -235,60 +239,56 @@ export class InventoryComponent implements OnInit {
     });
   });
 
-  // Get column group headings (includes frozen)
-  protected get groupedHeaders() {
-    const allGroups = this.columnGroups;
-    const groups = allGroups.filter((g) => {
-      const hasFrozenColumns = this.allColumns().some((col) => col.group === g && col.frozen);
-      return this.selectedGroups.includes(g) || hasFrozenColumns;
+  /**  Get column group headings (includes frozen) */
+  protected readonly groupedHeaders = computed(() => {
+    const cols = this.allColumns();
+    const selGroups = this.selectedGroups();
+    const groups = this.columnGroups().filter((group) => {
+      const hasFrozenColumns = cols.some((col) => col.group === group && col.frozen);
+      return selGroups.includes(group) || hasFrozenColumns;
     });
 
     return groups.map((groupKey) => ({
       label: this.translate.instant(`inventory.columnGroups.${groupKey}`),
       value: groupKey,
-      // Include ALL columns (frozen + non-frozen) for header span calculation
-      items: this.allColumns()
-        .filter((col) => col.group === groupKey)
-        .map((col) => ({
-          label: col.label,
-          value: col.field,
-        })),
+      items: cols.filter((col) => col.group === groupKey).map((col) => ({ label: col.label, value: col.field })),
     }));
-  }
+  });
 
   // For colspan - count visible columns in group (including frozen)
   protected getVisibleColumnCount(group: SelectItemGroup): number {
-    return group.items.filter((item: SelectItem) => {
-      const col = this.allColumns().find((c) => c.field === item.value);
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      return col?.frozen || this.selectedColumnFields.includes(item.value);
-    }).length;
+    return this.columnMeta().visibleCount.get(group.value as string) ?? 0;
   }
 
   // For column borders
   protected isLastInGroup(field: string): boolean {
-    // Find which group this column belongs to
-    const group = this.groupedHeaders.find((g) => g.items.some((item: SelectItem) => item.value === field));
-
-    if (!group) return false;
-
-    // Get visible columns in this group
-    const visibleInGroup = group.items
-      .filter((item: SelectItem) => {
-        const col = this.allColumns().find((c) => c.field === item.value);
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return col?.frozen || this.selectedColumnFields.includes(item.value);
-      })
-      .map((item: SelectItem) => item.value);
-
-    // Check if this is the last visible column
-    const isLast = visibleInGroup[visibleInGroup.length - 1] === field;
-
-    // Don't add border after the very last group
-    const isLastGroup = this.groupedHeaders[this.groupedHeaders.length - 1].value === group.value;
-
-    return isLast && !isLastGroup;
+    return this.columnMeta().lastInGroup.get(field) ?? false;
   }
+
+  protected readonly columnMeta = computed(() => {
+    const lastInGroup = new Map<string, boolean>();
+    const visibleCount = new Map<string, number>();
+    const headers = this.groupedHeaders();
+    const cols = this.allColumns();
+    const selFields = this.selectedColumnFields();
+
+    const isVisible = (field: string) => {
+      const col = cols.find((c) => c.field === field);
+      //eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      return col?.frozen || selFields.includes(field);
+    };
+
+    headers.forEach((group, groupIndex) => {
+      const visibleInGroup = group.items.filter((item) => isVisible(item.value)).map((item) => item.value);
+      visibleCount.set(group.value, visibleInGroup.length);
+
+      const isLastGroup = groupIndex === headers.length - 1;
+      const lastField = visibleInGroup[visibleInGroup.length - 1];
+      if (lastField && !isLastGroup) lastInGroup.set(lastField, true);
+    });
+
+    return { lastInGroup, visibleCount };
+  });
 
   // Table - returns the value of a cell (used by getBooleanIcon)
   protected getBooleanValue(node: FlattenedTreeNode, col: TableColumn): boolean {
@@ -337,39 +337,35 @@ export class InventoryComponent implements OnInit {
 
   // 1. Visible column dropdowns
 
-  // All column groups
-  private get columnGroups() {
+  /** All column groups */
+  protected readonly columnGroups = computed(() => {
     const groups = [...COLUMN_GROUPS];
     if (this.translate.currentLang()?.startsWith('fr')) {
       [groups[0], groups[1]] = [groups[1], groups[0]];
     }
     return groups;
-  }
+  });
 
-  // Multiselect - visible groups
-  protected get groups() {
-    return this.columnGroups.map((groupKey) => ({
+  /** Multiselect - visible groups */
+  protected readonly groups = computed(() =>
+    this.columnGroups().map((groupKey) => ({
       label: this.translate.instant(`inventory.columnGroups.${groupKey}`),
       value: groupKey,
-    }));
-  }
+    })),
+  );
 
-  // Multiselect - visible columns
-  protected get groupedColumns() {
-    const allGroups = this.columnGroups;
-    const groups = allGroups.filter((g) => this.selectedGroups.includes(g));
+  /** Multiselect - visible columns */
+  protected readonly groupedColumns = computed(() => {
+    const cols = this.allColumns();
+    const selGroups = this.selectedGroups();
+    const groups = this.columnGroups().filter((g) => selGroups.includes(g));
 
     return groups.map((groupKey) => ({
       label: this.translate.instant(`inventory.columnGroups.${groupKey}`),
       value: groupKey,
-      items: this.allColumns()
-        .filter((col) => col.group === groupKey && !col.frozen) // exclude frozen from selection (frozen = always visible)
-        .map((col) => ({
-          label: col.label,
-          value: col.field,
-        })),
+      items: cols.filter((col) => col.group === groupKey && !col.frozen).map((col) => ({ label: col.label, value: col.field })),
     }));
-  }
+  });
 
   // Multiselect - column selection change handler
   protected onColumnSelectionChange() {
@@ -379,10 +375,27 @@ export class InventoryComponent implements OnInit {
   }
 
   // Multiselect - group selection change handler
-  protected onGroupSelectionChange() {
-    this.selectedColumnFields = this.allColumns()
-      .filter((col) => !col.frozen && this.selectedGroups.includes(col.group))
-      .map((col) => col.field);
+  protected onGroupSelectionChange(event: { value: string[] }) {
+    const newGroups = event.value;
+    const oldGroups = this.selectedGroups();
+    const addedGroups = newGroups.filter((group) => !oldGroups.includes(group));
+    const removedGroups = oldGroups.filter((group) => !newGroups.includes(group));
+    let updatedFields = this.selectedColumnFields();
+    if (removedGroups.length) {
+      updatedFields = updatedFields.filter((field) => {
+        const col = this.allColumns().find((col) => col.field === field);
+        return !col || !removedGroups.includes(col.group);
+      });
+    }
+    if (addedGroups.length) {
+      const newFields = this.allColumns()
+        .filter((col) => !col.frozen && addedGroups.includes(col.group))
+        .map((col) => col.field);
+      updatedFields = [...updatedFields, ...newFields];
+    }
+
+    this.selectedGroups.set(newGroups);
+    this.selectedColumnFields.set(updatedFields);
     this.updateVisibleColumns();
     this.saveColumnVisibility();
   }
@@ -400,24 +413,26 @@ export class InventoryComponent implements OnInit {
       });
 
     //Fully selected groups
-    this.selectedGroups = Array.from(groupMembers.entries())
-      .filter(([, fields]) => {
-        const hasAnySelected = fields.some((field) => this.selectedColumnFields.includes(field));
-        return hasAnySelected;
-      })
-      .map(([group]) => group);
+    this.selectedGroups.set(
+      Array.from(groupMembers.entries())
+        .filter(([, fields]) => {
+          const hasAnySelected = fields.some((field) => this.selectedColumnFields().includes(field));
+          return hasAnySelected;
+        })
+        .map(([group]) => group),
+    );
   }
 
   // Local storage - save column visibility settings
   private saveColumnVisibility() {
-    localStorage.setItem(this.COLUMN_KEY, JSON.stringify(this.selectedColumnFields));
-    localStorage.setItem(this.GROUP_KEY, JSON.stringify(this.selectedGroups));
+    localStorage.setItem(this.COLUMN_KEY, JSON.stringify(this.selectedColumnFields()));
+    localStorage.setItem(this.GROUP_KEY, JSON.stringify(this.selectedGroups()));
   }
 
   // Update visible columns & check if any data should autoexpand
   private updateVisibleColumns() {
     this.frozenColumns.set(this.allColumns().filter((col) => col.frozen));
-    this.scrollableColumns.set(this.allColumns().filter((col) => !col.frozen && this.selectedColumnFields.includes(col.field)));
+    this.scrollableColumns.set(this.allColumns().filter((col) => !col.frozen && this.selectedColumnFields().includes(col.field)));
     this.checkAutoExpand();
   }
 
@@ -427,9 +442,11 @@ export class InventoryComponent implements OnInit {
     localStorage.removeItem('inventoryColumnVisibility');
     localStorage.removeItem('inventoryGroupVisibility');
     //Apply predefined column filter
-    this.selectedColumnFields = this.allColumns()
-      .filter(filter)
-      .map((col) => col.field);
+    this.selectedColumnFields.set(
+      this.allColumns()
+        .filter(filter)
+        .map((col) => col.field),
+    );
     this.syncSelectedGroups();
     this.updateVisibleColumns();
   }

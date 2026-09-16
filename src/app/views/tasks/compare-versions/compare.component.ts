@@ -33,6 +33,8 @@ export class CompareComponent {
   private htmlNormalizationService = inject(HtmlNormalizationService);
   private settingsService = inject(UserSettingsService);
 
+  protected readonly projectName = this.projectState.getProject().projectName;
+
   markForTranslation() {
     marker('compare.view.linebyline');
     marker('compare.view.sidebyside');

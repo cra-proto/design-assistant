@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 
 import { ProjectStorageService } from '../storage/project-storage.service';
+import { UserSettingsService } from '../user-settings.service';
 import { ExportGitHubService } from './export-github.service';
 
 import { GitHubUser, Project, ProjectMetadata } from '../../common/data.model';
@@ -9,8 +10,13 @@ import { GitHubUser, Project, ProjectMetadata } from '../../common/data.model';
 export class CollaboratorService {
   private projectStorageService = inject(ProjectStorageService);
   private exportGitHubService = inject(ExportGitHubService);
+  private settingsService = inject(UserSettingsService);
 
-  // Check if current user is a collaborator
+  /**
+   * Check if current user is a collaborator
+   *
+   * Accepts an optional user param to check if signed-out user is a collab
+   */
   canEditProject(project: ProjectMetadata | Project, user?: number): boolean {
     const currentUser = this.exportGitHubService.user(); // OAuth or PAT
     if (currentUser) {
@@ -26,6 +32,15 @@ export class CollaboratorService {
         return c.id === user;
       });
     } else return false;
+  }
+
+  /** Returns 2 booleans for if user is signed in and if they are a collaborator */
+  public getUploadAccessInfo(project: ProjectMetadata | Project): { isSignedIn: boolean; isCollaborator: boolean; hasCollaborators: boolean } {
+    const hasCollaborators = project.collaborators.length > 0;
+    const userId = Number.isNaN(Number(this.settingsService.userId())) ? undefined : Number(this.settingsService.userId());
+    const isCollaborator = this.canEditProject(project, userId);
+    const isSignedIn = !!this.exportGitHubService.user();
+    return { isSignedIn, isCollaborator, hasCollaborators };
   }
 
   // Get current user to add to new projects

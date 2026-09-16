@@ -1,3 +1,6 @@
+@if (projectData.projectName) {
+  <p>{{ projectData.projectName }}</p>
+}
 <h1 id="wb-cont">{{ 'dashboard._title' | translate }}</h1>
 <p>{{ 'dashboard.description' | translate }}{{ 'dashboard.description2' | translate }}</p>
 
@@ -93,40 +96,40 @@
   <div class="flex flex-column lg:flex-row gap-3 w-full">
     <div class="flex flex-column gap-3 w-full">
       <!-- Baseline -->
-      <div class="surface-card border-round-lg shadow-2 p-0 w-full min-w-min flex justify-content-center h-3rem">
+      <!--div class="surface-card border-round-lg shadow-2 p-0 w-full min-w-min flex justify-content-center h-3rem">
         @if (projectData.github.hasBaselineRepo) {
           <p-button (onClick)="openRepo(projectData.github, 'baseline')" class="w-full h-full" fluid icon="pi pi-github" label="View baseline repository" size="large" text />
         } @else {
           <h3 class="my-1 align-self-center">{{ 'common.version.baseline' | translate }}</h3>
         }
-      </div>
+      </div-->
       <!-- Phases -->
       <div class="flex flex-column md:flex-row gap-3 flex-1">
         <!-- Discover -->
-        <ng-container *ngTemplateOutlet="phase; context: { path: 'project/dashboard/discover', phase: ProjectPhase.Discover, icon: 'pi pi-search text-orange-500', stats: discover, ready: true }" />
+        <ng-container *ngTemplateOutlet="phase; context: { path: 'tasks/discover', phase: ProjectPhase.Discover, icon: 'pi pi-search text-orange-500', stats: discover, ready: true }" />
         <!-- Assess -->
-        <ng-container *ngTemplateOutlet="phase; context: { path: 'project/dashboard/assess', phase: ProjectPhase.Assess, icon: 'pi pi-chart-line text-blue-500', stats: assess, ready: false }" />
+        <ng-container *ngTemplateOutlet="phase; context: { path: 'tasks/assess', phase: ProjectPhase.Assess, icon: 'pi pi-chart-line text-blue-500', stats: assess, ready: false }" />
       </div>
     </div>
     <div class="flex flex-column gap-3 w-full">
       <!-- Prototype -->
-      <div class="surface-card border-round-lg shadow-2 p-0 w-full min-w-min flex justify-content-center h-3rem">
+      <!--div class="surface-card border-round-lg shadow-2 p-0 w-full min-w-min flex justify-content-center h-3rem">
         @if (projectData.github.repo) {
           <p-button (onClick)="openRepo(projectData.github, 'prototype')" class="w-full h-full" fluid icon="pi pi-github" label="View prototype repository" size="large" text />
         } @else {
           <h3 class="my-1 align-self-center">{{ 'common.version.prototype' | translate }}</h3>
         }
-      </div>
+      </div-->
       <!-- Phases -->
       <div class="flex flex-column md:flex-row gap-3 flex-1">
         <!-- Design -->
-        <ng-container *ngTemplateOutlet="phase; context: { path: 'project/dashboard/design', phase: ProjectPhase.Design, icon: 'pi pi-pencil text-purple-500', stats: design, ready: false }" />
+        <ng-container *ngTemplateOutlet="phase; context: { path: 'tasks/design', phase: ProjectPhase.Design, icon: 'pi pi-pencil text-purple-500', stats: design, ready: false }" />
         <!-- Approve -->
         <ng-container
           *ngTemplateOutlet="
             phase;
             context: {
-              path: 'project/dashboard/approve',
+              path: 'tasks/approve',
               phase: ProjectPhase.Approve,
               icon: (selectedItems.length / checklist.length) * 100 === 100 ? 'pi pi-check-circle text-green-500' : 'pi pi-check-circle text-red-500',
               stats: approve,

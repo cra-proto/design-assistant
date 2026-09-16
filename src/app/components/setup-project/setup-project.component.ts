@@ -59,8 +59,6 @@ export class SetupProjectComponent {
     // Manage routes for named projects
     if (this.router.url === '/project/new' && this.projectName) {
       this.router.navigate(['/project/edit']);
-    } else if (this.router.url === '/edit' && !this.projectName) {
-      this.router.navigate(['/project/new']);
     }
   }
 

@@ -3,13 +3,13 @@
     {{ (sandbox ? '_app.env.sandbox' : '_app.env.dev') | translate }}
   </div>
 } @else if (projectDisplay.projectLabel && isProjectRoute()) {
-  <div class="sticky top-0 z-50 flex align-items-center gap-2 white-space-nowrap ml-auto max-w-max">
+  <div class="sticky top-0 z-50 flex align-items-center gap-2 white-space-nowrap ml-auto max-w-max min-h-1.5">
     @if (projectDisplay.tagLabel) {
       <p-tag [icon]="projectDisplay.tagIcon" [pTooltip]="projectDisplay.tagTooltip" [severity]="projectDisplay.tagSeverity" [value]="projectDisplay.tagLabel" tooltipPosition="left" />
     }
     <a
       [ngClass]="rla.isActive ? ['bg-primary-50', 'text-primary-500'] : ['surface-card', 'text-color-secondary']"
-      class="no-underline border-round-bottom-xl"
+      class="no-underline border-round-bottom-xl hover:bg-primary-50 hover:text-primary-500"
       #rla="routerLinkActive"
       routerLink="/project/edit"
       routerLinkActive
@@ -23,12 +23,16 @@
 }
 
 @if (breadcrumbs().length > 0) {
-  <div [class.sm:-mt-4]="removeMargin">
+  <div [class.sm:-mt-4]="removeMargin" class="h-1.5">
     <p-breadcrumb [model]="breadcrumbs()" styleClass="pt-1 pl-0 text-color-secondary">
       <ng-template let-item pTemplate="item">
-        @if (item.route) {
+        @if (item.route && item.icon) {
+          <a [class]="item.icon" [routerLink]="item.route" class="p-menuitem-text no-underline">
+            <span class="sr-only">{{ item.label | translate }}</span>
+          </a>
+        } @else if (item.route && item.label) {
           <a [routerLink]="item.route" class="p-menuitem-link">{{ item.label | translate }}</a>
-        } @else {
+        } @else if (item.label) {
           <span class="p-menuitem-text">{{ item.label | translate }}</span>
         }
       </ng-template>

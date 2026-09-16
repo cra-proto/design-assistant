@@ -16,5 +16,5 @@ import { DoormatKey, DoormatsComponent } from '../../components/doormats/doormat
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectComponent {
-  protected readonly projectDoormats: DoormatKey[] = ['dashboard', 'editProject', 'switchProject'];
+  protected readonly projectDoormats: DoormatKey[] = ['editProject', 'newProject', 'switchProject'];
 }

@@ -49,6 +49,33 @@
     <p-message icon="pi pi-info-circle font-bold" severity="info">{{ 'collaborators.message.firstCollab' | translate }}</p-message>
   }
 }
+<!--VIEW MODE-->
+@if (mode() === 'view') {
+  <h2 class="text-xl my-1">{{ 'common.collaborators' | translate }}</h2>
+  @if (collaborators().length > 0) {
+    <ul class="list-unstyled">
+      @for (collab of collaborators(); track collab.id) {
+        <li>
+          <div class="flex flex-row justify-content-between align-items-center gap-2">
+            <div class="flex align-items-center gap-2">
+              <ng-container *ngTemplateOutlet="collabAvatar; context: { $implicit: collab, showName: true }" />
+            </div>
+            @if (collaboratorService.canEditProject(projectData())) {
+              <p-button
+                [pTooltip]="'collaborators.remove' | translate: { name: collaboratorService.getCollaboratorName(collab) }"
+                (onClick)="removeCollaborator(collab)"
+                icon="pi pi-trash"
+                rounded
+                severity="danger"
+                text
+              />
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+}
 <!-- GROUP MODE -->
 @if (mode() === 'dashboard' || mode() === 'switch') {
   @if (collaborators().length > 0) {

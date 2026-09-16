@@ -105,6 +105,7 @@ export class ExportComponent {
 
   private readonly defaultOrg = environment.defaultOrg;
   protected readonly ExportStatus = ExportStatus;
+  protected readonly projectName = this.projectState.getProject().projectName;
 
   //Signals
   protected readonly projectData = this.projectState.getProject;

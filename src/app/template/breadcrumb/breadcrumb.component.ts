@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRouteSnapshot, isActive, NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { filter, map, startWith } from 'rxjs/operators';
@@ -19,16 +20,16 @@ import { UserSettingsService } from '../../services/user-settings.service';
 
 import { environment } from '../../../environments/environment';
 
+const HOME: MenuItem = { label: 'common.home', route: '/', icon: 'pi pi-home' };
 const PROJECT: MenuItem = { label: 'nav.project', route: '/project' };
-const PROJECT_DASHBOARD: MenuItem = { label: 'dashboard._title', route: '/project/dashboard' };
 const TASKS: MenuItem = { label: 'nav.tasks', route: '/tasks' };
 const STANDALONE: MenuItem = { label: 'standalone._title', route: '/standalone' };
 const DEV: MenuItem = { label: 'dev._title', route: '/dev' };
 
 const BREADCRUMB_ANCESTORS: Record<string, MenuItem[]> = {
-  project: [PROJECT],
-  'project.dashboard': [PROJECT, PROJECT_DASHBOARD],
-  tasks: [TASKS],
+  home: [HOME],
+  'home.project': [HOME, PROJECT],
+  'home.tasks': [HOME, TASKS],
   standalone: [STANDALONE],
   dev: [DEV],
 };
@@ -47,7 +48,7 @@ export class BreadcrumbComponent {
   private collaboratorService = inject(CollaboratorService);
   private settingsService = inject(UserSettingsService);
 
-  protected readonly production = environment.production;
+  protected readonly production = !environment.production;
   protected readonly sandbox = environment.sandbox;
 
   protected readonly breadcrumbs = toSignal(
@@ -63,6 +64,7 @@ export class BreadcrumbComponent {
     return this.projectDisplay.projectLabel && this.production;
   }
 
+  home = HOME;
   private buildBreadcrumbs(): MenuItem[] {
     const snapshot = this.getDeepestSnapshot(this.router.routerState.snapshot.root);
     const key = snapshot.data['breadcrumbKey'] as string | undefined;
@@ -91,16 +93,13 @@ export class BreadcrumbComponent {
 
     const projectName = project.projectName;
     const icon = project.storageType === 'cloud' ? 'pi pi-cloud' : 'pi pi-desktop';
-    const hasCollaborators = project.collaborators.length > 0;
 
-    const user = Number.isNaN(Number(this.settingsService.userId())) ? undefined : Number(this.settingsService.userId());
-    const isCollaborator = this.collaboratorService.canEditProject(project, user);
-    const isSignedIn = !!this.exportGitHubService.user();
+    const { isSignedIn, isCollaborator, hasCollaborators } = this.collaboratorService.getUploadAccessInfo(project);
 
     const signInToUploadToCloud = isCollaborator && !isSignedIn && hasCollaborators ? this.translate.instant('project.global.signInToUpload') : undefined;
     const cantUploadToCloud = !isCollaborator && hasCollaborators ? this.translate.instant('project.global.cantUpload') : undefined;
 
-    const projectLabel = projectName && cantUploadToCloud ? this.translate.instant('project.global.copyOf') + ' ' + projectName : (projectName ?? '');
+    const projectLabel = projectName ?? '';
 
     const tagLabel = signInToUploadToCloud ?? cantUploadToCloud;
     const tagSeverity = signInToUploadToCloud ? ('warn' as const) : ('danger' as const);
@@ -113,5 +112,9 @@ export class BreadcrumbComponent {
     const iconTooltip = project.storageType === 'cloud' ? this.translate.instant('project.setup.storage.cloudInfo') : this.translate.instant('project.setup.storage.localWarning');
 
     return { projectLabel, icon, iconTooltip, tagLabel, tagTooltip, tagSeverity, tagIcon };
+  }
+
+  markForTranslation() {
+    marker('common.home');
   }
 }

@@ -75,8 +75,6 @@ export class SignInButtonComponent implements OnInit {
             label: this.translate.instant('common.new'),
             icon: 'pi pi-plus',
             command: () => {
-              this.projectStorageService.clearActiveProject();
-              this.projectState.resetProject();
               this.router.navigate(['/project/new']);
             },
           },

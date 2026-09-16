@@ -21,7 +21,9 @@
   <p-selectbutton [(ngModel)]="projectStorage" [options]="storageOptions()" [unselectable]="true" optionValue="value" styleClass="w-full">
     <ng-template #item let-item>
       <i [class]="item.icon"></i>
-      <span class="ml-1">{{ item.name | translate }}</span>
+      <span class="ml-1">
+        {{ 'project.setup.saveTo' | translate }} <span class="lowercase">{{ item.name | translate }}</span>
+      </span>
     </ng-template>
   </p-selectbutton>
   <p-message icon="pi pi-info-circle" severity="info" size="small" variant="simple">{{
