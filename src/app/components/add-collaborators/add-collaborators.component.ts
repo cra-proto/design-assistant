@@ -22,7 +22,7 @@ import { ProjectStateService } from '../../services/project-state.service';
 
 import { GitHubUser } from '../../common/data.model';
 
-export type CollaboratorMode = 'list' | 'dashboard' | 'switch';
+export type CollaboratorMode = 'list' | 'view' | 'dashboard' | 'switch';
 
 /**
  * Reviewed: 2026-09-11 (ng21)
@@ -56,7 +56,7 @@ export class AddCollaboratorsComponent {
   protected readonly collaboratorService = inject(CollaboratorService);
   protected readonly exportGitHubService = inject(ExportGitHubService);
 
-  /** Display modes: list, dashboard, or switch */
+  /** Display modes: list, view, dashboard, or switch */
   public readonly mode = input<CollaboratorMode>('list');
   /** Only used to display collaborators for non-active projects, leave undefined for the active project */
   public readonly collabs = input<GitHubUser[] | null>(null);

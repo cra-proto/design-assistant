@@ -48,7 +48,7 @@ export class BreadcrumbComponent {
   private collaboratorService = inject(CollaboratorService);
   private settingsService = inject(UserSettingsService);
 
-  protected readonly production = environment.production;
+  protected readonly production = !environment.production;
   protected readonly sandbox = environment.sandbox;
 
   protected readonly breadcrumbs = toSignal(
@@ -93,11 +93,8 @@ export class BreadcrumbComponent {
 
     const projectName = project.projectName;
     const icon = project.storageType === 'cloud' ? 'pi pi-cloud' : 'pi pi-desktop';
-    const hasCollaborators = project.collaborators.length > 0;
 
-    const user = Number.isNaN(Number(this.settingsService.userId())) ? undefined : Number(this.settingsService.userId());
-    const isCollaborator = this.collaboratorService.canEditProject(project, user);
-    const isSignedIn = !!this.exportGitHubService.user();
+    const { isSignedIn, isCollaborator, hasCollaborators } = this.collaboratorService.getUploadAccessInfo(project);
 
     const signInToUploadToCloud = isCollaborator && !isSignedIn && hasCollaborators ? this.translate.instant('project.global.signInToUpload') : undefined;
     const cantUploadToCloud = !isCollaborator && hasCollaborators ? this.translate.instant('project.global.cantUpload') : undefined;

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, OnInit, signal, untracked } from '@angular/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -26,6 +26,8 @@ export class SignInBannerComponent implements OnInit {
   protected readonly exportGitHubService = inject(ExportGitHubService);
   protected readonly authService = inject(GitHubAuthService);
 
+  public readonly mode = input<'github' | 'cloud'>('github');
+
   protected readonly username = computed(() => this.exportGitHubService.user()?.name || this.exportGitHubService.user()?.login || 'User');
 
   //Signals
@@ -51,7 +53,6 @@ export class SignInBannerComponent implements OnInit {
       // Only run precheck if we have a token and repo configured
       if (token && token.length >= 40 && owner && repo) {
         untracked(() => this.validateConnection());
-        console.warn('Running validation again!');
       } else if (!token) {
         // No authentication method available
         this.connectionStatus.set('missing');
@@ -66,38 +67,39 @@ export class SignInBannerComponent implements OnInit {
 
   //Validate token and repo access
   private async validateConnection(): Promise<void> {
+    if (this.precheckInProgress()) return;
     this.precheckInProgress.set(true);
     this.connectionStatus.set('checking');
     this.showDisclaimer.set(false);
 
-    const token = this.exportGitHubService.token();
-    const { owner, repo } = this.githubData();
+    try {
+      const token = this.exportGitHubService.token();
+      const { owner, repo } = this.githubData();
 
-    const result = await this.exportGitHubService.validateToken(token, owner, repo);
+      const result = await this.exportGitHubService.validateToken(token, owner, repo);
 
-    //console.log('Validation result:', result);
-    //console.log('showDisclaimer value:', result.showDisclaimer);
+      //console.log('Validation result:', result);
+      //console.log('showDisclaimer value:', result.showDisclaimer);
 
-    if (!result.valid) {
-      this.connectionStatus.set('error');
-      //console.error('Token validation failed:', result.error);
-    } else if (result.repoExists && !result.hasRepoAccess) {
-      this.connectionStatus.set('warning');
-      //console.warn(`No write access to ${owner}/${repo}`);
-    } else if (!result.repoExists && !result.canCreateRepo) {
-      this.connectionStatus.set('warning');
-      //console.warn(`Cannot create repo in ${owner}`);
-    } else {
-      this.connectionStatus.set('connected');
-      this.showDisclaimer.set(result.showDisclaimer ?? false);
-      if (!this.authService.isAuthenticated() && !this.exportGitHubService.user()) {
-        await this.exportGitHubService.validatePAT();
+      if (!result.valid) {
+        this.connectionStatus.set('error');
+        //console.error('Token validation failed:', result.error);
+      } else if (result.repoExists && !result.hasRepoAccess) {
+        this.connectionStatus.set('warning');
+        //console.warn(`No write access to ${owner}/${repo}`);
+      } else if (!result.repoExists && !result.canCreateRepo) {
+        this.connectionStatus.set('warning');
+        //console.warn(`Cannot create repo in ${owner}`);
+      } else {
+        this.connectionStatus.set('connected');
+        this.showDisclaimer.set(result.showDisclaimer ?? false);
+        if (!this.authService.isAuthenticated() && !this.exportGitHubService.user()) {
+          await this.exportGitHubService.validatePAT();
+        }
       }
-      //if (result.showDisclaimer) {
-      //  console.warn('Connected to GitHub but PAT scope cannot be verified. Please ensure PAT has appropriate scopes.');
-      //}
+    } finally {
+      this.precheckInProgress.set(false);
     }
-    this.precheckInProgress.set(false);
   }
 
   // Status message colors & icons

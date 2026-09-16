@@ -2,7 +2,7 @@
 <div class="flex flex-column gap-3">
   <!--Sign in options -->
   @if (!exportGitHubService.token()) {
-    <p class="my-0">{{ 'github.connect.description' | translate }}</p>
+    <p class="my-0">{{ mode() === 'github' ? ('github.connect.description' | translate) : ('github.connect.description.cloud' | translate) }}</p>
     <!-- Option 1: OAuth Sign In -->
     <div class="flex flex-column lg:flex-row gap-2">
       <div class="flex-1 border-left-3 surface-border p-3 text-center">

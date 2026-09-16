@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -7,19 +7,21 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
+import { DividerModule } from 'primeng/divider';
 import { IconFieldModule } from 'primeng/iconfield';
+import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
 
 import { AddCollaboratorsComponent } from '../../../components/add-collaborators/add-collaborators.component';
 import { SetupProjectComponent } from '../../../components/setup-project/setup-project.component';
+import { SignInBannerComponent } from '../../../components/sign-in/sign-in-banner/sign-in-banner.component';
 
 import { CollaboratorService } from '../../../services/github/collaborator.service';
 import { ExportGitHubService } from '../../../services/github/export-github.service';
@@ -28,6 +30,7 @@ import { ProjectStorageService } from '../../../services/storage/project-storage
 import { UserSettingsService } from '../../../services/user-settings.service';
 
 import { ProjectMetadata, ProjectPhase } from '../../../common/data.model';
+import { TooltipDirective } from '../../../common/tooltip.directive';
 
 //TODO: FIX HARDCODED TRANSLATIONS
 
@@ -39,18 +42,21 @@ import { ProjectMetadata, ProjectPhase } from '../../../common/data.model';
     FormsModule,
     TranslatePipe,
     ButtonModule,
-    CardModule,
     DialogModule,
+    DividerModule,
     IconFieldModule,
+    IftaLabelModule,
     InputIconModule,
     InputTextModule,
     MessageModule,
     MultiSelectModule,
+    SelectButtonModule,
     SelectModule,
     TagModule,
-    TooltipModule,
     AddCollaboratorsComponent,
     SetupProjectComponent,
+    SignInBannerComponent,
+    TooltipDirective,
   ],
   templateUrl: './switch-project.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,11 +79,19 @@ export class SwitchProjectComponent implements OnInit {
   protected readonly selectedFilter = signal<string[]>([]);
   protected readonly searchTerm = signal<string>('');
 
+  protected readonly projectKey = this.projectState.getProject().key;
   protected loadingKey: string | null = null;
   protected showSave = false;
   private presetFilterApplied = false;
 
+  protected readonly projectName = this.projectState.getProject().projectName;
+  /** For disabling save to local button */
+  protected get hasName() {
+    return !!this.projectState.getProject().projectName;
+  }
+
   constructor() {
+    console.log('SwitchProjectComponent constructor entered');
     // Watch for project list changes and reload
     effect(() => {
       this.projectStorageService.projectListChanged(); // Watch for changes
@@ -90,14 +104,8 @@ export class SwitchProjectComponent implements OnInit {
 
       this.updateGroupedFilters();
 
-      const userId = Number(this.settingsService.userId());
-      if (!Number.isNaN(userId)) {
-        const match = projects.flatMap((p) => p.collaborators).find((c) => c.id === userId);
-        if (!match) return;
-        else {
-          this.selectedFilter.set([match.login, 'Local']);
-          this.presetFilterApplied = true;
-        }
+      if (this.applyMyProjectsFilter()) {
+        this.presetFilterApplied = true;
       }
     });
   }
@@ -117,6 +125,35 @@ export class SwitchProjectComponent implements OnInit {
     await this.loadProjects(this.currentMode());
   }
 
+  /** Detects which card is the active project */
+  protected isActiveProject(project: ProjectMetadata): boolean {
+    const active = this.projectStorageService.currentActive();
+    if (!active) return false;
+    return project.storageType === 'local' ? active.key === project.key : active.key === project.id;
+  }
+
+  protected getCardClasses(project: ProjectMetadata): string {
+    const border =
+      this.projectKey === project.key
+        ? 'border-3 border-primary hover:shadow-4'
+        : this.currentMode() === 'deleted'
+          ? 'border-2 border-red-500 hover:shadow-4'
+          : 'border-1 surface-border hover:shadow-3';
+
+    const background = this.isActiveProject(project) ? 'bg-primary-50' : '';
+
+    return `${border} ${background}`.trim();
+  }
+
+  protected getCollabStatus(project: ProjectMetadata): 'sign-in' | 'read-only' | undefined {
+    const { isSignedIn, isCollaborator, hasCollaborators } = this.collaboratorService.getUploadAccessInfo(project);
+    const signInToUploadToCloud = isCollaborator && !isSignedIn && hasCollaborators ? this.translate.instant('project.global.signInToUpload') : undefined;
+    const cantUploadToCloud = !isCollaborator && hasCollaborators ? this.translate.instant('project.global.cantUpload') : undefined;
+    if (signInToUploadToCloud) return 'sign-in';
+    else if (cantUploadToCloud) return 'read-only';
+    else return undefined;
+  }
+
   //Filter options
   protected groupedFilters: MenuItem[] = [];
 
@@ -126,15 +163,15 @@ export class SwitchProjectComponent implements OnInit {
 
     this.groupedFilters = [
       {
-        label: 'Storage type',
+        label: this.translate.instant('common.storageType'),
         value: 'storage',
         items: [
-          { label: 'Cloud', value: 'Cloud' },
-          { label: 'Local', value: 'Local' },
+          { label: this.translate.instant('project.setup.storage.cloud'), value: 'Cloud' },
+          { label: this.translate.instant('project.setup.storage.local'), value: 'Local' },
         ],
       },
       {
-        label: 'Project Phase',
+        label: this.translate.instant('project.setup.label.phase'),
         value: 'phase',
         items: [
           { label: this.translate.instant(ProjectPhase.Draft), value: ProjectPhase.Draft },
@@ -146,7 +183,7 @@ export class SwitchProjectComponent implements OnInit {
         ],
       },
       {
-        label: 'Collaborators',
+        label: this.translate.instant('common.collaborators'),
         value: 'collab',
         items: uniqueCollaborators.map((c) => ({
           label: c.name || c.login, // Use display name if available, fallback to login
@@ -158,14 +195,63 @@ export class SwitchProjectComponent implements OnInit {
     const myOrg = localStorage.getItem('myOrg'); // Only add Organization filter if myOrg is set
     if (myOrg) {
       this.groupedFilters.push({
-        label: 'Organization',
+        label: this.translate.instant('common.organization'),
         value: 'org',
         items: [
-          { label: 'Default', value: 'DEFAULT' },
+          { label: this.translate.instant('common.default'), value: 'DEFAULT' },
           { label: myOrg, value: myOrg },
         ],
       });
     }
+  }
+
+  /** Preset options for project filter buttons */
+  protected readonly filterPresets = computed(() => [
+    { label: this.translate.instant('switch.viewAll'), value: 'all' },
+    { label: this.translate.instant('switch.viewMine'), value: 'mine' },
+  ]);
+
+  /** Change handler for project filter buttons  */
+  protected onPresetChange(preset: 'all' | 'mine'): void {
+    if (preset === 'all') {
+      this.selectedFilter.set([]);
+    } else {
+      this.applyMyProjectsFilter();
+    }
+  }
+
+  /** Compares 2 filter arrays to determine if they are equal regardless of order */
+  private sameFilterSet(a: string[], b: string[]): boolean {
+    return a.length === b.length && b.every((v) => a.includes(v));
+  }
+
+  /** Current selected option for project filter buttons */
+  protected readonly selectedPreset = computed<'all' | 'mine' | null>(() => {
+    const current = this.selectedFilter();
+    if (current.length === 0) return 'all';
+
+    const mineValue = this.myProjectsFilterValue();
+    if (mineValue && this.sameFilterSet(current, mineValue)) return 'mine';
+
+    return null; // unselect button if anything other than a preset is chosen
+  });
+
+  /** Value of the my projects filter */
+  private readonly myProjectsFilterValue = computed<string[] | null>(() => {
+    const userId = Number(this.settingsService.userId());
+    if (Number.isNaN(userId)) return null;
+    const match = this.allProjects()
+      .flatMap((p) => p.collaborators)
+      .find((c) => c.id === userId);
+    return match ? [match.login, 'Local'] : null;
+  });
+
+  /** Filter projects to userId and local */
+  private applyMyProjectsFilter(): boolean {
+    const value = this.myProjectsFilterValue();
+    if (!value) return false;
+    this.selectedFilter.set(value);
+    return true;
   }
 
   // Toggle between saved and deleted projects
@@ -408,12 +494,14 @@ export class SwitchProjectComponent implements OnInit {
 
   //Sort
   protected readonly selectedSort = signal<string>('date_desc');
-  protected readonly sortOptions = [
-    { label: 'Date (newest first)', value: 'date_desc' },
-    { label: 'Date (oldest first)', value: 'date_asc' },
-    { label: 'Name (A-Z)', value: 'name_asc' },
-    { label: 'Name (Z-A)', value: 'name_desc' },
-  ];
+  protected get sortOptions() {
+    return [
+      { label: this.translate.instant('common.sort.dateDesc'), value: 'date_desc' },
+      { label: this.translate.instant('common.sort.dateAsc'), value: 'date_asc' },
+      { label: this.translate.instant('common.sort.nameAZ'), value: 'name_asc' },
+      { label: this.translate.instant('common.sort.nameZA'), value: 'name_desc' },
+    ];
+  }
 
   protected getPhaseIcon(phase: string | undefined): string {
     const iconMap: Record<string, string> = {
@@ -424,5 +512,36 @@ export class SwitchProjectComponent implements OnInit {
       Complete: 'verified',
     };
     return iconMap[phase || 'Draft'] || 'pencil';
+  }
+
+  //Upload to cloud dialog
+  protected readonly showUpload = signal<{ project: ProjectMetadata; isSignedIn: boolean; isCollaborator: boolean; hasCollaborators: boolean; cloudIsNewer: boolean } | null>(null);
+  protected handleUploadClick(project: ProjectMetadata, event?: Event): void {
+    event?.stopPropagation();
+    const { isSignedIn, isCollaborator, hasCollaborators } = this.collaboratorService.getUploadAccessInfo(project);
+    const cloudIsNewer = this.isCloudNewer(project);
+
+    if (isSignedIn && isCollaborator && !cloudIsNewer) {
+      this.uploadToCloud(project, event);
+      return;
+    }
+
+    this.showUpload.set({ project, isSignedIn, isCollaborator, hasCollaborators, cloudIsNewer });
+  }
+  protected closeShowUpload(): void {
+    this.showUpload.set(null);
+  }
+
+  /** Find the cloud equivalent of a local project (if any) */
+  protected getCloudCounterpart(localProject: ProjectMetadata): ProjectMetadata | undefined {
+    if (localProject.storageType !== 'local') return undefined;
+    return this.allProjects().find((p) => p.storageType === 'cloud' && p.key === localProject.key);
+  }
+
+  /** True if a cloud version exists and was modified more recently than the local one */
+  protected isCloudNewer(localProject: ProjectMetadata): boolean {
+    const cloudProject = this.getCloudCounterpart(localProject);
+    if (!cloudProject) return false;
+    return new Date(cloudProject.lastModified).getTime() > new Date(localProject.lastModified).getTime();
   }
 }
