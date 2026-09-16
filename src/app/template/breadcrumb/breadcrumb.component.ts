@@ -48,7 +48,7 @@ export class BreadcrumbComponent {
   private collaboratorService = inject(CollaboratorService);
   private settingsService = inject(UserSettingsService);
 
-  protected readonly production = !environment.production;
+  protected readonly production = environment.production;
   protected readonly sandbox = environment.sandbox;
 
   protected readonly breadcrumbs = toSignal(
