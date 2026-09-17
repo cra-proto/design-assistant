@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -17,8 +17,6 @@ import { PatComponent } from '../pat/pat.component';
 
 import { ExportGitHubService } from '../../../services/github/export-github.service';
 import { GitHubAuthService } from '../../../services/github/github-auth.service';
-import { ProjectStateService } from '../../../services/project-state.service';
-import { ProjectStorageService } from '../../../services/storage/project-storage.service';
 
 import { environment } from '../../../../environments/environment';
 
@@ -33,15 +31,15 @@ export class SignInButtonComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly authService = inject(GitHubAuthService);
   protected readonly exportGitHubService = inject(ExportGitHubService);
-  private readonly projectStorageService = inject(ProjectStorageService);
-  private readonly projectState = inject(ProjectStateService);
   private readonly translate = inject(TranslateService);
+
+  public readonly buttonText = input<string | undefined>(undefined);
 
   // Variables
   protected showPatSignIn = false;
   protected showSettings = false;
 
-  private connectGitHub() {
+  protected connectGitHub() {
     if (this.isApiGatewayAccessible()) {
       this.authService.login();
     } else {

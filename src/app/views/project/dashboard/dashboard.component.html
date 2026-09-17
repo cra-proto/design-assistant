@@ -1,7 +1,7 @@
 @if (projectData.projectName) {
   <p>{{ projectData.projectName }}</p>
 }
-<h1 id="wb-cont">{{ 'dashboard._title' | translate }}</h1>
+<h1 id="wb-cont">{{ (production ? '_app._title' : sandbox ? '_app._title.sandbox' : '_app._title.dev') | translate }}</h1>
 <p>{{ 'dashboard.description' | translate }}{{ 'dashboard.description2' | translate }}</p>
 
 <!--Content-->
@@ -211,7 +211,7 @@
 <!--Phase card template-->
 <ng-template #phase let-content="content" let-icon="icon" let-path="path" let-phase="phase" let-ready="ready" let-stats="stats">
   <div
-    [ngClass]="{ 'border-2 border-primary': projectData.phase === phase, 'shadow-1 hover:shadow-3 cursor-pointer': ready || !production, 'shadow-2': !ready && production }"
+    [class]="getCardClasses(phase, ready)"
     [routerLink]="ready || !production ? '/' + path : null"
     class="surface-card border-round-lg p-4 w-full min-w-min md:w-6 flex flex-column justify-content-between"
   >
@@ -236,6 +236,10 @@
     </div>
     @if (ready || !production) {
       <ng-container *ngTemplateOutlet="stats" />
+      <span class="align-self-end mt-3 -mb-3 -mr-3 hover:text-primary hover:underline">
+        {{ 'project.dashboard.viewTasks' | translate: { phase: (phase | translate | lowercase) } }}
+        <i class="pi pi-arrow-right text-primary ml-1"></i>
+      </span>
     }
   </div>
 </ng-template>

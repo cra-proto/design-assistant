@@ -10,7 +10,7 @@
   padding-left: 1.5rem;
   padding-right: 0rem;
   box-sizing: border-box;
-  background-color: var(--p-surface-0);
+  background-color: var(--p-surface-card);
 }
 
 .sticky-toolbar-table {

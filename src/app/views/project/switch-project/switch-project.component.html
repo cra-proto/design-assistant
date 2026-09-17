@@ -15,7 +15,7 @@
 }
 
 <!-- All Projects -->
-<div class="surface-card border-round-lg shadow-2 p-4 mb-3">
+<div class="surface-card border-round-lg shadow-2 p-4 mb-3 min-w-min">
   <div class="flex flex-column-reverse xl:flex-row justify-content-between align-items-start gap-2 mb-3">
     <div class="flex flex-column lg:flex-row gap-2 w-full">
       <!--Search-->
@@ -66,16 +66,19 @@
     <div class="grid">
       @for (project of projects; track project.key + project.storageType) {
         <div class="col-12 md:col-6 lg:col-4">
-          <div [ngClass]="getCardClasses(project)" (click)="loadProject(project.key, project.id, project.storageType)" class="border-round-lg shadow-1 w-full h-full cursor-pointer" tabindex="0">
+          <div
+            [ngClass]="getCardClasses(project)"
+            (click)="loadProject(project.key, project.id, project.storageType)"
+            (keydown.enter)="loadProject(project.key, project.id, project.storageType)"
+            class="border-round-lg shadow-1 w-full h-full min-w-min cursor-pointer"
+            tabindex="0"
+          >
             <div class="flex h-full">
               <div class="flex flex-column justify-content-between flex-1">
                 <div>
                   <div class="p-2 m-2 h-2rem">
                     <!--HEADER: TAGS-->
                     <div class="flex gap-2">
-                      @if (isActiveProject(project)) {
-                        <p-tag [value]="'switch.tag.active' | translate" icon="pi pi-check" severity="success" />
-                      }
                       @if (project.storageType === 'local') {
                         <p-tag [value]="'project.setup.storage.local' | translate" icon="pi pi-desktop" severity="secondary" />
                       } @else if (project.storageType === 'cloud') {
@@ -88,6 +91,9 @@
                       }
                       @if (project.key === 'autosave') {
                         <p-tag [value]="'switch.tag.unsaved' | translate" icon="pi pi-exclamation-triangle" severity="danger" />
+                      }
+                      @if (isActiveProject(project)) {
+                        <p-tag [value]="'switch.tag.active' | translate" icon="pi pi-check" severity="success" />
                       }
                     </div>
                   </div>
@@ -212,7 +218,7 @@
 
     @if (!dialog.isCollaborator && dialog.hasCollaborators) {
       <p>{{ 'switch.upload.notCollaborator' | translate }}</p>
-      <aida-add-collaborators mode="view" />
+      <aida-add-collaborators [collabs]="dialog.project.collaborators" mode="view" />
     }
 
     @if (!dialog.isSignedIn) {

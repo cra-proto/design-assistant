@@ -7,7 +7,6 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { PasswordModule } from 'primeng/password';
-import { TooltipModule } from 'primeng/tooltip';
 
 import { ExportGitHubService } from '../../../services/github/export-github.service';
 
@@ -15,7 +14,7 @@ import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'aida-pat',
-  imports: [FormsModule, TranslatePipe, ButtonModule, DialogModule, IftaLabelModule, PasswordModule, TooltipModule],
+  imports: [FormsModule, TranslatePipe, ButtonModule, DialogModule, IftaLabelModule, PasswordModule],
   templateUrl: './pat.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

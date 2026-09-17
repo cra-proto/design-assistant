@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -17,7 +18,7 @@ import { ProjectStateService } from '../../../services/project-state.service';
 
 @Component({
   selector: 'aida-edit-project',
-  imports: [FormsModule, TranslatePipe, MessageModule, AddCollaboratorsComponent, AddUrlsComponent, FindPagesComponent, SetupProjectComponent, SetupRepoComponent, ViewPagesComponent],
+  imports: [CommonModule, FormsModule, TranslatePipe, MessageModule, AddCollaboratorsComponent, AddUrlsComponent, FindPagesComponent, SetupProjectComponent, SetupRepoComponent, ViewPagesComponent],
   templateUrl: './edit-project.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
