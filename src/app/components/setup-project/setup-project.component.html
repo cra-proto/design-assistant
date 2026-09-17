@@ -29,4 +29,10 @@
   <p-message icon="pi pi-info-circle" severity="info" size="small" variant="simple">{{
     projectStorage === 'local' ? ('project.setup.storage.localWarning' | translate) : ('project.setup.storage.cloudInfo' | translate)
   }}</p-message>
+
+  @if (uploadAccess === 'signIn') {
+    <aida-sign-in-button [buttonText]="'project.setup.storage.signInWarning' | translate" />
+  } @else if (uploadAccess === 'notCollab') {
+    <p-message icon="pi pi-exclamation-circle" severity="error">{{ 'project.setup.storage.notCollabWarning' | translate }}</p-message>
+  }
 </div>

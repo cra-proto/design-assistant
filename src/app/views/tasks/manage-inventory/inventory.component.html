@@ -30,7 +30,7 @@
       </div>
     </div>
 
-    <div [class.sticky-toolbar-table]="projectState.selectedInventoryView() === 'table'" class="sticky-toolbar">
+    <div [class]="projectState.selectedInventoryView() === 'table' ? 'sticky-toolbar-table sticky-toolbar' : ''">
       <!-- Top toolbar -->
       <div class="flex flex-row justify-content-between gap-2 h-6rem surface-card">
         <!-- Top toolbar - View options -->

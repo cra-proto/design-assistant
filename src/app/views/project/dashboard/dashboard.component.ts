@@ -16,6 +16,7 @@ import { AddCollaboratorsComponent } from '../../../components/add-collaborators
 import { ExportProjectComponent } from '../../../components/export-project/export-project.component';
 
 import { ProjectStateService } from '../../../services/project-state.service';
+import { UserSettingsService } from '../../../services/user-settings.service';
 
 import { environment } from '../../../../environments/environment';
 import { CurrentPhase, GitHubRepo, PhaseStatus, ProjectPhase } from '../../../common/data.model';
@@ -28,7 +29,9 @@ import { CurrentPhase, GitHubRepo, PhaseStatus, ProjectPhase } from '../../../co
 })
 export class DashboardComponent {
   private projectState = inject(ProjectStateService);
+  private settingsService = inject(UserSettingsService);
   production = environment.production;
+  sandbox = environment.production;
 
   get projectData() {
     return this.projectState.getProject();
@@ -86,6 +89,19 @@ export class DashboardComponent {
       }
       return;
     }
+  }
+
+  protected getCardClasses(phase: ProjectPhase, ready: boolean): string {
+    const isDark = this.settingsService.darkMode();
+
+    const activeBorder = this.projectData.phase === phase ? 'border-2 border-primary' : '';
+    const activeHover = this.projectData.phase === phase && ready ? `${isDark ? 'hover:bg-primary-800' : 'hover:bg-primary-50'}` : '';
+
+    const interactive = ready || !this.production ? 'shadow-1 hover:shadow-3 hover:surface-50 cursor-pointer' : '';
+
+    const notReady = !ready && this.production ? 'shadow-2' : '';
+
+    return `${activeBorder} ${activeHover} ${interactive} ${notReady}`.trim();
   }
 
   //Open GitHub repo in new tab

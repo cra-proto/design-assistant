@@ -56,21 +56,21 @@ export class IaDiagramComponent {
     let tree = this.projectState.getProject().projectData;
     if (!tree) return [];
     //Adjustments for full tree or custom root
-    if (this.selectedTree() !== 'full') {
-      const custom = this.projectState.findNodeByPath(tree, this.selectedTree(), this.primaryLang);
+    if (this.iaDiagram.selectedTree() !== 'full') {
+      const custom = this.projectState.findNodeByPath(tree, this.iaDiagram.selectedTree(), this.primaryLang);
       if (custom) {
         tree = [custom];
       }
     }
     //Adjustments for baseline or final version
     if (this.projectCache.selectedViewIA() === 'baseline') {
-      tree = this.projectState.getBaselineTree(tree, this.selectedTree() === 'full' ? 'full' : 'custom');
+      tree = this.projectState.getBaselineTree(tree, this.iaDiagram.selectedTree() === 'full' ? 'full' : 'custom');
     } else if (this.projectCache.selectedViewIA() === 'final') {
       tree = this.projectState.getFinalTree(tree);
     }
     //Adjustments for collapsed nodes
-    if (this.collapsedNodes().size > 0 || this.hiddenNodes().size > 0 || this.navNodes().size > 0) {
-      tree = this.projectState.getDisplayTree(tree, this.collapsedNodes(), this.hiddenNodes(), this.navNodes());
+    if (this.iaDiagram.collapsedNodes().size > 0 || this.iaDiagram.hiddenNodes().size > 0 || this.iaDiagram.navNodes().size > 0) {
+      tree = this.projectState.getDisplayTree(tree, this.iaDiagram.collapsedNodes(), this.iaDiagram.hiddenNodes(), this.iaDiagram.navNodes());
     }
     this.treeNodeStyleService.updateNodeStyles(tree);
     return tree;
@@ -87,9 +87,6 @@ export class IaDiagramComponent {
     else if (changed) return `<s class="text-color-secondary text-sm">${liveH1}</s><br>${protoH1}`;
     else return protoH1;
   }
-
-  //Tree options
-  private readonly selectedTree = signal<'full' | string>('full');
 
   //Menu options
   protected readonly menu = viewChild.required<Menu>('menu');
@@ -212,32 +209,32 @@ export class IaDiagramComponent {
       this.items[1].items!.push({
         label: this.translate.instant(`iaDiagram.menu.viewAsRoot`),
         icon: 'pi pi-window-minimize',
-        command: () => this.selectedTree.set(node.data.path[this.primaryLang]),
+        command: () => this.iaDiagram.selectedTree.set(node.data.path[this.primaryLang]),
       });
     }
-    if (this.selectedTree() !== 'full') {
+    if (this.iaDiagram.selectedTree() !== 'full') {
       this.items[1].items!.push({
         label: this.translate.instant(`iaDiagram.menu.viewFullTree`),
         icon: 'pi pi-window-maximize',
-        command: () => this.selectedTree.set('full'),
+        command: () => this.iaDiagram.selectedTree.set('full'),
       });
     }
-    if ((this.projectTree()[0].data.path[this.primaryLang] !== node.data.path[this.primaryLang] && !node.data.isNavChild) || this.selectedTree() !== 'full') {
+    if ((this.projectTree()[0].data.path[this.primaryLang] !== node.data.path[this.primaryLang] && !node.data.isNavChild) || this.iaDiagram.selectedTree() !== 'full') {
       this.items[1].items!.push({ separator: true });
     }
 
     // View: Show nav children
     if (!node.data.isNavChild) {
       const path = node.data.path[this.primaryLang];
-      const navChildrenVisible = this.navNodes().has(path);
+      const navChildrenVisible = this.iaDiagram.navNodes().has(path);
 
       this.items[1].items!.push({
         label: navChildrenVisible ? this.translate.instant(`iaDiagram.menu.hideNavChildren`) : this.translate.instant(`iaDiagram.menu.showNavChildren`),
         icon: navChildrenVisible ? 'pi pi-eye-slash' : 'pi pi-eye',
         command: async () => {
           //Toggle off
-          if (this.navNodes().has(path)) {
-            this.navNodes.update((map) => {
+          if (this.iaDiagram.navNodes().has(path)) {
+            this.iaDiagram.navNodes.update((map) => {
               const next = new Map(map);
               next.delete(path);
               return next;
@@ -258,7 +255,7 @@ export class IaDiagramComponent {
           const directChildPaths = new Set((node.children ?? []).map((child) => child.data.path[this.primaryLang]));
           const filteredPaths = linkedPaths.filter((p) => projectPaths.has(p) && !directChildPaths.has(p) && p !== path);
           console.log(filteredPaths);
-          this.navNodes.update((map) => new Map(map).set(path, filteredPaths));
+          this.iaDiagram.navNodes.update((map) => new Map(map).set(path, filteredPaths));
         },
       });
 
@@ -268,7 +265,7 @@ export class IaDiagramComponent {
           label: this.translate.instant(`iaDiagram.menu.showHiddenNodes`),
           icon: 'pi pi-eye',
           command: () =>
-            this.hiddenNodes.update((set) => {
+            this.iaDiagram.hiddenNodes.update((set) => {
               const next = new Set(set);
               node.data.hiddenChildrenUrls.forEach((url: string) => next.delete(url));
               return next;
@@ -282,12 +279,12 @@ export class IaDiagramComponent {
           label: this.translate.instant(`iaDiagram.menu.showNextChildren`),
           icon: 'pi pi-eye',
           command: () => {
-            this.collapsedNodes.update((set) => {
+            this.iaDiagram.collapsedNodes.update((set) => {
               const next = new Set(set);
               next.delete(node.data.path[this.primaryLang]); // in case children were collapsed
               return next;
             });
-            this.hiddenNodes.update((set) => {
+            this.iaDiagram.hiddenNodes.update((set) => {
               const next = new Set(set);
               (node.data.hiddenChildrenUrls ?? []).forEach((path: string) => next.delete(path));
               return next;
@@ -303,12 +300,12 @@ export class IaDiagramComponent {
           icon: 'pi pi-eye',
           command: () => {
             const descendants = this.projectState.getSubtreePaths(projectNode, this.primaryLang);
-            this.collapsedNodes.update((set) => {
+            this.iaDiagram.collapsedNodes.update((set) => {
               const next = new Set(set);
               descendants.forEach((path) => next.delete(path));
               return next;
             });
-            this.hiddenNodes.update((set) => {
+            this.iaDiagram.hiddenNodes.update((set) => {
               const next = new Set(set);
               descendants.forEach((path) => next.delete(path));
               return next;
@@ -326,7 +323,7 @@ export class IaDiagramComponent {
         this.items[1].items!.push({
           label: this.translate.instant(`iaDiagram.menu.hideNode`),
           icon: 'pi pi-eye-slash',
-          command: () => this.hiddenNodes.update((set) => new Set([...set, node.data.path[this.primaryLang]])),
+          command: () => this.iaDiagram.hiddenNodes.update((set) => new Set([...set, node.data.path[this.primaryLang]])),
         });
       }
 
@@ -342,7 +339,7 @@ export class IaDiagramComponent {
               for (let targetLevel = maxDepth; targetLevel >= level; targetLevel--) {
                 cutNodes.push(...this.projectState.getNodesAtRelativeDepth(node, targetLevel - 1).filter((n) => (n.children?.length ?? 0) > 0));
               }
-              this.collapsedNodes.update((set) => {
+              this.iaDiagram.collapsedNodes.update((set) => {
                 const next = new Set(set);
                 cutNodes.forEach((node) => {
                   if (node.data) next.add(node.data.path[this.primaryLang]);
@@ -366,18 +363,13 @@ export class IaDiagramComponent {
     this.menu().toggle(event);
   }
 
-  // Show/hide pages or children
-  private readonly collapsedNodes = signal<Set<string>>(new Set());
-  private readonly hiddenNodes = signal<Set<string>>(new Set());
-  private readonly navNodes = signal<Map<string, string[]>>(new Map());
-
   /** Returns true if any child nodes have collapsed or hidden nodes and those child nodes also have child nodes */
   private hasDeepHiddenContent(node: TreeNode<TreeNodeData>): boolean {
     const checkBelow = (currentNode: TreeNode<TreeNodeData>): boolean => {
       const path = currentNode.data?.path[this.primaryLang];
       if (path) {
-        const hasRealCollapse = this.collapsedNodes().has(path) && (currentNode.children?.length ?? 0) > 0;
-        if (hasRealCollapse || this.hiddenNodes().has(path)) {
+        const hasRealCollapse = this.iaDiagram.collapsedNodes().has(path) && (currentNode.children?.length ?? 0) > 0;
+        if (hasRealCollapse || this.iaDiagram.hiddenNodes().has(path)) {
           return true;
         }
       }
@@ -449,7 +441,7 @@ export class IaDiagramComponent {
 
     //Dynamic rescue link colour swatches
     const inScopePaths = new Set(this.projectState.getAllPages(this.primaryLang, 'live', 'inScope').map((p) => p.path));
-    const allRescuePaths = Array.from(this.navNodes().values()).flat();
+    const allRescuePaths = Array.from(this.iaDiagram.navNodes().values()).flat();
     const hasInScopeRescues = allRescuePaths.some((p) => inScopePaths.has(p));
     const hasOutOfScopeRescues = allRescuePaths.some((p) => !inScopePaths.has(p));
     const rescueColours = [...(hasInScopeRescues ? [allColours['navChild']] : []), ...(hasOutOfScopeRescues ? [allColours['navChildTemp']] : [])];

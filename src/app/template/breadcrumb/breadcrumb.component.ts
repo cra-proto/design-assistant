@@ -11,12 +11,10 @@ import { filter, map, startWith } from 'rxjs/operators';
 import { MenuItem } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { TagModule } from 'primeng/tag';
-import { Tooltip } from 'primeng/tooltip';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { CollaboratorService } from '../../services/github/collaborator.service';
-import { ExportGitHubService } from '../../services/github/export-github.service';
 import { ProjectStateService } from '../../services/project-state.service';
-import { UserSettingsService } from '../../services/user-settings.service';
 
 import { environment } from '../../../environments/environment';
 
@@ -36,7 +34,7 @@ const BREADCRUMB_ANCESTORS: Record<string, MenuItem[]> = {
 
 @Component({
   selector: 'aida-breadcrumb',
-  imports: [CommonModule, RouterLink, RouterLinkActive, TranslatePipe, BreadcrumbModule, TagModule, Tooltip],
+  imports: [CommonModule, RouterLink, RouterLinkActive, TranslatePipe, BreadcrumbModule, TagModule, TooltipModule],
   templateUrl: './breadcrumb.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -44,9 +42,7 @@ export class BreadcrumbComponent {
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private projectState = inject(ProjectStateService);
-  private exportGitHubService = inject(ExportGitHubService);
   private collaboratorService = inject(CollaboratorService);
-  private settingsService = inject(UserSettingsService);
 
   protected readonly production = environment.production;
   protected readonly sandbox = environment.sandbox;

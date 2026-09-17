@@ -24,7 +24,7 @@
 
 @if (breadcrumbs().length > 0) {
   <div [class.sm:-mt-4]="removeMargin" class="h-1.5">
-    <p-breadcrumb [model]="breadcrumbs()" styleClass="pt-1 pl-0 text-color-secondary">
+    <p-breadcrumb [model]="breadcrumbs()" styleClass="pt-1 pl-0 text-color-secondary bg-transparent">
       <ng-template let-item pTemplate="item">
         @if (item.route && item.icon) {
           <a [class]="item.icon" [routerLink]="item.route" class="p-menuitem-text no-underline">

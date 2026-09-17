@@ -487,6 +487,7 @@ export class FetchService {
       const rawHref = el.getAttribute('href') || '';
       let absoluteUrl = '';
       try {
+        absoluteUrl = this.normalizePath(absoluteUrl);
         absoluteUrl = new URL(rawHref, baseUrl).href.replace('/content/canadasite', ''); // handles both relative + absolute
       } catch {
         console.warn(`Invalid breadcrumb href: ${rawHref}`);
@@ -510,7 +511,7 @@ export class FetchService {
           const url = new URL(href, baseUrl);
           url.hash = '';
           url.search = '';
-          return url.href.replace('/content/canadasite', '');
+          return this.normalizePath(url.href.replace('/content/canadasite', ''));
         } catch {
           return null;
         }
@@ -703,6 +704,22 @@ export class FetchService {
     } catch {
       return url;
     }
+  }
+
+  /** Adds .html to links if missing so comparison work */
+  private normalizePath(path: string): string {
+    let clean = path.split('?')[0].split('#')[0]; // strip anchors and queries
+    clean = clean.replace(/\/+$/, ''); // remove trailing slash
+    //Return link with .html
+    if (/\.html$/i.test(clean)) {
+      return clean;
+    }
+    // Return link with other extension
+    if (/\.[a-z0-9]+$/i.test(clean)) {
+      return clean;
+    }
+    // Add .html if missing
+    return `${clean}.html`;
   }
 
   //Generate url for specific version

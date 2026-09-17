@@ -79,7 +79,7 @@ export class SwitchProjectComponent implements OnInit {
   protected readonly selectedFilter = signal<string[]>([]);
   protected readonly searchTerm = signal<string>('');
 
-  protected readonly projectKey = this.projectState.getProject().key;
+  protected readonly projectId = this.projectState.getProject().id;
   protected loadingKey: string | null = null;
   protected showSave = false;
   private presetFilterApplied = false;
@@ -133,14 +133,11 @@ export class SwitchProjectComponent implements OnInit {
   }
 
   protected getCardClasses(project: ProjectMetadata): string {
+    const isDark = this.settingsService.darkMode();
     const border =
-      this.projectKey === project.key
-        ? 'border-3 border-primary hover:shadow-4'
-        : this.currentMode() === 'deleted'
-          ? 'border-2 border-red-500 hover:shadow-4'
-          : 'border-1 surface-border hover:shadow-3';
+      this.projectId === project.id ? 'border-3 border-primary hover:shadow-4' : this.currentMode() === 'deleted' ? 'border-2 border-red-500 hover:shadow-4' : 'border-1 surface-border hover:shadow-3';
 
-    const background = this.isActiveProject(project) ? 'bg-primary-50' : '';
+    const background = this.isActiveProject(project) && !isDark ? 'bg-primary-50' : this.isActiveProject(project) ? 'bg-primary-800' : '';
 
     return `${border} ${background}`.trim();
   }

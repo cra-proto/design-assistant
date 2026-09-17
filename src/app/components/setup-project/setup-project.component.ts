@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputTextModule } from 'primeng/inputtext';
@@ -12,6 +12,8 @@ import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
 
+import { SignInButtonComponent } from '../sign-in/sign-in-button/sign-in-button.component';
+
 import { CollaboratorService } from '../../services/github/collaborator.service';
 import { ProjectStateService } from '../../services/project-state.service';
 
@@ -19,7 +21,7 @@ import { ProjectPhase } from '../../common/data.model';
 
 @Component({
   selector: 'aida-setup-project',
-  imports: [FormsModule, TranslatePipe, IftaLabelModule, InputTextModule, KeyFilterModule, MessageModule, SelectButtonModule, SelectModule],
+  imports: [FormsModule, TranslatePipe, IftaLabelModule, InputTextModule, KeyFilterModule, MessageModule, SelectButtonModule, SelectModule, SignInButtonComponent],
   templateUrl: './setup-project.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -27,6 +29,7 @@ export class SetupProjectComponent {
   private readonly projectState = inject(ProjectStateService);
   private readonly collaboratorService = inject(CollaboratorService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   constructor() {
     // Refresh projectName when there are changes to repo name (for initial sync fxn)
@@ -105,4 +108,14 @@ export class SetupProjectComponent {
     { name: 'project.setup.storage.local', value: 'local' as const, icon: 'pi pi-desktop' },
     { name: 'project.setup.storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: !this.collaboratorService.canEditProject(this.projectState.getProject()) },
   ]);
+
+  protected get uploadAccess() {
+    const { isSignedIn, isCollaborator, hasCollaborators } = this.collaboratorService.getUploadAccessInfo(this.projectState.getProject());
+
+    const cantUploadToCloud = !isCollaborator && hasCollaborators ? this.translate.instant('project.global.cantUpload') : undefined;
+
+    if (cantUploadToCloud) return 'notCollab';
+    else if (!isSignedIn) return 'signIn';
+    else return undefined;
+  }
 }

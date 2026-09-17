@@ -15,6 +15,7 @@ export const PRIMENG_SELECTORS = {
     ChipModule: ['p-chip'],
     ColorPickerModule: ['p-colorpicker'],
     ConfirmDialogModule: ['p-confirmdialog'],
+    ConfirmPopupModule: ['p-confirmpopup'],
     ContextMenuModule: ['p-contextmenu'],
     DialogModule: ['p-dialog'],
     DividerModule: ['p-divider'],
