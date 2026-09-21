@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { UserSettingsService } from '../../../services/user-settings.service';
+
 /**
  * Reviewed: 2026-08-13 (ng21)
  *
@@ -17,13 +19,18 @@ import { TranslatePipe } from '@ngx-translate/core';
 })
 export class NotFoundComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly settingsService = inject(UserSettingsService);
 
-  protected random404Key = 'notFound.message.0';
+  protected random404Title = 'notFound.0._title';
+  protected random404Description = 'notFound.0.description';
+  protected random404List = 'notFound.0.list';
 
   ngOnInit() {
     const randomIndex = Math.floor(Math.random() * 6);
-    this.random404Key = `notFound.message.${randomIndex}`;
-    console.log('Selected 404 message key:', this.random404Key);
+    this.random404Title = `notFound.${randomIndex}._title`;
+    this.random404Description = `notFound.${randomIndex}.description`;
+    this.random404List = `notFound.${randomIndex}.list`;
+    console.log('Selected 404 message key:', randomIndex);
   }
 
   /** Intercepts href click to prevent app reload */
@@ -46,12 +53,32 @@ export class NotFoundComponent implements OnInit {
     }
   }
 
+  protected get mascotSrc() {
+    const randomNumber = Math.floor(Math.random() * 20);
+    const color = this.settingsService.darkMode() ? 'blk' : 'wht';
+    const version = randomNumber === 13 ? 3 : randomNumber === 2 ? 2 : 1;
+    return `images/404/404-mascot-${color}${version}.webp`;
+  }
+
   markForTranslation() {
-    marker('notFound.message.0');
-    marker('notFound.message.1');
-    marker('notFound.message.2');
-    marker('notFound.message.3');
-    marker('notFound.message.4');
-    marker('notFound.message.5');
+    marker('notFound._title');
+    marker('notFound.0._title');
+    marker('notFound.0.description');
+    marker('notFound.0.list');
+    marker('notFound.1._title');
+    marker('notFound.1.description');
+    marker('notFound.1.list');
+    marker('notFound.2._title');
+    marker('notFound.2.description');
+    marker('notFound.2.list');
+    marker('notFound.3._title');
+    marker('notFound.3.description');
+    marker('notFound.3.list');
+    marker('notFound.4._title');
+    marker('notFound.4.description');
+    marker('notFound.4.list');
+    marker('notFound.5._title');
+    marker('notFound.5.description');
+    marker('notFound.5.list');
   }
 }

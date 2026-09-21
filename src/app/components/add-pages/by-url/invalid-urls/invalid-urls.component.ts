@@ -15,10 +15,10 @@ import { SelectModule } from 'primeng/select';
 import { TabsModule } from 'primeng/tabs';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { EditNodeComponent } from '../../edit-node/edit-node.component';
+import { EditNodeComponent } from '../../../edit-node/edit-node.component';
 
-import { FetchService } from '../../../services/fetch.service';
-import { ProjectStateService } from '../../../services/project-state.service';
+import { FetchService } from '../../../../services/fetch.service';
+import { ProjectStateService } from '../../../../services/project-state.service';
 import { AddUrlsService } from '../add-urls.service';
 
 @Component({

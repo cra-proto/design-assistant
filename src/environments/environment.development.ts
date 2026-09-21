@@ -8,4 +8,6 @@ export const environment = {
   usageFunctionUrl: 'https://at4w23fcyv7ila65il3ov2auey0nycfx.lambda-url.ca-central-1.on.aws/',
   defaultOrg: 'cra-proto',
   templateOrg: 'cra-proto', //for accessing core-prototype
+  myOrg: 'TEST',
+  myToolbox: 'CRA',
 };

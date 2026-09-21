@@ -6,7 +6,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
-import { AddUrlsService } from '../../../components/add-urls/add-urls.service';
+import { AddUrlsService } from '../../../components/add-pages/by-url/add-urls.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { ProjectStorageService } from '../../../services/storage/project-storage.service';
 

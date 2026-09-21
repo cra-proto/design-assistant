@@ -9,11 +9,13 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DividerModule } from 'primeng/divider';
+import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
 
 import { AddCollaboratorsComponent } from '../../../components/add-collaborators/add-collaborators.component';
 import { ExportProjectComponent } from '../../../components/export-project/export-project.component';
+import { SetupProjectComponent } from '../../../components/setup-project/setup-project.component';
 
 import { ProjectStateService } from '../../../services/project-state.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
@@ -23,7 +25,21 @@ import { CurrentPhase, GitHubRepo, PhaseStatus, ProjectPhase } from '../../../co
 
 @Component({
   selector: 'aida-dashboard',
-  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, ButtonModule, CheckboxModule, DividerModule, ProgressBarModule, TagModule, AddCollaboratorsComponent, ExportProjectComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    TranslatePipe,
+    ButtonModule,
+    CheckboxModule,
+    DividerModule,
+    MessageModule,
+    ProgressBarModule,
+    TagModule,
+    AddCollaboratorsComponent,
+    ExportProjectComponent,
+    SetupProjectComponent,
+  ],
   templateUrl: './dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

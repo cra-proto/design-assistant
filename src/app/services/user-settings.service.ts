@@ -6,6 +6,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { PrimeNG } from 'primeng/config';
 
+import { environment } from '../../environments/environment';
 import MyPreset from '../common/theme-presets/preset';
 import CustomPreset from '../common/theme-presets/preset-custom';
 import DeutanPreset from '../common/theme-presets/preset-deutan';
@@ -33,7 +34,7 @@ export class UserSettingsService {
   public readonly colorScheme = signal<ColorScheme>(this.getStoredColorScheme());
 
   // Toolbox visibility (used by sidebar, undecided if we should surface in user settings)
-  public readonly toolbox = signal<string | null>(localStorage.getItem('myToolbox'));
+  public readonly toolbox = signal<string | null>(localStorage.getItem('myToolbox') || environment.myToolbox);
 
   // User
   public readonly userId = signal<string>(this.getOrCreateUserId());

@@ -116,6 +116,9 @@ export class FetchService {
   public async fetchWithRetry(url: string, mode: 'GET' | 'HEAD' = 'HEAD', retries = 3, delay: number | 'random' | 'none' = 'none', suppressErrors = false): Promise<Response> {
     for (let attempt = 1; attempt <= retries; attempt++) {
       await this.simulateDelay(delay);
+      if (attempt > 1 && attempt === retries) {
+        mode = 'GET'; //fallback to GET on last HEAD request
+      }
       try {
         const response =
           mode === 'HEAD'

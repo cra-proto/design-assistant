@@ -85,7 +85,16 @@
                         <p-tag [value]="'project.setup.storage.cloud' | translate" icon="pi pi-cloud" severity="info" />
                       }
                       @if (getCollabStatus(project) === 'sign-in') {
-                        <p-tag [value]="'switch.tag.signin' | translate" icon="pi pi-sign-in" severity="warn" />
+                        <aida-sign-in-button [customContent]="true" #signIn>
+                          <p-tag
+                            [value]="'switch.tag.signin' | translate"
+                            (click)="$event.stopPropagation(); signIn.connectGitHub()"
+                            (keydown.enter)="$event.stopPropagation(); signIn.connectGitHub()"
+                            icon="pi pi-sign-in"
+                            severity="warn"
+                            tabindex="0"
+                          />
+                        </aida-sign-in-button>
                       } @else if (getCollabStatus(project) === 'read-only') {
                         <p-tag [value]="'switch.tag.readonly' | translate" icon="pi pi-eye" severity="warn" />
                       }
@@ -163,10 +172,11 @@
                       styleClass="secondary-outline"
                     />
                   }
-                  @if (project.storageType === 'local' && project.key !== 'autosave') {
+                  @if (project.storageType === 'local') {
                     <p-button
                       [aidaTooltip]="'switch.tooltip.saveToCloud' | translate"
                       (onClick)="handleUploadClick(project, $event)"
+                      disabled="project.key !== 'autosave'"
                       icon="pi pi-cloud-upload"
                       outlined
                       rounded
@@ -177,7 +187,7 @@
                   @if (collaboratorService.canEditProject(project) || project.storageType === 'local') {
                     <p-button
                       [aidaTooltip]="'common.delete' | translate"
-                      (onClick)="deleteProject(project, $event)"
+                      (onClick)="confirmDelete(project, $event)"
                       icon="pi pi-trash"
                       outlined
                       rounded
@@ -208,6 +218,9 @@
     <p-button [disabled]="!hasName" [label]="'common.save' | translate" (onClick)="showSave = false; saveProject()" />
   </div>
 </p-dialog>
+
+<!--Delete Project Dialog-->
+<p-confirmdialog key="delete" />
 
 <!--Upload to cloud dialog-->
 @if (showUpload(); as dialog) {

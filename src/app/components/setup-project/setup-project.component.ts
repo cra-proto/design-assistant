@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -21,15 +22,17 @@ import { ProjectPhase } from '../../common/data.model';
 
 @Component({
   selector: 'aida-setup-project',
-  imports: [FormsModule, TranslatePipe, IftaLabelModule, InputTextModule, KeyFilterModule, MessageModule, SelectButtonModule, SelectModule, SignInButtonComponent],
+  imports: [CommonModule, FormsModule, TranslatePipe, IftaLabelModule, InputTextModule, KeyFilterModule, MessageModule, SelectButtonModule, SelectModule, SignInButtonComponent],
   templateUrl: './setup-project.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SetupProjectComponent {
-  private readonly projectState = inject(ProjectStateService);
+  protected readonly projectState = inject(ProjectStateService);
   private readonly collaboratorService = inject(CollaboratorService);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+
+  public readonly mode = input<'name' | undefined>(undefined);
 
   constructor() {
     // Refresh projectName when there are changes to repo name (for initial sync fxn)
@@ -97,16 +100,17 @@ export class SetupProjectComponent {
   ];
 
   //Storage select button
-  protected get projectStorage(): 'local' | 'cloud' {
-    return this.projectData.storageType;
-  }
-  protected set projectStorage(value: 'local' | 'cloud') {
+  protected readonly projectStorage = computed(() => this.projectData.storageType);
+  protected setProjectStorage(value: 'local' | 'cloud') {
+    if (this.uploadAccess && value === 'cloud') {
+      return; // don't switch to cloud if user doesn't have upload access
+    }
     this.projectState.setStorageType(value);
   }
 
   protected readonly storageOptions = computed(() => [
     { name: 'project.setup.storage.local', value: 'local' as const, icon: 'pi pi-desktop' },
-    { name: 'project.setup.storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: !this.collaboratorService.canEditProject(this.projectState.getProject()) },
+    { name: 'project.setup.storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: this.uploadAccess === 'notCollab', signin: this.uploadAccess === 'signIn' },
   ]);
 
   protected get uploadAccess() {
@@ -117,5 +121,9 @@ export class SetupProjectComponent {
     if (cantUploadToCloud) return 'notCollab';
     else if (!isSignedIn) return 'signIn';
     else return undefined;
+  }
+
+  protected pendingCloudToggle(value: 'local' | 'cloud') {
+    localStorage.setItem('pendingStorageSwitch', value);
   }
 }
