@@ -32,7 +32,18 @@ import { OpenRouterService } from '../../../services/ai/openrouter.service';
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 
-import { COLUMN_GROUPS, ColumnGroups, FIELD_FILTERS, FlattenedTreeNode, MetadataField, MetadataReview, MetadataReviewStatus, PageTemplate, TableColumn } from '../../../common/data.model';
+import {
+  COLUMN_GROUPS,
+  ColumnGroups,
+  FIELD_FILTERS,
+  FlattenedTreeNode,
+  GLOBAL_FIELDS,
+  MetadataField,
+  MetadataReview,
+  MetadataReviewStatus,
+  PageTemplate,
+  TableColumn,
+} from '../../../common/data.model';
 import { isKnownNumber } from '../../../common/phone-numbers.config';
 import { InventoryPrompts } from '../../../common/prompts/inventory.prompts';
 import { InventoryPromptKey } from '../../../common/prompts/prompt.model';
@@ -520,6 +531,12 @@ export class InventoryComponent implements OnInit {
       inScope: !this.columnFilters()['inScope'],
       anyUnusual: false,
     });
+  }
+
+  // 4b. Global filter
+  protected filterFields = [...GLOBAL_FIELDS];
+  protected normalizeSearchValue(value: string): string {
+    return this.fetchService.generatePath(value);
   }
 
   // 5. Ex/Hides

@@ -142,13 +142,13 @@
               styleClass="secondary-outline"
             />
 
-            <!-- Bulk actions toolbar - Filter by search term (H1, double H1, or url, set by GlobalFilterFields) -->
+            <!-- Bulk actions toolbar - Filter by search term (columns are set by GlobalFilterFields) -->
             <p-iconfield>
               <input
                 id="search"
                 [(ngModel)]="searchTerm"
                 [placeholder]="'common.search' | translate"
-                (input)="dt().filterGlobal($event.target.value, 'contains')"
+                (input)="dt().filterGlobal(normalizeSearchValue($event.target.value), 'contains')"
                 class="min-w-min md:min-w-max w-full"
                 pInputText
                 type="text"
@@ -169,7 +169,7 @@
       <p-table
         [(selection)]="selectedNodes"
         [customSort]="true"
-        [globalFilterFields]="['enH1', 'enDoubleH1', 'enPath', 'frH1', 'frDoubleH1', 'frPath']"
+        [globalFilterFields]="filterFields"
         [paginator]="projectState.getProject().baselinePages > 25"
         [rows]="50"
         [rowsPerPageOptions]="rowsPerPageOptions"
