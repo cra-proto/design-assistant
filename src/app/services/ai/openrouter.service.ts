@@ -3,11 +3,12 @@ import { inject, Injectable, signal } from '@angular/core';
 
 import { firstValueFrom } from 'rxjs';
 
+import { HtmlNormalizationService } from '../html-normalization.service';
 import { AiPromptService } from './prompt.service';
 
 import { environment } from '../../../environments/environment';
 import { AI_FREE_MODELS } from '../../common/ai-models.config';
-import { PromptConfig } from '../../common/prompts/prompt.model';
+import { OutputKey, PromptConfig } from '../../common/prompts/prompt.model';
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -38,6 +39,7 @@ export interface AiRequestState {
 export class OpenRouterService {
   private http = inject(HttpClient);
   private aiPromptService = inject(AiPromptService);
+  private htmlNormalizationService = inject(HtmlNormalizationService);
 
   private readonly apiUrl = environment.openrouterFunctionUrl;
 
@@ -85,6 +87,11 @@ export class OpenRouterService {
   // Returns just the text from the OpenRouter response
   async getTextFromAI(config: PromptConfig, content: string, preferredModel?: string, temperature = 0): Promise<string> {
     const response = await this.sendToAI(config, content, preferredModel, temperature);
-    return response.choices?.[0]?.message?.content ?? '';
+    const responseContent = response.choices?.[0]?.message?.content ?? '';
+    if (config.output === OutputKey.Html) {
+      this.htmlNormalizationService.aiCleanup(responseContent);
+      await this.htmlNormalizationService.formatHtml(responseContent);
+    }
+    return responseContent;
   }
 }
