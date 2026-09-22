@@ -3,7 +3,7 @@ import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 
-import { TreeNode } from 'primeng/api';
+import { MessageService, TreeNode } from 'primeng/api';
 
 import { ProjectStorageService } from '../services/storage/project-storage.service';
 import { AirtableService } from './data-sources/airtable.service';
@@ -49,6 +49,7 @@ NO persistence logic (that goes to ProjectStorageService)*/
 @Injectable({ providedIn: 'root' })
 export class ProjectStateService {
   private readonly translate = inject(TranslateService);
+  private readonly messageService = inject(MessageService);
   private readonly projectStorageService = inject(ProjectStorageService);
   private readonly collaboratorService = inject(CollaboratorService);
   private readonly fetchService = inject(FetchService);
@@ -114,7 +115,14 @@ export class ProjectStateService {
       if (hasChanges) {
         // Check if user has permission to save
         if (currentProject.storageType === 'cloud' && !this.collaboratorService.canEditProject(currentProject)) {
-          console.log('Converting cloud project to local...');
+          const { isSignedIn, isCollaborator } = this.collaboratorService.getUploadAccessInfo(currentProject);
+          const message = isCollaborator && !isSignedIn ? this.translate.instant('switch.convertToLocalMessage.signIn') : this.translate.instant('switch.convertToLocalMessage.notCollab');
+          this.messageService.add({
+            severity: 'info',
+            summary: this.translate.instant('switch.convertToLocalMessage.summary'),
+            detail: message,
+            sticky: true,
+          });
           this.setStorageType('local');
         }
         this.saveStatus.set('unsaved');
@@ -132,6 +140,12 @@ export class ProjectStateService {
         this.autoSaveTimer = setTimeout(() => {
           this.saveProject();
         }, this.AUTO_SAVE_DELAY);
+      }
+    });
+    effect(() => {
+      if (this.exportGitHubService.user() && localStorage.getItem('pendingStorageSwitch') === 'cloud') {
+        localStorage.removeItem('pendingStorageSwitch');
+        this.setStorageType('cloud');
       }
     });
     this.translate.onLangChange.subscribe((e) => this.currentLang.set(e.lang));

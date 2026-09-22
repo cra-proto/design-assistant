@@ -13,7 +13,7 @@
   background-color: var(--p-surface-card);
 }
 
-.sticky-toolbar-table {
+.sticky-toolbar-tableWidth {
   width: calc(100vw - var(--mobile-nav-width) - 2rem);
 }
 
@@ -24,7 +24,7 @@
     padding-right: 5rem;
   }
 
-  .sticky-toolbar-table {
+  .sticky-toolbar-tableWidth {
     width: calc(100vw - var(--desktop-nav-width) - 5rem);
   }
 }

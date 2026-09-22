@@ -2,10 +2,9 @@
 <p [innerHTML]="'standalone.description' | translate"></p>
 
 <!--Standalone tools-->
-@if (standaloneDoormats.length > 0) {
-  <h2>Tools</h2>
-  <aida-doormats [keys]="standaloneDoormats" />
-}
+<h2>{{ 'standalone.tools._title' | translate }}</h2>
+<h2>{{ 'standalone.tools.description' | translate }}</h2>
+<aida-doormats [keys]="standaloneDoormats" />
 
 <!--Standalone bookmarklets-->
 <h2>{{ 'standalone.bookmarklet._title' | translate }}</h2>

@@ -153,6 +153,6 @@ export class GetChildPagesService {
     }
     //Step 4: Return results so calling function can determine next step
     this.searchProgress.set(null);
-    return [...new Set(addToProject.map((p) => p.url))];
+    return [...new Set(addToProject.map((p) => p.url))].filter((url) => !startingLinks.has(url));
   }
 }

@@ -33,22 +33,23 @@ export class SignInButtonComponent implements OnInit {
   protected readonly exportGitHubService = inject(ExportGitHubService);
   private readonly translate = inject(TranslateService);
 
-  public readonly buttonText = input<string | undefined>(undefined);
+  public readonly customText = input<string | undefined>(undefined);
+  public readonly customContent = input<boolean>(false);
 
   // Variables
-  protected showPatSignIn = false;
-  protected showSettings = false;
+  protected readonly showPatSignIn = signal(false);
+  protected readonly showSettings = signal(false);
 
-  protected connectGitHub() {
+  public connectGitHub() {
     if (this.isApiGatewayAccessible()) {
       this.authService.login();
     } else {
-      this.showPatSignIn = true;
+      this.showPatSignIn.set(true);
     }
   }
 
   protected async validatePAT() {
-    this.showPatSignIn = false;
+    this.showPatSignIn.set(false);
     await this.exportGitHubService.validatePAT();
   }
 
@@ -61,7 +62,7 @@ export class SignInButtonComponent implements OnInit {
             label: this.translate.instant('settings._nav'),
             icon: 'pi pi-cog',
             command: () => {
-              this.showSettings = true;
+              this.showSettings.set(true);
             },
           },
         ],

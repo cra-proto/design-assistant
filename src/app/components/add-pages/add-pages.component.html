@@ -1,0 +1,34 @@
+<h2 class="text-2xl my-1">{{ 'findPages._title' | translate }}</h2>
+<p class="text-color-secondary">{{ 'findPages.description' | translate }}</p>
+
+<p-tabs value="0">
+  <p-tablist>
+    <p-tab value="0">{{ 'findPages.url._nav' | translate }}</p-tab>
+    <p-tab value="1">{{ 'findPages.task._nav' | translate }}</p-tab>
+    <p-tab value="2">{{ 'findPages.findChildren._nav' | translate }}</p-tab>
+  </p-tablist>
+  <p-tabpanels class="p-0">
+    <!--Find pages by url-->
+    <p-tabpanel value="0">
+      <h3>{{ 'findPages.url._title' | translate }}</h3>
+      @for (paragraph of ('findPages.url.description' | translate).split('|'); track paragraph; let first = $first) {
+        <p [class.mt-0]="$first">{{ paragraph }}</p>
+      }
+      <aida-add-urls />
+    </p-tabpanel>
+    <!--Find pages by task-->
+    <p-tabpanel value="1">
+      <aida-get-task-urls />
+      <aida-add-urls [directInput]="false" />
+    </p-tabpanel>
+    <!--Find child pages-->
+    <p-tabpanel value="2">
+      <aida-get-child-pages />
+      <aida-add-urls [directInput]="false" />
+    </p-tabpanel>
+    <!--Find pages by keyword or regex (grep search/regex helper)-->
+    <!--p-tabpanel value="3">
+      ???
+    </p-tabpanel-->
+  </p-tabpanels>
+</p-tabs>

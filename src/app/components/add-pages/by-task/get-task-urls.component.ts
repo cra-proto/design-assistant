@@ -12,7 +12,7 @@ import { TagModule } from 'primeng/tag';
 
 import { AirtableService } from '../../../services/data-sources/airtable.service';
 import { ProjectStateService } from '../../../services/project-state.service';
-import { AddUrlsService } from '../../add-urls/add-urls.service';
+import { AddUrlsService } from '../by-url/add-urls.service';
 
 export interface TaskOption {
   id: number;
@@ -127,13 +127,16 @@ export class GetTaskUrlsComponent implements OnInit {
     const lang = this.currentLanguage();
     const ids = this.selectedTaskIds();
 
+    const inScopeUrls = new Set(this.projectState.getAllPages(lang, 'live', 'inScope').map((page) => page.url));
+
     const allUrls = ids.flatMap((taskId) => {
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return [];
-      return lang === 'en' ? task.urlsEN : task.urlsFR;
+      const urls = lang === 'en' ? task.urlsEN : task.urlsFR;
+      return urls.map((url) => url.trim().split('#')[0]);
     });
 
-    const uniqueUrls = [...new Set(allUrls)];
+    const uniqueUrls = [...new Set(allUrls)].filter((url) => !inScopeUrls.has(url));
 
     this.taskUrls.set(uniqueUrls.map((url) => ({ url, selected: true })));
   }

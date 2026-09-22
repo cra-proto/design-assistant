@@ -56,7 +56,7 @@ export class CloudStorageService {
     this.error.set(null);
 
     try {
-      const org = localStorage.getItem('myOrg') || 'DEFAULT';
+      const org = localStorage.getItem('myOrg') || environment.myOrg;
       const url = `${this.API_URL}?org=${encodeURIComponent(org)}`;
 
       const projects = await firstValueFrom(
@@ -153,7 +153,7 @@ export class CloudStorageService {
     }
 
     // Get org
-    const org = localStorage.getItem('myOrg') || 'DEFAULT';
+    const org = localStorage.getItem('myOrg') || environment.myOrg;
 
     this.loading.set(true);
     this.error.set(null);

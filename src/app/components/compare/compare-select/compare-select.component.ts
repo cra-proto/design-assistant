@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
+import { ButtonModule } from 'primeng/button';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { SelectModule } from 'primeng/select';
 
@@ -21,7 +23,7 @@ import { ALL_SOURCES, SourceVersion } from '../../../common/data.model';
  */
 @Component({
   selector: 'aida-compare-select',
-  imports: [FormsModule, TranslatePipe, IftaLabelModule, SelectModule],
+  imports: [FormsModule, RouterLink, TranslatePipe, ButtonModule, IftaLabelModule, SelectModule],
   templateUrl: './compare-select.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

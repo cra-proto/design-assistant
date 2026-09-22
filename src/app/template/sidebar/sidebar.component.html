@@ -50,17 +50,15 @@
         </div>
         <div id="tasks" [class.md:hidden]="!isExpanded.tasks" aria-labelledby="menu-tasks" role="region">
           <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/add-pages', icon: 'note_add', text: ('addPages._nav' | translate), isOutlined: true }" />
-          @if (hasPages) {
-            <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/ia-diagram', icon: 'lan', text: ('iaDiagram._nav' | translate), isOutlined: true }" />
-            <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/inventory', icon: 'checklist_rtl', text: ('inventory._nav' | translate) }" />
-            <ng-container
-              *ngTemplateOutlet="link; context: { path: 'tasks/export-pages', icon: 'drive_folder_upload', text: ('exportPages._nav' | translate), isOutlined: true, onClick: exportPages }"
-            />
-            @if (!production) {
-              <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/compare', icon: 'library_books', text: ('compare._nav' | translate), isOutlined: true, onClick: compareVersions }" />
-              <!--ng-container *ngTemplateOutlet="link; context: { path: 'tasks/problems', icon: 'troubleshoot', text: ('problems._nav' | translate), isOutlined: true}"/>
+          <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/ia-diagram', icon: 'lan', text: ('iaDiagram._nav' | translate), isOutlined: true }" />
+          <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/inventory', icon: 'checklist_rtl', text: ('inventory._nav' | translate) }" />
+          <ng-container
+            *ngTemplateOutlet="link; context: { path: 'tasks/export-pages', icon: 'drive_folder_upload', text: ('exportPages._nav' | translate), isOutlined: true, onClick: exportPages }"
+          />
+          @if (!production) {
+            <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/compare', icon: 'library_books', text: ('compare._nav' | translate), isOutlined: true, onClick: compareVersions }" />
+            <!--ng-container *ngTemplateOutlet="link; context: { path: 'tasks/problems', icon: 'troubleshoot', text: ('problems._nav' | translate), isOutlined: true}"/>
           <ng-container *ngTemplateOutlet="link; context: { path: 'tasks/search', icon: 'manage_search', text: ('search._nav' | translate), isOutlined: true}"/-->
-            }
           }
         </div>
       </div>

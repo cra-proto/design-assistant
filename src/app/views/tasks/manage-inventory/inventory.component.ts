@@ -10,7 +10,10 @@ import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ContextMenu, ContextMenuModule } from 'primeng/contextmenu';
 import { DialogModule } from 'primeng/dialog';
+import { IconFieldModule } from 'primeng/iconfield';
 import { IftaLabelModule } from 'primeng/iftalabel';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
 import { Menu, MenuModule } from 'primeng/menu';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { RadioButtonModule } from 'primeng/radiobutton';
@@ -19,10 +22,9 @@ import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 
-import { AddUrlsComponent } from '../../../components/add-urls/add-urls.component';
+import { AddPagesComponent } from '../../../components/add-pages/add-pages.component';
 import { EditNodeComponent } from '../../../components/edit-node/edit-node.component';
 import { ExportProjectComponent } from '../../../components/export-project/export-project.component';
-import { FindPagesComponent } from '../../../components/find-pages/find-pages.component';
 import { IaTableComponent } from '../../../components/ia-table/ia-table.component';
 
 import { IaDiagramService } from '../../../components/ia-diagram/ia-diagram.service';
@@ -30,7 +32,18 @@ import { OpenRouterService } from '../../../services/ai/openrouter.service';
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 
-import { COLUMN_GROUPS, ColumnGroups, FIELD_FILTERS, FlattenedTreeNode, MetadataField, MetadataReview, MetadataReviewStatus, PageTemplate, TableColumn } from '../../../common/data.model';
+import {
+  COLUMN_GROUPS,
+  ColumnGroups,
+  FIELD_FILTERS,
+  FlattenedTreeNode,
+  GLOBAL_FIELDS,
+  MetadataField,
+  MetadataReview,
+  MetadataReviewStatus,
+  PageTemplate,
+  TableColumn,
+} from '../../../common/data.model';
 import { isKnownNumber } from '../../../common/phone-numbers.config';
 import { InventoryPrompts } from '../../../common/prompts/inventory.prompts';
 import { InventoryPromptKey } from '../../../common/prompts/prompt.model';
@@ -52,7 +65,10 @@ export interface BooleanToggleItem extends MenuItem {
     ConfirmDialogModule,
     ContextMenuModule,
     DialogModule,
+    IconFieldModule,
     IftaLabelModule,
+    InputIconModule,
+    InputTextModule,
     MenuModule,
     MultiSelectModule,
     RadioButtonModule,
@@ -60,10 +76,9 @@ export interface BooleanToggleItem extends MenuItem {
     TableModule,
     TagModule,
     TextareaModule,
-    AddUrlsComponent,
+    AddPagesComponent,
     EditNodeComponent,
     ExportProjectComponent,
-    FindPagesComponent,
     IaTableComponent,
     TooltipDirective,
   ],
@@ -113,6 +128,8 @@ export class InventoryComponent implements OnInit {
 
   protected editNode = false; // Tracks if currently making dialog edits
   protected selectedNode: TreeNode | undefined = undefined; // TreeNode data for edit node dialog (not flattened!)
+
+  protected readonly searchTerm = signal<string>('');
 
   private readonly sortField = signal<string | null>(null);
   private readonly sortOrder = signal<number>(1); // 1 = ascending, -1 = descending
@@ -516,6 +533,12 @@ export class InventoryComponent implements OnInit {
     });
   }
 
+  // 4b. Global filter
+  protected filterFields = [...GLOBAL_FIELDS];
+  protected normalizeSearchValue(value: string): string {
+    return this.fetchService.generatePath(value);
+  }
+
   // 5. Ex/Hides
 
   // Auto-expand when group is the only visible one
@@ -711,6 +734,11 @@ export class InventoryComponent implements OnInit {
       },
     };
     this.projectState.setMetadataReview(path, review);
+  }
+
+  charCountOk(characters: number): boolean {
+    if (characters >= 10 && characters <= 160) return true;
+    else return false;
   }
 
   // 3. Save new cell value

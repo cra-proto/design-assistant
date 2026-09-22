@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -12,7 +12,7 @@ import { TextareaModule } from 'primeng/textarea';
 
 import { InvalidUrlsComponent } from './invalid-urls/invalid-urls.component';
 
-import { ProjectStateService } from '../../services/project-state.service';
+import { ProjectStateService } from '../../../services/project-state.service';
 import { AddUrlsService } from './add-urls.service';
 
 @Component({
@@ -24,12 +24,9 @@ import { AddUrlsService } from './add-urls.service';
 export class AddUrlsComponent implements OnInit {
   private translate = inject(TranslateService);
   private projectState = inject(ProjectStateService);
-  public addUrlsService = inject(AddUrlsService);
+  protected addUrlsService = inject(AddUrlsService);
 
-  // Skip duplicate, invalid, & opposite language URLs
-  duplicatesSkipped: string[] = [];
-  invalidUrlsSkipped: string[] = [];
-  oppositeLangSkipped: string[] = [];
+  public readonly directInput = input<boolean>(true);
 
   // Parse URLs from textarea
   parseUrls(): void {
@@ -38,21 +35,13 @@ export class AddUrlsComponent implements OnInit {
     const existingUrls = new Set(this.projectState.getAllPages(currentLang, 'live', 'inScope').map((u) => u.url));
     const { parsedUrls, duplicates, invalidUrls, oppositeLangUrls } = this.addUrlsService.parseUrls(rawUrls, existingUrls, currentLang);
 
-    console.log(parsedUrls);
-
     this.addUrlsService.urlState().rawUrls = [...parsedUrls.map((item) => item.href), ...duplicates, ...invalidUrls, ...oppositeLangUrls].join('\n');
-
-    this.duplicatesSkipped = duplicates;
-    this.invalidUrlsSkipped = invalidUrls;
-    this.oppositeLangSkipped = oppositeLangUrls;
 
     this.addUrlsService.setUrlState({
       urlsToValidate: parsedUrls,
       isValidating: false,
       isAdding: false,
     });
-    //console.log('Parsed URLs for validation:', parsedUrls);
-    //console.log('Duplicates skipped:', duplicates);
   }
   onPasteUrls() {
     setTimeout(() => this.parseUrls(), 0);
@@ -60,21 +49,21 @@ export class AddUrlsComponent implements OnInit {
 
   // Warning message for duplicates skipped
   getDuplicateMessage(): string {
-    const count = this.duplicatesSkipped.length;
+    const count = this.addUrlsService.duplicatesSkipped().length;
     if (count === 1) return this.translate.instant('addPages.duplicatesSkipped', { count });
     else return this.translate.instant('addPages.duplicatesSkipped.plural', { count });
   }
 
   // Warning message for invalid URLs skipped
   getInvalidUrlMessage(): string {
-    const count = this.invalidUrlsSkipped.length;
+    const count = this.addUrlsService.invalidUrlsSkipped().length;
     if (count === 1) return this.translate.instant('addPages.invalidUrlsSkipped', { count });
     else return this.translate.instant('addPages.invalidUrlsSkipped.plural', { count });
   }
 
   // Warning message for opposite language URLs skipped
   getOppositeLangMessage(): string {
-    const count = this.oppositeLangSkipped.length;
+    const count = this.addUrlsService.oppositeLangSkipped().length;
     if (count === 1) return this.translate.instant('addPages.oppositeLangSkipped', { count });
     else return this.translate.instant('addPages.oppositeLangSkipped.plural', { count });
   }

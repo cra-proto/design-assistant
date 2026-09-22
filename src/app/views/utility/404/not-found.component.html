@@ -1,1 +1,10 @@
-<span [innerHTML]="random404Key | translate" (click)="onNotFoundClick($event)" (keydown)="onNotFoundEnter($event)" role="link" tabindex="0"></span>
+<div class="flex flex-column align-items-center mt-5">
+  <div>
+    <h1 id="wb-cont" class="noline mb-0">{{ random404Title | translate }}</h1>
+    @for (paragraph of (random404Description | translate).split('|'); track paragraph) {
+      <p>{{ paragraph }}</p>
+    }
+    <img [alt]="" [src]="mascotSrc" class="opacity-80 h-12rem" />
+    <span [innerHTML]="random404List | translate" (click)="onNotFoundClick($event)" (keydown)="onNotFoundEnter($event)" role="link" tabindex="0"></span>
+  </div>
+</div>

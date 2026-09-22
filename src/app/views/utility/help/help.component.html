@@ -240,6 +240,29 @@
 
   <section class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
     <h2 id="release">Release notes</h2>
+    <h3 id="0-6-12">Release 0.6.12 (Sept 22, 2026)</h3>
+    <h4>Updates to "Find and add pages"</h4>
+    <ul>
+      <li>Combine "Add pages" and "Find pages" into a single "Find and add pages" tabbed interface</li>
+      <li>When adding task or child pages, filter in-scope urls out of the found pages</li>
+      <li>Add toast popup when add is complete</li>
+      <li>Add GET fallback to last HEAD request to prevent pages being incorrectly flagged as 404 during add</li>
+      <li>Add rescue links to this view from all other tasks</li>
+    </ul>
+    <h4>Minor fixes & improvments</h4>
+    <ul>
+      <li>Set default org and toolbox values</li>
+      <li>Route new users to landing page instead of new project page</li>
+      <li>Add image to 404 page</li>
+      <li>Allow custom content to be passed into sign-in button so anything can pop up the sign-in dialog</li>
+      <li>Add sign-in popup to cloud storage toggle and switch project read-only tag</li>
+      <li>Add confirmation dialog when user deletes a cloud project</li>
+      <li>Add toast message when cloud project autoconverts to local (collab not signed in, or not a collab)</li>
+      <li>Add method to name unamed projects from landing page</li>
+      <li>Comment out phase advancer on landing page</li>
+      <li>Update character count tooltip to include colour explanation (on inventory page)</li>
+      <li>Add filter for h1, double h1 or page path on inventory page</li>
+    </ul>
     <h3 id="0-6-11">Release 0.6.11 (Sept 17, 2026)</h3>
     <h4>Minor fixes & improvments</h4>
     <ul>

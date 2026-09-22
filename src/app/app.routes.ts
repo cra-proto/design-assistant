@@ -65,7 +65,6 @@ export const routes: Routes = [
   {
     path: '',
     component: DashboardComponent,
-    canActivate: [landingGuard],
     title: environment.production ? '_app._title' : environment.sandbox ? '_app._title.sandbox' : '_app._title.dev',
     children: [],
   },
@@ -135,7 +134,7 @@ export const routes: Routes = [
   },
   {
     path: 'tasks/add-pages',
-    loadComponent: () => import('./views/tasks/add-pages/add-pages.component').then((m) => m.AddPagesComponent),
+    loadComponent: () => import('./views/tasks/add-pages/add-pages.component').then((m) => m.AddOrViewPagesComponent),
     title: 'addPages._title',
     data: { breadcrumbKey: 'home.tasks' },
   },

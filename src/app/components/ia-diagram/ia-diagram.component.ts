@@ -19,7 +19,7 @@ import { FetchService } from '../../services/fetch.service';
 import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { TreeNodeStyleService } from '../../services/treenode-style.service';
-import { AddUrlsService } from '../add-urls/add-urls.service';
+import { AddUrlsService } from '../add-pages/by-url/add-urls.service';
 import { IaDiagramService } from './ia-diagram.service';
 
 import { TreeNodeData } from '../../common/data.model';

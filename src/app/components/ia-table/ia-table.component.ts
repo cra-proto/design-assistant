@@ -14,7 +14,7 @@ import { FetchService } from '../../services/fetch.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { TreeNodeStyleService } from '../../services/treenode-style.service';
 import { UserSettingsService } from '../../services/user-settings.service';
-import { AddUrlsService } from '../add-urls/add-urls.service';
+import { AddUrlsService } from '../add-pages/by-url/add-urls.service';
 
 @Component({
   selector: 'aida-ia-table',

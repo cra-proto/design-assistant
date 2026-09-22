@@ -11,14 +11,14 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { ProgressBarModule } from 'primeng/progressbar';
 
 import { ProjectStateService } from '../../../services/project-state.service';
-import { AddUrlsService } from '../../add-urls/add-urls.service';
-import { GetChildPagesService } from './get-child-pages.service';
+import { AddUrlsService } from '../by-url/add-urls.service';
+import { GetChildPagesService } from './get-child-urls.service';
 
 @Component({
   selector: 'aida-get-child-pages',
   standalone: true,
   imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, CheckboxModule, IftaLabelModule, InputNumberModule, ProgressBarModule],
-  templateUrl: './get-child-pages.component.html',
+  templateUrl: './get-child-urls.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GetChildPagesComponent {
@@ -48,7 +48,7 @@ export class GetChildPagesComponent {
     const lang = this.projectState.detectPrimaryLanguage();
 
     // Get in-scope URLs
-    const inScopeUrls = new Set(this.projectState.getAllPages(lang, 'live', 'inScope').map((u) => u.url));
+    const inScopeUrls = new Set(this.projectState.getAllPages(lang, 'live', 'inScope').map((page) => page.url));
 
     // Get child pages up to specified depth
     const childPages = await this.getChildPagesService.findChildren(inScopeUrls, depth);

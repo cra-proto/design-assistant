@@ -1,16 +1,18 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 
-import { TreeNode } from 'primeng/api';
+import { TranslateService } from '@ngx-translate/core';
 
-import { AirtableService } from '../../services/data-sources/airtable.service';
-import { UpdService } from '../../services/data-sources/upd.service';
-import { VanityService } from '../../services/data-sources/vanity.service';
-import { FetchService } from '../../services/fetch.service';
-import { ProjectStateService } from '../../services/project-state.service';
-import { ProjectStorageService } from '../../services/storage/project-storage.service';
-import { TreeNodeStyleService } from '../../services/treenode-style.service';
+import { MessageService, TreeNode } from 'primeng/api';
 
-import { LangData, PageActions, PageTemplate } from '../../common/data.model';
+import { AirtableService } from '../../../services/data-sources/airtable.service';
+import { UpdService } from '../../../services/data-sources/upd.service';
+import { VanityService } from '../../../services/data-sources/vanity.service';
+import { FetchService } from '../../../services/fetch.service';
+import { ProjectStateService } from '../../../services/project-state.service';
+import { ProjectStorageService } from '../../../services/storage/project-storage.service';
+import { TreeNodeStyleService } from '../../../services/treenode-style.service';
+
+import { LangData, PageActions, PageTemplate } from '../../../common/data.model';
 
 //Interfaces
 export interface ValidationItem {
@@ -37,6 +39,8 @@ export interface UrlState {
   providedIn: 'root',
 })
 export class AddUrlsService {
+  private readonly messageService = inject(MessageService);
+  private readonly translate = inject(TranslateService);
   private readonly fetchService = inject(FetchService);
   private readonly projectState = inject(ProjectStateService);
   private readonly updService = inject(UpdService);
@@ -64,6 +68,11 @@ export class AddUrlsService {
     isValidating: false,
     isAdding: false,
   });
+
+  // Skip duplicate, invalid, & opposite language URLs
+  public readonly duplicatesSkipped = signal<string[]>([]);
+  public readonly invalidUrlsSkipped = signal<string[]>([]);
+  public readonly oppositeLangSkipped = signal<string[]>([]);
 
   /** Updates a partial signal from the {@link urlState} */
   public setUrlState(partial: Partial<UrlState>) {
@@ -124,6 +133,10 @@ export class AddUrlsService {
         return true;
       })
       .map(({ normalized }) => ({ href: normalized, status: 'checking' as const }));
+
+    this.duplicatesSkipped.set(duplicates);
+    this.invalidUrlsSkipped.set(invalidUrls);
+    this.oppositeLangSkipped.set(oppositeLangUrls);
     return { parsedUrls, duplicates, invalidUrls, oppositeLangUrls };
   }
 
@@ -201,7 +214,7 @@ export class AddUrlsService {
 
   // Step 1: Validate multiple URLs sequentially (concurrency can cause issues with Akamai rate limiting)
   public async validateUrls(): Promise<void> {
-    this.setUrlState({ isValidating: true });
+    this.setUrlState({ rawUrls: '', isValidating: true });
     const urls = this.urlState().urlsToValidate;
     for (const url of urls) {
       await this.validateUrl(url);
@@ -242,17 +255,20 @@ export class AddUrlsService {
 
   // Validate a single URL
   private async validateUrl(page: ValidationItem): Promise<void> {
+    console.log(page);
     try {
       const response = await this.fetchService.fetchStatus(page.href, 'prod', 3, 'none', 500);
 
       let updated: ValidationItem;
       if (!response.ok || response.url.includes('404.html')) {
         updated = { ...page, status: 'bad' };
+        console.log(response);
       } else if (response.url !== page.href) {
         updated = { ...page, status: 'redirect', originalHref: page.href, href: response.url };
       } else {
         updated = { ...page, status: 'ok' };
       }
+      console.log(updated);
       this.urlState.update((curr) => ({
         ...curr,
         urlsToValidate: curr.urlsToValidate.map((url) => (url.href === page.href ? updated : url)),
@@ -287,7 +303,7 @@ export class AddUrlsService {
   private async addUrls(parent: string | null = null) {
     this.setUrlState({ isAdding: true });
     const urls = this.urlState().urlsToAdd;
-    //console.log(urls);
+    console.log(urls);
     // Load UPD & Airtable data
     await this.updService.fetchData();
     await this.airtableService.fetchTasks();
@@ -315,6 +331,12 @@ export class AddUrlsService {
     this.projectStorageService.rebuildParents(this.projectState.getProjectTree(), undefined);
     this.treeNodeStyleService.updateNodeStyles(this.projectState.getProjectTree(), 0);
     this.setUrlState({ isAdding: false, urlsToAdd: [], rawUrls: '' });
+    this.messageService.add({
+      severity: 'success',
+      summary: this.translate.instant('addPages.done.summary'),
+      detail: this.translate.instant('addPages.done.detail', { count: urls.length }),
+      life: 5000,
+    });
   }
 
   // Step 2: Add a single URL

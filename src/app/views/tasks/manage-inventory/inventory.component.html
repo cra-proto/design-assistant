@@ -30,7 +30,7 @@
       </div>
     </div>
 
-    <div [class]="projectState.selectedInventoryView() === 'table' ? 'sticky-toolbar-table sticky-toolbar' : ''">
+    <div [class]="projectState.selectedInventoryView() === 'table' ? 'sticky-toolbar-tableWidth sticky-toolbar' : ''">
       <!-- Top toolbar -->
       <div class="flex flex-row justify-content-between gap-2 h-6rem surface-card">
         <!-- Top toolbar - View options -->
@@ -141,6 +141,25 @@
               severity="secondary"
               styleClass="secondary-outline"
             />
+
+            <!-- Bulk actions toolbar - Filter by search term (columns are set by GlobalFilterFields) -->
+            <p-iconfield>
+              <input
+                id="search"
+                [(ngModel)]="searchTerm"
+                [placeholder]="'common.search' | translate"
+                (input)="dt().filterGlobal(normalizeSearchValue($event.target.value), 'contains')"
+                class="min-w-min md:min-w-max w-full"
+                pInputText
+                type="text"
+              />
+              <p-inputicon class="pi pi-search" />
+            </p-iconfield>
+            @if (dt().filteredValue) {
+              <span>
+                {{ 'common.showingRows' | translate: { shown: dt().filteredValue?.length, total: dt().value.length } }}
+              </span>
+            }
           </div>
         </div>
       }
@@ -150,6 +169,7 @@
       <p-table
         [(selection)]="selectedNodes"
         [customSort]="true"
+        [globalFilterFields]="filterFields"
         [paginator]="projectState.getProject().baselinePages > 25"
         [rows]="50"
         [rowsPerPageOptions]="rowsPerPageOptions"
@@ -305,10 +325,13 @@
                 <!-- Long text fields (metadata, may need to refactor when we add the notes column) -->
                 @if (col.type === 'longText') {
                   <div class="flex align-items-start gap-2">
+                    <p-tag
+                      [aidaTooltip]="charCountOk(node[col.field].length) ? ('common.characterCount.ok' | translate) : ('common.characterCount.bad' | translate)"
+                      [severity]="charCountOk(node[col.field].length) ? 'success' : 'danger'"
+                    >
+                      {{ node[col.field].length }}
+                    </p-tag>
                     <div [class.line-clamp-3]="!isCellExpanded('metadata', rowIndex, col.field)">
-                      <p-tag [aidaTooltip]="'common.characterCount' | translate" [severity]="node[col.field].length >= 10 && node[col.field].length <= 160 ? 'success' : 'danger'"
-                        >{{ node[col.field].length }}
-                      </p-tag>
                       {{ node[col.field] }}
                     </div>
                     @if (!expandAll['metadata']) {
@@ -364,8 +387,8 @@
                             <div class="flex flex-row gap-2">
                               <p-tag [value]="'common.editing' | translate" class="capitalize" />
                               <p-tag
-                                [aidaTooltip]="'common.characterCount' | translate"
-                                [severity]="field.edited.length >= 10 && field.edited.length <= 160 ? 'success' : 'danger'"
+                                [aidaTooltip]="charCountOk(field.edited.length) ? ('common.characterCount.ok' | translate) : ('common.characterCount.bad' | translate)"
+                                [severity]="charCountOk(field.edited.length) ? 'success' : 'danger'"
                                 [value]="field.edited.length"
                                 class="mx-1"
                               />
@@ -395,16 +418,16 @@
                                 class="capitalize"
                               />
                               <p-tag
-                                [aidaTooltip]="'common.characterCount' | translate"
-                                [severity]="
+                                [aidaTooltip]="
                                   field.status === 'edited'
-                                    ? field.edited.length >= 10 && field.edited.length <= 160
-                                      ? 'success'
-                                      : 'danger'
-                                    : field.ai.length >= 10 && field.ai.length <= 160
-                                      ? 'success'
-                                      : 'danger'
+                                    ? charCountOk(field.edited.length)
+                                      ? ('common.characterCount.ok' | translate)
+                                      : ('common.characterCount.bad' | translate)
+                                    : charCountOk(field.ai.length)
+                                      ? ('common.characterCount.ok' | translate)
+                                      : ('common.characterCount.bad' | translate)
                                 "
+                                [severity]="field.status === 'edited' ? (charCountOk(field.edited.length) ? 'success' : 'danger') : charCountOk(field.ai.length) ? 'success' : 'danger'"
                                 [value]="field.status === 'edited' ? field.edited.length : field.ai.length"
                                 class="mx-1"
                               />
@@ -508,15 +531,11 @@
       <aida-ia-table />
     }
   </div>
-
   <!--Add & Find pages-->
   @defer (on idle) {
-    <div class="flex md:flex-row flex-column gap-3 sticky-horizontal">
-      <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:mb-3 lg:w-6 min-w-min">
-        <aida-add-urls />
-      </div>
-      <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:mb-3 lg:w-6 min-w-min">
-        <aida-find-pages />
+    <div class="sticky-horizontal">
+      <div class="surface-card border-round-lg shadow-2 p-4 min-w-min">
+        <aida-add-pages />
       </div>
     </div>
   }

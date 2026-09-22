@@ -5,8 +5,9 @@ import { Router } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { MenuItem, MessageService } from 'primeng/api';
+import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { DividerModule } from 'primeng/divider';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -22,6 +23,7 @@ import { TagModule } from 'primeng/tag';
 import { AddCollaboratorsComponent } from '../../../components/add-collaborators/add-collaborators.component';
 import { SetupProjectComponent } from '../../../components/setup-project/setup-project.component';
 import { SignInBannerComponent } from '../../../components/sign-in/sign-in-banner/sign-in-banner.component';
+import { SignInButtonComponent } from '../../../components/sign-in/sign-in-button/sign-in-button.component';
 
 import { CollaboratorService } from '../../../services/github/collaborator.service';
 import { ExportGitHubService } from '../../../services/github/export-github.service';
@@ -29,6 +31,7 @@ import { ProjectStateService } from '../../../services/project-state.service';
 import { ProjectStorageService } from '../../../services/storage/project-storage.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
 
+import { environment } from '../../../../environments/environment';
 import { ProjectMetadata, ProjectPhase } from '../../../common/data.model';
 import { TooltipDirective } from '../../../common/tooltip.directive';
 
@@ -42,6 +45,7 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
     FormsModule,
     TranslatePipe,
     ButtonModule,
+    ConfirmDialogModule,
     DialogModule,
     DividerModule,
     IconFieldModule,
@@ -56,6 +60,7 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
     AddCollaboratorsComponent,
     SetupProjectComponent,
     SignInBannerComponent,
+    SignInButtonComponent,
     TooltipDirective,
   ],
   templateUrl: './switch-project.component.html',
@@ -68,6 +73,7 @@ export class SwitchProjectComponent implements OnInit {
   protected readonly exportGitHubService = inject(ExportGitHubService);
   protected readonly collaboratorService = inject(CollaboratorService);
   private readonly settingsService = inject(UserSettingsService);
+  private readonly confirmationService = inject(ConfirmationService);
 
   private readonly router = inject(Router);
   private readonly message = inject(MessageService);
@@ -189,7 +195,7 @@ export class SwitchProjectComponent implements OnInit {
       },
     ];
 
-    const myOrg = localStorage.getItem('myOrg'); // Only add Organization filter if myOrg is set
+    const myOrg = localStorage.getItem('myOrg') || environment.myOrg; // Only add Organization filter if myOrg is set
     if (myOrg) {
       this.groupedFilters.push({
         label: this.translate.instant('common.organization'),
@@ -313,7 +319,7 @@ export class SwitchProjectComponent implements OnInit {
           }
 
           // Organization
-          const projectOrg = p.org || localStorage.getItem('myOrg') || 'DEFAULT';
+          const projectOrg = p.org || localStorage.getItem('myOrg') || environment.myOrg || 'DEFAULT';
           if (filterValue === 'DEFAULT') return projectOrg === 'DEFAULT';
           const myOrg = localStorage.getItem('myOrg');
           if (filterValue === myOrg && myOrg) return projectOrg === myOrg;
@@ -399,9 +405,35 @@ export class SwitchProjectComponent implements OnInit {
     }
   }
 
-  protected async deleteProject(project: ProjectMetadata, event?: Event) {
+  protected confirmDelete(project: ProjectMetadata, event?: Event) {
     event?.stopPropagation();
 
+    if (project.storageType === 'cloud') {
+      this.confirmationService.confirm({
+        key: 'delete',
+        icon: 'pi pi-exclamation-triangle text-red-500',
+        header: this.translate.instant('switch.confirmDelete.header'),
+        message: this.translate.instant('switch.confirmDelete.message'),
+        acceptButtonProps: {
+          label: this.translate.instant('switch.confirmDelete.accept'),
+          severity: 'danger',
+        },
+        rejectButtonProps: {
+          label: this.translate.instant('common.cancel'),
+          severity: 'secondary',
+          outlined: true,
+        },
+        accept: () => {
+          this.deleteProject(project);
+          console.warn('User approved delete action');
+        },
+      });
+    } else {
+      this.deleteProject(project);
+    }
+  }
+
+  private async deleteProject(project: ProjectMetadata) {
     let key = project.key;
     if (project.storageType === 'cloud') {
       key = project.id;
