@@ -1,6 +1,3 @@
-@if (projectName) {
-  <p>{{ projectName }}</p>
-}
 <h1 id="wb-cont">{{ 'switch._title' | translate }}</h1>
 <p>{{ 'switch.description' | translate }}{{ 'switch.description2' | translate }}</p>
 
@@ -18,25 +15,25 @@
 <div class="surface-card border-round-lg shadow-2 p-4 mb-3 min-w-min">
   <div class="flex flex-column-reverse xl:flex-row justify-content-between align-items-start gap-2 mb-3">
     <div class="flex flex-column lg:flex-row gap-2 w-full">
+      <!--Filter presets-->
+      <p-selectbutton [allowEmpty]="false" [ngModel]="selectedPreset()" [options]="filterPresets()" (ngModelChange)="onPresetChange($event)" styleClass="w-full secondary-outline white-space-nowrap" />
+      <!--Filter-->
+      <p-iftalabel>
+        <p-multiselect [(ngModel)]="selectedFilter" [group]="true" [options]="groupedFilters" (onClick)="updateGroupedFilters()" class="min-w-15rem" inputId="filter" />
+        <label for="filter">{{ 'common.filter' | translate }}</label>
+      </p-iftalabel>
       <!--Search-->
       <p-iftalabel>
         <p-iconfield>
-          <input id="search" [(ngModel)]="searchTerm" class="min-w-min md:min-w-max w-full" pInputText type="text" />
+          <input id="search" [(ngModel)]="searchTerm" class="min-w-15rem" pInputText type="text" />
           <p-inputicon class="pi pi-search" />
         </p-iconfield>
         <label for="search">{{ 'common.search' | translate }}</label>
       </p-iftalabel>
       <!--Sort-->
       <p-iftalabel>
-        <p-select id="sort" [(ngModel)]="selectedSort" [options]="sortOptions" class="min-w-min md:min-w-max" />
+        <p-select id="sort" [(ngModel)]="selectedSort" [options]="sortOptions" class="min-w-15rem" />
         <label for="sort">{{ 'common.sortBy' | translate }}</label>
-      </p-iftalabel>
-      <!--Filter presets-->
-      <p-selectbutton [allowEmpty]="false" [ngModel]="selectedPreset()" [options]="filterPresets()" (ngModelChange)="onPresetChange($event)" styleClass="w-full secondary-outline white-space-nowrap" />
-      <!--Filter-->
-      <p-iftalabel>
-        <p-multiselect [(ngModel)]="selectedFilter" [group]="true" [options]="groupedFilters" (onClick)="updateGroupedFilters()" class="min-w-min md:min-w-max" inputId="filter" />
-        <label for="filter">{{ 'common.filter' | translate }}</label>
       </p-iftalabel>
     </div>
 

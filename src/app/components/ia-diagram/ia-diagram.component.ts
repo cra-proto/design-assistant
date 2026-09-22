@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -12,6 +11,7 @@ import { Menu, MenuModule } from 'primeng/menu';
 import { OrganizationChartModule } from 'primeng/organizationchart';
 import { TooltipModule } from 'primeng/tooltip';
 
+import { AddPagesLinkComponent } from '../add-pages/add-pages-link/add-pages-link.component';
 import { EditNodeComponent } from '../edit-node/edit-node.component';
 import { ProjectSettingsComponent } from '../project-settings/project-settings.component';
 
@@ -26,7 +26,19 @@ import { TreeNodeData } from '../../common/data.model';
 
 @Component({
   selector: 'aida-ia-diagram',
-  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, ButtonModule, DialogModule, MenuModule, OrganizationChartModule, TooltipModule, EditNodeComponent, ProjectSettingsComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslatePipe,
+    ButtonModule,
+    DialogModule,
+    MenuModule,
+    OrganizationChartModule,
+    TooltipModule,
+    AddPagesLinkComponent,
+    EditNodeComponent,
+    ProjectSettingsComponent,
+  ],
   templateUrl: './ia-diagram.component.html',
   styleUrl: './ia-diagram.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -8,7 +8,6 @@ import { MessageModule } from 'primeng/message';
 
 import { AddCollaboratorsComponent } from '../../../components/add-collaborators/add-collaborators.component';
 import { AddPagesComponent } from '../../../components/add-pages/add-pages.component';
-import { AddUrlsComponent } from '../../../components/add-pages/by-url/add-urls.component';
 import { SetupProjectComponent } from '../../../components/setup-project/setup-project.component';
 import { SetupRepoComponent } from '../../../components/setup-repo/setup-repo.component';
 import { ViewPagesComponent } from '../../../components/view-pages/view-pages.component';
@@ -18,7 +17,7 @@ import { ProjectStateService } from '../../../services/project-state.service';
 
 @Component({
   selector: 'aida-edit-project',
-  imports: [CommonModule, FormsModule, TranslatePipe, MessageModule, AddCollaboratorsComponent, AddPagesComponent, AddUrlsComponent, SetupProjectComponent, SetupRepoComponent, ViewPagesComponent],
+  imports: [CommonModule, FormsModule, TranslatePipe, MessageModule, AddCollaboratorsComponent, AddPagesComponent, SetupProjectComponent, SetupRepoComponent, ViewPagesComponent],
   templateUrl: './edit-project.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { ButtonModule } from 'primeng/button';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { SelectModule } from 'primeng/select';
+
+import { AddPagesLinkComponent } from '../../add-pages/add-pages-link/add-pages-link.component';
 
 import { FetchService } from '../../../services/fetch.service';
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
@@ -23,7 +24,7 @@ import { ALL_SOURCES, SourceVersion } from '../../../common/data.model';
  */
 @Component({
   selector: 'aida-compare-select',
-  imports: [FormsModule, RouterLink, TranslatePipe, ButtonModule, IftaLabelModule, SelectModule],
+  imports: [FormsModule, TranslatePipe, ButtonModule, IftaLabelModule, SelectModule, AddPagesLinkComponent],
   templateUrl: './compare-select.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

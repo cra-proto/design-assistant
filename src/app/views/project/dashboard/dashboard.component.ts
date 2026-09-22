@@ -14,6 +14,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
 
 import { AddCollaboratorsComponent } from '../../../components/add-collaborators/add-collaborators.component';
+import { AddPagesLinkComponent } from '../../../components/add-pages/add-pages-link/add-pages-link.component';
 import { ExportProjectComponent } from '../../../components/export-project/export-project.component';
 import { SetupProjectComponent } from '../../../components/setup-project/setup-project.component';
 
@@ -37,6 +38,7 @@ import { CurrentPhase, GitHubRepo, PhaseStatus, ProjectPhase } from '../../../co
     ProgressBarModule,
     TagModule,
     AddCollaboratorsComponent,
+    AddPagesLinkComponent,
     ExportProjectComponent,
     SetupProjectComponent,
   ],

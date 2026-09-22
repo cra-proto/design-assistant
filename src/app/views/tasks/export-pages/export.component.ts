@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -17,6 +17,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 
+import { AddPagesLinkComponent } from '../../../components/add-pages/add-pages-link/add-pages-link.component';
 import { BookmarkletComponent } from '../../../components/bookmarklet/bookmarklet.component';
 import { ProjectSettingsComponent } from '../../../components/project-settings/project-settings.component';
 import { SetupRepoComponent } from '../../../components/setup-repo/setup-repo.component';
@@ -75,7 +76,6 @@ interface ExportMessage {
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     TranslatePipe,
     ButtonModule,
     ChipModule,
@@ -86,6 +86,7 @@ interface ExportMessage {
     ProgressBarModule,
     TableModule,
     TooltipModule,
+    AddPagesLinkComponent,
     BookmarkletComponent,
     ProjectSettingsComponent,
     SetupRepoComponent,
