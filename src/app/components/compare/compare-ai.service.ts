@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { isActive, Router } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
 
@@ -18,6 +19,7 @@ export type TargetTense = 'past' | 'present' | 'future';
   providedIn: 'root',
 })
 export class CompareAiService {
+  private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
   private readonly translate = inject(TranslateService);
   private readonly projectState = inject(ProjectStateService);
@@ -60,8 +62,8 @@ export class CompareAiService {
       const newAfter = { ...latestAfter, html: response, edited: true };
       this.projectCache.updatePageEdit(pagePath, latestBefore, latestAfter, latestBefore, newAfter);
 
-      // Update the diff if the user is still on the same page
-      if (this.compareService.selectedPage() === pagePath) {
+      // Update the diff if the user is still on the same page AND on the AI edit version
+      if (this.compareService.selectedPage() === pagePath && isActive('tasks/edit-pages', this.router)) {
         const updated = this.projectCache.getPageEdit(pagePath);
         if (updated) {
           this.compareService.originalHtml.set(updated.originalHtml);
