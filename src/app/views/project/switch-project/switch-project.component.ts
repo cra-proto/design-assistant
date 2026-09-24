@@ -90,7 +90,6 @@ export class SwitchProjectComponent implements OnInit {
   protected showSave = false;
   private presetFilterApplied = false;
 
-  protected readonly projectName = this.projectState.getProject().projectName;
   /** For disabling save to local button */
   protected get hasName() {
     return !!this.projectState.getProject().projectName;

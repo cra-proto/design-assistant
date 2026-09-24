@@ -769,17 +769,17 @@ export class ProjectStateService {
         label: this.translate.instant('inventory.header.archiveStatus'),
         type: 'boolean',
         group: 'status',
-        visibleByDefault: true,
+        visibleByDefault: false,
         dataSection: ['prototype', 'lang', 'isArchived'],
       },
-      { field: 'noindex', label: this.translate.instant('inventory.header.noindex'), type: 'boolean', group: 'status', visibleByDefault: true, dataSection: ['prototype', 'lang', 'noindex'] },
+      { field: 'noindex', label: this.translate.instant('inventory.header.noindex'), type: 'boolean', group: 'status', visibleByDefault: false, dataSection: ['prototype', 'lang', 'noindex'] },
       //Actions
-      { field: 'actions', label: this.translate.instant('inventory.header.actions'), type: 'tags', group: 'actions', visibleByDefault: false, dataSection: [] },
+      { field: 'actions', label: this.translate.instant('inventory.header.actions'), type: 'tags', group: 'actions', visibleByDefault: true, dataSection: [] },
       //Notes
       { field: 'issue', label: this.translate.instant('inventory.header.issue'), type: 'textArea', group: 'notes', visibleByDefault: false, dataSection: ['notes', 'issue'] },
       { field: 'solution', label: this.translate.instant('inventory.header.solution'), type: 'textArea', group: 'notes', visibleByDefault: false, dataSection: ['notes', 'solution'] },
       //Problems
-      { field: 'isOrphan', label: this.translate.instant('inventory.header.isOrphan'), type: 'boolean', group: 'problems', visibleByDefault: true, dataSection: ['prototype', 'lang', 'isOrphan'] },
+      { field: 'isOrphan', label: this.translate.instant('inventory.header.isOrphan'), type: 'boolean', group: 'problems', visibleByDefault: false, dataSection: ['prototype', 'lang', 'isOrphan'] },
       //ADD 404's!!!
       //Data
       { field: 'template', label: this.translate.instant('inventory.header.template'), type: 'template', group: 'pageData', visibleByDefault: true, dataSection: ['prototype', 'lang', 'template'] },
@@ -788,7 +788,7 @@ export class ProjectStateService {
       { field: 'hasChatbot', label: this.translate.instant('inventory.header.hasChatbot'), type: 'boolean', group: 'pageData', visibleByDefault: false, dataSection: [] },
       { field: 'task', label: this.translate.instant('inventory.header.task'), type: 'array', group: 'pageData', visibleByDefault: false, dataSection: [] },
       { field: 'visits', label: this.translate.instant('inventory.header.visits'), type: 'number', group: 'pageData', visibleByDefault: true, dataSection: [] },
-      { field: 'updLink', label: this.translate.instant('inventory.header.updLink'), type: 'upd', group: 'pageData', visibleByDefault: true, dataSection: [] },
+      { field: 'updLink', label: this.translate.instant('inventory.header.updLink'), type: 'upd', group: 'pageData', visibleByDefault: false, dataSection: [] },
       { field: 'fleschKincaid', label: this.translate.instant('common.readability.fleschKincaid'), type: 'number', group: 'pageData', visibleByDefault: true, dataSection: [] },
       { field: 'gunningFog', label: this.translate.instant('common.readability.gunningFog'), type: 'number', group: 'pageData', visibleByDefault: false, dataSection: [] },
       { field: 'wordCount', label: this.translate.instant('inventory.header.wordCount'), type: 'number', group: 'pageData', visibleByDefault: true, dataSection: [] },

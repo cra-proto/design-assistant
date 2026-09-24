@@ -234,12 +234,7 @@
     }
   } @else {
     <div class="flex justify-content-start my-3">
-      <div class="flex flex-column gap-2">
-        <p>{{ 'inventory.emptyMessage' | translate }}</p>
-        <a class="no-underline" pButton routerLink="/tasks/add-pages">
-          <span class="flex gap-2" pButtonLabel><span class="material-icons-outlined">note_add</span>{{ 'addPages._nav' | translate }}</span>
-        </a>
-      </div>
+      <aida-add-pages-link />
     </div>
   }
 </div>

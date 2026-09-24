@@ -204,7 +204,11 @@
             @for (col of scrollableColumns(); track col.field) {
               <th
                 [class]="isLastInGroup(col.field) ? 'border-right-1 surface-border surface-card sticky-r' : 'surface-card sticky-r'"
-                [pSortableColumn]="col.type === 'text' || col.type === 'url' || col.type === 'number' || col.type === 'date' || col.type === 'array' ? col.field : undefined"
+                [pSortableColumn]="
+                  col.type === 'text' || col.type === 'url' || col.type === 'number' || col.type === 'date' || col.type === 'array' || col.type === 'template' || col.type === 'tags'
+                    ? col.field
+                    : undefined
+                "
               >
                 @if (col.type === 'boolean' || col.type === 'archive' || col.type === 'noindex') {
                   <p-button
@@ -218,7 +222,7 @@
                     styleClass="font-bold"
                     text
                   />
-                } @else if (col.type === 'text' || col.type === 'url' || col.type === 'number' || col.type === 'date' || col.type === 'array') {
+                } @else if (col.type === 'text' || col.type === 'url' || col.type === 'number' || col.type === 'date' || col.type === 'array' || col.type === 'template' || col.type === 'tags') {
                   <div class="flex align-items-center gap-2">
                     {{ col.label }}
                     <p-sortIcon [field]="col.field" />
@@ -237,7 +241,7 @@
             <td class="w-4rem surface-card sticky-c">
               <div class="flex flex-row justify-content-center align-content-center align-items-center">
                 <p-tableCheckbox [value]="node" size="large" />
-                <p-button [aidaTooltip]="'common.edit' | translate" (onClick)="edit(node)" icon="pi pi-pen-to-square" rounded text />
+                <p-button [aidaTooltip]="'common.moreOptions' | translate" (onClick)="updateDropdown('pageOptions', undefined, node); menu.toggle($event)" icon="pi pi-ellipsis-h" rounded text />
               </div>
             </td>
             @for (col of frozenColumns(); track col.field) {

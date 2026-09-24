@@ -31,6 +31,7 @@ export class DevToolsComponent {
     marker('dashboard._');
     marker('dev._');
     marker('editNode._');
+    marker('editPages._');
     marker('export._');
     marker('exportPages._');
     marker('feedback._');

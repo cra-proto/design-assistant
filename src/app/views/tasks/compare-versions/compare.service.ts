@@ -21,6 +21,7 @@ export class CompareService {
   public readonly selectedPage = signal('');
   public readonly selectedBefore = signal<SourceVersion>('live');
   public readonly selectedAfter = signal<SourceVersion>('protoGH');
+  public readonly selectedSource = signal<SourceVersion>('live');
 
   // User selections & defaults: view selection
   public readonly selectedView = signal<'original' | 'diff' | 'modified'>('diff');
@@ -28,6 +29,7 @@ export class CompareService {
   public readonly loading = signal<boolean>(false);
   public readonly loadingBefore = signal<boolean>(false);
   public readonly loadingAfter = signal<boolean>(false);
+  public readonly loadingSource = signal<boolean>(false);
   public readonly loadingAll = signal<boolean>(false);
 
   public readonly hasChanges = signal<boolean>(false);

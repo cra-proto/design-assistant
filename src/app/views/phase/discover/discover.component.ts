@@ -19,6 +19,6 @@ import { ProjectPhase } from '../../../common/data.model';
 })
 export class DiscoverComponent {
   protected readonly ProjectPhase = ProjectPhase;
-  protected readonly discoverDoormats: DoormatKey[] = ['addPages', 'search', 'problems', 'iaDiagram', 'inventory', 'exportPages'];
+  protected readonly discoverDoormats: DoormatKey[] = ['addPages', 'search', 'problems', 'iaDiagram', 'inventory'];
   protected readonly externalDoormats: DoormatKey[] = ['ucdgDiscover'];
 }

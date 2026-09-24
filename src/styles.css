@@ -510,6 +510,10 @@ html.dark-mode .p-togglebutton:not(.p-togglebutton-checked):not(.p-disabled) {
   min-height: 1.5rem;
 }
 
+.min-w-15rem {
+  min-width: 15rem;
+}
+
 h1:not(.noline) {
   border-bottom-color: var(--p-primary-500); /* fallback for browsers without border-image support */
   border-bottom-style: solid;

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -13,6 +13,7 @@ import { ProjectStateService } from '../../services/project-state.service';
 import { ProjectStorageService } from '../../services/storage/project-storage.service';
 
 import { environment } from '../../../environments/environment';
+import { TooltipDirective } from '../../common/tooltip.directive';
 
 /**
  * Reviewed: 2026-08-13 (ng21)
@@ -22,21 +23,31 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'aida-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe, ConfirmPopupModule],
+  imports: [CommonModule, RouterModule, TranslatePipe, ConfirmPopupModule, TooltipDirective],
   templateUrl: './sidebar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidebarComponent {
-  private router = inject(Router);
-  private translate = inject(TranslateService);
-  private confirmationService = inject(ConfirmationService);
-  private projectState = inject(ProjectStateService);
-  private projectCache = inject(ProjectCacheService);
-  private projectStorageService = inject(ProjectStorageService);
-  private mailtoService = inject(MailtoService);
+  private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly projectState = inject(ProjectStateService);
+  private readonly projectCache = inject(ProjectCacheService);
+  private readonly projectStorageService = inject(ProjectStorageService);
+  private readonly mailtoService = inject(MailtoService);
 
   protected production = environment.production;
   protected sandbox = environment.sandbox;
+
+  protected readonly isSmall = signal(false);
+
+  constructor() {
+    const mq = window.matchMedia('(max-width: 767.98px)');
+    this.isSmall.set(mq.matches);
+    const listener = (e: MediaQueryListEvent) => this.isSmall.set(e.matches);
+    mq.addEventListener('change', listener);
+    inject(DestroyRef).onDestroy(() => mq.removeEventListener('change', listener));
+  }
 
   protected get hasName(): boolean {
     return !!this.projectState.getProject().projectName;
@@ -102,6 +113,11 @@ export class SidebarComponent {
     this.projectCache.checkLocalStatus();
     this.projectCache.checkPreviewStatus();
     this.router.navigate(['/tasks/compare']);
+  };
+  protected readonly editPages = () => {
+    this.projectCache.checkLocalStatus();
+    this.projectCache.checkPreviewStatus();
+    this.router.navigate(['/tasks/edit-pages']);
   };
   protected readonly exportPages = () => {
     this.projectCache.checkLocalStatus();

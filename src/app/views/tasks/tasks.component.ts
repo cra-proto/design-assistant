@@ -16,5 +16,5 @@ import { DoormatKey, DoormatsComponent } from '../../components/doormats/doormat
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TasksComponent {
-  protected readonly tasksDoormats: DoormatKey[] = ['addPages', 'search', 'problems', 'iaDiagram', 'inventory', 'exportPages', 'compare'];
+  protected readonly tasksDoormats: DoormatKey[] = ['addPages', 'search', 'problems', 'iaDiagram', 'inventory', 'exportPages', 'editPages', 'compare'];
 }

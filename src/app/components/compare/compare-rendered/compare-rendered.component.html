@@ -39,6 +39,7 @@
         </div>
 
         <p-splitbutton
+          [buttonDisabled]="this.elements().length === 0"
           [buttonProps]="{ ariaLabel: 'compare.rendered.accept' | translate }"
           [menuButtonProps]="{ ariaLabel: 'compare.rendered.acceptOptions' | translate }"
           [model]="acceptItems()"
@@ -55,6 +56,7 @@
           tooltipPosition="top"
         />
         <p-splitbutton
+          [buttonDisabled]="this.elements().length === 0"
           [buttonProps]="{ ariaLabel: 'compare.rendered.reject' | translate }"
           [menuButtonProps]="{ ariaLabel: 'compare.rendered.rejectOptions' | translate }"
           [model]="rejectItems()"
