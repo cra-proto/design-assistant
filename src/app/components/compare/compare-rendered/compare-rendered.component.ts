@@ -79,11 +79,13 @@ export class CompareRenderedComponent implements AfterViewInit, OnDestroy {
     const editedText = ` (${this.translate.instant('common.edited').toLowerCase()})`;
 
     const beforeVersion = this.beforeContent()?.version;
-    const beforeBase = beforeVersion ? this.translate.instant('common.source.' + beforeVersion) : this.translate.instant('common.before');
+    const beforePrefix = this.translate.instant('common.before') + this.translate.instant('common.colon');
+    const beforeBase = beforeVersion ? beforePrefix + this.translate.instant('common.source.' + beforeVersion) : this.translate.instant('common.before');
     const beforeLabel = beforeBase + (this.beforeContent()?.edited ? editedText : '');
 
     const afterVersion = this.afterContent()?.version;
-    const afterBase = afterVersion ? this.translate.instant('common.source.' + afterVersion) : this.translate.instant('common.after');
+    const afterPrefix = this.translate.instant('common.after') + this.translate.instant('common.colon');
+    const afterBase = afterVersion ? afterPrefix + this.translate.instant('common.source.' + afterVersion) : this.translate.instant('common.after');
     const afterLabel = afterBase + (this.afterContent()?.edited ? editedText : '');
 
     return [
@@ -189,7 +191,7 @@ export class CompareRenderedComponent implements AfterViewInit, OnDestroy {
   private shadowSelectionHandler: (() => void) | null = null;
 
   private readonly currentIndex = signal<number>(0);
-  private readonly elements = signal<HTMLElement[]>([]);
+  protected readonly elements = signal<HTMLElement[]>([]);
 
   protected next() {
     if (this.elements().length === 0) return;

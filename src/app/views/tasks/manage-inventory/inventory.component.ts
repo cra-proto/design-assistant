@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -31,6 +32,7 @@ import { IaDiagramService } from '../../../components/ia-diagram/ia-diagram.serv
 import { OpenRouterService } from '../../../services/ai/openrouter.service';
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectStateService } from '../../../services/project-state.service';
+import { CompareService } from '../compare-versions/compare.service';
 
 import {
   COLUMN_GROUPS,
@@ -87,12 +89,14 @@ export interface BooleanToggleItem extends MenuItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InventoryComponent implements OnInit {
+  private readonly router = inject(Router);
   protected readonly projectState = inject(ProjectStateService);
   protected readonly translate = inject(TranslateService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly openRouterService = inject(OpenRouterService);
   private readonly fetchService = inject(FetchService);
   protected readonly iaDiagram = inject(IaDiagramService);
+  private readonly compareService = inject(CompareService);
 
   // Variables
   protected readonly projectName = this.projectState.getProject().projectName;
@@ -247,6 +251,16 @@ export class InventoryComponent implements OnInit {
         const strA = (valueA as string[]).join(', ').toLowerCase();
         const strB = (valueB as string[]).join(', ').toLowerCase();
         comparison = strA.localeCompare(strB);
+      } else if (colType === 'template') {
+        // Compare template translations
+        const labelA = this.translate.instant(valueA as string);
+        const labelB = this.translate.instant(valueB as string);
+        comparison = labelA.localeCompare(labelB);
+      } else if (colType === 'tags') {
+        // Compare tag translations
+        const tagA = this.translatedTags(valueA);
+        const tagB = this.translatedTags(valueB);
+        comparison = tagA.localeCompare(tagB);
       } else {
         // Default: text comparison (case-insensitive)
         comparison = valueA.toString().toLowerCase().localeCompare(valueB.toString().toLowerCase());
@@ -255,6 +269,14 @@ export class InventoryComponent implements OnInit {
       return order * comparison;
     });
   });
+
+  /** Gets tag translation for sort fxn */
+  private translatedTags(value: unknown): string {
+    return (value as { key: string }[])
+      .map((t) => this.translate.instant(t.key))
+      .sort((x, y) => x.localeCompare(y))
+      .join(', ');
+  }
 
   /**  Get column group headings (includes frozen) */
   protected readonly groupedHeaders = computed(() => {
@@ -835,7 +857,7 @@ export class InventoryComponent implements OnInit {
    **********************************************************/
 
   // 1. Dropdown menus (p-menu)
-  protected updateDropdown(mode: 'actions' | 'view' | 'newTab', path?: string) {
+  protected updateDropdown(mode: 'actions' | 'view' | 'pageOptions' | 'newTab', path?: string, node?: FlattenedTreeNode) {
     switch (mode) {
       case 'actions': {
         const numPages = this.selectedNodes.length;
@@ -986,6 +1008,86 @@ export class InventoryComponent implements OnInit {
             ],
           },
         ];
+        return;
+      }
+      case 'pageOptions': {
+        if (node) {
+          const repoType = this.projectState.getProject().repoType;
+          const protoVersion = repoType === 'github' ? 'protoGH' : 'protoUT';
+          const baseVersion = repoType === 'github' ? 'baseGH' : 'baseUT';
+          const hasBaseline = this.projectState.getProject().github.hasBaselineRepo;
+          const path = this.translate.getCurrentLang()?.startsWith('fr') ? node.frPath : node.enPath;
+          const liveUrl = this.fetchService.generateUrl(path, 'live');
+          const previewUrl = this.fetchService.generateUrl(path, 'preview');
+          const prototypeUrl = this.fetchService.generateUrl(path, protoVersion, this.github.owner, this.github.repo);
+          const baselineUrl = this.fetchService.generateUrl(path, baseVersion, this.github.owner, this.github.repo);
+          const updUrl = this.fetchService.generateUrl(path, 'upd');
+          this.itemsDropdown = [
+            {
+              label: this.translate.instant('common.edit'),
+              items: [
+                {
+                  label: this.translate.instant('editPages._title'),
+                  icon: 'pi pi-sparkles',
+                  command: () => {
+                    this.openInEditPages(node);
+                  },
+                },
+                {
+                  label: this.translate.instant('common.editNode'),
+                  icon: 'pi pi-pen-to-square',
+                  command: () => {
+                    this.edit(node);
+                  },
+                },
+              ],
+            },
+            {
+              label: this.translate.instant('common.openNewTab'),
+              items: [
+                {
+                  label: this.translate.instant('inventory.menu.newTab.liveUrl'),
+                  icon: 'pi pi-external-link',
+                  command: () => {
+                    window.open(liveUrl, '_blank');
+                  },
+                },
+                {
+                  label: this.translate.instant('inventory.menu.newTab.previewUrl'),
+                  icon: 'pi pi-external-link',
+                  command: () => {
+                    window.open(previewUrl, '_blank');
+                  },
+                },
+                {
+                  label: this.translate.instant('inventory.menu.newTab.prototypeUrl'),
+                  icon: 'pi pi-external-link',
+                  command: () => {
+                    window.open(prototypeUrl, '_blank');
+                  },
+                },
+              ],
+            },
+          ];
+          if (hasBaseline) {
+            this.itemsDropdown[1].items!.push({
+              label: this.translate.instant('inventory.menu.newTab.baselineUrl'),
+              icon: 'pi pi-external-link',
+              command: () => {
+                window.open(baselineUrl, '_blank');
+              },
+            });
+          }
+          if (!node.isNew) {
+            this.itemsDropdown[1].items!.push({
+              label: this.translate.instant('inventory.menu.newTab.UPD'),
+              icon: 'pi pi-external-link',
+              command: () => {
+                window.open(updUrl, '_blank');
+              },
+            });
+          }
+        }
         return;
       }
       case 'newTab': {
@@ -1205,6 +1307,12 @@ export class InventoryComponent implements OnInit {
     const path = this.lang === 'fr' ? node.frPath : node.enPath;
     this.selectedNode = this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, this.lang) ?? undefined;
     this.editNode = true;
+  }
+
+  protected openInEditPages(node: FlattenedTreeNode) {
+    const path = this.lang === 'fr' ? node.frPath : node.enPath;
+    this.compareService.selectedPage.set(path);
+    this.router.navigate(['/tasks/edit-pages']);
   }
 
   // 5. Confirmation dialogs (deletions)

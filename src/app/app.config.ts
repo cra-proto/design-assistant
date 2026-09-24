@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import localeEn from '@angular/common/locales/en-CA';
 import localeFr from '@angular/common/locales/fr-CA';
 import { ApplicationConfig, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter, TitleStrategy, withInMemoryScrolling } from '@angular/router';
+import { provideRouter, TitleStrategy, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -23,7 +23,7 @@ registerLocaleData(localeEn);
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled' })),
+    provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled' }), withComponentInputBinding()),
     { provide: TitleStrategy, useClass: CustomTitleStrategy },
     provideHttpClient(),
     provideTranslateService({

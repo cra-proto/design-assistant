@@ -28,9 +28,10 @@ export const DOORMATS = {
   iaDiagram: { path: '/tasks/ia-diagram', titleKey: 'iaDiagram._title', descriptionKey: 'iaDiagram.description' },
   inventory: { path: '/tasks/inventory', titleKey: 'inventory._nav', descriptionKey: 'inventory.description' },
   exportPages: { path: '/tasks/export-pages', titleKey: 'exportPages._nav', descriptionKey: 'exportPages.description' },
-  compare: { path: '/tasks/compare', titleKey: 'compare._nav', descriptionKey: 'compare.description', hideInProd: true },
+  editPages: { path: '/tasks/edit-pages', titleKey: 'editPages._nav', descriptionKey: 'editPages.description' },
+  compare: { path: '/tasks/compare', titleKey: 'compare._nav', descriptionKey: 'compare.description' },
   //Standalone
-  standaloneCompare: { path: '/standalone/compare', titleKey: 'compare._nav', descriptionKey: 'compare.description', hideInProd: true },
+  standaloneCompare: { path: '/standalone/compare', titleKey: 'compare._nav', descriptionKey: 'compare.description' },
   //Dev
   monitoring: { path: '/dev/monitoring', titleKey: 'dev.monitoring._title', descriptionKey: 'dev.monitoring.description' },
   colors: { path: '/dev/color-generator', titleKey: 'dev.colors._title', descriptionKey: 'dev.colors.description' },

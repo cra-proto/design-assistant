@@ -1,40 +1,55 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
+import { TreeNode } from 'primeng/api';
 import { TabsModule } from 'primeng/tabs';
 
 import { CompareRenderedComponent } from '../../../components/compare/compare-rendered/compare-rendered.component';
 import { CompareSelectComponent } from '../../../components/compare/compare-select/compare-select.component';
 import { CompareSourceComponent } from '../../../components/compare/compare-source/compare-source.component';
 import { CompareToolsComponent } from '../../../components/compare/compare-tools/compare-tools.component';
+import { EditNodeComponent } from '../../../components/edit-node/edit-node.component';
 
-import { FetchService } from '../../../services/fetch.service';
-import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
+import { htmlProcessingResult } from '../../../services/html-normalization.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
-import { UserSettingsService } from '../../../services/user-settings.service';
 import { CompareService } from './compare.service';
 
 @Component({
   selector: 'aida-compare-versions',
-  imports: [FormsModule, TranslatePipe, TabsModule, CompareRenderedComponent, CompareSelectComponent, CompareSourceComponent, CompareToolsComponent],
+  imports: [FormsModule, TranslatePipe, TabsModule, CompareRenderedComponent, CompareSelectComponent, CompareSourceComponent, CompareToolsComponent, EditNodeComponent],
   templateUrl: './compare.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompareComponent {
-  private translate = inject(TranslateService);
   private projectState = inject(ProjectStateService);
   private readonly projectCache = inject(ProjectCacheService);
   public compareService = inject(CompareService);
-  private fetchService = inject(FetchService);
-  private htmlNormalizationService = inject(HtmlNormalizationService);
-  private settingsService = inject(UserSettingsService);
+
+  public readonly mode = input.required<'compare' | 'ai'>();
+  protected readonly showAiTools = computed(() => this.mode() === 'ai');
+  protected readonly showAfterVersion = computed(() => this.mode() === 'compare');
 
   protected readonly projectName = this.projectState.getProject().projectName;
 
+  protected readonly selectedNode = signal<TreeNode | undefined>(undefined);
+  protected editNode = false; // Tracks if currently making dialog edits
+
+  constructor() {
+    effect(() => {
+      this.editNode = false;
+      const tree = this.projectState.getProjectTree();
+      const page = this.compareService.selectedPage();
+      const node = this.projectState.findNodeByPath(tree, page, this.projectState.detectPrimaryLanguage());
+      if (node) {
+        this.selectedNode.set(node);
+        this.editNode = true;
+      }
+    });
+  }
   markForTranslation() {
     marker('compare.view.linebyline');
     marker('compare.view.sidebyside');

@@ -19,5 +19,5 @@ import { ProjectPhase } from '../../../common/data.model';
 })
 export class AssessComponent {
   protected readonly ProjectPhase = ProjectPhase;
-  protected readonly assessDoormats: DoormatKey[] = ['problems', 'iaDiagram', 'inventory'];
+  protected readonly assessDoormats: DoormatKey[] = ['problems', 'iaDiagram', 'inventory', 'exportPages'];
 }

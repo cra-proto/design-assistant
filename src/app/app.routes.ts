@@ -60,6 +60,10 @@ export const newProjectGuard = () => {
   return true;
 };
 
+export enum AidaRoutes {
+  Dashboard = '/project/dashboard',
+}
+
 export const routes: Routes = [
   //PROJECT PATHS
   {
@@ -159,7 +163,13 @@ export const routes: Routes = [
     path: 'tasks/compare',
     loadComponent: () => import('./views/tasks/compare-versions/compare.component').then((m) => m.CompareComponent),
     title: 'compare._title',
-    data: { breadcrumbKey: 'home.tasks' },
+    data: { breadcrumbKey: 'home.tasks', mode: 'compare' },
+  },
+  {
+    path: 'tasks/edit-pages',
+    loadComponent: () => import('./views/tasks/compare-versions/compare.component').then((m) => m.CompareComponent),
+    title: 'editPages._title',
+    data: { breadcrumbKey: 'home.tasks', mode: 'ai' },
   },
   //UTILITY PATHS
   {

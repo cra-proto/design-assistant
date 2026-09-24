@@ -1,27 +1,32 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { IftaLabelModule } from 'primeng/iftalabel';
+import { InputTextModule } from 'primeng/inputtext';
 import { TabsModule } from 'primeng/tabs';
 
 import { CompareRenderedComponent } from '../../../components/compare/compare-rendered/compare-rendered.component';
 import { CompareSourceComponent } from '../../../components/compare/compare-source/compare-source.component';
 
+import { FetchService } from '../../../services/fetch.service';
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
 
 import { DiffUndoStack } from '../../../components/compare/compare-undo.store';
 
 @Component({
   selector: 'aida-standalone-compare-versions',
-  imports: [TranslatePipe, TabsModule, CompareRenderedComponent, CompareSourceComponent],
+  imports: [FormsModule, TranslatePipe, IftaLabelModule, InputTextModule, TabsModule, CompareRenderedComponent, CompareSourceComponent],
   templateUrl: './standalone-compare-versions.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StandaloneCompareComponent implements OnInit {
-  public htmlNormalizationService = inject(HtmlNormalizationService);
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  public readonly htmlNormalizationService = inject(HtmlNormalizationService);
+  private readonly fetchService = inject(FetchService);
 
   // Signals
   protected readonly originalHtml = signal<htmlProcessingResult | undefined>(undefined);
@@ -29,18 +34,26 @@ export class StandaloneCompareComponent implements OnInit {
   protected readonly hasChanges = signal<boolean>(false);
   public readonly undoStack = new DiffUndoStack();
 
+  // Variables
+  protected beforeUrl = '';
+  protected afterUrl = '';
+
   ngOnInit() {
     // Update settings from url parameter (if present) then remove the param
     this.route.queryParams.subscribe(async (params) => {
       const allParams = { ...params };
       // Handle before
       if (params['before'] !== undefined) {
+        if (!this.fetchService.isValidUrl(params['before'])) return;
+        this.beforeUrl = params['before'];
         const before = await this.loadContent(params['before']);
         this.originalHtml.set(before);
         //delete allParams['before']
       }
       // Handle after
       if (params['after'] !== undefined) {
+        if (!this.fetchService.isValidUrl(params['after'])) return;
+        this.afterUrl = params['after'];
         const after = await this.loadContent(params['after']);
         this.modifiedHtml.set(after);
         //delete allParams['after']
@@ -58,6 +71,17 @@ export class StandaloneCompareComponent implements OnInit {
   private async loadContent(url: string): Promise<htmlProcessingResult | undefined> {
     const fetchType = url.startsWith('http://cra-ut.isvcs.net/') || url.startsWith('https://canada-preview.adobecqms.net/') ? 'proxy' : 'url';
     return await this.htmlNormalizationService.normalizeHTML(url, fetchType);
+  }
+
+  protected async updateHtml(url: string, version: 'before' | 'after') {
+    if (!this.fetchService.isValidUrl(url)) return;
+    const content = await this.loadContent(url);
+    if (version === 'before') {
+      this.originalHtml.set(content);
+    }
+    if (version === 'after') {
+      this.modifiedHtml.set(content);
+    }
   }
 
   /** Handle accept/reject changes */

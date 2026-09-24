@@ -19,5 +19,5 @@ import { ProjectPhase } from '../../../common/data.model';
 })
 export class DesignComponent {
   protected readonly ProjectPhase = ProjectPhase;
-  protected readonly designDoormats: DoormatKey[] = ['exportPages', 'compare'];
+  protected readonly designDoormats: DoormatKey[] = ['exportPages', 'editPages', 'compare'];
 }
