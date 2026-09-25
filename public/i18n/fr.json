@@ -207,6 +207,7 @@
 	"common.storageType": "Type de stockage",
 	"common.to": "Vers",
 	"common.undo": "Défaire",
+	"common.undoMove": "Défaire le déplacement",
 	"common.urls": "URLs",
 	"common.version": "Version",
 	"common.version.baseline": "Référence",

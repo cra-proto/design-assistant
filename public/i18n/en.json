@@ -207,6 +207,7 @@
 	"common.storageType": "Storage type",
 	"common.to": "To",
 	"common.undo": "Undo",
+	"common.undoMove": "Undo move",
 	"common.urls": "URLs",
 	"common.version": "Version",
 	"common.version.baseline": "Baseline",
