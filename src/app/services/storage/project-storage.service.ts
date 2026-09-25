@@ -5,7 +5,6 @@ import { TreeNode } from 'primeng/api';
 import { FetchService } from '../fetch.service';
 import { UserSettingsService } from '../user-settings.service';
 import { CloudStorageService } from './cloud-storage.service';
-import { LocalStorageService } from './local-storage.service';
 
 import { version as appVersion } from '../../../../package.json';
 import { environment } from '../../../environments/environment';
@@ -21,7 +20,6 @@ export interface ActiveProject {
 export class ProjectStorageService {
   //Services
   private readonly cloudStorageService = inject(CloudStorageService);
-  private readonly localStorageService = inject(LocalStorageService);
   private readonly settingsService = inject(UserSettingsService);
   private readonly fetchService = inject(FetchService);
 
@@ -53,7 +51,7 @@ export class ProjectStorageService {
 
   // Get active project key from local storage (used on initial app load)
   public getActiveProject(): ActiveProject | null {
-    const stored = this.localStorageService.getData(this.ACTIVE_PROJECT_KEY);
+    const stored = sessionStorage.getItem(this.ACTIVE_PROJECT_KEY);
     if (!stored) return null;
 
     try {
@@ -72,14 +70,15 @@ export class ProjectStorageService {
   // Set active project (used when switching projects)
   private setActiveProject(key: string, storageType: 'local' | 'cloud'): void {
     const activeProject: ActiveProject = { key, storageType };
-    this.localStorageService.saveData(this.ACTIVE_PROJECT_KEY, JSON.stringify(activeProject));
+    sessionStorage.setItem(this.ACTIVE_PROJECT_KEY, JSON.stringify(activeProject));
+    localStorage.removeItem(this.ACTIVE_PROJECT_KEY); // Temporary fix for old storage method 2026-09-25, can remove in a month or two
     this.activeProject.set(activeProject);
     //console.log('Active project set:', activeProject);
   }
 
   // Clear active project (used when starting new project)
   public clearActiveProject(): void {
-    this.localStorageService.removeData(this.ACTIVE_PROJECT_KEY);
+    sessionStorage.removeItem(this.ACTIVE_PROJECT_KEY);
     this.activeProject.set(null);
     //console.log('Active project cleared');
   }
@@ -125,9 +124,9 @@ export class ProjectStorageService {
         }
         this.setActiveProject(newKey, storageType);
         // Remove key from deleted project list (in case we are restoring a project from the deleted list)
-        const deletedProjects = JSON.parse(this.localStorageService.getData(this.DELETED_PROJECTS_KEY) || '[]');
+        const deletedProjects = JSON.parse(localStorage.getItem(this.DELETED_PROJECTS_KEY) || '[]');
         const updatedDeletedProjects = deletedProjects.filter((p: ProjectMetadata) => p.key !== newKey && p.key !== oldKey);
-        this.localStorageService.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
+        localStorage.setItem(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
       }
 
       //console.log(`Project "${newKey}" saved successfully to ${storageType}`);
@@ -148,7 +147,7 @@ export class ProjectStorageService {
     //console.log('2. Full Project Data:', JSON.stringify(projectToSave, null, 2));
 
     // Save to localStorage
-    this.localStorageService.saveData(key, JSON.stringify(projectToSave));
+    localStorage.setItem(key, JSON.stringify(projectToSave));
 
     // Update project list for local projects
     this.updateLocalProjectList(key, project);
@@ -213,7 +212,7 @@ export class ProjectStorageService {
 
   // Update list of local projects in localStorage
   public updateLocalProjectList(key: string, project: Project): void {
-    const savedProjects = JSON.parse(this.localStorageService.getData(this.SAVED_PROJECTS_KEY) || '[]');
+    const savedProjects = JSON.parse(localStorage.getItem(this.SAVED_PROJECTS_KEY) || '[]');
     const existingIndex = savedProjects.findIndex((p: ProjectMetadata) => p.key === key);
 
     const projectEntry: ProjectMetadata = {
@@ -238,7 +237,7 @@ export class ProjectStorageService {
     // Sort by most recent
     savedProjects.sort((a: ProjectMetadata, b: ProjectMetadata) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
 
-    this.localStorageService.saveData(this.SAVED_PROJECTS_KEY, JSON.stringify(savedProjects));
+    localStorage.setItem(this.SAVED_PROJECTS_KEY, JSON.stringify(savedProjects));
 
     //console.log('Project list updated:', savedProjects);
   }
@@ -280,7 +279,7 @@ export class ProjectStorageService {
 
   public getLocalProjectList(mode: 'saved' | 'deleted' = 'saved'): ProjectMetadata[] {
     const storageKey = mode === 'deleted' ? this.DELETED_PROJECTS_KEY : this.SAVED_PROJECTS_KEY;
-    const projectsString = this.localStorageService.getData(storageKey);
+    const projectsString = localStorage.getItem(storageKey);
     if (!projectsString) return [];
 
     try {
@@ -294,6 +293,10 @@ export class ProjectStorageService {
       console.error(`Failed to parse ${mode} projects:`, error);
       return [];
     }
+  }
+
+  public hasSavedProjects(): boolean {
+    return localStorage.getItem(this.SAVED_PROJECTS_KEY) !== null;
   }
 
   /************************************
@@ -351,7 +354,7 @@ export class ProjectStorageService {
    * Load project from local storage
    */
   private async loadFromLocal(key: string): Promise<Project | null> {
-    const stored = this.localStorageService.getData(key);
+    const stored = localStorage.getItem(key);
     if (!stored) {
       console.error(`No project found with key: ${key}`);
       return null;
@@ -427,8 +430,8 @@ export class ProjectStorageService {
   // Delete a local project (saved → recycle bin → delete)
   private deleteLocalProject(key: string): boolean {
     //Check if project is in savedProjects or deletedProjects
-    const savedProjects = JSON.parse(this.localStorageService.getData(this.SAVED_PROJECTS_KEY) || '[]');
-    const deletedProjects = JSON.parse(this.localStorageService.getData(this.DELETED_PROJECTS_KEY) || '[]');
+    const savedProjects = JSON.parse(localStorage.getItem(this.SAVED_PROJECTS_KEY) || '[]');
+    const deletedProjects = JSON.parse(localStorage.getItem(this.DELETED_PROJECTS_KEY) || '[]');
 
     const savedProject = savedProjects.find((p: ProjectMetadata) => p.key === key); // ProjectMetadata or undefined
     const inDeleted = deletedProjects.some((p: ProjectMetadata) => p.key === key); // true or false
@@ -437,21 +440,21 @@ export class ProjectStorageService {
     if (savedProject) {
       // Remove from saved project list and add to deleted project list
       const updatedSavedProjects = savedProjects.filter((p: ProjectMetadata) => p.key !== key);
-      this.localStorageService.saveData(this.SAVED_PROJECTS_KEY, JSON.stringify(updatedSavedProjects));
+      localStorage.setItem(this.SAVED_PROJECTS_KEY, JSON.stringify(updatedSavedProjects));
       const deletedProject = {
         ...savedProject,
         lastModified: new Date(),
       };
       const updatedDeletedProjects = [...deletedProjects, deletedProject];
-      this.localStorageService.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
+      localStorage.setItem(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
       //console.log(`Local project "${key}" marked for deletion`);
       this.projectListVersion.update((v) => v + 1);
       return true;
     } else if (inDeleted) {
       // Delete and remove from deleted project list
-      this.localStorageService.removeData(key);
+      localStorage.removeItem(key);
       const updatedDeletedProjects = deletedProjects.filter((p: ProjectMetadata) => p.key !== key);
-      this.localStorageService.saveData(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
+      localStorage.setItem(this.DELETED_PROJECTS_KEY, JSON.stringify(updatedDeletedProjects));
       //console.log(`Deleted project "${key}" deleted`);
       this.projectListVersion.update((v) => v + 1);
       return true;

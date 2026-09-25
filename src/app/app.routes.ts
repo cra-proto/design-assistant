@@ -31,9 +31,11 @@ import { ProjectStateService } from './services/project-state.service';
 export const landingGuard = () => {
   const router = inject(Router);
   const projectStorageService = inject(ProjectStorageService);
-  if (!projectStorageService.hasActiveProject()) {
-    return router.createUrlTree(['project/new']);
+  //Returning user with saved projects and none active gets routed to load a project
+  if (!projectStorageService.hasActiveProject() && projectStorageService.hasSavedProjects()) {
+    return router.createUrlTree(['project/switch']);
   }
+  //Everyone else can view the default landing page
   return true;
 };
 
@@ -69,6 +71,7 @@ export const routes: Routes = [
   {
     path: '',
     component: DashboardComponent,
+    canActivate: [landingGuard],
     title: environment.production ? '_app._title' : environment.sandbox ? '_app._title.sandbox' : '_app._title.dev',
     children: [],
   },
