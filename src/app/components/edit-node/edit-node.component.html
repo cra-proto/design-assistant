@@ -153,7 +153,7 @@
                     [(ngModel)]="node().data[selectedVersion()].en.h1"
                     [class.text-red-500]="node().data[selectedVersion()].en.h1 === 'New page'"
                     [disabled]="!!versionConfig() && !editsEnabled()"
-                    (ngModelChange)="markChanges()"
+                    (ngModelChange)="markChanges(); syncNewName(node(), selectedVersion(), 'en')"
                     class="secondary-outline"
                     fluid
                     pInputText
@@ -192,7 +192,7 @@
                     [filter]="true"
                     [ngModel]="node().data[selectedVersion()].en.parentPath"
                     [options]="enPages()"
-                    (onChange)="moveNode(node(), $event.value, 'en')"
+                    (onChange)="moveNode(node(), $event.value, 'en', selectedVersion())"
                     appendTo="body"
                     filterBy="label"
                     fluid
@@ -502,7 +502,7 @@
                     [(ngModel)]="node().data[selectedVersion()].fr.h1"
                     [class.text-red-500]="node().data[selectedVersion()].fr.h1 === 'Nouvelle page'"
                     [disabled]="!!versionConfig() && !editsEnabled()"
-                    (ngModelChange)="markChanges()"
+                    (ngModelChange)="markChanges(); syncNewName(node(), selectedVersion(), 'fr')"
                     class="secondary-outline"
                     fluid
                     pInputText
@@ -541,7 +541,7 @@
                     [filter]="true"
                     [ngModel]="node().data[selectedVersion()].fr.parentPath"
                     [options]="frPages()"
-                    (onChange)="moveNode(node(), $event.value, 'fr')"
+                    (onChange)="moveNode(node(), $event.value, 'fr', selectedVersion())"
                     appendTo="body"
                     filterBy="label"
                     fluid

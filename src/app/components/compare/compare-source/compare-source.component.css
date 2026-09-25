@@ -3,7 +3,7 @@
   border-radius: 4px;
   padding: 1rem;
   overflow-y: scroll;
-  height: 75vh;
+  max-height: 75vh;
   position: relative;
 }
 

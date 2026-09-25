@@ -65,7 +65,7 @@
               <p-button
                 [loading]="addUrlsService.urlState().isAdding"
                 [pTooltip]="'iaDiagram.menu.findChildren' | translate"
-                (click)="addUrlsService.addChildren(node, primaryLang)"
+                (click)="addUrlsService.addChildren(resolveRealNode(node), primaryLang)"
                 class="absolute left-50 -translate-x-50 bottom-0 -mb-1"
                 icon="pi pi-plus-circle"
                 rounded

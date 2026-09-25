@@ -1351,7 +1351,7 @@ export class ProjectStateService {
           keywords: pageData.keywords,
           //Status
           is404: false,
-          ...(parentLinks ? { isOrphan: !parentLinks.some((link) => this.getPath(link) === this.getPath(liveEnUrl ?? '')) } : {}),
+          ...(parentLinks ? { isOrphan: !parentLinks.some((link) => this.fetchService.generatePath(link) === this.fetchService.generatePath(liveEnUrl ?? '')) } : {}),
           noindex: pageData.noindex ?? false,
           isArchived: pageData.isArchived ?? false,
           linksToPortal: pageData.linksToPortal ?? false,
@@ -1425,7 +1425,7 @@ export class ProjectStateService {
           keywords: pageData.keywords,
           //Status
           is404: false,
-          ...(parentLinks ? { isOrphan: !parentLinks.some((link) => this.getPath(link) === this.getPath(liveFrUrl ?? '')) } : {}),
+          ...(parentLinks ? { isOrphan: !parentLinks.some((link) => this.fetchService.generatePath(link) === this.fetchService.generatePath(liveFrUrl ?? '')) } : {}),
           noindex: pageData.noindex ?? false,
           isArchived: pageData.isArchived ?? false,
           linksToPortal: pageData.linksToPortal ?? false,
@@ -1490,18 +1490,6 @@ export class ProjectStateService {
       if (node.children?.length) {
         await this.refreshAll(node.children, urlVersion, onlyNeverChecked, fetchLive, onlyMissing);
       }
-    }
-  }
-
-  public getPath(url: string, live = true): string {
-    try {
-      let pathName = new URL(url).pathname;
-      if (!live) {
-        pathName = '/' + pathName.split('/').slice(2).join('/');
-      }
-      return pathName;
-    } catch {
-      return url;
     }
   }
 
@@ -1586,9 +1574,9 @@ export class ProjectStateService {
         isMoved: false,
         isROT: false,
       },
-      baseline: { en: enData, fr: frData },
-      live: { en: enData, fr: frData },
-      prototype: { en: enData, fr: frData },
+      baseline: { en: structuredClone(enData), fr: structuredClone(frData) },
+      live: { en: structuredClone(enData), fr: structuredClone(frData) },
+      prototype: { en: structuredClone(enData), fr: structuredClone(frData) },
       metadataReview: undefined,
       notes: undefined,
       isContainer: false,
@@ -1627,16 +1615,16 @@ export class ProjectStateService {
   public moveNode(node: TreeNode, newParent: TreeNode): 'success' | 'circular' {
     // Guard against circular moves
     if (node === newParent || this.isAncestor(newParent, node)) {
+      console.error('Move blocked due to circular reference');
       return 'circular';
     }
 
-    //const tree = [...this.getProjectTree()];
+    const tree = this.getProjectTree();
 
     // Remove from current parent
     if (node.parent) {
-      node.parent.children = node.parent.children?.filter((c) => c !== node) ?? [];
+      node.parent.children = node.parent.children?.filter((child) => child !== node) ?? [];
     } else {
-      const tree = this.getProjectTree();
       const index = tree.indexOf(node);
       if (index > -1) tree.splice(index, 1);
     }
@@ -1647,7 +1635,7 @@ export class ProjectStateService {
     node.parent = newParent;
 
     this.applyMoveResult(node, newParent);
-    //this.setProjectTree(tree);
+    this.setProjectTree(tree);
     return 'success';
   }
 
@@ -1669,8 +1657,8 @@ export class ProjectStateService {
     node.data.prototype.fr.parentPath = pathParent?.data?.path.fr ?? '';
 
     // Compare normalized prototype parentUrls to baseline parentUrls
-    const enMoved = this.getPath(node.data.prototype.en.parentPath) !== this.getPath(node.data.baseline.en.parentPath ?? '');
-    const frMoved = this.getPath(node.data.prototype.fr.parentPath) !== this.getPath(node.data.baseline.fr.parentPath ?? '');
+    const enMoved = this.fetchService.generatePath(node.data.prototype.en.parentPath) !== this.fetchService.generatePath(node.data.baseline.en.parentPath ?? '');
+    const frMoved = this.fetchService.generatePath(node.data.prototype.fr.parentPath) !== this.fetchService.generatePath(node.data.baseline.fr.parentPath ?? '');
     node.data.status.isMoved = enMoved || frMoved;
 
     if (previousMoveStatus !== node.data.status.isMoved) {
@@ -1783,7 +1771,7 @@ export class ProjectStateService {
       const node = nodes[i];
       const lang = this.detectPrimaryLanguage();
       const currentParentPath = node.parent?.data?.path[lang] ?? '';
-      const originalParentPath = this.getPath(node.data?.baseline?.[lang]?.parentPath, false) ?? '';
+      const originalParentPath = node.data?.baseline?.[lang]?.parentPath ?? '';
 
       // Skip moving top level node for custom trees
       if (isTopLevel && mode === 'custom' && i === 0) {

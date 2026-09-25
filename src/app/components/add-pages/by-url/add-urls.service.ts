@@ -591,7 +591,8 @@ export class AddUrlsService {
   }
 
   // Add child pages
-  public async addChildren(node: TreeNode, lang: 'en' | 'fr'): Promise<void> {
+  public async addChildren(node: TreeNode | null, lang: 'en' | 'fr'): Promise<void> {
+    if (!node) return;
     const parentLink = this.fetchService.generateUrl(node.data?.path[lang], 'live');
     if (!parentLink) return;
 
@@ -600,15 +601,15 @@ export class AddUrlsService {
     try {
       const doc = await this.fetchService.fetchContent(parentLink, 'prod', 3, 'none');
       const links = this.fetchService.getLinks(doc, parentLink);
-      links.filter((l) => l.includes('canada.ca')).forEach((l) => allLinks.add(l));
+      links.filter((link) => link.includes('canada.ca')).forEach((link) => allLinks.add(link));
     } catch (error) {
       console.warn(`Failed to fetch page ${parentLink}: ${error}`);
     }
 
     // Step 2: Strip out any links that are already in the project
-    const projectPaths = new Set(this.projectState.getAllPages(lang, 'live', 'all').map((p) => p.path));
+    const projectPaths = new Set(this.projectState.getAllPages(lang, 'live', 'all').map((page) => page.path));
     const linksToAdd = [...allLinks].filter((link) => {
-      const normalized = this.projectState.getPath(link);
+      const normalized = this.fetchService.generatePath(link);
       return !projectPaths.has(normalized);
     });
     if (linksToAdd.length === 0) return;

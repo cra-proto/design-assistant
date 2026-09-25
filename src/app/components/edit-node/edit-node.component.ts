@@ -123,6 +123,14 @@ export class EditNodeComponent {
       node.data[this.selectedVersion()].en[field] = node.data[this.selectedVersion()].fr[field];
     }
   }
+  protected syncNewName(node: TreeNode, version: 'prototype' | 'live' | 'baseline', lang: 'en' | 'fr') {
+    if (version !== 'prototype' || !node.data.live[lang].is404) {
+      return;
+    }
+    node.data.baseline[lang].h1 = node.data.prototype[lang].h1;
+    node.data.live[lang].h1 = node.data.prototype[lang].h1;
+  }
+
   protected updatePath(lang: 'en' | 'fr') {
     const path = lang === 'fr' ? this.pathFR() : this.pathEN();
     const suffix = path.replace('.html', '');
@@ -140,16 +148,29 @@ export class EditNodeComponent {
     this.updatePath(lang);
   }
 
-  protected moveNode(node: TreeNode, newParentUrl: string, lang: 'en' | 'fr') {
+  protected moveNode(node: TreeNode, newParentUrl: string, lang: 'en' | 'fr', version: 'prototype' | 'live' | 'baseline') {
     this.moveError.set(false);
     //Find new parent node
-    const tree = this.projectState.getProjectTree();
-    const newParent = this.projectState.findNodeByPath(tree, newParentUrl, lang);
-    if (!newParent) return;
-    const result = this.projectState.moveNode(node, newParent);
-    if (result === 'circular') {
-      this.moveError.set(true);
-      return;
+    if (version === 'prototype') {
+      const tree = this.projectState.getProjectTree();
+      const newParent = this.projectState.findNodeByPath(tree, newParentUrl, lang);
+      if (!newParent) return;
+      const result = this.projectState.moveNode(node, newParent);
+      if (result === 'circular') {
+        this.moveError.set(true);
+        return;
+      }
+    } else {
+      if (node.data[version][lang].parentPath !== newParentUrl) {
+        node.data[version][lang].parentPath = newParentUrl;
+        this.projectState.setModifiedDate();
+        if (version === 'baseline') {
+          // Update move status if baseline was corrected
+          const enMoved = node.data.prototype.en.parentPath !== node.data.baseline.en.parentPath;
+          const frMoved = node.data.prototype.fr.parentPath !== node.data.baseline.fr.parentPath;
+          node.data.status.isMoved = enMoved || frMoved;
+        }
+      }
     }
     this.markChanges();
   }

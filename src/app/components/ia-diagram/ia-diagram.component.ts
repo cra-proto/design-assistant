@@ -88,6 +88,17 @@ export class IaDiagramComponent {
     return tree;
   });
 
+  /** Needed to get the actual node reference from a cloned getDisplayTree */
+  protected resolveRealNode(cloneNode: TreeNode | null): TreeNode | null {
+    if (!cloneNode) return null;
+    return this.projectState.findNodeByPath(this.projectState.getProjectTree(), cloneNode.data.path[this.primaryLang], this.primaryLang);
+  }
+
+  protected resolveParentNode(parentPath: string): TreeNode | null {
+    if (!parentPath) return null;
+    return this.projectState.findNodeByPath(this.projectState.getProjectTree(), parentPath, this.primaryLang);
+  }
+
   // Display H1
   protected getH1Display(node: TreeNode): string {
     const lang = this.projectCache.selectedLang();
@@ -114,8 +125,9 @@ export class IaDiagramComponent {
     this.selectedNode = undefined;
   }
 
-  protected onMenuClick(event: MouseEvent, node: TreeNode) {
-    if (!node.data.path[this.primaryLang]) return;
+  protected onMenuClick(event: MouseEvent, displayNode: TreeNode) {
+    const node = this.resolveRealNode(displayNode);
+    if (!node?.data.path[this.primaryLang]) return;
     const projectNode = this.projectState.findNodeByPath(this.projectData().projectData, node.data.path[this.primaryLang], this.primaryLang);
     if (!projectNode) return;
 
@@ -156,12 +168,14 @@ export class IaDiagramComponent {
       });
     }
 
-    // Action: Reorder siblings
+    // Action: Moves - Reorder siblings or restore original parent
     const siblings = this.projectState.getSiblings(node);
     const index = siblings.indexOf(node);
     const canMoveLeft = index > 0 && !node.data.isNavChild;
     const canMoveRight = index < siblings.length - 1 && !node.data.isNavChild;
-    if (this.projectCache.selectedViewIA() === 'changes' && (canMoveRight || canMoveLeft)) {
+    const isMoved = node.data.status.isMoved && !node.data.isNavChild;
+    const originalParent = this.resolveParentNode(node.data.baseline[this.primaryLang].parentPath);
+    if (this.projectCache.selectedViewIA() === 'changes' && (canMoveRight || canMoveLeft || isMoved)) {
       this.items[0].items!.push({ separator: true });
     }
     // Action: Move left
@@ -180,7 +194,20 @@ export class IaDiagramComponent {
         command: () => this.projectState.reorderNode(node, 'right'),
       });
     }
-    if (this.projectCache.selectedViewIA() === 'changes' && (canMoveRight || canMoveLeft)) {
+    // Action: Move back to original location
+    if (this.projectCache.selectedViewIA() === 'changes' && isMoved) {
+      this.items[0].items!.push({
+        label: this.translate.instant(`common.undoMove`),
+        icon: 'pi pi-undo',
+        command: () => {
+          console.log(originalParent);
+          if (originalParent) {
+            this.projectState.moveNode(node, originalParent);
+          }
+        },
+      });
+    }
+    if (this.projectCache.selectedViewIA() === 'changes' && (canMoveRight || canMoveLeft || isMoved)) {
       this.items[0].items!.push({ separator: true });
     }
 
@@ -416,14 +443,19 @@ export class IaDiagramComponent {
 
   protected onDrop() {
     if (this.projectCache.selectedViewIA() !== 'changes') return;
-    const drag = this.dragNode();
-    const drop = this.dropTarget();
-    if (!drag || !drop || drag.data.path[this.primaryLang] === drop.data.path[this.primaryLang] || drag.parent?.data?.path[this.primaryLang] === drop.data.path[this.primaryLang]) {
+    const realDrag = this.resolveRealNode(this.dragNode());
+    const realDrop = this.resolveRealNode(this.dropTarget());
+    if (
+      !realDrag ||
+      !realDrop ||
+      realDrag?.data.path[this.primaryLang] === realDrop?.data.path[this.primaryLang] ||
+      realDrag?.parent?.data?.path[this.primaryLang] === realDrop?.data.path[this.primaryLang]
+    ) {
       this.dragNode.set(null);
       this.dropTarget.set(null);
       return;
     }
-    this.projectState.moveNode(drag, drop);
+    this.projectState.moveNode(realDrag, realDrop);
     this.dragNode.set(null);
     this.dropTarget.set(null);
   }
