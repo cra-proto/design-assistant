@@ -152,7 +152,7 @@
     <span class="material-icons text-primary text-7xl mt-5">library_books</span>
     <div class="flex flex-column mt-0">
       <p class="text-3xl text-600 mb-0">{{ projectData.inScopePages }}</p>
-      <p class="text-xl font-bold mt-0 lowercase">{{ 'common.pages' | translate }}</p>
+      <p class="text-xl font-bold mt-0 lowercase">{{ 'common.inScopePages' | translate }}</p>
     </div>
   </div>
 </ng-template>
@@ -163,7 +163,7 @@
     <span class="material-icons text-primary text-7xl mt-5">troubleshoot</span>
     <div class="flex flex-column mt-0">
       <p class="text-3xl text-600 mb-0">{{ assessmentStats.issuesFound }}</p>
-      <p class="text-xl font-bold mt-0 lowercase">{{ 'common.problems' | translate }}</p>
+      <p class="text-xl font-bold mt-0 lowercase">{{ 'dashboard.stats.issuesFound' | translate }}</p>
     </div>
   </div>
 </ng-template>
@@ -174,14 +174,14 @@
     @if (projectData.inScopePages > 0) {
       <p-progressbar [showValue]="false" [value]="(pageProgress / projectData.inScopePages) * 100" class="h-2rem centered-label">
         <ng-template #content let-value>
-          <span>{{ pageProgress }}/{{ projectData.inScopePages }}&nbsp;pages&nbsp;edited</span>
+          <span class="lowercase">{{ pageProgress }}/{{ projectData.inScopePages }} {{ 'dashboard.stats.pagesEdited' | translate }}</span>
         </ng-template>
       </p-progressbar>
     }
     @if (assessmentStats.issuesFound > 0) {
       <p-progressbar [showValue]="false" [value]="(problemProgress / assessmentStats.issuesFound) * 100" class="h-2rem centered-label">
         <ng-template #content let-value>
-          <span>{{ problemProgress }}/{{ assessmentStats.issuesFound }} issues fixed</span>
+          <span class="lowercase">{{ problemProgress }}/{{ assessmentStats.issuesFound }} {{ 'dashboard.stats.issuesFixed' | translate }}</span>
         </ng-template>
       </p-progressbar>
     }

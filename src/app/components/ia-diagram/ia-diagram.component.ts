@@ -67,6 +67,8 @@ export class IaDiagramComponent {
   protected readonly projectTree = computed(() => {
     let tree = this.projectState.getProject().projectData;
     if (!tree) return [];
+    //Unhide any collapsed nodes
+    tree = this.projectState.expandNodes(tree);
     //Adjustments for full tree or custom root
     if (this.iaDiagram.selectedTree() !== 'full') {
       const custom = this.projectState.findNodeByPath(tree, this.iaDiagram.selectedTree(), this.primaryLang);

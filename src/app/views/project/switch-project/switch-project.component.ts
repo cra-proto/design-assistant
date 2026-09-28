@@ -96,7 +96,6 @@ export class SwitchProjectComponent implements OnInit {
   }
 
   constructor() {
-    console.log('SwitchProjectComponent constructor entered');
     // Watch for project list changes and reload
     effect(() => {
       this.projectStorageService.projectListChanged(); // Watch for changes
@@ -241,11 +240,11 @@ export class SwitchProjectComponent implements OnInit {
   /** Value of the my projects filter */
   private readonly myProjectsFilterValue = computed<string[] | null>(() => {
     const userId = Number(this.settingsService.userId());
-    if (Number.isNaN(userId)) return null;
+    if (Number.isNaN(userId)) return ['Local'];
     const match = this.allProjects()
       .flatMap((p) => p.collaborators)
       .find((c) => c.id === userId);
-    return match ? [match.login, 'Local'] : null;
+    return match ? [match.login, 'Local'] : ['Local'];
   });
 
   /** Filter projects to userId and local */

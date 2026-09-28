@@ -57,7 +57,7 @@ export class BreadcrumbComponent {
   );
 
   get removeMargin() {
-    return this.projectDisplay.projectLabel && this.production;
+    return this.projectDisplay.projectLabel && this.isProjectRoute() && this.production;
   }
 
   home = HOME;
