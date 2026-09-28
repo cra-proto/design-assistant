@@ -563,7 +563,7 @@
 	"iaDiagram.description": "View or make changes to the architecture of your pages",
 	"iaDiagram.hasRescues": "Rescue links",
 	"iaDiagram.menu.createChild": "Create child page",
-	"iaDiagram.menu.deleteNode": "Delete this page",
+	"iaDiagram.menu.deleteNode": "Remove this page from project",
 	"iaDiagram.menu.findChildren": "Find child pages",
 	"iaDiagram.menu.hideLevelChildren": "Hide {{level}} level of child pages",
 	"iaDiagram.menu.hideNavChildren": "Hide rescue links",
