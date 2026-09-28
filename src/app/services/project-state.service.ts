@@ -1766,6 +1766,17 @@ export class ProjectStateService {
     return clonedTree;
   }
 
+  // Expand all nodes
+  public expandNodes(nodes: TreeNode[]): TreeNode[] {
+    for (const node of nodes) {
+      node.expanded = true;
+      if (node.children?.length) {
+        this.expandNodes(node.children);
+      }
+    }
+    return nodes;
+  }
+
   private collectMovedNodes(nodes: TreeNode[], movedNodes: { node: TreeNode; originalParentUrl: string }[], isTopLevel = false, mode: 'full' | 'custom' = 'full'): void {
     for (let i = nodes.length - 1; i >= 0; i--) {
       const node = nodes[i];

@@ -10,7 +10,6 @@ import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { MailtoService } from '../../services/mailto.service';
 import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
-import { ProjectStorageService } from '../../services/storage/project-storage.service';
 
 import { environment } from '../../../environments/environment';
 import { TooltipDirective } from '../../common/tooltip.directive';
@@ -33,7 +32,6 @@ export class SidebarComponent {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly projectState = inject(ProjectStateService);
   private readonly projectCache = inject(ProjectCacheService);
-  private readonly projectStorageService = inject(ProjectStorageService);
   private readonly mailtoService = inject(MailtoService);
 
   protected production = environment.production;

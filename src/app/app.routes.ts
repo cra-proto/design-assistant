@@ -24,6 +24,7 @@ import { NotFoundComponent } from './views/utility/404/not-found.component';
 // Project Storage (for route guards)
 import { ProjectStorageService } from './services/storage/project-storage.service';
 import { ProjectStateService } from './services/project-state.service';
+import { IaDiagramService } from './components/ia-diagram/ia-diagram.service';
 
 // All other optional routes should be lazy loaded (for example: tasks, help content etc.)
 
@@ -62,9 +63,10 @@ export const newProjectGuard = () => {
   return true;
 };
 
-export enum AidaRoutes {
-  Dashboard = '/project/dashboard',
-}
+export const iaDiagramGuard = () => {
+  inject(IaDiagramService).storeReturnUrl();
+  return true;
+};
 
 export const routes: Routes = [
   //PROJECT PATHS
@@ -153,6 +155,7 @@ export const routes: Routes = [
   },
   {
     path: 'tasks/ia-diagram',
+    canActivate: [iaDiagramGuard],
     loadComponent: () => import('./components/ia-diagram/ia-diagram.component').then((m) => m.IaDiagramComponent),
     title: 'iaDiagram._title',
   },

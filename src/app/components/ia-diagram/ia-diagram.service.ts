@@ -20,18 +20,22 @@ export class IaDiagramService {
     this.navNodes.set(new Map());
   }
 
-  openDiagram(): void {
+  /** Stores return link for IA diagram (used by route guard) */
+  storeReturnUrl(): void {
     // Store current URL to return to
     const currentUrl = this.router.url.replace('/project/new', '/project/edit');
+    if (currentUrl.startsWith('/tasks/ia-diagram') || currentUrl === '/') {
+      return;
+    }
     sessionStorage.setItem('ia_diagram_return_url', currentUrl);
-    // Open diagram
-    this.router.navigate(['/tasks/ia-diagram']);
   }
+
+  /** Returns user to previous page when closing the IA diagram */
   closeDiagram(): void {
     // Get previous URL from storage
     const prevUrl = sessionStorage.getItem('ia_diagram_return_url') || '/';
     sessionStorage.removeItem('ia_diagram_return_url');
     // Navigate to previous page
-    this.router.navigate([prevUrl]);
+    this.router.navigateByUrl(prevUrl);
   }
 }
