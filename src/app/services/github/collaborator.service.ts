@@ -35,12 +35,13 @@ export class CollaboratorService {
   }
 
   /** Returns 2 booleans for if user is signed in and if they are a collaborator */
-  public getUploadAccessInfo(project: ProjectMetadata | Project): { isSignedIn: boolean; isCollaborator: boolean; hasCollaborators: boolean } {
+  public getUploadAccessInfo(project: ProjectMetadata | Project): { isSignedIn: boolean; isCollaborator: boolean; hasCollaborators: boolean; isLocked: 'byMe' | string | undefined } {
     const hasCollaborators = project.collaborators.length > 0;
     const userId = Number.isNaN(Number(this.settingsService.userId())) ? undefined : Number(this.settingsService.userId());
     const isCollaborator = this.canEditProject(project, userId);
     const isSignedIn = !!this.exportGitHubService.user();
-    return { isSignedIn, isCollaborator, hasCollaborators };
+    const isLocked = project.lockedBy === this.exportGitHubService.user()?.login ? 'byMe' : project.lockedBy ? project.lockedBy : undefined;
+    return { isSignedIn, isCollaborator, hasCollaborators, isLocked };
   }
 
   // Get current user to add to new projects

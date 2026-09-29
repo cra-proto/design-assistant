@@ -46,6 +46,8 @@ enum ExportStatus {
 interface FileStatus {
   path: string;
   status: ExportStatus;
+  label?: string;
+  newer?: 'aida' | 'github' | 'same';
 }
 
 interface ExportProgress {
@@ -58,12 +60,6 @@ export interface PageData {
   path: string;
   filename: string;
   content: string;
-}
-
-interface FileCompareRow {
-  path: string;
-  status: ExportStatus;
-  newer?: 'aida' | 'github' | 'same';
 }
 
 interface ExportMessage {
@@ -208,16 +204,18 @@ export class ExportComponent {
     const lang = this.projectCache.selectedLang();
     const { source, repo, scope } = this.exportContext;
 
-    const enPages = this.projectState.getAllPages('en', source, scope).map((p) => p.path);
-    const frPages = this.projectState.getAllPages('fr', source, scope).map((p) => p.path);
+    const enPages = this.projectState.getAllPages('en', source, scope);
+    const frPages = this.projectState.getAllPages('fr', source, scope);
 
-    const projectPaths = [...(lang === 'en' ? enPages : lang === 'fr' ? frPages : [...enPages, ...frPages])];
+    const projectPages = lang === 'en' ? enPages : lang === 'fr' ? frPages : [...enPages, ...frPages];
+    const projectPaths = projectPages.map((p) => p.path);
+    const pathLabels = new Map<string, string>(projectPages.map((p) => [p.path, p.label]));
 
     // Local mode
     if (this.repoType() === 'local') {
       if (requestId !== this.compareFilesRequestId) return;
       const localPaths = [...projectPaths, ...this.cdtsFiles];
-      this.filesTable.set(localPaths.map((path) => ({ path, status: ExportStatus.ExportNew })));
+      this.filesTable.set(localPaths.map((path) => ({ path, label: pathLabels.get(path), status: ExportStatus.ExportNew })));
       return;
     }
 
@@ -257,7 +255,7 @@ export class ExportComponent {
     const allPaths = new Set<string>([...projectPaths, ...filteredGithubPages.keys()]);
 
     //Table data
-    const table: FileCompareRow[] = [];
+    const table: FileStatus[] = [];
     for (const path of allPaths) {
       // Get path language for node lookup
       const pathLang = this.fetchService.getLang(path);
@@ -274,7 +272,7 @@ export class ExportComponent {
 
       const githubOnlyOppLang = inGitHub && !inExport && pathLang !== null && pathLang !== this.projectState.detectPrimaryLanguage();
 
-      let status: FileCompareRow['status'];
+      let status: FileStatus['status'];
 
       if (path === '_includes/*') {
         if (hasIncludes) status = ExportStatus.ExportOverwrite;
@@ -297,7 +295,7 @@ export class ExportComponent {
       } else if (inExport) status = ExportStatus.ExportNew;
       else status = ExportStatus.AddToProject;
 
-      table.push({ path, status });
+      table.push({ path, label: pathLabels.get(path), status });
     }
     if (requestId !== this.compareFilesRequestId) return; // guard against multiple runs
     this.filesTable.set(table);
@@ -347,7 +345,7 @@ export class ExportComponent {
     return `${config.background} ${config.text}`;
   }
 
-  protected toggleUpdate(file: FileCompareRow) {
+  protected toggleUpdate(file: FileStatus) {
     switch (file.status) {
       case ExportStatus.SkipNew:
         file.status = ExportStatus.ExportNew;
@@ -392,7 +390,7 @@ export class ExportComponent {
   }
 
   //Add to project
-  protected async addToProject(file: FileCompareRow) {
+  protected async addToProject(file: FileStatus) {
     let url = `https://www.canada.ca/${file.path}`;
     if (file.status === ExportStatus.OppLanguage) {
       try {

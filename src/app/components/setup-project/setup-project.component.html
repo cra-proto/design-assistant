@@ -50,6 +50,8 @@
       <aida-sign-in-button [customText]="'project.setup.storage.signInWarning' | translate" />
     } @else if (uploadAccess === 'notCollab') {
       <p-message icon="pi pi-exclamation-circle" severity="error">{{ 'project.setup.storage.notCollabWarning' | translate }}</p-message>
+    } @else if (uploadAccess === 'locked') {
+      <p-message icon="pi pi-exclamation-triangle" severity="warn">{{ 'project.setup.storage.lockedWarning' | translate: { user: projectData.lockedBy } }}</p-message>
     }
   </div>
 } @else if (mode() === 'name') {

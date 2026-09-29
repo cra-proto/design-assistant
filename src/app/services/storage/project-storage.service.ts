@@ -226,6 +226,7 @@ export class ProjectStorageService {
       repoType: project.repoType ?? 'github',
       collaborators: project.collaborators || [],
       github: project.github,
+      lockedBy: project.lockedBy,
     };
 
     if (existingIndex >= 0) {
@@ -274,6 +275,7 @@ export class ProjectStorageService {
       storageType: raw.storageType ?? 'local',
       repoType: raw.repoType ?? 'github',
       org: raw.org,
+      lockedBy: raw.lockedBy ?? undefined,
     };
   }
 

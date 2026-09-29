@@ -537,9 +537,12 @@
   </div>
   <!--Add & Find pages-->
   @defer (on idle) {
-    <div class="sticky-horizontal">
+    <div class="sticky-horizontal flex flex-column gap-3">
       <div class="surface-card border-round-lg shadow-2 p-4 min-w-min">
         <aida-add-pages />
+      </div>
+      <div class="surface-card border-round-lg shadow-2 p-4 min-w-min">
+        <aida-view-pages [showInventory]="false" />
       </div>
     </div>
   }

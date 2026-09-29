@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -25,8 +25,12 @@ export class ViewPagesComponent {
   protected readonly projectCache = inject(ProjectCacheService);
   protected readonly iaDiagram = inject(IaDiagramService);
 
+  //Input
+  public readonly showInventory = input<boolean>(true);
+
   //UI elements
   protected readonly inScopePageCount = computed(() => this.projectState.getProject().inScopePages);
+  protected readonly outOfScopePageCount = computed(() => this.projectState.getProject().baselinePages - this.projectState.getProject().inScopePages);
   protected showUrls = false;
 
   //URL drawer - Both languages

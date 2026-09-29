@@ -5,12 +5,14 @@ import { Params, Router } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { MessageService } from 'primeng/api';
+import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { IftaLabelModule } from 'primeng/iftalabel';
+import { MenuModule } from 'primeng/menu';
 import { SelectModule } from 'primeng/select';
 
 import { AddPagesLinkComponent } from '../../add-pages/add-pages-link/add-pages-link.component';
+import { UserSettingsComponent } from '../../user-settings/user-settings.component';
 
 import { FetchService } from '../../../services/fetch.service';
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
@@ -27,19 +29,19 @@ import { ALL_SOURCES, SourceVersion } from '../../../common/data.model';
  */
 @Component({
   selector: 'aida-compare-select',
-  imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, IftaLabelModule, SelectModule, AddPagesLinkComponent],
+  imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, IftaLabelModule, MenuModule, SelectModule, AddPagesLinkComponent, UserSettingsComponent],
   templateUrl: './compare-select.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompareSelectComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
   private readonly messageService = inject(MessageService);
   private readonly projectState = inject(ProjectStateService);
-  protected readonly compareService = inject(CompareService);
   private readonly projectCache = inject(ProjectCacheService);
-  private translate = inject(TranslateService);
-  private fetchService = inject(FetchService);
-  private htmlNormalizationService = inject(HtmlNormalizationService);
+  protected readonly compareService = inject(CompareService);
+  private readonly fetchService = inject(FetchService);
+  private readonly htmlNormalizationService = inject(HtmlNormalizationService);
 
   public readonly compareMode = input<boolean>(true);
 
@@ -213,6 +215,47 @@ export class CompareSelectComponent implements OnInit {
     } as htmlProcessingResult;
   }
 
+  /** Dropdown options */
+  protected get items(): MenuItem[] {
+    const dropdownOptions: MenuItem[] = [];
+    if (this.compareMode()) {
+      dropdownOptions.push({
+        label: this.translate.instant('compare.tools.other'),
+        items: [
+          {
+            label: this.translate.instant('common.share'),
+            icon: 'pi pi-share-alt',
+            command: () => {
+              this.shareLink();
+            },
+          },
+        ],
+      });
+    }
+    dropdownOptions.push({
+      label: this.translate.instant('compare.tools.cache'),
+      Tooltip: this.translate.instant('compare.tools.cache.tooltip'),
+      items: [
+        {
+          label: !this.compareService.loadingAll() ? this.translate.instant('compare.tools.cache.loadAll') : this.translate.instant('compare.tools.cache.cancelLoadAll'),
+          icon: !this.compareService.loadingAll() ? 'pi pi-download' : 'pi pi-spin pi-spinner',
+          command: async () => {
+            await this.toggleLoadAll();
+          },
+        },
+        {
+          label: this.translate.instant('compare.tools.cache.reset'),
+          icon: 'pi pi-trash text-red-500',
+          disabled: this.compareService.loadingAll(),
+          command: () => {
+            this.projectCache.clearHtmlAndStatusCache();
+          },
+        },
+      ],
+    });
+    return dropdownOptions;
+  }
+
   /** Copies share link to clipboard */
   shareLink() {
     const beforeUrl = this.compareService.originalHtml()?.url;
@@ -241,5 +284,44 @@ export class CompareSelectComponent implements OnInit {
         });
       })
       .catch((err) => console.error('Clipboard copy failed:', err));
+  }
+
+  /** Runs either {@link cancelSetCache} or {@link setCacheForAll} */
+  private async toggleLoadAll() {
+    if (!this.compareService.loadingAll()) {
+      await this.setCacheForAll();
+    } else {
+      this.cancelSetCache();
+      console.log('toggle cancel');
+    }
+  }
+
+  private cacheAbortController: AbortController | null = null;
+  /** Cancels {@link setCacheForAll} */
+  cancelSetCache() {
+    this.cacheAbortController?.abort();
+  }
+
+  /** Sets status for all project pages in cache for faster navigation between pages */
+  async setCacheForAll() {
+    this.cacheAbortController = new AbortController();
+    const signal = this.cacheAbortController.signal;
+    this.compareService.loadingAll.set(true);
+    try {
+      // Get all project paths
+      const lang = this.projectState.detectPrimaryLanguage();
+      const allPaths = new Set(this.projectState.getAllPages(lang, 'live', 'inScope').map((p) => p.path));
+      // Check all versions
+      for (const path of allPaths) {
+        if (signal.aborted) break;
+        const versionsToCheck = this.projectCache.getVersionsToCheck(path);
+        const validVersions: SourceVersion[] = [];
+        for (const { url, version } of versionsToCheck) {
+          await this.projectCache.checkVersion(url, version, validVersions);
+        }
+      }
+    } finally {
+      this.compareService.loadingAll.set(false);
+    }
   }
 }

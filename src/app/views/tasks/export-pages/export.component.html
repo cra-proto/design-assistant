@@ -129,11 +129,11 @@
   <p class="my-1">{{ repoType() === 'github' ? ('exportPages.export.github.description' | translate) : ('exportPages.export.zip.description' | translate) }}</p>
   @if (projectTable().length > 0) {
     <!--Project files-->
-    <p-table [value]="projectTable()" size="small">
-      <ng-template pTemplate="header" stripedRows>
+    <p-table [value]="projectTable()" size="small" stripedRows>
+      <ng-template pTemplate="header">
         <tr>
-          <th>{{ 'common.path' | translate }}</th>
-          <th>
+          <th class="text-xl">{{ projectCache.selectedVersion() === 'prototype' ? ('exportPages.data.inScope' | translate) : ('exportPages.data.baseline' | translate) }}</th>
+          <th class="text-xl">
             <span class="flex flex-row align-items-center gap-2">
               {{ 'common.status' | translate }}
               <p-button (onClick)="setAll('skip', 'project')" icon="pi pi-angle-double-right" pTooltip="Skip all" severity="secondary" size="small" tooltipPosition="top" />
@@ -144,7 +144,13 @@
       </ng-template>
       <ng-template let-file pTemplate="body">
         <tr>
-          <td>{{ file.path }}</td>
+          <td>
+            @if (file.label) {
+              <span class="font-semibold">{{ file.label }}</span>
+              <br />
+            }
+            <span class="text-color-secondary text-sm">{{ file.path }}</span>
+          </td>
           <td>
             <p-chip
               [class]="'cursor-pointer font-bold center-chip w-10rem p-1 ' + getBgAndText(file.status)"
@@ -158,9 +164,9 @@
     </p-table>
 
     <!--Template files-->
-    <p-panel [collapsed]="true" [header]="'exportPages.export.templateFiles' | translate: { count: templateFileCount() }" [toggleable]="true" styleClass="mt-4">
-      <p-table [value]="templateTable()" size="small">
-        <ng-template pTemplate="header" stripedRows>
+    <p-panel [collapsed]="true" [header]="'exportPages.export.templateFiles' | translate: { count: templateFileCount() }" [toggleable]="true" class="mt-4">
+      <p-table [value]="templateTable()" size="small" stripedRows>
+        <ng-template pTemplate="header">
           <tr>
             <th>{{ 'common.path' | translate }}</th>
             <th>

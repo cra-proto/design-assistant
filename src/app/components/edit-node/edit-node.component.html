@@ -100,10 +100,10 @@
                   <p-iftalabel>
                     <input
                       id="path"
-                      [(ngModel)]="node().data.path.en"
                       [disabled]="!urlEditsEnabled() || (!!versionConfig() && !editsEnabled())"
-                      (blur)="updateSegment('en')"
-                      (ngModelChange)="markChanges()"
+                      [ngModel]="node().data.path.en"
+                      (blur)="updateFragment('en')"
+                      (ngModelChange)="onPathInput($event, 'en')"
                       class="secondary-outline"
                       fluid
                       pInputText
@@ -123,7 +123,7 @@
                       [class.text-red-500]="pathEN().startsWith('new-page')"
                       [disabled]="!!versionConfig() && !editsEnabled()"
                       [ngModel]="pathEN()"
-                      (ngModelChange)="pathEN.set($event); updatePath('en')"
+                      (ngModelChange)="onFragmentInput($event, 'en')"
                       class="secondary-outline"
                       fluid
                       pInputText
@@ -132,6 +132,11 @@
                     />
                     <label for="pathSegment">{{ 'editNode.pageUrl' | translate }}</label>
                   </p-iftalabel>
+                }
+                @if (pathError()) {
+                  <p-message icon="pi pi-times-circle font-bold" severity="error" styleClass="mb-2">
+                    <span>{{ 'editNode.pathError' | translate }}</span>
+                  </p-message>
                 }
                 <p-iftalabel>
                   <input
@@ -449,10 +454,10 @@
                   <p-iftalabel>
                     <input
                       id="path-fr"
-                      [(ngModel)]="node().data.path.fr"
                       [disabled]="!urlEditsEnabled() || (!!versionConfig() && !editsEnabled())"
-                      (blur)="updateSegment('fr')"
-                      (ngModelChange)="markChanges()"
+                      [ngModel]="node().data.path.fr"
+                      (blur)="updateFragment('fr')"
+                      (ngModelChange)="onPathInput($event, 'fr')"
                       class="secondary-outline"
                       fluid
                       pInputText
@@ -472,7 +477,7 @@
                       [class.text-red-500]="pathFR().startsWith('nouvelle-page')"
                       [disabled]="!!versionConfig() && !editsEnabled()"
                       [ngModel]="pathFR()"
-                      (ngModelChange)="pathFR.set($event); updatePath('fr')"
+                      (ngModelChange)="onFragmentInput($event, 'en')"
                       class="secondary-outline"
                       fluid
                       pInputText
@@ -828,7 +833,7 @@
 
     <div class="flex flex-row justify-content-end gap-2 mt-2">
       <p-button [label]="'common.cancel' | translate" (onClick)="cancel()" icon="pi pi-times" severity="secondary" />
-      <p-button [disabled]="!hasChanges()" [label]="'common.save' | translate" (onClick)="save()" icon="pi pi-save" severity="success" />
+      <p-button [disabled]="!hasChanges() || pathError() || moveError()" [label]="'common.save' | translate" (onClick)="save()" icon="pi pi-save" severity="success" />
     </div>
   }
 </div>

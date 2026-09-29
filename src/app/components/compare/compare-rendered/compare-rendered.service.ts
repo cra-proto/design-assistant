@@ -865,15 +865,22 @@ export class CompareRenderedService {
   }
 
   openParentDetails(el: HTMLElement) {
-    const detailsEl = el.closest('details');
-    if (detailsEl) {
-      detailsEl.open = true;
+    let current = el.closest('details') as HTMLDetailsElement | null;
+    while (current) {
+      current.open = true;
+      current = current.parentElement?.closest('details') ?? null;
     }
   }
 
   closeAllDetailsExcept(shadowRoot: ShadowRoot, keepOpenEl: HTMLElement) {
+    const keepOpen = new Set<HTMLDetailsElement>();
+    let current = keepOpenEl.closest('details') as HTMLDetailsElement | null;
+    while (current) {
+      keepOpen.add(current);
+      current = current.parentElement?.closest('details') ?? null;
+    }
     shadowRoot.querySelectorAll('details').forEach((details) => {
-      if (details !== keepOpenEl.closest('details')) {
+      if (!keepOpen.has(details)) {
         (details as HTMLDetailsElement).open = false;
       }
     });

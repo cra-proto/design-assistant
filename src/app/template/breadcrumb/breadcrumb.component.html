@@ -4,15 +4,18 @@
   </div>
 } @else if (projectDisplay.projectLabel && isProjectRoute()) {
   <div class="sticky top-0 z-50 flex align-items-center gap-2 white-space-nowrap ml-auto max-w-max min-h-1.5">
+    @if (projectDisplay.lockedLabel) {
+      <p-tag [severity]="projectDisplay.lockedSeverity" [value]="projectDisplay.lockedLabel" icon="pi pi-lock" tooltipPosition="left" />
+    }
     @if (projectDisplay.tagLabel) {
       <p-tag [icon]="projectDisplay.tagIcon" [pTooltip]="projectDisplay.tagTooltip" [severity]="projectDisplay.tagSeverity" [value]="projectDisplay.tagLabel" tooltipPosition="left" />
     }
     <a
-      [ngClass]="rla.isActive ? ['bg-primary-50', 'text-primary-500'] : ['surface-card', 'text-color-secondary']"
-      class="no-underline border-round-bottom-xl hover:bg-primary-50 hover:text-primary-500"
-      #rla="routerLinkActive"
-      routerLink="/project/edit"
-      routerLinkActive
+      [ngClass]="isEditActive() ? ['bg-primary-50', 'text-primary-500'] : ['surface-card', 'text-color-secondary']"
+      (click)="menu.toggle($event)"
+      (keydown.enter)="menu.toggle($event)"
+      class="no-underline border-round-bottom-xl cursor-pointer hover:bg-primary-50 hover:text-primary-500"
+      tabindex="0"
     >
       <div class="border-1 border-top-none border-round-bottom-xl border-dashed surface-border py-1 px-3">
         <i [class]="'text-primary font-semibold mr-1 ' + projectDisplay.icon" [pTooltip]="projectDisplay.iconTooltip" tooltipPosition="left"></i>
@@ -39,3 +42,18 @@
     </p-breadcrumb>
   </div>
 }
+
+<!--Menu-->
+<p-menu [model]="items" [popup]="true" #menu>
+  <ng-template #submenuheader let-item>
+    <span class="text-primary font-bold">{{ item.label | translate }}</span>
+  </ng-template>
+  <ng-template #item let-item>
+    <a class="p-menu-item-link">
+      <i [class]="item.icon"></i>
+      <span>{{ item.label | translate }}</span>
+    </a>
+  </ng-template>
+</p-menu>
+
+<p-confirmdialog key="unlock" position="topright" />

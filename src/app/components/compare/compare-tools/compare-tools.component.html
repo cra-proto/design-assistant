@@ -3,10 +3,6 @@
     <h2 class="text-2xl my-1">{{ 'compare.tools._title' | translate }}</h2>
     <p class="my-1">{{ 'compare.tools.description' | translate }}</p>
   </div>
-  <!-- Secondary task buttons TODO: split this between Select a page and Review tools -->
-  <!--div class="mt-0 mb-2 flex flex-row lg:flex-column gap-2">
-    <p-button [label]="'common.options' | translate" (onClick)="menu.toggle($event)" icon="pi pi-ellipsis-v" iconPos="right" outlined styleClass="secondary-outline w-full min-w-max" />
-  </div-->
 </div>
 @if (compareService.hasChanges()) {
   <p-message icon="pi pi-info-circle font-bold" severity="info">{{ 'compare.tools.hasChanges' | translate }}</p-message>
@@ -56,30 +52,6 @@
     </div>
   </div>
 </div>
-
-<!--DROPDOWN MENU-->
-<p-menu [model]="items" [popup]="true" #menu>
-  <ng-template #submenuheader let-item>
-    <span class="text-primary font-bold">{{ item.label | translate }}</span>
-    @if (item.Tooltip) {
-      <p class="text-gray-400 font-light text-xs my-0">{{ item.Tooltip | translate }}</p>
-    }
-  </ng-template>
-  <ng-template #item let-item>
-    <a class="p-menu-item-link">
-      <i [class]="item.icon"></i>
-      <span>{{ item.label | translate }}</span>
-    </a>
-  </ng-template>
-  <ng-template #end>
-    <span class="p-menu-item-link py-0">
-      <span class="text-primary font-bold">{{ 'common.versions' | translate }}</span>
-    </span>
-    <span class="p-menu-item-link py-0 hover:surface-100">
-      <aida-user-settings mode="versions" />
-    </span>
-  </ng-template>
-</p-menu>
 
 <!--DRAWER-->
 <p-drawer

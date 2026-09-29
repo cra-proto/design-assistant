@@ -3,9 +3,7 @@
     <h2 class="text-2xl my-1">{{ 'compare.pageOptions._title' | translate }}</h2>
     <p class="my-1">{{ compareMode() ? ('compare.pageOptions.description' | translate) : ('editPages.pageOptions.description' | translate) }}</p>
   </div>
-  @if (compareMode()) {
-    <p-button [label]="'common.share' | translate" (onClick)="shareLink()" icon="pi pi-share-alt" outlined styleClass="secondary-outline" />
-  }
+  <p-button [label]="'common.options' | translate" (onClick)="menu.toggle($event)" icon="pi pi-ellipsis-v" iconPos="right" outlined styleClass="secondary-outline w-full min-w-max" />
 </div>
 
 @if (pageOptions.length > 0) {
@@ -81,3 +79,27 @@
     <label [for]="mode">{{ 'common.' + mode | translate }}</label>
   </p-iftalabel>
 </ng-template>
+
+<!--DROPDOWN MENU-->
+<p-menu [model]="items" [popup]="true" #menu>
+  <ng-template #submenuheader let-item>
+    <span class="text-primary font-bold">{{ item.label | translate }}</span>
+    @if (item.Tooltip) {
+      <p class="text-gray-400 font-light text-xs my-0">{{ item.Tooltip | translate }}</p>
+    }
+  </ng-template>
+  <ng-template #item let-item>
+    <a class="p-menu-item-link">
+      <i [class]="item.icon"></i>
+      <span>{{ item.label | translate }}</span>
+    </a>
+  </ng-template>
+  <ng-template #end>
+    <span class="p-menu-item-link py-0">
+      <span class="text-primary font-bold">{{ 'common.versions' | translate }}</span>
+    </span>
+    <span class="p-menu-item-link py-0 hover:surface-100">
+      <aida-user-settings mode="versions" />
+    </span>
+  </ng-template>
+</p-menu>

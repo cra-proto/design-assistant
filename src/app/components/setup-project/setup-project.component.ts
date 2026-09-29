@@ -44,7 +44,7 @@ export class SetupProjectComponent {
   }
 
   //Project data
-  private get projectData() {
+  protected get projectData() {
     return this.projectState.getProject();
   }
 
@@ -110,16 +110,25 @@ export class SetupProjectComponent {
 
   protected readonly storageOptions = computed(() => [
     { name: 'project.setup.storage.local', value: 'local' as const, icon: 'pi pi-desktop' },
-    { name: 'project.setup.storage.cloud', value: 'cloud' as const, icon: 'pi pi-cloud', disabled: this.uploadAccess === 'notCollab', signin: this.uploadAccess === 'signIn' },
+    {
+      name: 'project.setup.storage.cloud',
+      value: 'cloud' as const,
+      icon: 'pi pi-cloud',
+      disabled: this.uploadAccess === 'notCollab' || this.uploadAccess === 'locked',
+      signin: this.uploadAccess === 'signIn',
+    },
   ]);
 
   protected get uploadAccess() {
-    const { isSignedIn, isCollaborator, hasCollaborators } = this.collaboratorService.getUploadAccessInfo(this.projectState.getProject());
+    const { isSignedIn, isCollaborator, hasCollaborators, isLocked } = this.collaboratorService.getUploadAccessInfo(this.projectState.getProject());
 
     const cantUploadToCloud = !isCollaborator && hasCollaborators ? this.translate.instant('project.global.cantUpload') : undefined;
 
+    const isLockedByOther = !!(isLocked && isLocked !== 'byMe');
+
     if (cantUploadToCloud) return 'notCollab';
     else if (!isSignedIn) return 'signIn';
+    else if (isLockedByOther) return 'locked';
     else return undefined;
   }
 

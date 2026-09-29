@@ -59,11 +59,15 @@ export class EditNodeComponent {
   protected readonly selectedVersion = signal<'prototype' | 'live' | 'baseline'>('prototype');
   protected readonly pathEN = signal<string>('');
   protected readonly pathFR = signal<string>('');
+  private readonly autoPath = signal<{ en: boolean; fr: boolean }>({ en: false, fr: false });
   protected readonly hasChanges = signal<boolean>(false);
   protected readonly moveError = signal<boolean>(false);
+  protected readonly pathError = signal<boolean>(false);
   protected readonly editsEnabled = signal<boolean>(false);
   protected readonly urlEditsEnabled = signal<boolean>(false);
   protected readonly toggleNotes = signal<boolean>(this.initialShowNotes());
+
+  private readonly DEFAULT_H1 = { en: 'New page', fr: 'Nouvelle page' };
 
   protected markChanges() {
     this.hasChanges.set(true);
@@ -73,13 +77,20 @@ export class EditNodeComponent {
     effect(() => {
       const node = this.node();
       const open = this.isOpen();
+      const isAuto = (lang: 'en' | 'fr') => {
+        const fragment = node.data.path[lang].split('/').pop()?.replace('.html', '') ?? '';
+        const isPlaceholder = lang === 'en' ? fragment.startsWith('new-page-') : fragment.startsWith('nouvelle-page-');
+        return isPlaceholder || this.projectState.sanitizeUrlFragment(node.data.prototype[lang].h1 ?? '') === fragment;
+      };
       if (open && node?.data) {
         this.originalData.set(structuredClone(node.data));
         this.selectedVersion.set('prototype');
         this.pathEN.set(node.data.path.en.split('/').pop());
         this.pathFR.set(node.data.path.fr.split('/').pop());
+        this.autoPath.set({ en: isAuto('en'), fr: isAuto('fr') });
         this.hasChanges.set(false);
         this.moveError.set(false);
+        this.pathError.set(false);
         this.editsEnabled.set(false);
         this.urlEditsEnabled.set(false);
         this.toggleNotes.set(this.initialShowNotes());
@@ -123,29 +134,71 @@ export class EditNodeComponent {
       node.data[this.selectedVersion()].en[field] = node.data[this.selectedVersion()].fr[field];
     }
   }
-  protected syncNewName(node: TreeNode, version: 'prototype' | 'live' | 'baseline', lang: 'en' | 'fr') {
-    if (version !== 'prototype' || !node.data.live[lang].is404) {
-      return;
-    }
-    node.data.baseline[lang].h1 = node.data.prototype[lang].h1;
-    node.data.live[lang].h1 = node.data.prototype[lang].h1;
-  }
 
-  protected updatePath(lang: 'en' | 'fr') {
-    const path = lang === 'fr' ? this.pathFR() : this.pathEN();
-    const suffix = path.replace('.html', '');
-    const prefix = this.node().data.path[lang].split('/').slice(0, -1).join('/');
-    const newPath = `${prefix}/${suffix}.html`;
+  /** Try to set full path, returns false and sets pathError if path is a duplicate */
+  private trySetPath(newPath: string, lang: 'en' | 'fr'): boolean {
+    const existingNode = this.projectState.findNodeByPath(this.projectState.getProjectTree(), newPath, lang);
+    if (existingNode && existingNode !== this.node()) {
+      this.pathError.set(true);
+      return false;
+    }
+    this.pathError.set(false);
     this.node().data.path[lang] = newPath;
     this.markChanges();
+    return true;
   }
-  protected updateSegment(lang: 'en' | 'fr') {
-    if (!this.node().data.status.isNew) {
-      return;
-    }
-    this.pathEN.set(this.node().data.path.en.split('/').pop());
-    this.pathFR.set(this.node().data.path.fr.split('/').pop());
+
+  /** Update full path from final segment input */
+  protected updatePath(lang: 'en' | 'fr'): boolean {
+    const suffix = (lang === 'fr' ? this.pathFR() : this.pathEN()).replace('.html', '');
+    const prefix = this.node().parent?.data.path[lang].replaceAll('.html', '') ?? this.node().data.path[lang].split('/').slice(0, -1).join('/');
+    return this.trySetPath(`${prefix}/${suffix}.html`, lang);
+  }
+
+  /** Update full path from full path input */
+  protected onPathInput(value: string, lang: 'en' | 'fr') {
+    this.trySetPath(this.projectState.sanitizeUrlPath(value), lang);
+  }
+
+  /** Update final segment from final segment input then sync to full path */
+  protected onFragmentInput(value: string, lang: 'en' | 'fr') {
+    const sanitized = this.projectState.sanitizeUrlFragment(value);
+    (lang === 'fr' ? this.pathFR : this.pathEN).set(sanitized);
+    this.autoPath.update((a) => ({ ...a, [lang]: false }));
     this.updatePath(lang);
+  }
+
+  /** Sync final segment signal after full path changes (on blur) */
+  protected updateFragment(lang: 'en' | 'fr') {
+    if (!this.node().data.status.isNew) return;
+    (lang === 'fr' ? this.pathFR : this.pathEN).set(this.node().data.path[lang].split('/').pop());
+  }
+
+  /** Sync name to all versions and to url for new pages until they go live */
+  protected syncNewName(node: TreeNode, version: 'prototype' | 'live' | 'baseline', lang: 'en' | 'fr') {
+    if (version !== 'prototype' || !node.data.live[lang].is404) return;
+
+    //Update name
+    const h1 = node.data.prototype[lang].h1;
+    node.data.baseline[lang].h1 = h1;
+    node.data.live[lang].h1 = h1;
+
+    //Skip updating url fragment if user has overridden default fragment
+    if (!this.autoPath()[lang]) return;
+    //Skip updating url fragment if H1 is still default
+    if (h1?.trim() === this.DEFAULT_H1[lang]) return;
+    //Skip updating url fragment if none generated
+    const newFragment = this.projectState.sanitizeUrlFragment(h1);
+    if (!newFragment) return;
+
+    //Update url fragment and path
+    (lang === 'fr' ? this.pathFR : this.pathEN).set(newFragment);
+    const isUpdated = this.updatePath(lang);
+
+    //Restore original url fragment if update fails
+    if (!isUpdated) {
+      (lang === 'fr' ? this.pathFR : this.pathEN).set(this.node().data.path[lang].split('/').pop()?.replace('.html', '') ?? '');
+    }
   }
 
   protected moveNode(node: TreeNode, newParentUrl: string, lang: 'en' | 'fr', version: 'prototype' | 'live' | 'baseline') {

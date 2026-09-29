@@ -4,6 +4,7 @@
     <div class="flex flex-row align-items-end">
       @if (legendItems) {
         <div class="flex flex-wrap gap-3 min-w-min -mb-2">
+          <aida-save-button />
           @for (item of legendItems; track item.text) {
             <div class="flex align-items-center gap-1">
               @for (colour of item.context; track $index) {

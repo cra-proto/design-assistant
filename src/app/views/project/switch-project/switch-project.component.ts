@@ -491,6 +491,11 @@ export class SwitchProjectComponent implements OnInit {
     // Update storage type to cloud
     fullProject.storageType = 'cloud';
 
+    // If active project, update storage type to cloud
+    if (this.isActiveProject(project)) {
+      this.projectState.setStorageType('cloud');
+    }
+
     // Save to cloud
     const success = await this.projectStorageService.saveProject(fullProject);
 
@@ -542,18 +547,26 @@ export class SwitchProjectComponent implements OnInit {
   }
 
   //Upload to cloud dialog
-  protected readonly showUpload = signal<{ project: ProjectMetadata; isSignedIn: boolean; isCollaborator: boolean; hasCollaborators: boolean; cloudIsNewer: boolean } | null>(null);
+  protected readonly showUpload = signal<{
+    project: ProjectMetadata;
+    isSignedIn: boolean;
+    isCollaborator: boolean;
+    hasCollaborators: boolean;
+    cloudIsNewer: boolean;
+    isLockedByOther: string | undefined;
+  } | null>(null);
   protected handleUploadClick(project: ProjectMetadata, event?: Event): void {
     event?.stopPropagation();
-    const { isSignedIn, isCollaborator, hasCollaborators } = this.collaboratorService.getUploadAccessInfo(project);
+    const { isSignedIn, isCollaborator, hasCollaborators, isLocked } = this.collaboratorService.getUploadAccessInfo(project);
     const cloudIsNewer = this.isCloudNewer(project);
+    const isLockedByOther = isLocked && isLocked !== 'byMe' ? isLocked : undefined;
 
-    if (isSignedIn && isCollaborator && !cloudIsNewer) {
+    if (isSignedIn && isCollaborator && !cloudIsNewer && !isLockedByOther) {
       this.uploadToCloud(project, event);
       return;
     }
 
-    this.showUpload.set({ project, isSignedIn, isCollaborator, hasCollaborators, cloudIsNewer });
+    this.showUpload.set({ project, isSignedIn, isCollaborator, hasCollaborators, cloudIsNewer, isLockedByOther });
   }
   protected closeShowUpload(): void {
     this.showUpload.set(null);
