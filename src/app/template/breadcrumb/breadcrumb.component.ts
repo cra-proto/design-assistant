@@ -47,7 +47,7 @@ export class BreadcrumbComponent {
   private readonly projectState = inject(ProjectStateService);
   private readonly collaboratorService = inject(CollaboratorService);
 
-  protected readonly production = !environment.production;
+  protected readonly production = environment.production;
   protected readonly sandbox = environment.sandbox;
   protected readonly isEditActive = isActive('/project/edit', this.router);
 
