@@ -137,6 +137,12 @@
                           <i class="pi pi-clock text-lg"></i>
                           {{ 'switch.label.modified' | translate }} {{ project.lastModified | date: 'short' }}
                         </div>
+                        @if (project.lockedBy) {
+                          <div class="flex align-items-center gap-2">
+                            <i class="pi pi-lock text-lg"></i>
+                            {{ 'switch.label.lockedBy' | translate }} {{ project.lockedBy }}
+                          </div>
+                        }
                       </div>
                     }
                   </div>
@@ -172,8 +178,8 @@
                   @if (project.storageType === 'local') {
                     <p-button
                       [aidaTooltip]="'switch.tooltip.saveToCloud' | translate"
+                      [disabled]="project.key === 'autosave'"
                       (onClick)="handleUploadClick(project, $event)"
-                      disabled="project.key !== 'autosave'"
                       icon="pi pi-cloud-upload"
                       outlined
                       rounded
@@ -224,6 +230,10 @@
   <p-dialog [header]="dialog.project.projectName || 'common.autosave' | translate" [modal]="true" [visible]="true" (visibleChange)="closeShowUpload()" styleClass="max-w-max">
     @if (dialog.cloudIsNewer) {
       <p-message icon="pi pi-exclamation-triangle" severity="warn">{{ 'switch.upload.cloudIsNewerWarning' | translate }}</p-message>
+    }
+
+    @if (dialog.isLockedByOther) {
+      <p-message icon="pi pi-exclamation-triangle" severity="warn">{{ 'switch.upload.isLockedByOtherWarning' | translate: { user: dialog.isLockedByOther } }}</p-message>
     }
 
     @if (!dialog.isCollaborator && dialog.hasCollaborators) {

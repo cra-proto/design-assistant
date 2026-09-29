@@ -10,7 +10,7 @@
       size="small"
       styleClass="secondary-outline w-full min-w-max"
     />
-    <p-drawer [(visible)]="showUrls" [header]="'common.urls' | translate" position="right" styleClass="w-6">
+    <p-drawer [(visible)]="showUrls" [header]="'common.urls' | translate" appendTo="body" position="right" styleClass="w-6">
       <aida-project-settings [allowBoth]="true" [allowPreview]="true" [showDisplay]="true" [showLang]="true" [showScope]="true" [showSource]="true">
         <p-button
           [label]="'common.copyUrls' | translate"
@@ -77,14 +77,22 @@
       size="small"
       styleClass="secondary-outline w-full min-w-max"
     />
-    <p-button [label]="'inventory._title' | translate" icon="pi pi-list-check" outlined routerLink="/tasks/inventory" size="small" styleClass="secondary-outline w-full min-w-max" />
+    @if (showInventory()) {
+      <p-button [label]="'inventory._title' | translate" icon="pi pi-list-check" outlined routerLink="/tasks/inventory" size="small" styleClass="secondary-outline w-full min-w-max" />
+    }
   </div>
 
-  <div class="flex flex-row gap-1 lg:justify-content-center lg:align-items-center">
+  <div class="flex flex-row gap-1 mt-2 lg:mt-0 lg:justify-content-center lg:align-items-center">
     <i class="pi pi-copy text-primary text-5xl"></i>
     <div class="flex flex-column">
       <p class="my-0 font-bold text-xl">{{ inScopePageCount() }}</p>
-      <p class="my-0 text-sm lowercase">{{ 'common.inScopePages' | translate }}</p>
+      <p class="my-0 text-sm lowercase white-space-nowrap">{{ 'common.inScopePages' | translate }}</p>
+    </div>
+    <i class="pi pi-plus text-primary text-3xl mx-2"></i>
+    <i class="pi pi-copy text-color-secondary text-5xl"></i>
+    <div class="flex flex-column text-color-secondary">
+      <p class="my-0 font-semibold text-xl">{{ outOfScopePageCount() }}</p>
+      <p class="my-0 text-sm lowercase white-space-nowrap">{{ 'common.outOfScopePages' | translate }}</p>
     </div>
   </div>
 </div>

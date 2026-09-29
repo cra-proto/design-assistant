@@ -27,6 +27,7 @@ import { AddPagesComponent } from '../../../components/add-pages/add-pages.compo
 import { EditNodeComponent } from '../../../components/edit-node/edit-node.component';
 import { ExportProjectComponent } from '../../../components/export-project/export-project.component';
 import { IaTableComponent } from '../../../components/ia-table/ia-table.component';
+import { ViewPagesComponent } from '../../../components/view-pages/view-pages.component';
 
 import { IaDiagramService } from '../../../components/ia-diagram/ia-diagram.service';
 import { OpenRouterService } from '../../../services/ai/openrouter.service';
@@ -84,6 +85,7 @@ export interface BooleanToggleItem extends MenuItem {
     ExportProjectComponent,
     IaTableComponent,
     TooltipDirective,
+    ViewPagesComponent,
   ],
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.css',
@@ -499,6 +501,10 @@ export class InventoryComponent implements OnInit {
     this.applyView((col) => col.group === 'metadata');
   }
 
+  private viewBooleans() {
+    this.applyView((col) => col.type === 'boolean');
+  }
+
   // 3. Sort
 
   // Sort table
@@ -518,17 +524,6 @@ export class InventoryComponent implements OnInit {
   }
 
   // 4. Filter
-  private resetFilters(): void {
-    this.columnFilters.set({
-      inScope: true, // Reset to default state
-    });
-  }
-
-  private hasActiveFilters(): boolean {
-    const filters = this.columnFilters();
-    const activeFilterCount = Object.values(filters).filter((v) => v === true).length;
-    return activeFilterCount > 1 || !filters['inScope']; // Checks for filters other than inScope
-  }
 
   // Track which boolean columns are filtered
   protected isColumnFiltered(field: string): boolean {
@@ -547,6 +542,11 @@ export class InventoryComponent implements OnInit {
       inScope: this.columnFilters()['anyUnusual'],
       anyUnusual: !this.columnFilters()['anyUnusual'],
     });
+    if (this.columnFilters()['anyUnusual']) {
+      this.viewBooleans();
+    } else {
+      this.loadColumnVisibility();
+    }
   }
 
   private toggleInScopeFilter(): void {

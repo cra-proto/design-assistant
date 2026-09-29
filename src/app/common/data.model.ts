@@ -418,6 +418,7 @@ export interface ProjectMetadata {
   storageType: 'local' | 'cloud';
   repoType: 'local' | 'github';
   org?: string;
+  lockedBy?: string;
 }
 
 export const ALL_SOURCES = ['live', 'preview', 'protoGH', 'baseGH', 'protoUT', 'baseUT'] as const;

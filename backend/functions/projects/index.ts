@@ -65,6 +65,7 @@ interface Project {
     org: string; // Cloud-set variable for project filtering
     content?: string; // JSON stringified projectData TreeNode[] (being phased out and replaced by S3 bucket)
     contentKey?: string; // Reference to S3 bucket with JSON stringified projectData TreeNode[]
+    lockedBy?: string // set to user login if locked
 }
 
 // Function to get CORS headers based on request origin
@@ -146,6 +147,7 @@ export const listProjects = async (event: APIGatewayProxyEvent): Promise<APIGate
             storageType: 'cloud',
             repoType: item.repoType,
             org: item.org || 'DEFAULT',
+            lockedBy: item.lockedBy ?? undefined
         })) || [];
 
         return {
@@ -297,6 +299,7 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
             repoType: projectData.repoType,
             org: validateOrg(projectData.org),
             contentKey, // Store reference to the entire project state
+            lockedBy: projectData.lockedBy ?? undefined
         };
 
         console.log('Project to save:', JSON.stringify(project, null, 2));

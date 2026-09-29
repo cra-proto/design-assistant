@@ -113,18 +113,6 @@ export class ProjectStateService {
       const currentProject = this.project();
       const hasChanges = currentProject.lastModified > currentProject.lastSaved;
       if (hasChanges) {
-        // Check if user has permission to save
-        if (currentProject.storageType === 'cloud' && !this.collaboratorService.canEditProject(currentProject)) {
-          const { isSignedIn, isCollaborator } = this.collaboratorService.getUploadAccessInfo(currentProject);
-          const message = isCollaborator && !isSignedIn ? this.translate.instant('switch.convertToLocalMessage.signIn') : this.translate.instant('switch.convertToLocalMessage.notCollab');
-          this.messageService.add({
-            severity: 'info',
-            summary: this.translate.instant('switch.convertToLocalMessage.summary'),
-            detail: message,
-            sticky: true,
-          });
-          this.setStorageType('local');
-        }
         this.saveStatus.set('unsaved');
         // Calculate time since last save and save if exceeding the limit
         const timeSinceLastSave = currentProject.lastModified.getTime() - currentProject.lastSaved.getTime();
@@ -170,7 +158,7 @@ export class ProjectStateService {
     }));
     // Sync name to repo if not set
     if (name && !this.project().github.repo) {
-      let repo = this.generateUrlFragment(name);
+      let repo = this.sanitizeUrlFragment(name);
       const currentYear = new Date().getFullYear().toString();
       if (!/[-_]?\d{4}$/.test(repo)) {
         repo = `${repo}-${currentYear}`;
@@ -183,6 +171,29 @@ export class ProjectStateService {
     this.project.update((curr) => ({
       ...curr,
       phase: phase,
+      lastModified: new Date(),
+    }));
+  }
+
+  //Set locked by
+  public setLockedBy() {
+    const user = this.exportGitHubService.user()?.login;
+    if (!user) {
+      return;
+    }
+    this.project.update((curr) => ({
+      ...curr,
+      lockedBy: user,
+      lastModified: new Date(),
+    }));
+  }
+
+  //Set locked by
+  public removeLockedBy() {
+    this.project.update((curr) => ({
+      ...curr,
+      lockedBy: undefined,
+      storageType: 'cloud',
       lastModified: new Date(),
     }));
   }
@@ -512,6 +523,8 @@ export class ProjectStateService {
    * Cancels any pending auto-save timer
    */
   public async saveProject(): Promise<boolean> {
+    const project = this.project();
+
     // Cancel pending auto-save
     if (this.autoSaveTimer) {
       clearTimeout(this.autoSaveTimer);
@@ -522,7 +535,28 @@ export class ProjectStateService {
     this.saveStatus.set('saving');
 
     // Store the current lastSaved in case we need to rollback
-    const previousLastSaved = this.project().lastSaved;
+    const previousLastSaved = project.lastSaved;
+
+    // Convert to local if user does NOT have permission for cloud save
+    if (project.storageType === 'cloud') {
+      const { isSignedIn, isCollaborator, isLocked } = this.collaboratorService.getUploadAccessInfo(project);
+      const isLockedByOther = !!(isLocked && isLocked !== 'byMe');
+      if (!this.collaboratorService.canEditProject(project) || isLockedByOther) {
+        const message =
+          isCollaborator && !isSignedIn
+            ? this.translate.instant('switch.convertToLocalMessage.signIn')
+            : isCollaborator && isLockedByOther
+              ? this.translate.instant('switch.convertToLocalMessage.lockedBy', { user: isLocked })
+              : this.translate.instant('switch.convertToLocalMessage.notCollab');
+        this.messageService.add({
+          severity: 'info',
+          summary: this.translate.instant('switch.convertToLocalMessage.summary'),
+          detail: message,
+          sticky: true,
+        });
+        this.setStorageType('local');
+      }
+    }
 
     try {
       // Update lastSaved
@@ -531,8 +565,8 @@ export class ProjectStateService {
         lastSaved: new Date(),
       }));
 
-      const project = this.project();
-      const success = await this.projectStorageService.saveProject(project);
+      const projectToSave = this.project();
+      const success = await this.projectStorageService.saveProject(projectToSave);
 
       if (success) {
         // Wait 2 seconds before showing "saved" status
@@ -776,8 +810,8 @@ export class ProjectStateService {
       //Actions
       { field: 'actions', label: this.translate.instant('inventory.header.actions'), type: 'tags', group: 'actions', visibleByDefault: true, dataSection: [] },
       //Notes
-      { field: 'issue', label: this.translate.instant('inventory.header.issue'), type: 'textArea', group: 'notes', visibleByDefault: false, dataSection: ['notes', 'issue'] },
-      { field: 'solution', label: this.translate.instant('inventory.header.solution'), type: 'textArea', group: 'notes', visibleByDefault: false, dataSection: ['notes', 'solution'] },
+      { field: 'issue', label: this.translate.instant('inventory.header.issue'), type: 'textArea', group: 'notes', visibleByDefault: true, dataSection: ['notes', 'issue'] },
+      { field: 'solution', label: this.translate.instant('inventory.header.solution'), type: 'textArea', group: 'notes', visibleByDefault: true, dataSection: ['notes', 'solution'] },
       //Problems
       { field: 'isOrphan', label: this.translate.instant('inventory.header.isOrphan'), type: 'boolean', group: 'problems', visibleByDefault: false, dataSection: ['prototype', 'lang', 'isOrphan'] },
       //ADD 404's!!!
@@ -1073,7 +1107,7 @@ export class ProjectStateService {
   }
 
   // Generate url fragment (for repo names and new pages)
-  public generateUrlFragment(h1: string): string {
+  public sanitizeUrlFragment(h1: string): string {
     // Words to remove (common articles, prepositions, conjunctions)
     const stopWords = [
       // English
@@ -1116,10 +1150,23 @@ export class ProjectStateService {
       .replace(/[\u0300-\u036f]/g, '') // Remove accent marks
       .replace(/\b(?:l|d|n|s|c|j|m|t|qu)'/gi, '') // Remove French contractions (l', d', n', s', c', j', m', t', qu')
       .toLowerCase() // Lowercase for the url
-      .replace(/[^\w\s-]/g, '') // Remove punctuation except hyphens
+      .replace(/[^\w\s.-]/g, '') // Remove punctuation except hyphens and periods
       .split(/\s+/) // Split on whitespace
       .filter((word) => word.length > 0 && !stopWords.includes(word)) // Remove stop words and empty strings
       .join('-'); // Join with hyphens
+  }
+
+  public sanitizeUrlPath(path: string): string {
+    return path
+      .normalize('NFD') // Decompose accented characters
+      .replace(/[\u0300-\u036f]/g, '') // Remove accent marks
+      .toLowerCase() // Lowercase for the url
+      .trim()
+      .replace(/\s+/g, '-') // convert spaces to hyphens
+      .replace(/[^a-z0-9/.-]/g, '') // remove invalid characters (anything not alphanumeric, slash, or hyphen)
+      .replace(/-{2,}/g, '-') // collapse repeated hyphens
+      .replace(/\/{2,}/g, '/') // collapse repeated slashes
+      .replace(/\.{2,}/g, '.'); // collapse repeated periods
   }
 
   public deleteNodes(selectedPages: FlattenedTreeNode[], canDeleteRoot = false) {
@@ -1655,6 +1702,17 @@ export class ProjectStateService {
     // Update prototype parentUrls
     node.data.prototype.en.parentPath = pathParent?.data?.path.en ?? '';
     node.data.prototype.fr.parentPath = pathParent?.data?.path.fr ?? '';
+
+    // Update new page parent url path
+    const isNew = node.data.status.isNew && node.data.live.en.is404 && node.data.live.fr.is404;
+    if (isNew) {
+      const ENsuffix = node.data.path.en.split('/').pop();
+      const ENprefix = node.data.prototype.en.parentPath.replaceAll('.html', '');
+      const FRsuffix = node.data.path.fr.split('/').pop();
+      const FRprefix = node.data.prototype.fr.parentPath.replaceAll('.html', '');
+      node.data.path.en = `${ENprefix}/${ENsuffix}`;
+      node.data.path.fr = `${FRprefix}/${FRsuffix}`;
+    }
 
     // Compare normalized prototype parentUrls to baseline parentUrls
     const enMoved = this.fetchService.generatePath(node.data.prototype.en.parentPath) !== this.fetchService.generatePath(node.data.baseline.en.parentPath ?? '');

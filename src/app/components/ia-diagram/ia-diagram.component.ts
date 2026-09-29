@@ -14,6 +14,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { AddPagesLinkComponent } from '../add-pages/add-pages-link/add-pages-link.component';
 import { EditNodeComponent } from '../edit-node/edit-node.component';
 import { ProjectSettingsComponent } from '../project-settings/project-settings.component';
+import { SaveButtonComponent } from '../save-button/save-button.component';
 
 import { FetchService } from '../../services/fetch.service';
 import { ProjectCacheService } from '../../services/project-cache.service';
@@ -38,6 +39,7 @@ import { TreeNodeData } from '../../common/data.model';
     AddPagesLinkComponent,
     EditNodeComponent,
     ProjectSettingsComponent,
+    SaveButtonComponent,
   ],
   templateUrl: './ia-diagram.component.html',
   styleUrl: './ia-diagram.component.css',
