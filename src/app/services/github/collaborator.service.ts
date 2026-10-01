@@ -40,7 +40,7 @@ export class CollaboratorService {
     const userId = Number.isNaN(Number(this.settingsService.userId())) ? undefined : Number(this.settingsService.userId());
     const isCollaborator = this.canEditProject(project, userId);
     const isSignedIn = !!this.exportGitHubService.user();
-    const isLocked = project.lockedBy === this.exportGitHubService.user()?.login ? 'byMe' : project.lockedBy ? project.lockedBy : undefined;
+    const isLocked = project.lockedBy && project.lockedBy === this.exportGitHubService.user()?.login ? 'byMe' : project.lockedBy ? project.lockedBy : undefined;
     return { isSignedIn, isCollaborator, hasCollaborators, isLocked };
   }
 

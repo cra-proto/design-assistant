@@ -132,18 +132,50 @@
     <p-table [value]="projectTable()" size="small" stripedRows>
       <ng-template pTemplate="header">
         <tr>
+          <th class="w-4rem">
+            <p-checkbox [binary]="true" [ngModel]="allExported('project')" (onChange)="setAll(allExported('project') ? 'skip' : 'export', 'project')" />
+          </th>
           <th class="text-xl">{{ projectCache.selectedVersion() === 'prototype' ? ('exportPages.data.inScope' | translate) : ('exportPages.data.baseline' | translate) }}</th>
           <th class="text-xl">
             <span class="flex flex-row align-items-center gap-2">
               {{ 'common.status' | translate }}
-              <p-button (onClick)="setAll('skip', 'project')" icon="pi pi-angle-double-right" pTooltip="Skip all" severity="secondary" size="small" tooltipPosition="top" />
-              <p-button (onClick)="setAll('export', 'project')" icon="pi pi-sync" pTooltip="Update all" size="small" tooltipPosition="top" />
+              <p-button
+                [pTooltip]="'exportPages.toggle.default' | translate"
+                (onClick)="compareFiles()"
+                icon="pi pi-file-check"
+                outlined
+                size="small"
+                styleClass="secondary-outline"
+                tooltipPosition="top"
+              />
+              <p-button
+                [pTooltip]="'exportPages.toggle.skipAll' | translate"
+                (onClick)="setAll('skip', 'project')"
+                icon="pi pi-angle-double-right"
+                outlined
+                severity="secondary"
+                size="small"
+                styleClass="secondary-outline"
+                tooltipPosition="top"
+              />
+              <p-button
+                [pTooltip]="'exportPages.toggle.updateAll' | translate"
+                (onClick)="setAll('export', 'project')"
+                icon="pi pi-sync"
+                outlined
+                size="small"
+                styleClass="secondary-outline"
+                tooltipPosition="top"
+              />
             </span>
           </th>
         </tr>
       </ng-template>
       <ng-template let-file pTemplate="body">
         <tr>
+          <td>
+            <p-checkbox [binary]="true" [disabled]="file.status === ExportStatus.AddToProject" [ngModel]="includedInExport(file.status)" (onChange)="toggleUpdate(file)" />
+          </td>
           <td>
             @if (file.label) {
               <span class="font-semibold">{{ file.label }}</span>
@@ -168,18 +200,41 @@
       <p-table [value]="templateTable()" size="small" stripedRows>
         <ng-template pTemplate="header">
           <tr>
+            <th class="w-4rem">
+              <p-checkbox [binary]="true" [ngModel]="allExported('template')" (onChange)="setAll(allExported('template') ? 'skip' : 'export', 'template')" />
+            </th>
             <th>{{ 'common.path' | translate }}</th>
             <th>
               <span class="flex flex-row align-items-center gap-2">
                 {{ 'common.status' | translate }}
-                <p-button (onClick)="setAll('skip', 'template')" icon="pi pi-angle-double-right" pTooltip="Skip all" severity="secondary" size="small" tooltipPosition="top" />
-                <p-button (onClick)="setAll('export', 'template')" icon="pi pi-sync" pTooltip="Update all" size="small" tooltipPosition="top" />
+                <p-button
+                  [pTooltip]="'exportPages.toggle.skipAll' | translate"
+                  (onClick)="setAll('skip', 'template')"
+                  icon="pi pi-angle-double-right"
+                  outlined
+                  severity="secondary"
+                  size="small"
+                  styleClass="secondary-outline"
+                  tooltipPosition="top"
+                />
+                <p-button
+                  [pTooltip]="'exportPages.toggle.updateAll' | translate"
+                  (onClick)="setAll('export', 'template')"
+                  icon="pi pi-sync"
+                  outlined
+                  size="small"
+                  styleClass="secondary-outline"
+                  tooltipPosition="top"
+                />
               </span>
             </th>
           </tr>
         </ng-template>
         <ng-template let-file pTemplate="body">
           <tr>
+            <td>
+              <p-checkbox [binary]="true" [disabled]="file.status === ExportStatus.AddToProject" [ngModel]="includedInExport(file.status)" (onChange)="toggleUpdate(file)" />
+            </td>
             <td>{{ file.path }}</td>
             <td>
               <p-chip

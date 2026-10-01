@@ -8,6 +8,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { TreeNode } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { ChipModule } from 'primeng/chip';
 import { DividerModule } from 'primeng/divider';
 import { MessageModule } from 'primeng/message';
@@ -74,6 +75,7 @@ interface ExportMessage {
     FormsModule,
     TranslatePipe,
     ButtonModule,
+    CheckboxModule,
     ChipModule,
     DividerModule,
     MessageModule,
@@ -195,7 +197,7 @@ export class ExportComponent {
 
   // Populate files table (and compare project files with GitHub or UT)
   private compareFilesRequestId = 0;
-  private async compareFiles() {
+  protected async compareFiles() {
     const requestId = ++this.compareFilesRequestId;
     if (!this.repoType()) {
       this.repoType.set(this.projectData().repoType ?? 'github');
@@ -215,7 +217,17 @@ export class ExportComponent {
     if (this.repoType() === 'local') {
       if (requestId !== this.compareFilesRequestId) return;
       const localPaths = [...projectPaths, ...this.cdtsFiles];
-      this.filesTable.set(localPaths.map((path) => ({ path, label: pathLabels.get(path), status: ExportStatus.ExportNew })));
+      const table: FileStatus[] = localPaths.map((path) => {
+        const pathLang = this.fetchService.getLang(path);
+        const node = pathLang ? this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, pathLang) : null;
+        const isRot = node?.data?.status?.isROT === true;
+        return {
+          path,
+          label: pathLabels.get(path),
+          status: isRot ? ExportStatus.SkipNew : ExportStatus.ExportNew,
+        };
+      });
+      this.filesTable.set(table);
       return;
     }
 
@@ -415,6 +427,18 @@ export class ExportComponent {
     this.router.navigate(['/import-page'], {
       queryParams: { url: url },
     });
+  }
+
+  // Boolean status for table row checkboxes
+  protected includedInExport(status: ExportStatus): boolean {
+    return status === ExportStatus.ExportNew || status === ExportStatus.ExportOverwrite;
+  }
+
+  // Boolean status for table header checkbox
+  protected allExported(table: 'project' | 'template'): boolean {
+    const files = table === 'project' ? this.projectTable() : this.templateTable();
+    const toggleable = files.filter((f) => f.status !== ExportStatus.AddToProject);
+    return toggleable.length > 0 && toggleable.every((f) => this.includedInExport(f.status));
   }
 
   // Export progress
