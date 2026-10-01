@@ -57,7 +57,7 @@ export class ImportPageComponent implements OnInit {
             }
             //Set highlight signal
             this.addUrlsService.setHighlight(true);
-            this.router.navigate(['/project/new']);
+            this.router.navigate(['/project/edit']);
             return;
           } else {
             const active = this.projectStorageService.getActiveProject();
@@ -80,7 +80,7 @@ export class ImportPageComponent implements OnInit {
       });
     } catch (error) {
       console.error(error);
-      this.router.navigate(['/project/new']);
+      this.router.navigate(['/project/edit']);
       return;
     } finally {
       this.isLoading = false;
