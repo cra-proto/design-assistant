@@ -130,9 +130,7 @@ export class IaDiagramComponent {
   }
 
   protected onMenuClick(event: MouseEvent, displayNode: TreeNode) {
-    const node = this.resolveRealNode(displayNode);
-    if (!node?.data.path[this.primaryLang]) return;
-    const projectNode = this.projectState.findNodeByPath(this.projectData().projectData, node.data.path[this.primaryLang], this.primaryLang);
+    const projectNode = this.resolveRealNode(displayNode);
     if (!projectNode) return;
 
     event.preventDefault();
@@ -173,12 +171,12 @@ export class IaDiagramComponent {
     }
 
     // Action: Moves - Reorder siblings or restore original parent
-    const siblings = this.projectState.getSiblings(node);
-    const index = siblings.indexOf(node);
-    const canMoveLeft = index > 0 && !node.data.isNavChild;
-    const canMoveRight = index < siblings.length - 1 && !node.data.isNavChild;
-    const isMoved = node.data.status.isMoved && !node.data.isNavChild;
-    const originalParent = this.resolveParentNode(node.data.baseline[this.primaryLang].parentPath);
+    const siblings = this.projectState.getSiblings(projectNode);
+    const index = siblings.indexOf(projectNode);
+    const canMoveLeft = index > 0 && !projectNode.data.isNavChild;
+    const canMoveRight = index < siblings.length - 1 && !projectNode.data.isNavChild;
+    const isMoved = projectNode.data.status.isMoved && !projectNode.data.isNavChild;
+    const originalParent = this.resolveParentNode(projectNode.data.baseline[this.primaryLang].parentPath);
     if (this.projectCache.selectedViewIA() === 'changes' && (canMoveRight || canMoveLeft || isMoved)) {
       this.items[0].items!.push({ separator: true });
     }
@@ -187,7 +185,7 @@ export class IaDiagramComponent {
       this.items[0].items!.push({
         label: this.translate.instant(`common.moveLeft`),
         icon: 'pi pi-arrow-left',
-        command: () => this.projectState.reorderNode(node, 'left'),
+        command: () => this.projectState.reorderNode(projectNode, 'left'),
       });
     }
     // Action: Move right
@@ -195,7 +193,7 @@ export class IaDiagramComponent {
       this.items[0].items!.push({
         label: this.translate.instant(`common.moveRight`),
         icon: 'pi pi-arrow-right',
-        command: () => this.projectState.reorderNode(node, 'right'),
+        command: () => this.projectState.reorderNode(projectNode, 'right'),
       });
     }
     // Action: Move back to original location
@@ -206,7 +204,7 @@ export class IaDiagramComponent {
         command: () => {
           console.log(originalParent);
           if (originalParent) {
-            this.projectState.moveNode(node, originalParent);
+            this.projectState.moveNode(projectNode, originalParent);
           }
         },
       });
@@ -215,14 +213,14 @@ export class IaDiagramComponent {
       this.items[0].items!.push({ separator: true });
     }
 
-    if (this.projectCache.selectedViewIA() === 'changes' && !node.data.isNavChild) {
+    if (this.projectCache.selectedViewIA() === 'changes' && !projectNode.data.isNavChild) {
       // Action: Find child pages
-      if (!node.data.isCrawled) {
+      if (!projectNode.data.isCrawled) {
         this.items[0].items!.push({
           label: this.translate.instant(`iaDiagram.menu.findChildren`),
           icon: 'pi pi-search',
           command: () => {
-            this.addUrlsService.addChildren(node, this.primaryLang);
+            this.addUrlsService.addChildren(projectNode, this.primaryLang);
           },
         });
       }
@@ -232,7 +230,7 @@ export class IaDiagramComponent {
           label: this.translate.instant(`iaDiagram.menu.createChild`),
           icon: 'pi pi-file-plus text-green-500',
           command: () => {
-            this.selectedNode = this.projectState.createNode(node);
+            this.selectedNode = this.projectState.createNode(projectNode);
             this.showNotes = false;
             this.editNode = true;
           },
@@ -241,18 +239,18 @@ export class IaDiagramComponent {
           label: this.translate.instant(`iaDiagram.menu.deleteNode`),
           icon: 'pi pi-trash text-red-500',
           command: () => {
-            this.projectState.deleteNode(node);
+            this.projectState.deleteNode(projectNode);
           },
         },
       );
     }
 
     // View: Full or custom tree
-    if (this.projectTree()[0].data.path[this.primaryLang] !== node.data.path[this.primaryLang] && !node.data.isNavChild) {
+    if (this.projectTree()[0].data.path[this.primaryLang] !== projectNode.data.path[this.primaryLang] && !displayNode.data.isNavChild) {
       this.items[1].items!.push({
         label: this.translate.instant(`iaDiagram.menu.viewAsRoot`),
         icon: 'pi pi-window-minimize',
-        command: () => this.iaDiagram.selectedTree.set(node.data.path[this.primaryLang]),
+        command: () => this.iaDiagram.selectedTree.set(projectNode.data.path[this.primaryLang]),
       });
     }
     if (this.iaDiagram.selectedTree() !== 'full') {
@@ -262,13 +260,13 @@ export class IaDiagramComponent {
         command: () => this.iaDiagram.selectedTree.set('full'),
       });
     }
-    if ((this.projectTree()[0].data.path[this.primaryLang] !== node.data.path[this.primaryLang] && !node.data.isNavChild) || this.iaDiagram.selectedTree() !== 'full') {
+    if ((this.projectTree()[0].data.path[this.primaryLang] !== projectNode.data.path[this.primaryLang] && !displayNode.data.isNavChild) || this.iaDiagram.selectedTree() !== 'full') {
       this.items[1].items!.push({ separator: true });
     }
 
     // View: Show nav children
-    if (!node.data.isNavChild) {
-      const path = node.data.path[this.primaryLang];
+    if (!displayNode.data.isNavChild) {
+      const path = displayNode.data.path[this.primaryLang];
       const navChildrenVisible = this.iaDiagram.navNodes().has(path);
 
       this.items[1].items!.push({
@@ -295,7 +293,7 @@ export class IaDiagramComponent {
             linkedPaths = await this.fetchService.getPaths(urlLive, false);
           }
           const projectPaths = new Set(this.projectState.getAllPages(this.primaryLang).map((p) => p.path));
-          const directChildPaths = new Set((node.children ?? []).map((child) => child.data.path[this.primaryLang]));
+          const directChildPaths = new Set((projectNode.children ?? []).map((child) => child.data.path[this.primaryLang]));
           const filteredPaths = linkedPaths.filter((p) => projectPaths.has(p) && !directChildPaths.has(p) && p !== path);
           console.log(filteredPaths);
           this.iaDiagram.navNodes.update((map) => new Map(map).set(path, filteredPaths));
@@ -303,33 +301,33 @@ export class IaDiagramComponent {
       });
 
       // View: Show hidden nodes (1 level only, only visible if specific children are hidden)
-      if (node.children?.length && node.data.hiddenChildrenUrls?.length) {
+      if (displayNode.children?.length && displayNode.data.hiddenChildrenUrls?.length) {
         this.items[1].items!.push({
           label: this.translate.instant(`iaDiagram.menu.showHiddenNodes`),
           icon: 'pi pi-eye',
           command: () =>
             this.iaDiagram.hiddenNodes.update((set) => {
               const next = new Set(set);
-              node.data.hiddenChildrenUrls.forEach((url: string) => next.delete(url));
+              displayNode.data.hiddenChildrenUrls.forEach((url: string) => next.delete(url));
               return next;
             }),
         });
       }
 
       // View: Show next level of hidden children
-      if (!node.children?.length && (node.data.collapsedChildren?.length || node.data.hiddenChildrenUrls?.length)) {
+      if (!displayNode.children?.length && (displayNode.data.collapsedChildren?.length || displayNode.data.hiddenChildrenUrls?.length)) {
         this.items[1].items!.push({
           label: this.translate.instant(`iaDiagram.menu.showNextChildren`),
           icon: 'pi pi-eye',
           command: () => {
             this.iaDiagram.collapsedNodes.update((set) => {
               const next = new Set(set);
-              next.delete(node.data.path[this.primaryLang]); // in case children were collapsed
+              next.delete(displayNode.data.path[this.primaryLang]); // in case children were collapsed
               return next;
             });
             this.iaDiagram.hiddenNodes.update((set) => {
               const next = new Set(set);
-              (node.data.hiddenChildrenUrls ?? []).forEach((path: string) => next.delete(path));
+              (displayNode.data.hiddenChildrenUrls ?? []).forEach((path: string) => next.delete(path));
               return next;
             });
           },
@@ -337,6 +335,14 @@ export class IaDiagramComponent {
       }
 
       // View: Show all levels of hidden children
+      console.log('Clicked node path:', projectNode.data?.path[this.primaryLang]);
+      console.log(
+        'Direct children:',
+        (projectNode.children ?? []).map((c) => c.data?.path[this.primaryLang]),
+      );
+      console.log('Hidden set:', [...this.iaDiagram.hiddenNodes()]);
+      console.log('Collapsed set:', [...this.iaDiagram.collapsedNodes()]);
+      console.log('Result:', this.hasDeepHiddenContent(projectNode));
       if (projectNode && this.hasDeepHiddenContent(projectNode)) {
         this.items[1].items!.push({
           label: this.translate.instant('iaDiagram.menu.showAllChildren'),
@@ -357,30 +363,31 @@ export class IaDiagramComponent {
         });
       }
 
-      if (node.parent || node.children?.length) {
+      if (displayNode.parent || displayNode.children?.length) {
         this.items[1].items!.push({ separator: true });
       }
 
       // View: Hide node
-      if (node.parent) {
+      if (displayNode.parent) {
         this.items[1].items!.push({
           label: this.translate.instant(`iaDiagram.menu.hideNode`),
           icon: 'pi pi-eye-slash',
-          command: () => this.iaDiagram.hiddenNodes.update((set) => new Set([...set, node.data.path[this.primaryLang]])),
+          command: () => this.iaDiagram.hiddenNodes.update((set) => new Set([...set, displayNode.data.path[this.primaryLang]])),
         });
       }
 
       // View: Hide all children from specified level
-      if (node.children?.length) {
-        const maxDepth = this.projectState.getSubtreeMaxDepth(node);
-        for (let level = 1; level <= maxDepth; level++) {
+      if (displayNode.children?.length) {
+        const visibleDepth = this.projectState.getSubtreeMaxDepth(displayNode);
+        const realMaxDepth = this.projectState.getSubtreeMaxDepth(projectNode);
+        for (let level = 1; level <= visibleDepth; level++) {
           this.items[1].items!.push({
             label: this.translate.instant('iaDiagram.menu.hideLevelChildren', { level: level + this.projectState.getOrdinalSuffix(level) }),
             icon: 'pi pi-eye-slash',
             command: () => {
               const cutNodes: TreeNode<TreeNodeData>[] = [];
-              for (let targetLevel = maxDepth; targetLevel >= level; targetLevel--) {
-                cutNodes.push(...this.projectState.getNodesAtRelativeDepth(node, targetLevel - 1).filter((n) => (n.children?.length ?? 0) > 0));
+              for (let targetLevel = realMaxDepth; targetLevel >= level; targetLevel--) {
+                cutNodes.push(...this.projectState.getNodesAtRelativeDepth(displayNode, targetLevel - 1).filter((n) => (n.children?.length ?? 0) > 0));
               }
               this.iaDiagram.collapsedNodes.update((set) => {
                 const next = new Set(set);
@@ -410,11 +417,8 @@ export class IaDiagramComponent {
   private hasDeepHiddenContent(node: TreeNode<TreeNodeData>): boolean {
     const checkBelow = (currentNode: TreeNode<TreeNodeData>): boolean => {
       const path = currentNode.data?.path[this.primaryLang];
-      if (path) {
-        const hasRealCollapse = this.iaDiagram.collapsedNodes().has(path) && (currentNode.children?.length ?? 0) > 0;
-        if (hasRealCollapse || this.iaDiagram.hiddenNodes().has(path)) {
-          return true;
-        }
+      if (path && (this.iaDiagram.collapsedNodes().has(path) || this.iaDiagram.hiddenNodes().has(path))) {
+        return true;
       }
       return (currentNode.children ?? []).some((child) => checkBelow(child));
     };

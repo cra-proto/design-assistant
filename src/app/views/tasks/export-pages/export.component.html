@@ -83,8 +83,8 @@
     <!--Stats Card (only visible if GitHub repo is configured)-->
     <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full min-w-min">
       <h2 class="text-2xl my-1">{{ 'exportPages.data' | translate }}</h2>
-      <!-- Last Export Date -->
-      <div class="p-3 mb-3 text-center">
+      <div class="p-3 text-center">
+        <!-- Last Export Date -->
         <div class="text-600 text-sm opacity-90">{{ repoType() === 'github' ? ('exportPages.data.lastExported' | translate) : ('exportPages.data.lastDownloaded' | translate) }}</div>
         <div class="text-primary text-xl font-semibold">
           @if (repoType() === 'github' && projectData().lastExported && (projectData().lastExported?.getTime() ?? 0) > 0) {
@@ -95,18 +95,16 @@
             {{ 'common.never' | translate }}
           }
         </div>
-      </div>
-      <p-divider />
-
-      <!-- Total pages -->
-      <div class="text-center">
-        <div class="flex flex-row justify-content-around">
+        <p-divider />
+        <!-- Total pages -->
+        <div class="text-600 text-sm opacity-90">{{ 'exportPages.data.totalFiles' | translate }}</div>
+        <div class="flex justify-content-around">
           <div>
             <div class="text-5xl font-bold text-primary mb-1">
               {{ projectFileCount() }}
             </div>
             <div class="text-600 text-sm">
-              {{ projectCache.selectedVersion() === 'prototype' ? ('exportPages.data.inScope' | translate) : ('exportPages.data.baseline' | translate) }}
+              {{ projectCache.selectedVersion() === 'prototype' ? ('exportPages.data.totalFiles.inScope' | translate) : ('exportPages.data.totalFiles.baseline' | translate) }}
             </div>
           </div>
           <div>
@@ -114,7 +112,36 @@
               {{ templateFileCount() }}
             </div>
             <div class="text-600 text-sm">
-              {{ 'exportPages.data.jekyll' | translate }}
+              {{ 'exportPages.data.totalFiles.template' | translate }}
+            </div>
+          </div>
+        </div>
+        <p-divider />
+        <!--Export breakdown-->
+        <div class="text-600 text-sm opacity-90">{{ 'exportPages.data.includedPages' | translate }}</div>
+        <div class="flex justify-content-around">
+          <div>
+            <div class="text-3xl font-bold text-primary mb-1">
+              {{ newCount() }}
+            </div>
+            <div class="text-600 text-sm">
+              {{ 'exportPages.data.includedPages.new' | translate }}
+            </div>
+          </div>
+          <div>
+            <div class="text-3xl font-bold text-primary mb-1">
+              {{ updatedCount() }}
+            </div>
+            <div class="text-600 text-sm">
+              {{ 'exportPages.data.includedPages.existing' | translate }}
+            </div>
+          </div>
+          <div>
+            <div class="text-3xl font-bold text-primary mb-1">
+              {{ skippedCount() }}
+            </div>
+            <div class="text-600 text-sm">
+              {{ 'exportPages.data.includedPages.skipped' | translate }}
             </div>
           </div>
         </div>
@@ -135,7 +162,7 @@
           <th class="w-4rem">
             <p-checkbox [binary]="true" [ngModel]="allExported('project')" (onChange)="setAll(allExported('project') ? 'skip' : 'export', 'project')" />
           </th>
-          <th class="text-xl">{{ projectCache.selectedVersion() === 'prototype' ? ('exportPages.data.inScope' | translate) : ('exportPages.data.baseline' | translate) }}</th>
+          <th class="text-xl">{{ projectCache.selectedVersion() === 'prototype' ? ('exportPages.data.totalFiles.inScope' | translate) : ('exportPages.data.totalFiles.baseline' | translate) }}</th>
           <th class="text-xl">
             <span class="flex flex-row align-items-center gap-2">
               {{ 'common.status' | translate }}
@@ -196,7 +223,7 @@
     </p-table>
 
     <!--Template files-->
-    <p-panel [collapsed]="true" [header]="'exportPages.export.templateFiles' | translate: { count: templateFileCount() }" [toggleable]="true" class="mt-4">
+    <p-panel [collapsed]="true" [header]="'exportPages.export.templateFiles' | translate: { updated: templateUpdatedCount(), count: templateFileCount() }" [toggleable]="true" class="mt-4">
       <p-table [value]="templateTable()" size="small" stripedRows>
         <ng-template pTemplate="header">
           <tr>

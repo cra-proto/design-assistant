@@ -27,6 +27,7 @@
     <a [routerLink]="[]" fragment="documentation">Documentation</a>
     <ul>
       <li><a [routerLink]="[]" fragment="data">How AIDA collects its data</a></li>
+      <li><a [routerLink]="[]" fragment="urls">How AIDA generates new URLs</a></li>
     </ul>
   </li>
   <li><a [routerLink]="[]" fragment="release">Release notes</a></li>
@@ -236,10 +237,47 @@
     </ul>
 
     <p>If AIDA tags a page incorrectly or if you think we're missing a template type, please let us know.</p>
+
+    <h3 id="urls">How AIDA generates new URLs</h3>
+    <p>For new pages, AIDA will use the H1 to generate a URL by doing the following:</p>
+    <ul>
+      <li>remove accents</li>
+      <li>remove punctuation (except periods or hyphens)</li>
+      <li>convert everything to lowercase</li>
+      <li>remove any small words from the English and French lists below</li>
+      <li>convert spaces to hyphens</li>
+    </ul>
+    <p>AIDA will continue to keep your new page url in sync with your H1 up until you make a deliberate change to the url or until it detects the page is no longer a 404.</p>
+    <p>If any small words are missing from these lists, please let us know.</p>
+    <div class="grid">
+      <div class="col-3">
+        <h4 class="my-0 ml-3">English</h4>
+        <ul class="mt-0">
+          @for (word of stopWordsEN; track $index) {
+            <li>{{ word }}</li>
+          }
+        </ul>
+      </div>
+      <div class="col-3">
+        <h4 class="my-0 ml-3">French</h4>
+        <ul class="mt-0">
+          @for (word of stopWordsFR; track $index) {
+            <li>{{ word }}</li>
+          }
+        </ul>
+      </div>
+    </div>
   </section>
 
   <section class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
     <h2 id="release">Release notes</h2>
+    <h3 id="0-7-5">Release 0.7.5 (Oct 8, 2026)</h3>
+    <h4>Minor updates</h4>
+    <ul>
+      <li>Add export breakdown of new, existing and skipped pages</li>
+      <li>Fix taxes theme exports (unique template)</li>
+      <li>Add more small word exclusions to auto-generated new page urls</li>
+    </ul>
     <h3 id="0-7-4">Release 0.7.4 (Oct 1, 2026)</h3>
     <h4>Minor updates</h4>
     <ul>

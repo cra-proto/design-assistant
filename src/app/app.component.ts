@@ -68,6 +68,7 @@ export class AppComponent implements OnInit {
       // Handle org parameter
       if (params['org'] !== undefined) {
         this.handleStorageParam('myOrg', params['org']);
+        this.settingsService.org.set(params['org'].toUpperCase());
         delete allParams['org'];
         this.cloudStorageService.loadProjects();
       }
@@ -75,6 +76,7 @@ export class AppComponent implements OnInit {
       // Handle toolbox parameter
       if (params['toolbox'] !== undefined) {
         this.handleStorageParam('myToolbox', params['toolbox']);
+        this.settingsService.toolbox.set(params['toolbox'].toUpperCase());
         delete allParams['toolbox'];
         this.settingsService.toolbox.set(localStorage.getItem('myToolbox'));
       }
@@ -103,22 +105,14 @@ export class AppComponent implements OnInit {
 
   // Load previously active project
   async loadProject() {
-    const active = this.projectStorageService.getActiveProject();
+    const active = this.projectStorageService.getActiveProject('session');
     if (!active) return;
     console.log(`Attempting to load active project: ${active.key} from ${active.storageType}`);
     try {
       const project = await this.projectStorageService.loadProject(active.key, active.storageType);
       if (project) {
-        this.projectState.setProject(project); // Update the project state
+        await this.projectState.setProject(project, 'load'); // Update the project state
         console.log(`Project loaded successfully: ${active.key}`);
-        //Refresh live data if project is missing properties (for patching legacy data)
-        const [major, minor] = String(project.version ?? '0.0.0')
-          .split('.')
-          .map(Number);
-        const onlyMissing = major > 0 || (major === 0 && minor >= 6);
-        await this.projectState.refreshAll(project.projectData, 'live', true);
-        await this.projectState.refreshAll(project.projectData, 'baseGH', true, true, onlyMissing);
-        await this.projectState.refreshAll(project.projectData, 'protoGH', true, true, true);
       } else {
         console.error(`Failed to load project: ${active.key}`); // Show error message
         this.projectStorageService.clearActiveProject();

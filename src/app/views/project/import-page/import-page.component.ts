@@ -57,10 +57,10 @@ export class ImportPageComponent implements OnInit {
             }
             //Set highlight signal
             this.addUrlsService.setHighlight(true);
-            this.router.navigate(['/project/new']);
+            this.router.navigate(['/project/edit']);
             return;
           } else {
-            const active = this.projectStorageService.getActiveProject();
+            const active = this.projectStorageService.getActiveProject('session');
             if (active) {
               console.warn('Invalid URL domain. Skipping new project creation and redirecting user to dashboard for previously opened project.');
               this.router.navigate(['/project/dashboard']);
@@ -80,7 +80,7 @@ export class ImportPageComponent implements OnInit {
       });
     } catch (error) {
       console.error(error);
-      this.router.navigate(['/project/new']);
+      this.router.navigate(['/project/edit']);
       return;
     } finally {
       this.isLoading = false;

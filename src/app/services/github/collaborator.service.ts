@@ -281,7 +281,7 @@ export class CollaboratorService {
         return userID;
       } else {
         const userData = await response.json();
-        return userData.login;
+        return userData.name ?? userData.login;
       }
     } catch (error) {
       console.error(`Error fetching username for ${userID}:`, error);

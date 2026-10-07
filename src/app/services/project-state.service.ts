@@ -31,6 +31,7 @@ import {
   TreeNodeData,
   TreeNodeTypes,
 } from '../common/data.model';
+import { STOP_WORDS } from '../common/url-word-exclusions.config';
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
 
@@ -145,8 +146,18 @@ export class ProjectStateService {
   }
 
   // Set entire project
-  public setProject(project: Project) {
+  public async setProject(project: Project, mode: 'load' | 'update' = 'load') {
     this.project.set(project);
+    if (mode === 'load') {
+      //Refresh live data if project is missing properties (for patching legacy data)
+      const [major, minor] = String(project.version ?? '0.0.0')
+        .split('.')
+        .map(Number);
+      const onlyMissing = major > 0 || (major === 0 && minor >= 6);
+      await this.refreshAll(project.projectData, 'live', true);
+      await this.refreshAll(project.projectData, 'baseGH', true, true, onlyMissing);
+      await this.refreshAll(project.projectData, 'protoGH', true, true, true);
+    }
   }
 
   // Update project metadata
@@ -1108,43 +1119,6 @@ export class ProjectStateService {
 
   // Generate url fragment (for repo names and new pages)
   public sanitizeUrlFragment(h1: string): string {
-    // Words to remove (common articles, prepositions, conjunctions)
-    const stopWords = [
-      // English
-      'a',
-      'an',
-      'the',
-      'and',
-      'or',
-      'but',
-      'in',
-      'on',
-      'at',
-      'to',
-      'for',
-      'of',
-      'with',
-      // French
-      'le',
-      'la',
-      'les',
-      'un',
-      'une',
-      'des',
-      'de',
-      'du',
-      'et',
-      'ou',
-      'mais',
-      'dans',
-      'sur',
-      'a',
-      'au',
-      'aux',
-      'pour',
-      'avec',
-    ];
-
     return h1
       .normalize('NFD') // Decompose accented characters
       .replace(/[\u0300-\u036f]/g, '') // Remove accent marks
@@ -1152,7 +1126,7 @@ export class ProjectStateService {
       .toLowerCase() // Lowercase for the url
       .replace(/[^\w\s.-]/g, '') // Remove punctuation except hyphens and periods
       .split(/\s+/) // Split on whitespace
-      .filter((word) => word.length > 0 && !stopWords.includes(word)) // Remove stop words and empty strings
+      .filter((word) => word.length > 0 && !STOP_WORDS.includes(word)) // Remove small stop words and empty strings
       .join('-'); // Join with hyphens
   }
 

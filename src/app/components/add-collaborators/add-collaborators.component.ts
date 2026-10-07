@@ -95,7 +95,7 @@ export class AddCollaboratorsComponent {
   }
   private removeUser(collab: GitHubUser) {
     const updatedProject = this.collaboratorService.removeCollaborator(this.projectData(), collab);
-    this.projectState.setProject(updatedProject);
+    this.projectState.setProject(updatedProject, 'update');
   }
 
   // Variables for autocomplete dropdown
@@ -180,7 +180,7 @@ export class AddCollaboratorsComponent {
   protected readonly addSelectedCollaborators = () => {
     if (this.selectedCollaborators.length === 0) return;
     const updatedProject = this.collaboratorService.addCollaborators(this.projectData(), this.selectedCollaborators);
-    this.projectState.setProject(updatedProject);
+    this.projectState.setProject(updatedProject, 'update');
     this.selectedCollaborators = [];
   };
 
