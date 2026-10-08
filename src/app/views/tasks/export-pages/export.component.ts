@@ -157,8 +157,11 @@ export class ExportComponent {
   protected readonly projectFileCount = computed(() => this.projectTable().filter((f) => f.status !== ExportStatus.AddToProject && f.status !== ExportStatus.OppLanguage).length);
   protected readonly templateFileCount = computed(() => this.templateTable().length);
 
-  protected readonly newCount = computed(() => this.filesTable().filter((f) => f.status === ExportStatus.ExportNew).length);
-  protected readonly updatedCount = computed(() => this.filesTable().filter((f) => f.status === ExportStatus.ExportOverwrite).length);
+  protected readonly newCount = computed(() => this.projectTable().filter((f) => f.status === ExportStatus.ExportNew).length);
+  protected readonly updatedCount = computed(() => this.projectTable().filter((f) => f.status === ExportStatus.ExportOverwrite).length);
+  protected readonly skippedCount = computed(() => this.projectTable().filter((f) => f.status === ExportStatus.SkipNew || f.status === ExportStatus.SkipOverwrite).length);
+
+  protected readonly templateUpdatedCount = computed(() => this.templateTable().filter((f) => f.status === ExportStatus.ExportNew || f.status === ExportStatus.ExportOverwrite).length);
 
   // Template visiblity controls
   // If a repo is configured (and overlay is closed), show the repo settings as a secondary task instead of a card

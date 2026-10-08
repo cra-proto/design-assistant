@@ -9,6 +9,7 @@ import { EditProjectComponent } from './views/project/edit-project/edit-project.
 import { SwitchProjectComponent } from './views/project/switch-project/switch-project.component';
 
 // Topic pages
+import { LandingComponent } from './views/utility/landing/landing.component';
 import { ProjectComponent } from './views/project/project.component';
 import { TasksComponent } from './views/tasks/tasks.component';
 import { DiscoverComponent } from './views/phase/discover/discover.component';
@@ -33,7 +34,7 @@ export const landingGuard = () => {
   const router = inject(Router);
   const projectStorageService = inject(ProjectStorageService);
   //Returning user with saved projects and none active gets routed to load a project
-  if (!projectStorageService.hasActiveProject() && projectStorageService.hasSavedProjects()) {
+  if (!projectStorageService.hasActiveProject('session') && projectStorageService.hasSavedProjects()) {
     return router.createUrlTree(['project/switch']);
   }
   //Everyone else can view the default landing page
@@ -76,6 +77,11 @@ export const routes: Routes = [
     canActivate: [landingGuard],
     title: environment.production ? '_app._title' : environment.sandbox ? '_app._title.sandbox' : '_app._title.dev',
     children: [],
+  },
+  {
+    path: 'landing',
+    component: LandingComponent,
+    title: environment.production ? '_app._title' : environment.sandbox ? '_app._title.sandbox' : '_app._title.dev',
   },
   {
     path: 'project',

@@ -35,6 +35,8 @@ export class UserSettingsService {
 
   // Toolbox visibility (used by sidebar, undecided if we should surface in user settings)
   public readonly toolbox = signal<string | null>(localStorage.getItem('myToolbox') || environment.myToolbox);
+  // Toolbox visibility (undecided if we should surface in user settings)
+  public readonly org = signal<string | null>(localStorage.getItem('myOrg') || environment.myToolbox);
 
   // User
   public readonly userId = signal<string>(this.getOrCreateUserId());

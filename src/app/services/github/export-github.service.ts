@@ -285,6 +285,7 @@ export class ExportGitHubService {
     const robots = (doc.querySelector('meta[name="robots"]') as HTMLMetaElement)?.content || '';
     const robotsYaml = robots ? '\r\nrobots: "' + robots + '"' : '';
     const limitedWidth = doc.querySelector('.cnt-wdth-lmtd') ? '\r\npageclass: cnt-wdth-lmtd' : '';
+    const isThemePage = doc.querySelector('.page-type-theme') ? '\r\npageclass: page-type-theme\r\nnomenu: true' : '';
 
     // Set alternate language link
     const altLangPage = Array.from(doc.querySelectorAll<HTMLLinkElement>('link[rel="alternate"]')).find((link) => link.getAttribute('hreflang') !== pageLang)?.href || '';
@@ -429,7 +430,7 @@ export class ExportGitHubService {
     pageContent = await this.formatHtmlWithPrettier(pageContent);
 
     // Content in jekyll format
-    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\n${auth}${fra}${robotsYaml}${limitedWidth}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || '  []'}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
+    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\n${auth}${fra}${robotsYaml}${limitedWidth}${isThemePage}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || '  []'}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
 
     return frontMatter;
   }

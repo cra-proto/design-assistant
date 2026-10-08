@@ -1,6 +1,6 @@
 {
   "name": "ai-design-assistant",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "_versionFormat": "major.minor.patch",
   "scripts": {
     "start": "ng serve",
@@ -43,12 +43,12 @@
   "private": true,
   "dependencies": {
     "@ali-tas/htmldiff-js": "^2.0.1",
-    "@angular/common": "^21.2.19",
-    "@angular/compiler": "^21.2.19",
-    "@angular/core": "^21.2.19",
-    "@angular/forms": "^21.2.19",
-    "@angular/platform-browser": "^21.2.19",
-    "@angular/router": "^21.2.19",
+    "@angular/common": "^21.2.25",
+    "@angular/compiler": "^21.2.25",
+    "@angular/core": "^21.2.25",
+    "@angular/forms": "^21.2.25",
+    "@angular/platform-browser": "^21.2.25",
+    "@angular/router": "^21.2.25",
     "@aws-sdk/client-secrets-manager": "^3.932.0",
     "@fortawesome/angular-fontawesome": "^4.0.0",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
@@ -74,8 +74,8 @@
   "devDependencies": {
     "@angular/build": "^21.2.20",
     "@angular/cli": "^21.2.20",
-    "@angular/compiler-cli": "^21.2.19",
-    "@angular/localize": "^21.2.19",
+    "@angular/compiler-cli": "^21.2.25",
+    "@angular/localize": "^21.2.25",
     "@colsen1991/ngx-translate-extract-marker": "^3.0.1",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
     "@types/jasmine": "~5.1.0",

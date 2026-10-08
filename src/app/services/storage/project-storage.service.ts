@@ -46,12 +46,14 @@ export class ProjectStorageService {
    ********** ACTIVE PROJECT **********
    ************************************/
   // Signal for current active project
-  private readonly activeProject = signal<ActiveProject | null>(this.getActiveProject());
-  public readonly currentActive = computed(() => this.activeProject());
+  private readonly activeProject = signal<ActiveProject | null>(this.getActiveProject('session'));
+  private readonly lastActiveProject = signal<ActiveProject | null>(this.getActiveProject('local'));
+  public readonly currentActive = this.activeProject.asReadonly();
+  public readonly lastActive = this.lastActiveProject.asReadonly();
 
   // Get active project key from local storage (used on initial app load)
-  public getActiveProject(): ActiveProject | null {
-    const stored = sessionStorage.getItem(this.ACTIVE_PROJECT_KEY);
+  public getActiveProject(mode: 'session' | 'local' = 'session'): ActiveProject | null {
+    const stored = mode === 'session' ? sessionStorage.getItem(this.ACTIVE_PROJECT_KEY) : localStorage.getItem(this.ACTIVE_PROJECT_KEY);
     if (!stored) return null;
 
     try {
@@ -70,22 +72,25 @@ export class ProjectStorageService {
   // Set active project (used when switching projects)
   private setActiveProject(key: string, storageType: 'local' | 'cloud'): void {
     const activeProject: ActiveProject = { key, storageType };
-    sessionStorage.setItem(this.ACTIVE_PROJECT_KEY, JSON.stringify(activeProject));
-    localStorage.removeItem(this.ACTIVE_PROJECT_KEY); // Temporary fix for old storage method 2026-09-25, can remove in a month or two
+    sessionStorage.setItem(this.ACTIVE_PROJECT_KEY, JSON.stringify(activeProject)); // used to reload active project for this session
     this.activeProject.set(activeProject);
-    //console.log('Active project set:', activeProject);
+
+    localStorage.setItem(this.ACTIVE_PROJECT_KEY, JSON.stringify(activeProject)); // used to detect if user ever had an active project
+    this.lastActiveProject.set(activeProject);
   }
 
   // Clear active project (used when starting new project)
   public clearActiveProject(): void {
     sessionStorage.removeItem(this.ACTIVE_PROJECT_KEY);
     this.activeProject.set(null);
-    //console.log('Active project cleared');
+
+    localStorage.removeItem(this.ACTIVE_PROJECT_KEY);
+    this.lastActiveProject.set(null);
   }
 
   // Tracks if active project exists (true unless working in autosave file)
-  public hasActiveProject(): boolean {
-    return this.getActiveProject() !== null;
+  public hasActiveProject(mode: 'session' | 'local' = 'session'): boolean {
+    return this.getActiveProject(mode) !== null;
   }
 
   /************************************
@@ -99,7 +104,7 @@ export class ProjectStorageService {
       const storageType = project.storageType;
 
       //Get old key (in case of project rename)
-      const oldActiveProject = this.getActiveProject();
+      const oldActiveProject = this.getActiveProject('session');
       const oldKey = oldActiveProject?.key;
 
       //console.log(`Saving project "${newKey}" to ${storageType} storage...`);

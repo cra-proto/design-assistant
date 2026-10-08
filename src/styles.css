@@ -243,6 +243,34 @@ html.dark-mode .secondary-outline {
   border-color: var(--p-zinc-600) !important;
 }
 
+.border-primary-50 {
+  border-color: var(--p-primary-50);
+}
+.border-primary-100 {
+  border-color: var(--p-primary-100);
+}
+.border-primary-200 {
+  border-color: var(--p-primary-200);
+}
+.border-primary-300 {
+  border-color: var(--p-primary-300);
+}
+.border-primary-400 {
+  border-color: var(--p-primary-400);
+}
+.border-primary-500 {
+  border-color: var(--p-primary-500);
+}
+.border-primary-600 {
+  border-color: var(--p-primary-600);
+}
+.border-primary-700 {
+  border-color: var(--p-primary-700);
+}
+.border-primary-800 {
+  border-color: var(--p-primary-800);
+}
+
 /*Allow buttons to be bold*/
 .p-button.font-bold .p-button-label {
   font-weight: 700;
