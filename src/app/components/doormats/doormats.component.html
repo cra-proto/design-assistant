@@ -18,14 +18,14 @@
         } @else if (style() === 'card') {
           <div class="col-12 lg:col-6">
             @if (!isExternal(key)) {
-              <a [routerLink]="item.path ? item.path : undefined" class="no-underline h-full flex">
-                <div class="surface-card border-round-lg shadow-1 hover:shadow-3 hover:surface-ground p-3 w-full min-w-min flex-1">
+              <a [routerLink]="getOnClick(key) ? null : item.path ? item.path : null" (click)="getOnClick(key)?.($event)" (keydown.enter)="getOnClick(key)?.($event)" class="no-underline h-full flex">
+                <div [ngClass]="item.path ? 'hover:shadow-3 hover:surface-ground cursor-pointer' : ''" class="surface-card border-round-lg shadow-1 p-3 w-full min-w-min flex-1">
                   <div class="flex flex-row gap-3">
                     <div class="flex align-items-center">
                       <span [class]="iconClasses(item.notOutlined)">{{ item.icon }}</span>
                     </div>
-                    <div>
-                      <ng-container *ngTemplateOutlet="doormatHeader; context: { $implicit: item.titleKey }" />
+                    <div [class.text-red-500]="isHiddenInProd(key)">
+                      <ng-container *ngTemplateOutlet="doormatHeader; context: { $implicit: item.titleKey, hidden: item.hideInProd }" />
                       <p class="text-color-secondary mt-2">{{ item.descriptionKey | translate }}</p>
                     </div>
                   </div>
@@ -39,35 +39,35 @@
   }
 </div>
 
-<ng-template #doormatHeader let-external="external" let-header>
+<ng-template #doormatHeader let-external="external" let-header let-hidden="hidden">
   @switch (headingLevel()) {
     @case ('h2') {
-      <h2 class="text-xl font-semibold my-0">
-        <span class="hover:underline">{{ header | translate }}</span>
+      <h2 [class.text-primary]="!hidden" class="text-xl font-semibold my-0">
+        <span [class.hover:underline]="!hidden">{{ header | translate }}</span>
         @if (external) {
           <i class="pi pi-external-link ml-2 text-lg"></i>
         }
       </h2>
     }
     @case ('h3') {
-      <h3 class="text-xl font-semibold my-0">
-        <span class="hover:underline">{{ header | translate }}</span>
+      <h3 [class.text-primary]="!hidden" class="text-xl font-semibold my-0">
+        <span [class.hover:underline]="!hidden">{{ header | translate }}</span>
         @if (external) {
           <i class="pi pi-external-link ml-2 text-lg"></i>
         }
       </h3>
     }
     @case ('h4') {
-      <h4 class="text-xl font-semibold my-0">
-        <span class="hover:underline">{{ header | translate }}</span>
+      <h4 [class.text-primary]="!hidden" class="text-xl font-semibold my-0">
+        <span [class.hover:underline]="!hidden">{{ header | translate }}</span>
         @if (external) {
           <i class="pi pi-external-link ml-2 text-lg"></i>
         }
       </h4>
     }
     @case ('h5') {
-      <h5 class="text-xl font-semibold my-0">
-        <span class="hover:underline">{{ header | translate }}</span>
+      <h5 [class.text-primary]="!hidden" class="text-xl font-semibold my-0">
+        <span [class.hover:underline]="!hidden">{{ header | translate }}</span>
         @if (external) {
           <i class="pi pi-external-link ml-2 text-lg"></i>
         }

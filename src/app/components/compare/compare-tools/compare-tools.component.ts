@@ -13,7 +13,7 @@ import { CompareAiOptionsComponent } from '../compare-ai-options/compare-ai-opti
 
 import { OpenRouterService } from '../../../services/ai/openrouter.service';
 import { FetchService } from '../../../services/fetch.service';
-import { CompareService } from '../../../views/tasks/compare-versions/compare.service';
+import { CompareService } from '../../../views/tasks/compare/compare.service';
 import { CompareAiService } from '../compare-ai.service';
 
 @Component({

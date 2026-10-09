@@ -12,7 +12,9 @@ import { ProjectSettingsComponent } from '../project-settings/project-settings.c
 
 import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
-import { IaDiagramService } from '../ia-diagram/ia-diagram.service';
+import { IaDiagramService } from '../../views/tasks/ia-diagram/ia-diagram.service';
+
+import { AidaLinks } from '../../common/aidaLinks.config';
 
 @Component({
   selector: 'aida-view-pages',
@@ -24,6 +26,7 @@ export class ViewPagesComponent {
   private readonly projectState = inject(ProjectStateService);
   protected readonly projectCache = inject(ProjectCacheService);
   protected readonly iaDiagram = inject(IaDiagramService);
+  protected readonly AidaLinks = AidaLinks;
 
   //Input
   public readonly showInventory = input<boolean>(true);

@@ -19,19 +19,18 @@ import { CollaboratorService } from '../../services/github/collaborator.service'
 import { ProjectStateService } from '../../services/project-state.service';
 
 import { environment } from '../../../environments/environment';
+import { AidaLinks } from '../../common/aidaLinks.config';
 
-const HOME: MenuItem = { label: 'common.home', route: '/', icon: 'pi pi-home' };
-const PROJECT: MenuItem = { label: 'nav.project', route: '/project' };
-const TASKS: MenuItem = { label: 'nav.tasks', route: '/tasks' };
-const STANDALONE: MenuItem = { label: 'standalone._title', route: '/standalone' };
-const DEV: MenuItem = { label: 'dev._title', route: '/dev' };
+const HOME: MenuItem = { label: 'home._nav', route: AidaLinks.Home, icon: 'pi pi-home' };
+const DASHBOARD: MenuItem = { label: 'dashboard._title', route: AidaLinks.ProjectDashboard };
+const STANDALONE: MenuItem = { label: 'standalone._title', route: AidaLinks.Standalone };
+const DEV: MenuItem = { label: 'dev._title', route: AidaLinks.Dev };
 
 const BREADCRUMB_ANCESTORS: Record<string, MenuItem[]> = {
   home: [HOME],
-  'home.project': [HOME, PROJECT],
-  'home.tasks': [HOME, TASKS],
-  standalone: [STANDALONE],
-  dev: [DEV],
+  dashboard: [HOME, DASHBOARD],
+  standalone: [HOME, STANDALONE],
+  dev: [HOME, DEV],
 };
 
 @Component({
@@ -49,7 +48,7 @@ export class BreadcrumbComponent {
 
   protected readonly production = environment.production;
   protected readonly sandbox = environment.sandbox;
-  protected readonly isEditActive = isActive('/project/edit', this.router);
+  protected readonly isEditActive = isActive(AidaLinks.ProjectEdit, this.router);
 
   protected readonly breadcrumbs = toSignal(
     this.router.events.pipe(
@@ -84,9 +83,8 @@ export class BreadcrumbComponent {
 
   // Check route information to determine if global project banner should show
   private readonly matchOptions = { paths: 'subset', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' } as const;
-  private readonly isProjectActive = isActive('/project', this.router, this.matchOptions);
-  private readonly isTasksActive = isActive('/tasks', this.router, this.matchOptions);
-  protected readonly isProjectRoute = computed(() => this.isProjectActive() || this.isTasksActive());
+  private readonly isProjectActive = isActive(AidaLinks.ProjectDashboard, this.router, this.matchOptions);
+  protected readonly isProjectRoute = computed(() => this.isProjectActive());
 
   get projectDisplay() {
     const project = this.projectState.getProject();
@@ -127,7 +125,7 @@ export class BreadcrumbComponent {
             label: this.translate.instant('project._nav.edit'),
             icon: 'pi pi-pencil',
             command: () => {
-              this.router.navigate(['/project/edit']);
+              this.router.navigate([AidaLinks.ProjectEdit]);
             },
           },
         ],
@@ -180,9 +178,5 @@ export class BreadcrumbComponent {
         },
       });
     }
-  }
-
-  markForTranslation() {
-    marker('common.home');
   }
 }

@@ -19,6 +19,7 @@ import { ExportGitHubService } from '../../../services/github/export-github.serv
 import { GitHubAuthService } from '../../../services/github/github-auth.service';
 
 import { environment } from '../../../../environments/environment';
+import { AidaLinks } from '../../../common/aidaLinks.config';
 
 @Component({
   selector: 'aida-sign-in-button',
@@ -74,14 +75,14 @@ export class SignInButtonComponent implements OnInit {
             label: this.translate.instant('common.new'),
             icon: 'pi pi-plus',
             command: () => {
-              this.router.navigate(['/project/new']);
+              this.router.navigate([AidaLinks.NewProject]);
             },
           },
           {
             label: this.translate.instant('common.search'),
             icon: 'pi pi-search',
             command: () => {
-              this.router.navigate(['/project/switch']);
+              this.router.navigate([AidaLinks.AllProjects]);
             },
           },
         ],

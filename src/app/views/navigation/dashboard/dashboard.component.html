@@ -1,0 +1,255 @@
+@if (projectData.projectName) {
+  <p>{{ projectData.projectName }}</p>
+}
+<h1 id="wb-cont">{{ 'dashboard._title' | translate }}</h1>
+<p>{{ 'dashboard.description' | translate }}{{ 'dashboard.description2' | translate }}</p>
+
+<!--Content-->
+<div class="flex flex-column gap-3">
+  <!-- Active Project Card -->
+  <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+    <div class="flex flex-column lg:flex-row justify-content-between align-items-start gap-2">
+      <div class="flex flex-column gap-2 w-full">
+        <h2 class="text-2xl my-1 flex align-items-center gap-2">
+          @if (projectData.projectName) {
+            {{ projectData.projectName || 'project._nav.new' | translate }}
+            <p-tag [rounded]="true" [value]="projectData.phase | translate" class="capitalize" />
+          } @else {
+            <aida-setup-project mode="name" />
+            <p-message icon="pi pi-info-circle" severity="info">{{ 'project.message.noName' | translate }}</p-message>
+          }
+        </h2>
+        <div class="flex flex-row justify-content-start gap-2">
+          <!--Pages-->
+          <div class="flex flex-row gap-2 flex-1">
+            <i class="pi pi-copy text-primary text-3xl align-self-center"></i>
+            <div class="flex flex-column align-self-start">
+              <p class="text-sm text-600 my-1">{{ 'common.pages' | translate }}</p>
+              <p class="text-xl font-bold my-0">{{ projectData.inScopePages }}</p>
+            </div>
+          </div>
+          <!--Last modified-->
+          <div class="flex flex-row gap-2 flex-1">
+            <i class="pi pi-clock text-primary text-3xl align-self-center"></i>
+            <div class="flex flex-column align-self-start">
+              <p class="text-sm text-600 my-1">{{ 'common.modified' | translate }}</p>
+              <p class="text-md my-0 white-space-nowrap">{{ projectData.lastModified | date: 'short' }}</p>
+            </div>
+          </div>
+          <!--Collaborators-->
+          <div class="flex flex-row gap-2 flex-1">
+            <i class="pi pi-users text-primary text-3xl align-self-center"></i>
+            <div class="flex flex-column align-self-start">
+              <p class="text-sm text-600 my-1">{{ 'common.collaborators' | translate }}</p>
+              <aida-add-collaborators mode="dashboard" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-row lg:flex-column lg:mt-0 gap-2">
+        <aida-add-pages-link [buttonOnly]="true" />
+        <p-button
+          [label]="'switch.viewAll' | translate"
+          [routerLink]="AidaLinks.AllProjects"
+          icon="pi pi-arrow-right-arrow-left"
+          outlined
+          size="small"
+          styleClass="secondary-outline white-space-nowrap w-full"
+        />
+        <aida-export-project />
+      </div>
+    </div>
+
+    <!--p-divider />
+
+    <h3 class="mb-2">{{ 'project.setup.label.phase' | translate }}</h3>
+    <div class="flex flex-column md:flex-row md:flex-wrap justify-content-start lg:justify-content-around gap-2">
+      @for (phase of projectPhases; track phase.name; let i = $index) {
+        <div
+          [attr.aria-label]="'Toggle ' + (phase.name | translate) + ' phase status'"
+          (click)="togglePhaseStatus(phase)"
+          (keydown.enter)="togglePhaseStatus(phase)"
+          (keydown.space)="togglePhaseStatus(phase)"
+          class="flex align-items-center cursor-pointer gap-3 p-1"
+          role="button"
+          tabindex="0"
+        >
+          <div
+            [ngClass]="{
+              'bg-primary text-0': phase.status === PhaseStatus.Complete,
+              'bg-primary-50 text-primary-500 border-2 border-primary': phase.status === PhaseStatus.Current,
+              'surface-200 text-600': phase.status === PhaseStatus.Pending,
+            }"
+            class="border-circle w-3rem h-3rem flex justify-content-center align-items-center font-bold"
+          >
+            @if (phase.status === PhaseStatus.Complete) {
+              <i class="pi pi-check font-bold"></i>
+            } @else {
+              {{ i + 1 }}
+            }
+          </div>
+          <div>
+            <p class="font-semibold text-900 my-1">{{ phase.name | translate }}</p>
+            <p class="text-sm text-600 m-0">{{ phase.status | translate }}</p>
+          </div>
+        </div>
+        @if (i < projectPhases.length - 1) {
+          <div class="hidden xl:block align-self-center mx-3">
+            <i [class.pi-arrow-right-arrow-left]="phase.name === ProjectPhase.Assess" [class.pi-arrow-right]="phase.name !== ProjectPhase.Assess" class="text-primary text-2xl pi"></i>
+          </div>
+        }
+      }
+    </div-->
+  </div>
+
+  <!-- Phase cards -->
+  <div class="flex flex-column lg:flex-row gap-3 w-full">
+    <div class="flex flex-column gap-3 w-full">
+      <!-- Baseline -->
+      <!--div class="surface-card border-round-lg shadow-2 p-0 w-full min-w-min flex justify-content-center h-3rem">
+        @if (projectData.github.hasBaselineRepo) {
+          <p-button (onClick)="openRepo(projectData.github, 'baseline')" class="w-full h-full" fluid icon="pi pi-github" label="View baseline repository" size="large" text />
+        } @else {
+          <h3 class="my-1 align-self-center">{{ 'common.version.baseline' | translate }}</h3>
+        }
+      </div-->
+      <!-- Phases -->
+      <div class="flex flex-column md:flex-row gap-3 flex-1">
+        <!-- Discover -->
+        <ng-container *ngTemplateOutlet="phase; context: { path: AidaLinks.PhaseDiscover, phase: ProjectPhase.Discover, icon: 'pi pi-search text-orange-500', stats: discover, ready: true }" />
+        <!-- Assess -->
+        <ng-container *ngTemplateOutlet="phase; context: { path: AidaLinks.PhaseAssess, phase: ProjectPhase.Assess, icon: 'pi pi-chart-line text-blue-500', stats: assess, ready: false }" />
+      </div>
+    </div>
+    <div class="flex flex-column gap-3 w-full">
+      <!-- Prototype -->
+      <!--div class="surface-card border-round-lg shadow-2 p-0 w-full min-w-min flex justify-content-center h-3rem">
+        @if (projectData.github.repo) {
+          <p-button (onClick)="openRepo(projectData.github, 'prototype')" class="w-full h-full" fluid icon="pi pi-github" label="View prototype repository" size="large" text />
+        } @else {
+          <h3 class="my-1 align-self-center">{{ 'common.version.prototype' | translate }}</h3>
+        }
+      </div-->
+      <!-- Phases -->
+      <div class="flex flex-column md:flex-row gap-3 flex-1">
+        <!-- Design -->
+        <ng-container *ngTemplateOutlet="phase; context: { path: AidaLinks.PhaseDesign, phase: ProjectPhase.Design, icon: 'pi pi-pencil text-purple-500', stats: design, ready: false }" />
+        <!-- Approve -->
+        <ng-container
+          *ngTemplateOutlet="
+            phase;
+            context: {
+              path: AidaLinks.PhaseApprove,
+              phase: ProjectPhase.Approve,
+              icon: (selectedItems.length / checklist.length) * 100 === 100 ? 'pi pi-check-circle text-green-500' : 'pi pi-check-circle text-red-500',
+              stats: approve,
+              content: approveChecklist,
+              ready: false,
+            }
+          "
+        />
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Discover stats template-->
+<ng-template #discover>
+  <div class="flex flex-row justify-content-center align-content-center gap-2">
+    <span class="material-icons text-primary text-7xl mt-5">library_books</span>
+    <div class="flex flex-column mt-0">
+      <p class="text-3xl text-600 mb-0">{{ projectData.inScopePages }}</p>
+      <p class="text-xl font-bold mt-0 lowercase">{{ 'common.inScopePages' | translate }}</p>
+    </div>
+  </div>
+</ng-template>
+
+<!--Assess stats template-->
+<ng-template #assess>
+  <div class="flex flex-row justify-content-center align-content-center gap-2">
+    <span class="material-icons text-primary text-7xl mt-5">troubleshoot</span>
+    <div class="flex flex-column mt-0">
+      <p class="text-3xl text-600 mb-0">{{ assessmentStats.issuesFound }}</p>
+      <p class="text-xl font-bold mt-0 lowercase">{{ 'dashboard.stats.issuesFound' | translate }}</p>
+    </div>
+  </div>
+</ng-template>
+
+<!--Design stats template-->
+<ng-template #design>
+  <div class="flex flex-column gap-2">
+    @if (projectData.inScopePages > 0) {
+      <p-progressbar [showValue]="false" [value]="(pageProgress / projectData.inScopePages) * 100" class="h-2rem centered-label">
+        <ng-template #content let-value>
+          <span class="lowercase">{{ pageProgress }}/{{ projectData.inScopePages }} {{ 'dashboard.stats.pagesEdited' | translate }}</span>
+        </ng-template>
+      </p-progressbar>
+    }
+    @if (assessmentStats.issuesFound > 0) {
+      <p-progressbar [showValue]="false" [value]="(problemProgress / assessmentStats.issuesFound) * 100" class="h-2rem centered-label">
+        <ng-template #content let-value>
+          <span class="lowercase">{{ problemProgress }}/{{ assessmentStats.issuesFound }} {{ 'dashboard.stats.issuesFixed' | translate }}</span>
+        </ng-template>
+      </p-progressbar>
+    }
+  </div>
+</ng-template>
+
+<!--Approve stats template-->
+<ng-template #approve>
+  @if (assessmentStats.issuesFound > 0) {
+    <p-progressbar [showValue]="false" [value]="(selectedItems.length / checklist.length) * 100" class="h-2rem centered-label">
+      <ng-template #content let-value>
+        <span>{{ selectedItems.length }}/{{ checklist.length }}</span>
+      </ng-template>
+    </p-progressbar>
+  }
+</ng-template>
+
+<!--Approve checklist -->
+<ng-template #approveChecklist>
+  <div (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" class="flex flex-column gap-1 ml-4 -mt-2 mb-2" tabindex="0">
+    @for (item of checklist; track item.key) {
+      <div class="flex flex-row gap-2">
+        <p-checkbox [(ngModel)]="selectedItems" [inputId]="item.key" [value]="item" name="group" />
+        <label [for]="item.key">{{ item.key | translate }}</label>
+      </div>
+    }
+  </div>
+</ng-template>
+
+<!--Phase card template-->
+<ng-template #phase let-content="content" let-icon="icon" let-path="path" let-phase="phase" let-ready="ready" let-stats="stats">
+  <div
+    [class]="getCardClasses(phase, ready)"
+    [routerLink]="ready || !production ? path : null"
+    class="surface-card border-round-lg p-4 w-full min-w-min md:w-6 flex flex-column justify-content-between"
+  >
+    <div class="flex-1">
+      <div class="flex align-items-center mb-3">
+        <i [class]="icon + ' text-xl'"></i>
+        <h3 class="text-lg font-semibold text-900 ml-2 m-0">{{ phase | translate }}</h3>
+      </div>
+      <p class="text-600 text-sm mb-3 min-h-2rem">{{ phase + '.description' | translate }}</p>
+      <div class="border-top-1 surface-border pt-3">
+        @if (ready || !production) {
+          <ul class="list-disc mt-0 pl-4 flex flex-column gap-2 text-primary">
+            @for (bullet of (phase + '.bullets' | translate).split('|'); track bullet) {
+              <li class="text-sm text-700">{{ bullet }}</li>
+            }
+          </ul>
+          <ng-container *ngTemplateOutlet="content" />
+        } @else {
+          <p-tag [rounded]="true" [value]="'project.dashboard.comingSoon' | translate" severity="secondary" />
+        }
+      </div>
+    </div>
+    @if (ready || !production) {
+      <ng-container *ngTemplateOutlet="stats" />
+      <span class="align-self-end mt-3 -mb-3 -mr-3 hover:text-primary hover:underline">
+        {{ 'project.dashboard.viewTasks' | translate: { phase: (phase | translate | lowercase) } }}
+        <i class="pi pi-arrow-right text-primary ml-1"></i>
+      </span>
+    }
+  </div>
+</ng-template>

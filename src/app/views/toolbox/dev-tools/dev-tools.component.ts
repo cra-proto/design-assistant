@@ -38,6 +38,7 @@ export class DevToolsComponent {
     marker('findPages._');
     marker('github._');
     marker('help._');
+    marker('home._');
     marker('iaDiagram._');
     marker('importPage._');
     marker('invalidUrls._');

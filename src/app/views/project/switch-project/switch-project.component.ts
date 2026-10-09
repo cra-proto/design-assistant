@@ -32,6 +32,7 @@ import { ProjectStorageService } from '../../../services/storage/project-storage
 import { UserSettingsService } from '../../../services/user-settings.service';
 
 import { environment } from '../../../../environments/environment';
+import { AidaLinks } from '../../../common/aidaLinks.config';
 import { ProjectMetadata, ProjectPhase } from '../../../common/data.model';
 import { TooltipDirective } from '../../../common/tooltip.directive';
 
@@ -367,12 +368,12 @@ export class SwitchProjectComponent implements OnInit {
       }
     } finally {
       this.loadingKey = null;
-      this.router.navigate(['/']);
+      this.router.navigate([AidaLinks.Home]);
     }
   }
 
   protected async newProject() {
-    this.router.navigate(['/project/new']);
+    this.router.navigate([AidaLinks.NewProject]);
   }
 
   protected async saveProject() {

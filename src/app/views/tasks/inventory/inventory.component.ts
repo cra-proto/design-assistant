@@ -1,0 +1,1462 @@
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
+import { ConfirmationService, MenuItem, SelectItemGroup, SortEvent, TreeNode } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ContextMenu, ContextMenuModule } from 'primeng/contextmenu';
+import { DialogModule } from 'primeng/dialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { IftaLabelModule } from 'primeng/iftalabel';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { Menu, MenuModule } from 'primeng/menu';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { SelectModule } from 'primeng/select';
+import { Table, TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+
+import { AddPagesComponent } from '../../../components/add-pages/add-pages.component';
+import { EditNodeComponent } from '../../../components/edit-node/edit-node.component';
+import { ExportProjectComponent } from '../../../components/export-project/export-project.component';
+import { IaTableComponent } from '../../../components/ia-table/ia-table.component';
+import { ViewPagesComponent } from '../../../components/view-pages/view-pages.component';
+
+import { OpenRouterService } from '../../../services/ai/openrouter.service';
+import { FetchService } from '../../../services/fetch.service';
+import { ProjectStateService } from '../../../services/project-state.service';
+import { CompareService } from '../compare/compare.service';
+import { IaDiagramService } from '../ia-diagram/ia-diagram.service';
+
+import { AidaLinks } from '../../../common/aidaLinks.config';
+import {
+  COLUMN_GROUPS,
+  ColumnGroups,
+  FIELD_FILTERS,
+  FlattenedTreeNode,
+  GLOBAL_FIELDS,
+  MetadataField,
+  MetadataReview,
+  MetadataReviewStatus,
+  PageTemplate,
+  TableColumn,
+} from '../../../common/data.model';
+import { isKnownNumber } from '../../../common/phone-numbers.config';
+import { InventoryPrompts } from '../../../common/prompts/inventory.prompts';
+import { InventoryPromptKey } from '../../../common/prompts/prompt.model';
+import { TooltipDirective } from '../../../common/tooltip.directive';
+
+export interface BooleanToggleItem extends MenuItem {
+  type: 'booleanToggle';
+  onYes: () => void;
+  onNo: () => void;
+}
+
+@Component({
+  selector: 'aida-inventory',
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    TranslatePipe,
+    ButtonModule,
+    ConfirmDialogModule,
+    ContextMenuModule,
+    DialogModule,
+    IconFieldModule,
+    IftaLabelModule,
+    InputIconModule,
+    InputTextModule,
+    MenuModule,
+    MultiSelectModule,
+    RadioButtonModule,
+    SelectModule,
+    TableModule,
+    TagModule,
+    TextareaModule,
+    AddPagesComponent,
+    EditNodeComponent,
+    ExportProjectComponent,
+    IaTableComponent,
+    TooltipDirective,
+    ViewPagesComponent,
+  ],
+  templateUrl: './inventory.component.html',
+  styleUrl: './inventory.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class InventoryComponent implements OnInit {
+  private readonly router = inject(Router);
+  protected readonly projectState = inject(ProjectStateService);
+  protected readonly translate = inject(TranslateService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly openRouterService = inject(OpenRouterService);
+  private readonly fetchService = inject(FetchService);
+  protected readonly iaDiagram = inject(IaDiagramService);
+  private readonly compareService = inject(CompareService);
+  protected readonly AidaLinks = AidaLinks;
+
+  // Variables
+  protected readonly projectName = this.projectState.getProject().projectName;
+  private readonly lang = this.projectState.detectPrimaryLanguage();
+  private readonly github = this.projectState.getProject().github;
+
+  // Effects
+  constructor() {
+    effect(() => {
+      this.allColumns(); // track the signal
+      this.updateVisibleColumns();
+    });
+  }
+
+  protected readonly dt = viewChild.required<Table>('dt');
+  protected readonly menuContext = viewChild.required<ContextMenu>('menuContext');
+
+  // Variables
+  private readonly allColumns = computed(() => this.projectState.treeTableColumns()); // All table columns
+  protected readonly frozenColumns = signal<TableColumn[]>([]); // Visible table columns
+  protected readonly scrollableColumns = signal<TableColumn[]>([]); // Visible table columns
+
+  public selectedNodes: FlattenedTreeNode[] = []; // Flattened TreeNode data (for bulk actions - refresh, generate metadata, delete etc.)
+
+  protected readonly selectedColumnFields = signal<string[]>([]); // Multiselect column data
+  protected readonly selectedGroups = signal<string[]>([]); // Multiselect group data
+
+  private currentEditNode: FlattenedTreeNode | undefined; // Flattened TreeNode data (for individual actions - edit node, context menus etc.)
+  private currentEditCol: TableColumn | undefined; // Table column (for determining which field is being edited or accessing other column properties)
+  private isEditing = false; // Tracks if currently making inline edits
+
+  private touchTimer: ReturnType<typeof setTimeout> | null = null; // Touch is alternative to right click for mobile cibtext menus
+
+  protected editNode = false; // Tracks if currently making dialog edits
+  protected selectedNode: TreeNode | undefined = undefined; // TreeNode data for edit node dialog (not flattened!)
+
+  protected readonly searchTerm = signal<string>('');
+
+  private readonly sortField = signal<string | null>(null);
+  private readonly sortOrder = signal<number>(1); // 1 = ascending, -1 = descending
+  private lastSortField: string | null = null;
+  private lastSortOrder: number | null = null;
+
+  private readonly COLUMN_KEY = 'inventoryColumnVisibility'; // Local storage key for loading previous table settings
+  private readonly GROUP_KEY = 'inventoryGroupVisibility'; // Local storage key for loading previous table settings
+
+  protected readonly expandAll: Record<string, boolean> = { metadata: false, notes: false, task: false, phoneNumbers: false, enVanity: false, frVanity: false }; // Tracks "expand all" state per group
+  private readonly expandedCells: Record<string, Set<string>> = { metadata: new Set(), notes: new Set(), task: new Set(), phoneNumbers: new Set(), enVanity: new Set(), frVanity: new Set() }; // Tracks individual cell expansion per group
+
+  private readonly fieldFilters = FIELD_FILTERS; // Fields that are filterable
+  private readonly columnFilters = signal<Record<string, boolean>>({ inScope: true, anyUnusual: false }); // Tracks preset filter statuses
+
+  protected itemsContext: MenuItem[] = []; // context menu items (dynamically built)
+  protected itemsDropdown: MenuItem[] = []; // dropdown menu items (dynamically built)
+
+  protected readonly numberLocale = computed(() => (this.translate.currentLang() === 'en' ? 'en-CA' : 'fr-CA'));
+
+  /***********************************************************/
+
+  // Update column visibility on first load
+  ngOnInit() {
+    this.loadColumnVisibility(); // Loads previous settings
+  }
+
+  private loadColumnVisibility() {
+    const storedColumns = localStorage.getItem(this.COLUMN_KEY);
+    const storedGroups = localStorage.getItem(this.GROUP_KEY);
+    if (storedColumns && storedGroups) {
+      this.selectedGroups.set(JSON.parse(storedGroups));
+      this.selectedColumnFields.set(JSON.parse(storedColumns));
+    } else {
+      // Use default values
+      this.selectedColumnFields.set(
+        this.allColumns()
+          .filter((col) => col.visibleByDefault && !col.frozen) //We exclude frozen here since visibility is not toggleable for those
+          .map((col) => col.field),
+      );
+    }
+    // Sync selected groups from selected fields
+    this.syncSelectedGroups();
+  }
+
+  /**********************************************************/
+
+  /**********************************************************
+   *                                                         *
+   *    START OF TABLE DATA                                  *
+   *    table, headers, boolean icons                        *
+   *                                                         *
+   **********************************************************/
+
+  // Table - get current data
+  protected readonly tableData = computed<FlattenedTreeNode[]>(() => {
+    const allNodes = this.projectState.flattenTree();
+    const filters = this.columnFilters();
+
+    //Apply filters
+    const filtered = allNodes.filter((node) => {
+      if (filters['anyUnusual']) {
+        const hasAnyUnusual = this.fieldFilters.some((field) => {
+          return node[field as keyof FlattenedTreeNode] === true;
+        });
+        if (!hasAnyUnusual) return false;
+      }
+      return Object.entries(filters).every(([field, filterValue]) => {
+        if (field === 'anyUnusual') return true; // Skip, not an actual column
+        if (!filterValue) return true; // Filter inactive
+        return node[field as keyof FlattenedTreeNode] === true; // Boolean filters - show only true values
+      });
+    });
+
+    //Apply sorting
+    const field = this.sortField();
+    const order = this.sortOrder();
+    if (!field) return filtered;
+
+    return [...filtered].sort((a, b) => {
+      const valueA = a[field as keyof FlattenedTreeNode];
+      const valueB = b[field as keyof FlattenedTreeNode];
+
+      // Get the column type
+      const column = this.projectState.treeTableColumns().find((col) => col.field === field);
+      const colType = column?.type;
+
+      // Handle null/undefined
+      const isEmptyA = valueA == null || valueA === '' || (Array.isArray(valueA) && valueA.length === 0);
+      const isEmptyB = valueB == null || valueB === '' || (Array.isArray(valueB) && valueB.length === 0);
+      if (isEmptyA && isEmptyB) return 0;
+      if (colType === 'date' || colType === 'number') {
+        // null at the start (by oldest date or smallest number)
+        if (isEmptyA) return -order;
+        if (isEmptyB) return order;
+      } else {
+        // null at the end (by z)
+        if (isEmptyA) return order;
+        if (isEmptyB) return -order;
+      }
+
+      let comparison = 0;
+
+      // Type-specific comparison
+      if (colType === 'date') {
+        // Compare as dates
+        const dateA = new Date(valueA as string).getTime();
+        const dateB = new Date(valueB as string).getTime();
+        comparison = dateA - dateB;
+      } else if (colType === 'number') {
+        // Compare as numbers
+        comparison = (valueA as number) - (valueB as number);
+      } else if (colType === 'array') {
+        // Compare arrays by joined string
+        const strA = (valueA as string[]).join(', ').toLowerCase();
+        const strB = (valueB as string[]).join(', ').toLowerCase();
+        comparison = strA.localeCompare(strB);
+      } else if (colType === 'template') {
+        // Compare template translations
+        const labelA = this.translate.instant(valueA as string);
+        const labelB = this.translate.instant(valueB as string);
+        comparison = labelA.localeCompare(labelB);
+      } else if (colType === 'tags') {
+        // Compare tag translations
+        const tagA = this.translatedTags(valueA);
+        const tagB = this.translatedTags(valueB);
+        comparison = tagA.localeCompare(tagB);
+      } else {
+        // Default: text comparison (case-insensitive)
+        comparison = valueA.toString().toLowerCase().localeCompare(valueB.toString().toLowerCase());
+      }
+
+      return order * comparison;
+    });
+  });
+
+  /** Gets tag translation for sort fxn */
+  private translatedTags(value: unknown): string {
+    return (value as { key: string }[])
+      .map((t) => this.translate.instant(t.key))
+      .sort((x, y) => x.localeCompare(y))
+      .join(', ');
+  }
+
+  /**  Get column group headings (includes frozen) */
+  protected readonly groupedHeaders = computed(() => {
+    const cols = this.allColumns();
+    const selGroups = this.selectedGroups();
+    const groups = this.columnGroups().filter((group) => {
+      const hasFrozenColumns = cols.some((col) => col.group === group && col.frozen);
+      return selGroups.includes(group) || hasFrozenColumns;
+    });
+
+    return groups.map((groupKey) => ({
+      label: this.translate.instant(`inventory.columnGroups.${groupKey}`),
+      value: groupKey,
+      items: cols.filter((col) => col.group === groupKey).map((col) => ({ label: col.label, value: col.field })),
+    }));
+  });
+
+  // For colspan - count visible columns in group (including frozen)
+  protected getVisibleColumnCount(group: SelectItemGroup): number {
+    return this.columnMeta().visibleCount.get(group.value as string) ?? 0;
+  }
+
+  // For column borders
+  protected isLastInGroup(field: string): boolean {
+    return this.columnMeta().lastInGroup.get(field) ?? false;
+  }
+
+  protected readonly columnMeta = computed(() => {
+    const lastInGroup = new Map<string, boolean>();
+    const visibleCount = new Map<string, number>();
+    const headers = this.groupedHeaders();
+    const cols = this.allColumns();
+    const selFields = this.selectedColumnFields();
+
+    const isVisible = (field: string) => {
+      const col = cols.find((c) => c.field === field);
+      //eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      return col?.frozen || selFields.includes(field);
+    };
+
+    headers.forEach((group, groupIndex) => {
+      const visibleInGroup = group.items.filter((item) => isVisible(item.value)).map((item) => item.value);
+      visibleCount.set(group.value, visibleInGroup.length);
+
+      const isLastGroup = groupIndex === headers.length - 1;
+      const lastField = visibleInGroup[visibleInGroup.length - 1];
+      if (lastField && !isLastGroup) lastInGroup.set(lastField, true);
+    });
+
+    return { lastInGroup, visibleCount };
+  });
+
+  // Table - returns the value of a cell (used by getBooleanIcon)
+  protected getBooleanValue(node: FlattenedTreeNode, col: TableColumn): boolean {
+    return node[col.field] as boolean;
+  }
+
+  // Table - map status booleans to icons
+  protected getBooleanIcon(value: boolean, field: string): string {
+    if (!value) return 'pi pi-minus text-gray-400';
+
+    const trueIcons: Record<string, string> = {
+      inScope: 'pi pi-check text-green-500',
+      isNew: 'pi pi-plus text-blue-500',
+      isMoved: 'pi pi-arrow-right text-orange-500',
+      isROT: 'pi pi-trash text-red-500',
+      isArchived: 'pi pi-book text-orange-500',
+      noindex: 'pi pi-android text-orange-500',
+      isOrphan: 'pi pi-exclamation-circle text-red-500',
+      linksToPortal: 'pi pi-external-link text-blue-500',
+      linksToSignIn: 'pi pi-sign-in text-green-500',
+      hasChatbot: 'pi pi-comments text-blue-500',
+    };
+
+    return trueIcons[field] ?? 'pi pi-check text-green-500';
+  }
+
+  protected getBooleanTooltip(value: boolean, field: string): string {
+    return `inventory.tooltip.boolean.${field}.${value}`;
+  }
+
+  protected readonly isKnownNumber = isKnownNumber;
+
+  /**********************************************************
+   *                                                         *
+   *    END OF TABLE DATA                                    *
+   *    table, headers, boolean icons                        *
+   *                                                         *
+   **********************************************************/
+
+  /**********************************************************
+   *                                                         *
+   *    START OF VIEW SETTINGS                               *
+   *    columns, sort, filter, ex/hide                       *
+   *                                                         *
+   **********************************************************/
+
+  // 1. Visible column dropdowns
+
+  /** All column groups */
+  protected readonly columnGroups = computed(() => {
+    const groups = [...COLUMN_GROUPS];
+    if (this.translate.currentLang()?.startsWith('fr')) {
+      [groups[0], groups[1]] = [groups[1], groups[0]];
+    }
+    return groups;
+  });
+
+  /** Multiselect - visible groups */
+  protected readonly groups = computed(() =>
+    this.columnGroups().map((groupKey) => ({
+      label: this.translate.instant(`inventory.columnGroups.${groupKey}`),
+      value: groupKey,
+    })),
+  );
+
+  /** Multiselect - visible columns */
+  protected readonly groupedColumns = computed(() => {
+    const cols = this.allColumns();
+    const selGroups = this.selectedGroups();
+    const groups = this.columnGroups().filter((g) => selGroups.includes(g));
+
+    return groups.map((groupKey) => ({
+      label: this.translate.instant(`inventory.columnGroups.${groupKey}`),
+      value: groupKey,
+      items: cols.filter((col) => col.group === groupKey && !col.frozen).map((col) => ({ label: col.label, value: col.field })),
+    }));
+  });
+
+  // Multiselect - column selection change handler
+  protected onColumnSelectionChange() {
+    this.updateVisibleColumns();
+    this.saveColumnVisibility();
+    this.syncSelectedGroups();
+  }
+
+  // Multiselect - group selection change handler
+  protected onGroupSelectionChange(event: { value: string[] }) {
+    const newGroups = event.value;
+    const oldGroups = this.selectedGroups();
+    const addedGroups = newGroups.filter((group) => !oldGroups.includes(group));
+    const removedGroups = oldGroups.filter((group) => !newGroups.includes(group));
+    let updatedFields = this.selectedColumnFields();
+    if (removedGroups.length) {
+      updatedFields = updatedFields.filter((field) => {
+        const col = this.allColumns().find((col) => col.field === field);
+        return !col || !removedGroups.includes(col.group);
+      });
+    }
+    if (addedGroups.length) {
+      const newFields = this.allColumns()
+        .filter((col) => !col.frozen && addedGroups.includes(col.group))
+        .map((col) => col.field);
+      updatedFields = [...updatedFields, ...newFields];
+    }
+
+    this.selectedGroups.set(newGroups);
+    this.selectedColumnFields.set(updatedFields);
+    this.updateVisibleColumns();
+    this.saveColumnVisibility();
+  }
+
+  // Local storage, multiselect & select button - sync column visibility settings to groups (for select button)
+  private syncSelectedGroups() {
+    const groupMembers = new Map<string, string[]>();
+    this.allColumns()
+      .filter((col) => !col.frozen)
+      .forEach((col) => {
+        if (!groupMembers.has(col.group)) {
+          groupMembers.set(col.group, []);
+        }
+        groupMembers.get(col.group)!.push(col.field);
+      });
+
+    //Fully selected groups
+    this.selectedGroups.set(
+      Array.from(groupMembers.entries())
+        .filter(([, fields]) => {
+          const hasAnySelected = fields.some((field) => this.selectedColumnFields().includes(field));
+          return hasAnySelected;
+        })
+        .map(([group]) => group),
+    );
+  }
+
+  // Local storage - save column visibility settings
+  private saveColumnVisibility() {
+    localStorage.setItem(this.COLUMN_KEY, JSON.stringify(this.selectedColumnFields()));
+    localStorage.setItem(this.GROUP_KEY, JSON.stringify(this.selectedGroups()));
+  }
+
+  // Update visible columns & check if any data should autoexpand
+  private updateVisibleColumns() {
+    this.frozenColumns.set(this.allColumns().filter((col) => col.frozen));
+    this.scrollableColumns.set(this.allColumns().filter((col) => !col.frozen && this.selectedColumnFields().includes(col.field)));
+    this.checkAutoExpand();
+  }
+
+  // 2. Visible column buttons
+
+  private applyView(filter: (col: TableColumn) => boolean) {
+    localStorage.removeItem('inventoryColumnVisibility');
+    localStorage.removeItem('inventoryGroupVisibility');
+    //Apply predefined column filter
+    this.selectedColumnFields.set(
+      this.allColumns()
+        .filter(filter)
+        .map((col) => col.field),
+    );
+    this.syncSelectedGroups();
+    this.updateVisibleColumns();
+  }
+
+  protected viewDefault() {
+    this.applyView((col) => col.visibleByDefault && !col.frozen);
+  }
+
+  protected viewMetadata() {
+    this.applyView((col) => col.group === 'metadata');
+  }
+
+  private viewBooleans() {
+    this.applyView((col) => col.type === 'boolean');
+  }
+
+  // 3. Sort
+
+  // Sort table
+  protected customSort(event: SortEvent): void {
+    if (event.field === this.lastSortField && event.order === 1 && this.lastSortOrder === -1) {
+      this.sortField.set(null);
+      this.sortOrder.set(1);
+      this.lastSortField = null;
+      this.lastSortOrder = null;
+      this.dt().reset();
+    } else {
+      this.sortField.set(event.field ?? null);
+      this.sortOrder.set(event.order ?? 1);
+      this.lastSortField = event.field ?? null;
+      this.lastSortOrder = event.order ?? null;
+    }
+  }
+
+  // 4. Filter
+
+  // Track which boolean columns are filtered
+  protected isColumnFiltered(field: string): boolean {
+    return this.columnFilters()[field] || false;
+  }
+
+  protected toggleColumnFilter(field: string): void {
+    this.columnFilters.update((current) => ({
+      ...current,
+      [field]: !current[field],
+    }));
+  }
+
+  private toggleFlaggedFilter(): void {
+    this.columnFilters.set({
+      inScope: this.columnFilters()['anyUnusual'],
+      anyUnusual: !this.columnFilters()['anyUnusual'],
+    });
+    if (this.columnFilters()['anyUnusual']) {
+      this.viewBooleans();
+    } else {
+      this.loadColumnVisibility();
+    }
+  }
+
+  private toggleInScopeFilter(): void {
+    this.columnFilters.set({
+      inScope: !this.columnFilters()['inScope'],
+      anyUnusual: false,
+    });
+  }
+
+  // 4b. Global filter
+  protected filterFields = [...GLOBAL_FIELDS];
+  protected normalizeSearchValue(value: string): string {
+    return this.fetchService.generatePath(value);
+  }
+
+  // 5. Ex/Hides
+
+  // Auto-expand when group is the only visible one
+  private checkAutoExpand() {
+    const selectedGroups = new Set(this.scrollableColumns().map((col) => col.group));
+    const selectedFields = new Set(this.scrollableColumns().map((col) => col.field));
+    for (const key of Object.keys(this.expandAll)) {
+      this.expandAll[key] = selectedGroups.size === 1 && (selectedGroups.has(key as ColumnGroups) || selectedFields.has(key as keyof FlattenedTreeNode));
+    }
+  }
+
+  // Check if a cell is expanded
+  protected isCellExpanded(key: string, rowIndex: number, field: string): boolean {
+    return this.expandAll[key] || this.expandedCells[key]?.has(`${rowIndex}-${field}`);
+  }
+
+  // Toggle individual cell
+  protected toggleCell(key: string, rowIndex: number, field: string) {
+    const cellKey = `${rowIndex}-${field}`;
+    const set = this.expandedCells[key];
+    if (set.has(cellKey)) {
+      set.delete(cellKey);
+    } else {
+      set.add(cellKey);
+    }
+  }
+
+  // Toggle expand all for a group
+  private toggleExpandAll(key: string) {
+    this.expandAll[key] = !this.expandAll[key];
+    if (this.expandAll[key]) this.expandedCells[key]?.clear();
+  }
+
+  // Check if a group or field has visible columns
+  private hasVisible(key: string, byField = false): boolean {
+    return this.scrollableColumns().some((col) => (byField ? col.field === key : col.group === key));
+  }
+
+  /** Set max rows per page to the total pages in project */
+  protected get rowsPerPageOptions(): number[] {
+    const total = this.projectState.getProject().baselinePages;
+    return [25, 50, 100].filter((n) => n < total).concat(total);
+  }
+
+  /**********************************************************
+   *                                                         *
+   *    END OF VIEW SETTINGS                                 *
+   *    columns, sort, filter, ex/hide                       *
+   *                                                         *
+   **********************************************************/
+
+  /**********************************************************
+   *                                                         *
+   *    START OF FUNCTIONS                                   *
+   *    refresh, generate metadata, edit, bulk edit          *
+   *                                                         *
+   **********************************************************/
+
+  // 1. Refresh (prototype or live data)
+  private async refreshData(version: 'live' | 'prototype') {
+    if (!this.selectedNodes.length) return;
+    const urlVersion = version === 'live' ? 'live' : this.projectState.getProject().repoType === 'github' ? 'protoGH' : 'protoUT';
+    this.projectState.refreshing.update((r) => ({ ...r, [version]: true }));
+    for (const node of this.selectedNodes) {
+      const treeNode = this.projectState.findNodeByPath(this.projectState.getProjectTree(), node.enPath, 'en');
+      if (treeNode) await this.projectState.refreshNode(treeNode, urlVersion);
+    }
+    this.projectState.refreshing.update((r) => ({ ...r, [version]: false }));
+  }
+
+  // 2. AI metadata generation
+  private async generateMetadata(mode: 'live' | 'prototype' = 'live') {
+    if (!this.selectedNodes.length) return;
+    const urlVersion = mode === 'live' ? 'live' : this.projectState.getProject().repoType === 'github' ? 'protoGH' : 'protoUT';
+    for (const node of this.selectedNodes) {
+      // Set URLs to fetch
+      const enUrl = this.fetchService.generateUrl(node.enPath, urlVersion, this.github.owner, this.github.repo);
+      const frUrl = this.fetchService.generateUrl(node.frPath, urlVersion, this.github.owner, this.github.repo);
+
+      if (!enUrl && !frUrl) {
+        console.warn(`Skipping ${enUrl} — missing EN & FR URLs`);
+        continue;
+      }
+
+      // Fetch main content
+      let enMain: string | null = null;
+      let frMain: string | null = null;
+      try {
+        if (enUrl) {
+          const enDoc = urlVersion !== 'protoUT' ? await this.fetchService.fetchContent(enUrl, 'prod', 3, 'none', true) : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(enUrl));
+          enMain = enDoc.querySelector('main')?.innerHTML ?? enDoc.body.innerHTML;
+        }
+        if (frUrl) {
+          const frDoc = urlVersion !== 'protoUT' ? await this.fetchService.fetchContent(frUrl, 'prod', 3, 'none', true) : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(frUrl));
+          frMain = frDoc.querySelector('main')?.innerHTML ?? frDoc.body.innerHTML;
+        }
+      } catch (error) {
+        console.warn(`Skipping ${enUrl} — fetch failed`, error);
+        continue;
+      }
+
+      // Build context for the AI
+      const context = {
+        en: {
+          url: enUrl,
+          existingDescription: node.descriptionEN,
+          existingKeywords: node.keywordsEN,
+          content: enMain,
+        },
+        fr: {
+          url: frUrl,
+          existingDescription: node.descriptionFR,
+          existingKeywords: node.keywordsFR,
+          content: frMain,
+        },
+      };
+
+      // Call OpenRouter
+      let response: string;
+      try {
+        response = await this.openRouterService.getTextFromAI(InventoryPrompts[InventoryPromptKey.Metadata], JSON.stringify(context));
+      } catch (error) {
+        console.warn(`Skipping ${enUrl} — AI call failed`, error);
+        continue;
+      }
+
+      // Parse and merge into tree
+      const path = this.lang === 'fr' ? node.frPath : node.enPath;
+      try {
+        const parsed = JSON.parse(response);
+        this.projectState.setMetadataReview(
+          path,
+          {
+            generatedAt: new Date(),
+            model: this.openRouterService.state().respondingModel ?? 'unknown',
+            en: {
+              description: { ai: parsed.en.description, status: 'pending' },
+              keywords: { ai: parsed.en.keywords, status: 'pending' },
+            },
+            fr: {
+              description: { ai: parsed.fr.description, status: 'pending' },
+              keywords: { ai: parsed.fr.keywords, status: 'pending' },
+            },
+          },
+          InventoryPrompts[InventoryPromptKey.Metadata],
+        );
+      } catch (error) {
+        console.warn(`Skipping ${path} — could not parse AI response`, error);
+        continue;
+      }
+    }
+  }
+
+  // 2b. Compare metadata fields after editing to determine status
+  protected compareMetadata(node: FlattenedTreeNode, col: TableColumn) {
+    const compareCol = col.field.slice(2).replace(/^./, (c) => c.toLowerCase());
+    const compareValue = (node as unknown as Record<string, unknown>)[compareCol] as string;
+    if ((node[col.field] as MetadataField).edited === compareValue) {
+      this.saveMetadata(node, col, 'noChange');
+    } else if ((node[col.field] as MetadataField).edited !== (node[col.field] as MetadataField).ai) {
+      this.saveMetadata(node, col, 'edited');
+    } else if ((node[col.field] as MetadataField).edited === (node[col.field] as MetadataField).ai) {
+      this.saveMetadata(node, col, 'pending');
+    }
+  }
+
+  protected onPasteMetadata(node: FlattenedTreeNode, col: TableColumn) {
+    setTimeout(() => this.compareMetadata(node, col), 0);
+  }
+
+  protected onBlurMetadata() {
+    this.isEditing = false;
+  }
+
+  // 2c. Save AI metadata status (NOTE: KEEP THIS AS SEPARATE FUNCTION SINCE IT CALLS TRACK USAGE)
+  private saveMetadata(node: FlattenedTreeNode, col: TableColumn, status: MetadataReviewStatus) {
+    //Update FlattenedTreeNode
+    (node[col.field] as MetadataField).status = status;
+
+    //Update TreeNode
+    if (!node['aiGeneratedAt'] || !node['aiModel'] || !node['aiDescriptionEN'] || !node['aiKeywordsEN'] || !node['aiDescriptionFR'] || !node['aiKeywordsFR']) return;
+    const path = this.lang === 'fr' ? node['frPath'] : node['enPath'];
+    const review: MetadataReview = {
+      generatedAt: node['aiGeneratedAt'],
+      model: node['aiModel'],
+      en: {
+        description: node['aiDescriptionEN'],
+        keywords: node['aiKeywordsEN'],
+      },
+      fr: {
+        description: node['aiDescriptionFR'],
+        keywords: node['aiKeywordsFR'],
+      },
+    };
+    this.projectState.setMetadataReview(path, review);
+  }
+
+  charCountOk(characters: number): boolean {
+    if (characters >= 10 && characters <= 160) return true;
+    else return false;
+  }
+
+  // 3. Save new cell value
+  protected saveCell(newValue: boolean | string) {
+    if (!this.currentEditNode || !this.currentEditCol?.dataSection) return;
+    const path = this.lang === 'fr' ? this.currentEditNode['frPath'] : this.currentEditNode['enPath'];
+    const node = this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, this.lang);
+    if (!node) return;
+
+    const dataSection = this.currentEditCol.dataSection;
+    const type = this.currentEditCol.type;
+
+    if ((type === 'boolean' || type === 'template') && dataSection.includes('lang')) {
+      const enSection = dataSection.map((k) => (k === 'lang' ? 'en' : k));
+      const frSection = dataSection.map((k) => (k === 'lang' ? 'fr' : k));
+      const currentValueEN = this.projectState.getNestedValue(node.data, enSection);
+      const currentValueFR = this.projectState.getNestedValue(node.data, frSection);
+      if (currentValueEN !== newValue || currentValueFR !== newValue) {
+        this.projectState.setNestedValue(node.data, enSection, newValue);
+        this.projectState.setNestedValue(node.data, frSection, newValue);
+        this.projectState.setModifiedDate();
+      }
+    } else {
+      const section = dataSection.map((k) => (k === 'lang' ? this.lang : k));
+      const currentValue = this.projectState.getNestedValue(node.data, section);
+      if (currentValue !== newValue) {
+        this.projectState.setNestedValue(node.data, section, newValue);
+        this.projectState.setModifiedDate();
+      }
+    }
+  }
+
+  /** Edit booleans for all selected pages */
+  protected bulkSetBooleanField(dataSection: string[], value: boolean): void {
+    let changed = false;
+
+    for (const flatNode of this.selectedNodes) {
+      const path = this.lang === 'fr' ? flatNode.frPath : flatNode.enPath;
+      const node = this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, this.lang);
+      if (!node) continue;
+
+      if (dataSection.includes('lang')) {
+        const enSection = dataSection.map((k) => (k === 'lang' ? 'en' : k));
+        const frSection = dataSection.map((k) => (k === 'lang' ? 'fr' : k));
+        const currentValueEN = this.projectState.getNestedValue(node.data, enSection);
+        const currentValueFR = this.projectState.getNestedValue(node.data, frSection);
+        if (currentValueEN !== value || currentValueFR !== value) {
+          this.projectState.setNestedValue(node.data, enSection, value);
+          this.projectState.setNestedValue(node.data, frSection, value);
+          changed = true;
+        }
+      } else {
+        const currentValue = this.projectState.getNestedValue(node.data, dataSection);
+        if (currentValue !== value) {
+          this.projectState.setNestedValue(node.data, dataSection, value);
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) {
+      this.projectState.setModifiedDate();
+    }
+  }
+
+  private readonly bulkEditableFields: { dataSection: string[]; labelKey: string }[] = [
+    { dataSection: ['status', 'inScope'], labelKey: 'inventory.header.inScope' },
+    //{ dataSection: ['status', 'isNew'], labelKey: 'inventory.header.isNew' },
+    //{ dataSection: ['status', 'isMoved'], labelKey: 'inventory.header.isMoved' },
+    { dataSection: ['status', 'isROT'], labelKey: 'inventory.header.isROT' },
+    { dataSection: ['prototype', 'lang', 'isArchived'], labelKey: 'inventory.header.archiveStatus' },
+    { dataSection: ['prototype', 'lang', 'noindex'], labelKey: 'inventory.header.noindex' },
+  ];
+
+  protected readonly menu = viewChild<Menu>('menu');
+
+  protected handleBoolToggle(action: () => void): void {
+    action();
+    this.menu()?.hide();
+  }
+
+  /**********************************************************
+   *                                                         *
+   *    END OF FUNCTIONS                                   *
+   *    refresh, delete, edit, save                          *
+   *                                                         *
+   **********************************************************/
+
+  /**********************************************************
+   *                                                        *
+   *    START OF MENU & POPUP OPTIONS                       *
+   *    p-menu, p-contextmenu, p-dialog, p-confirmdialog    *
+   *                                                        *
+   **********************************************************/
+
+  // 1. Dropdown menus (p-menu)
+  protected updateDropdown(mode: 'actions' | 'view' | 'pageOptions' | 'newTab', path?: string, node?: FlattenedTreeNode) {
+    switch (mode) {
+      case 'actions': {
+        const numPages = this.selectedNodes.length;
+        const numChildPages = this.projectState.checkDeletionImpact(this.selectedNodes).length;
+        this.itemsDropdown = [
+          {
+            label: this.translate.instant('common.refresh'),
+            styleClass: 'text-primary-500',
+            items: [
+              {
+                label: this.projectState.refreshing().prototype
+                  ? this.translate.instant('inventory.menu.refreshing.prototype', { pageCount: numPages })
+                  : this.translate.instant('inventory.menu.refresh.prototype', { pageCount: numPages }),
+                icon: this.projectState.refreshing().prototype ? 'pi pi-spin pi-spinner' : 'pi pi-refresh',
+                disabled: numPages === 0,
+                command: () => {
+                  this.refreshData('prototype');
+                },
+              },
+              {
+                label: this.projectState.refreshing().live
+                  ? this.translate.instant('inventory.menu.refreshing.live', { pageCount: numPages })
+                  : this.translate.instant('inventory.menu.refresh.live', { pageCount: numPages }),
+                icon: this.projectState.refreshing().live ? 'pi pi-spin pi-spinner' : 'pi pi-refresh',
+                disabled: numPages === 0,
+                command: () => {
+                  this.refreshData('live');
+                },
+              },
+            ],
+          },
+          {
+            label: this.translate.instant('inventory.menu.metadata'),
+            styleClass: 'text-primary-500',
+            items: [
+              {
+                label: this.openRouterService.state().loading
+                  ? this.translate.instant('inventory.menu.metadata.generating', { pageCount: numPages })
+                  : this.translate.instant('inventory.menu.metadata.generate', { pageCount: numPages }),
+                icon: this.openRouterService.state().loading ? 'pi pi-spin pi-spinner' : 'pi pi-sparkles',
+                disabled: numPages === 0 || this.openRouterService.state().loading,
+                command: async () => {
+                  await this.generateMetadata();
+                },
+              },
+            ],
+          },
+          {
+            label: this.translate.instant('inventory.menu.updateStatus'),
+            styleClass: 'text-primary-500',
+            items: this.bulkEditableFields.map(
+              (field) =>
+                ({
+                  type: 'booleanToggle',
+                  label: this.translate.instant(field.labelKey),
+                  icon: this.getBooleanIcon(true, field.dataSection[field.dataSection.length - 1]),
+                  disabled: numPages === 0,
+                  onYes: () => this.bulkSetBooleanField(field.dataSection, true),
+                  onNo: () => this.bulkSetBooleanField(field.dataSection, false),
+                }) as BooleanToggleItem,
+            ),
+          },
+          {
+            label: this.translate.instant('inventory.menu.delete'),
+            styleClass: 'text-red-500',
+            items: [
+              {
+                label: this.translate.instant('inventory.menu.delete.selected', { pageCount: numPages, childCount: numChildPages }),
+                icon: 'pi pi-trash text-red-500',
+                disabled: numPages === 0,
+                command: () => {
+                  this.onDeleteSelected();
+                },
+              },
+            ],
+          },
+        ];
+        return;
+      }
+      case 'view': {
+        this.itemsDropdown = [
+          {
+            label: this.translate.instant('common.filters'),
+            items: [
+              {
+                label: this.columnFilters()['anyUnusual'] ? this.translate.instant('inventory.menu.status.filter.remove') : this.translate.instant('inventory.menu.status.filter.add'),
+                icon: this.columnFilters()['anyUnusual'] ? 'pi pi-filter' : 'pi pi-filter-slash',
+                command: () => {
+                  this.toggleFlaggedFilter();
+                },
+              },
+              {
+                label: this.columnFilters()['inScope'] ? this.translate.instant('inventory.menu.inscope.filter.remove') : this.translate.instant('inventory.menu.inscope.filter.add'),
+                icon: this.columnFilters()['inScope'] ? 'pi pi-filter' : 'pi pi-filter-slash',
+                command: () => {
+                  this.toggleInScopeFilter();
+                },
+              },
+            ],
+          },
+          {
+            label: this.translate.instant('common.expandCollapse'),
+            items: [
+              {
+                label: this.expandAll['metadata'] ? this.translate.instant('inventory.menu.metadata.collapseAll') : this.translate.instant('inventory.menu.metadata.expandAll'),
+                icon: this.expandAll['metadata'] ? 'pi pi-minus' : 'pi pi-plus',
+                command: () => {
+                  this.toggleExpandAll('metadata');
+                },
+                disabled: !this.hasVisible('metadata'),
+              },
+              {
+                label: this.expandAll['task'] ? this.translate.instant('inventory.menu.tasks.collapseAll') : this.translate.instant('inventory.menu.tasks.expandAll'),
+                icon: this.expandAll['task'] ? 'pi pi-minus' : 'pi pi-plus',
+                command: () => {
+                  this.toggleExpandAll('task');
+                },
+                disabled: !this.hasVisible('task', true),
+              },
+              {
+                label: this.expandAll['notes'] ? this.translate.instant('inventory.menu.notes.collapseAll') : this.translate.instant('inventory.menu.notes.expandAll'),
+                icon: this.expandAll['notes'] ? 'pi pi-minus' : 'pi pi-plus',
+                command: () => {
+                  this.toggleExpandAll('notes');
+                },
+                disabled: !this.hasVisible('notes'),
+              },
+              {
+                label: this.expandAll['phoneNumbers'] ? this.translate.instant('inventory.menu.phoneNumbers.collapseAll') : this.translate.instant('inventory.menu.phoneNumbers.expandAll'),
+                icon: this.expandAll['phoneNumbers'] ? 'pi pi-minus' : 'pi pi-plus',
+                command: () => {
+                  this.toggleExpandAll('phoneNumbers');
+                },
+                disabled: !this.hasVisible('phoneNumbers', true),
+              },
+              {
+                label:
+                  this.expandAll['enVanity'] || this.expandAll['frVanity']
+                    ? this.translate.instant('inventory.menu.vanities.collapseAll')
+                    : this.translate.instant('inventory.menu.vanities.expandAll'),
+                icon: this.expandAll['enVanity'] || this.expandAll['frVanity'] ? 'pi pi-minus' : 'pi pi-plus',
+                command: () => {
+                  this.toggleExpandAll('enVanity');
+                  this.toggleExpandAll('frVanity');
+                },
+                disabled: !this.hasVisible('enVanity', true) && !this.hasVisible('frVanity', true),
+              },
+            ],
+          },
+        ];
+        return;
+      }
+      case 'pageOptions': {
+        if (node) {
+          const repoType = this.projectState.getProject().repoType;
+          const protoVersion = repoType === 'github' ? 'protoGH' : 'protoUT';
+          const baseVersion = repoType === 'github' ? 'baseGH' : 'baseUT';
+          const hasBaseline = this.projectState.getProject().github.hasBaselineRepo;
+          const path = this.translate.getCurrentLang()?.startsWith('fr') ? node.frPath : node.enPath;
+          const liveUrl = this.fetchService.generateUrl(path, 'live');
+          const previewUrl = this.fetchService.generateUrl(path, 'preview');
+          const prototypeUrl = this.fetchService.generateUrl(path, protoVersion, this.github.owner, this.github.repo);
+          const baselineUrl = this.fetchService.generateUrl(path, baseVersion, this.github.owner, this.github.repo);
+          const updUrl = this.fetchService.generateUrl(path, 'upd');
+          this.itemsDropdown = [
+            {
+              label: this.translate.instant('common.edit'),
+              items: [
+                {
+                  label: this.translate.instant('editPages._title'),
+                  icon: 'pi pi-sparkles',
+                  command: () => {
+                    this.openInEditPages(node);
+                  },
+                },
+                {
+                  label: this.translate.instant('common.editNode'),
+                  icon: 'pi pi-pen-to-square',
+                  command: () => {
+                    this.edit(node);
+                  },
+                },
+              ],
+            },
+            {
+              label: this.translate.instant('common.openNewTab'),
+              items: [
+                {
+                  label: this.translate.instant('inventory.menu.newTab.liveUrl'),
+                  icon: 'pi pi-external-link',
+                  command: () => {
+                    window.open(liveUrl, '_blank');
+                  },
+                },
+                {
+                  label: this.translate.instant('inventory.menu.newTab.previewUrl'),
+                  icon: 'pi pi-external-link',
+                  command: () => {
+                    window.open(previewUrl, '_blank');
+                  },
+                },
+                {
+                  label: this.translate.instant('inventory.menu.newTab.prototypeUrl'),
+                  icon: 'pi pi-external-link',
+                  command: () => {
+                    window.open(prototypeUrl, '_blank');
+                  },
+                },
+              ],
+            },
+          ];
+          if (hasBaseline) {
+            this.itemsDropdown[1].items!.push({
+              label: this.translate.instant('inventory.menu.newTab.baselineUrl'),
+              icon: 'pi pi-external-link',
+              command: () => {
+                window.open(baselineUrl, '_blank');
+              },
+            });
+          }
+          if (!node.isNew) {
+            this.itemsDropdown[1].items!.push({
+              label: this.translate.instant('inventory.menu.newTab.UPD'),
+              icon: 'pi pi-external-link',
+              command: () => {
+                window.open(updUrl, '_blank');
+              },
+            });
+          }
+        }
+        return;
+      }
+      case 'newTab': {
+        if (path) {
+          const repoType = this.projectState.getProject().repoType;
+          const protoVersion = repoType === 'github' ? 'protoGH' : 'protoUT';
+          const baseVersion = repoType === 'github' ? 'baseGH' : 'baseUT';
+          const liveUrl = this.fetchService.generateUrl(path, 'live');
+          const previewUrl = this.fetchService.generateUrl(path, 'preview');
+          const prototypeUrl = this.fetchService.generateUrl(path, protoVersion, this.github.owner, this.github.repo);
+          const baselineUrl = this.fetchService.generateUrl(path, baseVersion, this.github.owner, this.github.repo);
+          this.itemsDropdown = [
+            {
+              label: this.translate.instant('common.openNewTab'),
+              items: [
+                {
+                  label: this.translate.instant('inventory.menu.newTab.liveUrl'),
+                  icon: 'pi pi-external-link',
+                  command: () => {
+                    window.open(liveUrl, '_blank');
+                  },
+                },
+                {
+                  label: this.translate.instant('inventory.menu.newTab.previewUrl'),
+                  icon: 'pi pi-external-link',
+                  command: () => {
+                    window.open(previewUrl, '_blank');
+                  },
+                },
+                {
+                  label: this.translate.instant('inventory.menu.newTab.prototypeUrl'),
+                  icon: 'pi pi-external-link',
+                  command: () => {
+                    window.open(prototypeUrl, '_blank');
+                  },
+                },
+                {
+                  label: this.translate.instant('inventory.menu.newTab.baselineUrl'),
+                  icon: 'pi pi-external-link',
+                  command: () => {
+                    window.open(baselineUrl, '_blank');
+                  },
+                },
+              ],
+            },
+          ];
+        }
+        return;
+      }
+    }
+  }
+
+  // 2. Context menus (for flipping booleans & updating AI text)
+
+  // Update context menu
+  private updateContext(event: MouseEvent | TouchEvent, type: 'boolean' | 'aiText', field: string, value: boolean | MetadataField) {
+    this.itemsContext = [];
+    switch (type) {
+      case 'boolean': {
+        if (value !== true) {
+          this.itemsContext.push({
+            label: this.translate.instant(`inventory.contextMenu.${field}.true`),
+            icon: this.getBooleanIcon(true, field),
+            command: () => this.saveCell(true),
+          });
+        }
+        if (value !== false) {
+          this.itemsContext.push({
+            label: this.translate.instant(`inventory.contextMenu.${field}.false`),
+            icon: this.getBooleanIcon(false, field),
+            command: () => this.saveCell(false),
+          });
+        }
+        break;
+      }
+      case 'aiText': {
+        const status = (value as MetadataField)?.status;
+        const ai = (value as MetadataField)?.ai;
+        const edited = (value as MetadataField)?.edited;
+        const node = this.currentEditNode!;
+        const col = this.currentEditCol!;
+
+        if (!value) {
+          this.itemsContext = [
+            {
+              label: this.translate.instant(`inventory.contextMenu.metadata.generate`),
+              icon: 'pi pi-sparkles text-primary',
+              command: async () => {
+                this.selectedNodes = [node];
+                await this.generateMetadata();
+              },
+            },
+          ];
+          break;
+        }
+        this.itemsContext = [
+          {
+            label: this.translate.instant(`common.edit`),
+            icon: 'pi pi-pencil text-primary',
+            command: () => {
+              this.isEditing = true;
+              this.isEditingCell(node, col, true);
+              if (!edited) {
+                (node[col.field] as MetadataField).edited = ai;
+              }
+            },
+          },
+        ];
+        if (status !== 'noChange') {
+          this.itemsContext.push({
+            label: this.translate.instant(`common.accept`),
+            icon: 'pi pi-check text-green-500',
+            command: () => (status === 'edited' ? this.saveMetadata(node, col, 'approvedEdits') : this.saveMetadata(node, col, 'approvedAI')),
+          });
+          this.itemsContext.push({
+            label: this.translate.instant(`common.reject`),
+            icon: 'pi pi-trash text-red-500',
+            command: () => this.saveMetadata(node, col, 'rejected'),
+          });
+        }
+
+        if (status !== 'pending') {
+          this.itemsContext.push({
+            label: this.translate.instant(`common.undo`),
+            icon: 'pi pi-undo',
+            command: () => this.saveMetadata(node, col, 'pending'),
+          });
+        }
+        break;
+      }
+    }
+    this.menuContext().show(event);
+  }
+
+  // Highlights cells with context menu or inline editing (on right click or long press)
+  protected hasContextMenu(group: string, type: string): boolean {
+    return ['status'].includes(group) || ['template', 'aiText', 'textArea'].includes(type);
+  }
+
+  protected onTouchStart(event: TouchEvent, node: FlattenedTreeNode, col: TableColumn) {
+    this.touchTimer = setTimeout(() => {
+      this.onRightClick(event, node, col);
+    }, 500); // 500ms long press
+  }
+
+  protected onTouchEnd() {
+    if (this.touchTimer) {
+      clearTimeout(this.touchTimer);
+      this.touchTimer = null;
+    }
+  }
+
+  // End editing when clicking outside of cell
+  protected onLeftClick(node: FlattenedTreeNode, col: TableColumn) {
+    if (node !== this.currentEditNode) {
+      this.currentEditNode = undefined;
+    }
+    if (col !== this.currentEditCol) {
+      this.currentEditCol = undefined;
+    }
+  }
+
+  // Start editing inline or open context menu
+  protected onRightClick(event: MouseEvent | TouchEvent, node: FlattenedTreeNode, col: TableColumn) {
+    event.preventDefault();
+    if (!this.hasContextMenu(col.group, col.type)) return;
+    this.isEditing = false;
+    this.currentEditNode = node;
+    this.currentEditCol = col;
+
+    if (!this.currentEditNode || !this.currentEditCol) return;
+
+    switch (col.type) {
+      case 'boolean': {
+        const field = col.field;
+        const currentValue = this.getBooleanValue(node, col);
+        this.updateContext(event, 'boolean', field, currentValue);
+        break;
+      }
+      case 'template':
+        this.isEditingCell(node, col);
+        break;
+      case 'textArea':
+        this.isEditingCell(node, col);
+        break;
+      case 'aiText': {
+        const field = col.field;
+        const currentValue = node[col.field] as MetadataField;
+        this.updateContext(event, 'aiText', field, currentValue);
+        break;
+      }
+      default:
+        return;
+    }
+  }
+
+  protected isEditingCell(node: FlattenedTreeNode, col: TableColumn, requireConfirm = false) {
+    return this.currentEditNode === node && this.currentEditCol === col && (requireConfirm ? this.isEditing : true);
+  }
+
+  // 3. Template dropdown options
+  protected get templateOptions() {
+    return Object.values(PageTemplate)
+      .map((key) => ({
+        value: key,
+        label: this.translate.instant(key),
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label, this.translate.currentLang()));
+  }
+
+  // 4. Dialog popup (edit node)
+  protected get currentLang() {
+    return this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en';
+  }
+
+  protected edit(node: FlattenedTreeNode) {
+    const path = this.lang === 'fr' ? node.frPath : node.enPath;
+    this.selectedNode = this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, this.lang) ?? undefined;
+    this.editNode = true;
+  }
+
+  protected openInEditPages(node: FlattenedTreeNode) {
+    const path = this.lang === 'fr' ? node.frPath : node.enPath;
+    this.compareService.selectedPage.set(path);
+    this.router.navigate([AidaLinks.ProjectEdit]);
+  }
+
+  // 5. Confirmation dialogs (deletions)
+  private onDeleteSelected() {
+    if (!this.selectedNodes.length) return;
+    const additionalDeletions = this.projectState.checkDeletionImpact(this.selectedNodes);
+    if (additionalDeletions.length > 0) {
+      this.showDeletionConfirmation(this.selectedNodes.length, additionalDeletions);
+    } else {
+      this.confirmationService.confirm({
+        key: 'inventory',
+        message: this.translate.instant('inventory.delete.confirmMessage', { count: this.selectedNodes.length }),
+        header: this.translate.instant('inventory.delete._title'),
+        icon: 'pi pi-exclamation-circle',
+        acceptIcon: 'pi pi-trash',
+        acceptLabel: this.translate.instant('common.delete'),
+        rejectLabel: this.translate.instant('common.cancel'),
+        acceptButtonStyleClass: 'p-button-danger',
+        rejectButtonStyleClass: 'p-button-secondary',
+        accept: () => {
+          this.projectState.deleteNodes(this.selectedNodes, true);
+          this.selectedNodes = [];
+        },
+      });
+    }
+  }
+
+  private showDeletionConfirmation(deleteCount: number, additionalPages: { url: string; h1: string; inScope: boolean }[]) {
+    const inScopeCount = additionalPages.filter((p) => p.inScope).length;
+    const inScopeList = additionalPages
+      .filter((p) => p.inScope)
+      .map((p) => `${p.h1}`)
+      .join('<br>');
+    const baselineCount = additionalPages.filter((p) => !p.inScope).length;
+    const baselineList = additionalPages
+      .filter((p) => !p.inScope)
+      .map((p) => `${p.h1}`)
+      .join('<br>');
+    const childWarning = this.translate.instant('inventory.delete.childPagesWarning', {
+      deleteCount,
+      childCount: additionalPages.length,
+    });
+
+    let message = `<p class="mt-0">${childWarning}</p>`;
+
+    if (inScopeCount > 0) {
+      const inScopeWarning = this.translate.instant('inventory.delete.inScopeWarning', { count: inScopeCount });
+      const inScopeHeading = this.translate.instant('inventory.delete.inScopeHeading');
+      message += `
+            <p>${inScopeWarning}</p>
+            <h2>${inScopeHeading}</h2>
+            <p>${inScopeList}</p>
+        `;
+    }
+
+    if (baselineCount > 0) {
+      const baselineHeading = this.translate.instant('inventory.delete.baselineHeading');
+      message += `
+            <h2>${baselineHeading}</h2>
+            <p>${baselineList}</p>
+        `;
+    }
+
+    message = message.trim();
+
+    this.confirmationService.confirm({
+      key: 'inventory',
+      message,
+      header: this.translate.instant('inventory.delete._title'),
+      icon: 'pi pi-exclamation-triangle',
+      acceptIcon: 'pi pi-trash',
+      acceptLabel: this.translate.instant('common.delete'),
+      rejectLabel: this.translate.instant('common.cancel'),
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-secondary',
+      accept: () => {
+        this.projectState.deleteNodes(this.selectedNodes, true);
+        this.selectedNodes = []; // Clear selection after delete
+      },
+    });
+  }
+
+  // 5. Open in UPD
+  protected openInUPD(node: FlattenedTreeNode): void {
+    const updLink = this.fetchService.generateUrl(this.lang === 'fr' ? node.frPath : node.enPath, 'upd');
+    window.open(updLink, '_blank');
+  }
+
+  /*********************************************************
+   *                                                        *
+   *    END OF MENU & POPUP OPTIONS                         *
+   *    p-menu, p-contextmenu, p-dialog, p-confirmdialog    *
+   *                                                        *
+   *********************************************************/
+
+  private markForTranslation() {
+    //Grouped headings
+    marker('inventory.columnGroups.english');
+    marker('inventory.columnGroups.french');
+    marker('inventory.columnGroups.status');
+    marker('inventory.columnGroups.actions');
+    marker('inventory.columnGroups.notes');
+    marker('inventory.columnGroups.problems');
+    marker('inventory.columnGroups.pageData');
+    marker('inventory.columnGroups.owner');
+    marker('inventory.columnGroups.metadata');
+    //Tooltips
+    marker('inventory.tooltip.boolean.inScope.true');
+    marker('inventory.tooltip.boolean.inScope.false');
+    marker('inventory.tooltip.boolean.isOrphan.true');
+    marker('inventory.tooltip.boolean.isOrphan.false');
+    marker('inventory.tooltip.boolean.isNew.true');
+    marker('inventory.tooltip.boolean.isNew.false');
+    marker('inventory.tooltip.boolean.isMoved.true');
+    marker('inventory.tooltip.boolean.isMoved.false');
+    marker('inventory.tooltip.boolean.isROT.true');
+    marker('inventory.tooltip.boolean.isROT.false');
+    marker('inventory.tooltip.boolean.linksToPortal.true');
+    marker('inventory.tooltip.boolean.linksToPortal.false');
+    marker('inventory.tooltip.boolean.linksToSignIn.true');
+    marker('inventory.tooltip.boolean.linksToSignIn.false');
+    marker('inventory.tooltip.boolean.hasChatbot.true');
+    marker('inventory.tooltip.boolean.hasChatbot.false');
+    marker('inventory.tooltip.boolean.isArchived.true');
+    marker('inventory.tooltip.boolean.isArchived.false');
+    marker('inventory.tooltip.boolean.noindex.true');
+    marker('inventory.tooltip.boolean.noindex.false');
+    //Booleans
+    marker('inventory.contextMenu.inScope.true');
+    marker('inventory.contextMenu.inScope.false');
+    marker('inventory.contextMenu.isNew.true');
+    marker('inventory.contextMenu.isNew.false');
+    marker('inventory.contextMenu.isMoved.true');
+    marker('inventory.contextMenu.isMoved.false');
+    marker('inventory.contextMenu.isROT.true');
+    marker('inventory.contextMenu.isROT.false');
+    marker('inventory.contextMenu.isOrphan.true');
+    marker('inventory.contextMenu.isOrphan.false');
+    marker('inventory.contextMenu.isArchived.true');
+    marker('inventory.contextMenu.isArchived.false');
+    marker('inventory.contextMenu.noindex.true');
+    marker('inventory.contextMenu.noindex.false');
+  }
+}

@@ -18,6 +18,7 @@ import { SignInButtonComponent } from '../sign-in/sign-in-button/sign-in-button.
 import { CollaboratorService } from '../../services/github/collaborator.service';
 import { ProjectStateService } from '../../services/project-state.service';
 
+import { AidaLinks } from '../../common/aidaLinks.config';
 import { ProjectPhase } from '../../common/data.model';
 
 @Component({
@@ -63,8 +64,8 @@ export class SetupProjectComponent {
       .replace(/[']{2,}/g, "'");
     this.projectState.setProjectName(this.projectName);
     // Manage routes for named projects
-    if (this.router.url === '/project/new' && this.projectName) {
-      this.router.navigate(['/project/edit']);
+    if (this.router.url === AidaLinks.NewProject && this.projectName) {
+      this.router.navigate([AidaLinks.ProjectSettings]);
     }
   }
 

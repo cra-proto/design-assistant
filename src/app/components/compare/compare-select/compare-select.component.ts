@@ -18,8 +18,9 @@ import { FetchService } from '../../../services/fetch.service';
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
-import { CompareService } from '../../../views/tasks/compare-versions/compare.service';
+import { CompareService } from '../../../views/tasks/compare/compare.service';
 
+import { AidaLinks } from '../../../common/aidaLinks.config';
 import { ALL_SOURCES, SourceVersion } from '../../../common/data.model';
 
 /**
@@ -270,7 +271,7 @@ export class CompareSelectComponent implements OnInit {
       return;
     }
     const params: Params = { before: beforeUrl, after: afterUrl };
-    const treeLink = this.router.createUrlTree(['/standalone/compare'], { queryParams: params });
+    const treeLink = this.router.createUrlTree([AidaLinks.StandaloneCompare], { queryParams: params });
     const shareLink = `${window.location.origin}${this.router.serializeUrl(treeLink)}`;
 
     navigator.clipboard

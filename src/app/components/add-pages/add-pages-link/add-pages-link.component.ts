@@ -5,6 +5,8 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import { ButtonModule } from 'primeng/button';
 
+import { AidaLinks } from '../../../common/aidaLinks.config';
+
 @Component({
   selector: 'aida-add-pages-link',
   imports: [RouterLink, TranslatePipe, ButtonModule],
@@ -12,5 +14,6 @@ import { ButtonModule } from 'primeng/button';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddPagesLinkComponent {
+  protected readonly AidaLinks = AidaLinks;
   public readonly buttonOnly = input<boolean>(false);
 }

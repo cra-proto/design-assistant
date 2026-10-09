@@ -159,7 +159,6 @@ export class GitHubAuthService {
   public logout(): void {
     this.accessToken.set(null);
     this.currentUser.set(null);
-    //this.router.navigate(['/']);
   }
 
   /** Get current access token value (for making authenticated GitHub API calls) */

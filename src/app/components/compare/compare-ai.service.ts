@@ -8,8 +8,9 @@ import { MessageService } from 'primeng/api';
 import { OpenRouterService } from '../../services/ai/openrouter.service';
 import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
-import { CompareService } from '../../views/tasks/compare-versions/compare.service';
+import { CompareService } from '../../views/tasks/compare/compare.service';
 
+import { AidaLinks } from '../../common/aidaLinks.config';
 import { PagePrompts } from '../../common/prompts/page.prompts';
 import { PagePromptKey } from '../../common/prompts/prompt.model';
 
@@ -63,7 +64,7 @@ export class CompareAiService {
       this.projectCache.updatePageEdit(pagePath, latestBefore, latestAfter, latestBefore, newAfter);
 
       // Update the diff if the user is still on the same page AND on the AI edit version
-      if (this.compareService.selectedPage() === pagePath && isActive('tasks/edit-pages', this.router)) {
+      if (this.compareService.selectedPage() === pagePath && isActive(AidaLinks.ProjectEdit, this.router)) {
         const updated = this.projectCache.getPageEdit(pagePath);
         if (updated) {
           this.compareService.originalHtml.set(updated.originalHtml);
