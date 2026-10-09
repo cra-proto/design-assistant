@@ -75,7 +75,7 @@ export class SidebarComponent {
   // Section toggle state
   protected isExpanded = {
     project: true,
-    tasks: false,
+    tasks: true,
   };
 
   protected toggleSection(section: keyof typeof this.isExpanded) {

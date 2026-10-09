@@ -38,7 +38,7 @@
             [attr.aria-expanded]="isExpanded.tasks"
             (click)="toggleSection('tasks')"
             (keydown)="toggleOnEnter($event, 'tasks')"
-            class="hidden md:flex justify-content-between align-items-center text-lg text-primary-200 hover:text-primary-400 hover:font-bold cursor-pointer"
+            class="hidden md:flex justify-content-between align-items-center text-xl text-primary-200 hover:text-primary-400 hover:font-bold cursor-pointer"
             aria-controls="tasks"
             role="button"
             tabindex="0"
@@ -46,7 +46,7 @@
             <span id="menu-tasks">{{ 'nav.activeProject' | translate }}</span>
             <span class="material-icons">{{ isExpanded.tasks ? 'expand_less' : 'expand_more' }}</span>
           </div>
-          <p class="text-xs text-white-alpha-80 hidden md:flex white-space-nowrap overflow-hidden text-overflow-clip mt-0">
+          <p class="text-sm text-white-alpha-80 hidden md:flex white-space-nowrap overflow-hidden text-overflow-clip mt-0">
             {{ hasName ? projectState.getProject().projectName.slice(0, 30) : 'common.autosave' }}
           </p>
           <div id="tasks" [class.md:hidden]="!isExpanded.tasks" aria-labelledby="menu-tasks" role="region">
