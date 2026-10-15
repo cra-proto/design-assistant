@@ -130,15 +130,19 @@ export class ExportPagesComponent {
     marker('exportPages.export.progress.setupRedirects');
   }
 
+  private readonly owner = computed(() => this.projectData().github.owner);
+  private readonly repo = computed(() => this.projectData().github.repo);
+  private readonly projectRepoType = computed(() => this.projectData().repoType);
+
   constructor() {
     // Watch for changes to repo settings and run compareFiles()
     effect(async () => {
       void this.signInService.token(); // track signal
-      void this.projectData().github.owner; // track signal
-      void this.projectData().github.repo; // track signal
       void this.projectCache.selectedLang(); // track signal
       void this.projectCache.selectedVersion(); // track signal
-      const repoType = this.projectData().repoType;
+      void this.owner(); // track computed signal
+      void this.repo(); // track computed signal
+      const repoType = this.projectRepoType(); // track computed signal
       //Update repoType signal
       if (repoType) {
         this.repoType.set(repoType);
@@ -201,6 +205,7 @@ export class ExportPagesComponent {
   // Populate files table (and compare project files with GitHub or UT)
   private compareFilesRequestId = 0;
   protected async compareFiles() {
+    //console.trace('compareFiles called');
     const requestId = ++this.compareFilesRequestId;
     if (!this.repoType()) {
       this.repoType.set(this.projectData().repoType ?? 'github');
