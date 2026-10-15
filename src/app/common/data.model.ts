@@ -232,6 +232,7 @@ export interface LangData {
   contentHash?: string; // Hash of normalized page HTML at last crawl
   lastChecked?: string; // ISO string of fetch date
   githubSha?: string; // SHA of last GitHub export
+  localSha?: string; // SHA-256 of last local export
   //Metadata
   title: string; // metadata title
   description: string; // metadata description

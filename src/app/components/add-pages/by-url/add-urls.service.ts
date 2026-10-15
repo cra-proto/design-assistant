@@ -414,6 +414,7 @@ export class AddUrlsService {
       contentHash: pageDataEN?.contentHash,
       lastChecked: pageDataEN?.lastChecked,
       githubSha: undefined,
+      localSha: undefined,
       //Metadata
       title: pageDataEN?.title ?? '',
       description: pageDataEN?.description ?? '',
@@ -450,6 +451,7 @@ export class AddUrlsService {
       contentHash: pageDataFR?.contentHash,
       lastChecked: pageDataFR?.lastChecked,
       githubSha: undefined,
+      localSha: undefined,
       //Metadata
       title: pageDataFR?.title ?? '',
       description: pageDataFR?.description ?? '',

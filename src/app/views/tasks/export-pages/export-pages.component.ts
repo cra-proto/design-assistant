@@ -223,11 +223,14 @@ export class ExportPagesComponent {
       const table: FileStatus[] = localPaths.map((path) => {
         const pathLang = this.fetchService.getLang(path);
         const node = pathLang ? this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, pathLang) : null;
+        const version = scope === 'inScope' ? 'prototype' : 'baseline';
+        const previouslyExported = pathLang ? node?.data[version][pathLang].localSha : null;
         const isRot = node?.data?.status?.isROT === true;
+        const status = previouslyExported ? ExportStatus.SkipOverwrite : isRot ? ExportStatus.SkipNew : ExportStatus.ExportNew;
         return {
           path,
           label: pathLabels.get(path),
-          status: isRot ? ExportStatus.SkipNew : ExportStatus.ExportNew,
+          status: status,
         };
       });
       this.filesTable.set(table);
@@ -543,6 +546,9 @@ export class ExportPagesComponent {
           DEPTH: depth,
         });
         zip.file(`${repo}/${path}`, html);
+        //Set local SHA
+        const localSha = await this.fetchService.generateSHA(html);
+        this.projectState.setPageSha(path, localSha, scope === 'inScope' ? 'prototype' : 'baseline', lang, 'local');
       } catch (error) {
         console.error(`Failed to zip page "${path}":`, error);
       }
@@ -852,7 +858,7 @@ export class ExportPagesComponent {
         //Store SHA with project data
         if (result?.content?.sha) {
           const pathLang = page.path.startsWith('en/') || page.path.endsWith('en.html') ? 'en' : 'fr';
-          this.projectState.setPageSha(page.path, result.content.sha, version, pathLang);
+          this.projectState.setPageSha(page.path, result.content.sha, version, pathLang, 'github');
         }
       } catch (error) {
         console.error(`Error exporting ${page.path}:`, error);

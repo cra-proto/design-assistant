@@ -24,7 +24,6 @@ export interface PageMetadata {
   //Content
   contentHash?: string; // Hash of normalized page HTML at last crawl
   lastChecked?: string; // ISO string of fetch date
-  githubSha?: string; // SHA of last GitHub export
   //Metadata
   title?: string; // metadata title
   description?: string; // metadata description
@@ -271,11 +270,7 @@ export class FetchService {
 
     // Content hash
     const mainContent = doc.querySelector('main')?.innerHTML ?? '';
-    const contentHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(mainContent)).then((buf) =>
-      Array.from(new Uint8Array(buf))
-        .map((b) => b.toString(16).padStart(2, '0'))
-        .join(''),
-    );
+    const contentHash = await this.generateSHA(mainContent);
     const lastChecked = new Date().toISOString();
 
     // Get metadata
@@ -453,6 +448,14 @@ export class FetchService {
       gunningFog,
       phoneNumbers,
     };
+  }
+
+  public async generateSHA(content: string): Promise<string> {
+    return await crypto.subtle.digest('SHA-256', new TextEncoder().encode(content)).then((buf) =>
+      Array.from(new Uint8Array(buf))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join(''),
+    );
   }
 
   markForTranslation() {

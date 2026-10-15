@@ -95,7 +95,7 @@ export class ProjectMenuComponent {
         ],
       },
       {
-        label: this.translate.instant('nav.activeProject'),
+        label: this.translate.instant('home.header.settingsDoormats'),
         items: [
           {
             label: this.translate.instant('project.setup._title'),

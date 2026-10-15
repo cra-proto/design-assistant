@@ -250,15 +250,22 @@ export class ProjectStateService {
     }));
   }
 
-  public setPageSha(path: string, sha: string, version: 'prototype' | 'baseline' = 'prototype', lang: 'en' | 'fr' = 'en'): void {
+  public setPageSha(path: string, sha: string, version: 'prototype' | 'baseline' = 'prototype', lang: 'en' | 'fr' = 'en', repoType: 'github' | 'local' = 'github'): void {
     const tree = this.getProjectTree();
     const node = this.findNodeByPath(tree, path, lang);
 
     if (node?.data) {
-      if (!node.data[version][lang].githubSha) {
+      if (repoType === 'github' && !node.data[version][lang].githubSha) {
         node.data[version][lang].githubSha = {};
       }
-      node.data[version][lang].githubSha = sha;
+      if (repoType === 'local' && !node.data[version][lang].localSha) {
+        node.data[version][lang].localSha = {};
+      }
+      if (repoType === 'github') {
+        node.data[version][lang].githubSha = sha;
+      } else if (repoType === 'local') {
+        node.data[version][lang].localSha = sha;
+      }
       this.project.update((p) => ({
         ...p,
         lastModified: new Date(),
