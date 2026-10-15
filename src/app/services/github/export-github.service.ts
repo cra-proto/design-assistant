@@ -1,14 +1,12 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
-import { TranslateService } from '@ngx-translate/core';
-
-import { MessageService, TreeNode } from 'primeng/api';
+import { TreeNode } from 'primeng/api';
 
 import { FetchService } from '../fetch.service';
-import { GitHubAuthService } from './github-auth.service';
+import { HtmlNormalizationService } from '../html-normalization.service';
+import { SignInService } from './sign-in.service';
 
 import { environment } from '../../../environments/environment';
-import { GitHubUser } from '../../common/data.model';
 
 export interface GitHubFileRequest {
   message: string;
@@ -19,257 +17,10 @@ export interface GitHubFileRequest {
 
 @Injectable({ providedIn: 'root' })
 export class ExportGitHubService {
-  private readonly translate = inject(TranslateService);
-  private readonly messageService = inject(MessageService);
   private readonly fetchService = inject(FetchService);
-  private readonly authService = inject(GitHubAuthService);
+  private readonly htmlNormalizationService = inject(HtmlNormalizationService);
+  private readonly signInService = inject(SignInService);
   private readonly templateOrg = environment.templateOrg;
-
-  // Manage GitHub token & user integration from OAuth and PAT
-  public readonly token = computed(() => (this.authService.isAuthenticated() ? (this.authService.getToken() ?? '') : this.patToken()));
-
-  public readonly user = computed(() => (this.authService.isAuthenticated() ? this.authService.user() : this.patUser()));
-
-  // PAT - token (fallback access when OAuth not available)
-  private readonly PAT_STORAGE_KEY = 'github_pat';
-  private readonly PAT_USER_STORAGE_KEY = 'github_pat_user';
-  private readonly patToken = signal<string>(this.loadPAT());
-  private readonly patUser = signal<GitHubUser | null>(this.loadPATUser());
-
-  public get pat(): string {
-    return this.patToken();
-  }
-  public set pat(value: string) {
-    this.patToken.set(value);
-    sessionStorage.setItem(this.PAT_STORAGE_KEY, value);
-  }
-
-  //Note: we do not need get/set for the patUser. It's updated when the token is validated.
-
-  private loadPAT(): string {
-    return sessionStorage.getItem(this.PAT_STORAGE_KEY) ?? '';
-  }
-
-  private loadPATUser(): GitHubUser | null {
-    const stored = sessionStorage.getItem(this.PAT_USER_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : null;
-  }
-
-  public clearPAT(): void {
-    this.patToken.set('');
-    this.patUser.set(null);
-    sessionStorage.removeItem(this.PAT_STORAGE_KEY);
-    sessionStorage.removeItem(this.PAT_USER_STORAGE_KEY);
-  }
-
-  // PAT - user (fallback access when OAuth not available)
-  private mapGitHubUser(patUser: unknown): GitHubUser {
-    const user = patUser as Record<string, unknown>;
-    return {
-      login: user['login'] as string,
-      id: user['id'] as number,
-      avatar_url: user['avatar_url'] as string,
-      name: user['name'] as string,
-      email: user['email'] as string,
-    };
-  }
-
-  // Validate PAT
-  public async validatePAT() {
-    const token = this.pat;
-    try {
-      // Step 1: Validate token by calling /user endpoint
-      const userResponse = await fetch('https://api.github.com/user', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/vnd.github+json',
-        },
-      });
-
-      if (!userResponse.ok) {
-        this.clearPAT();
-        this.messageService.add({
-          key: 'html',
-          severity: 'error',
-          summary: this.translate.instant('github.connect.pat.error.summary'),
-          detail: this.translate.instant('github.connect.pat.error.detail') + this.translate.instant('github.connect.pat.token.link'),
-          sticky: true,
-        });
-      } else {
-        const user = await userResponse.json();
-        this.patUser.set(this.mapGitHubUser(user));
-        sessionStorage.setItem(this.PAT_USER_STORAGE_KEY, JSON.stringify(user));
-        console.log('patUser set:', this.patUser());
-        console.log('user computed:', this.user());
-      }
-    } catch {
-      console.log('Network error validating token');
-    }
-  }
-
-  // Validate GitHub token
-  public async validateToken(
-    token: string,
-    owner: string,
-    repo: string,
-  ): Promise<{ valid: boolean; repoExists?: boolean; hasRepoAccess?: boolean; canCreateRepo?: boolean; showDisclaimer?: boolean; error?: string }> {
-    try {
-      // Step 1: Validate token by calling /user endpoint
-      const userResponse = await fetch('https://api.github.com/user', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/vnd.github+json',
-        },
-      });
-
-      if (!userResponse.ok) {
-        const error = userResponse.status === 401 ? 'Invalid or expired token' : `GitHub API error: ${userResponse.status}`;
-        return { valid: false, error };
-      }
-
-      const user = await userResponse.json();
-
-      const tokenScopes =
-        userResponse.headers
-          .get('x-oauth-scopes')
-          ?.split(',')
-          .map((s) => s.trim()) ?? []; //Will be empty if using PAT
-
-      // Step 2: Check if repo exists (and get permissions if it does)
-      const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/vnd.github+json',
-        },
-      });
-
-      // Step 3a: Existing repo, check permissions
-      if (repoResponse.ok) {
-        const repoData = await repoResponse.json();
-        let hasWriteAccess = false;
-
-        if (this.authService.isAuthenticated()) {
-          hasWriteAccess = repoData.permissions?.push === true || repoData.permissions?.admin === true;
-        } else {
-          hasWriteAccess = await this.checkWritePermission(token, owner, repo, user.login);
-        }
-        return {
-          valid: true,
-          repoExists: true,
-          hasRepoAccess: hasWriteAccess,
-          showDisclaimer: false,
-        };
-      }
-      // Step 3b: New repo, check if user can create
-      else if (repoResponse.status === 404) {
-        let canCreate = false;
-        let showDisclaimer = false;
-
-        if (this.authService.isAuthenticated()) {
-          if (owner === user.login) {
-            canCreate = tokenScopes.includes('repo') || tokenScopes.includes('public_repo');
-          } else {
-            const orgMemberResponse = await fetch(`https://api.github.com/orgs/${owner}/memberships/${user.login}`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: 'application/vnd.github+json',
-              },
-            });
-            if (orgMemberResponse.ok) {
-              const memberData = await orgMemberResponse.json();
-              canCreate = memberData.role === 'admin' || memberData.state === 'active';
-            }
-          }
-        } else {
-          // For PATs
-          // Check an existing repo to see if we have 'repo' scope
-          const repoList = await this.getRepoList(owner);
-          if (repoList.length > 0) {
-            const testRepo = repoList[0].name;
-            canCreate = await this.checkWritePermission(token, owner, testRepo, user.login);
-          } else {
-            //Assume access if an org member or personal repo but show disclaimer
-            if (owner === user.login) {
-              canCreate = true;
-              showDisclaimer = true;
-            } else {
-              const orgMemberResponse = await fetch(`https://api.github.com/orgs/${owner}/memberships/${user.login}`, {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  Accept: 'application/vnd.github+json',
-                },
-              });
-              canCreate = orgMemberResponse.ok;
-              showDisclaimer = orgMemberResponse.ok;
-            }
-          }
-        }
-        return {
-          valid: true,
-          repoExists: false,
-          canCreateRepo: canCreate,
-          showDisclaimer: showDisclaimer,
-        };
-      }
-      // Step 3c: Other errors
-      else {
-        return { valid: false, error: `Error checking repo: ${repoResponse.status}` };
-      }
-    } catch {
-      return { valid: false, error: 'Network error validating token' };
-    }
-  }
-
-  private async checkWritePermission(token: string, owner: string, repo: string, userLogin: string): Promise<boolean> {
-    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/collaborators/${userLogin}/permission`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.github+json',
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return data.permission === 'admin' || data.permission === 'write';
-    }
-    return false;
-  }
-
-  //TODO: replace this with version from html-normalization service
-  private async formatHtmlWithPrettier(html: string): Promise<string> {
-    if (!navigator.languages?.length) {
-      Object.assign(navigator, { languages: ['en'] });
-    }
-
-    try {
-      const [{ default: prettier }, parserHtml] = await Promise.all([import('prettier/standalone'), import('prettier/plugins/html')]);
-
-      return prettier.format(html, {
-        parser: 'html',
-        plugins: [parserHtml],
-        printWidth: Infinity,
-        tabWidth: 4,
-        useTabs: false,
-        htmlWhitespaceSensitivity: 'css',
-        arrowParens: 'always',
-        bracketSameLine: false,
-        bracketSpacing: false,
-        embeddedLanguageFormatting: 'auto',
-        endOfLine: 'crlf',
-        jsxSingleQuote: false,
-        objectWrap: 'collapse',
-        ProseWrap: 'never',
-        quoteProps: 'consistent',
-        singleAttributePerLine: false,
-        singleQuote: false,
-        trailingComma: 'none',
-        vueIndentScriptAndStyle: true,
-      });
-    } catch (error) {
-      console.error('Prettier formatting error:', error);
-      return html; // fallback - return unformatted html
-    }
-  }
 
   public async formatDocumentAsJekyll(doc: Document, url: string, owner: string, repo: string, breadcrumbs?: { title: string; link: string }[]): Promise<string> {
     let layout = 'default';
@@ -427,7 +178,7 @@ export class ExportGitHubService {
         .join('\n');
     }
 
-    pageContent = await this.formatHtmlWithPrettier(pageContent);
+    pageContent = await this.htmlNormalizationService.formatHtml(pageContent);
 
     // Content in jekyll format
     const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\n${auth}${fra}${robotsYaml}${limitedWidth}${isThemePage}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || '  []'}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
@@ -769,34 +520,6 @@ ${mermaidChart}
     }
   }
 
-  // Get list of public repos for an owner (user or org)
-  public async getRepoList(owner: string): Promise<{ name: string }[]> {
-    const type = await this.getOwnerType(owner);
-    const url = type === 'Organization' ? `https://api.github.com/orgs/${owner}/repos?per_page=100&type=public` : `https://api.github.com/users/${owner}/repos?per_page=100&type=public`;
-
-    const response = await fetch(url, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to load repos: ${response.status}`);
-    }
-    return response.json(); // array of repos
-  }
-
-  // Determine if owner is a user or organization
-  private async getOwnerType(owner: string): Promise<'User' | 'Organization'> {
-    const response = await fetch(`https://api.github.com/users/${owner}`, {
-      headers: { Accept: 'application/vnd.github+json' },
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch owner type for ${owner}: ${response.status}`);
-    }
-    const data = await response.json();
-    return data.type as 'User' | 'Organization';
-  }
-
   //Check if repo exists
   private async repoExists(owner: string, repo: string): Promise<boolean> {
     const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
@@ -807,7 +530,7 @@ ${mermaidChart}
 
   private async createRepo(owner: string, repo: string, branch: string, token: string, projectName: string) {
     console.log(`Repo ${owner}/${repo} not found. Creating...`);
-    const type = await this.getOwnerType(owner);
+    const type = await this.signInService.getOwnerType(owner);
     const url = type === 'Organization' ? `https://api.github.com/orgs/${owner}/repos` : `https://api.github.com/user/repos`;
     const createdDate = new Date().toLocaleDateString('en-CA', { month: 'short', year: 'numeric' });
 
@@ -1143,7 +866,7 @@ ${mermaidChart}
     const owner = this.templateOrg;
     const repo = 'ai-design-assistant';
     const baseBranch = 'dev';
-    const token = this.token();
+    const token = this.signInService.token();
 
     if (!token) {
       throw new Error('GitHub token not found. Please configure your Personal Access Token.');
@@ -1197,7 +920,7 @@ ${mermaidChart}
         title: `Update ${category} prompts`,
         head: branchName,
         base: baseBranch,
-        body: `Update  to ${category} prompts via Design Assistant.\n\n**File:** \`${path}\`\n**Branch:** \`${branchName}\`\n**UserID:** \`${this.user()?.id}\`\n**Username:** \`${this.user()?.login}\``,
+        body: `Update  to ${category} prompts via Design Assistant.\n\n**File:** \`${path}\`\n**Branch:** \`${branchName}\`\n**UserID:** \`${this.signInService.user()?.id}\`\n**Username:** \`${this.signInService.user()?.login}\``,
       }),
     });
 

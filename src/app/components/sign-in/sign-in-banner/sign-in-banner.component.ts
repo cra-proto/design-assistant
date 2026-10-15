@@ -9,6 +9,7 @@ import { PatComponent } from '../pat/pat.component';
 
 import { ExportGitHubService } from '../../../services/github/export-github.service';
 import { GitHubAuthService } from '../../../services/github/github-auth.service';
+import { SignInService } from '../../../services/github/sign-in.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
 
@@ -25,10 +26,11 @@ export class SignInBannerComponent implements OnInit {
   private readonly settingsService = inject(UserSettingsService);
   protected readonly exportGitHubService = inject(ExportGitHubService);
   protected readonly authService = inject(GitHubAuthService);
+  protected readonly signInService = inject(SignInService);
 
   public readonly mode = input<'github' | 'cloud'>('github');
 
-  protected readonly username = computed(() => this.exportGitHubService.user()?.name || this.exportGitHubService.user()?.login || 'User');
+  protected readonly username = computed(() => this.signInService.user()?.name || this.signInService.user()?.login || 'User');
 
   //Signals
   protected readonly connectionStatus = signal<ConnectionStatus>('checking');
@@ -48,7 +50,7 @@ export class SignInBannerComponent implements OnInit {
   constructor() {
     // Watch for changes to token or repo settings and run validateConnection
     effect(async () => {
-      const token = this.exportGitHubService.token();
+      const token = this.signInService.token();
       const { owner, repo } = this.githubData(); // computed signal should prevent re-running effect when other project data updates
       // Only run precheck if we have a token and repo configured
       if (token && token.length >= 40 && owner && repo) {
@@ -73,10 +75,10 @@ export class SignInBannerComponent implements OnInit {
     this.showDisclaimer.set(false);
 
     try {
-      const token = this.exportGitHubService.token();
+      const token = this.signInService.token();
       const { owner, repo } = this.githubData();
 
-      const result = await this.exportGitHubService.validateToken(token, owner, repo);
+      const result = await this.signInService.validateToken(token, owner, repo);
 
       //console.log('Validation result:', result);
       //console.log('showDisclaimer value:', result.showDisclaimer);
@@ -93,8 +95,8 @@ export class SignInBannerComponent implements OnInit {
       } else {
         this.connectionStatus.set('connected');
         this.showDisclaimer.set(result.showDisclaimer ?? false);
-        if (!this.authService.isAuthenticated() && !this.exportGitHubService.user()) {
-          await this.exportGitHubService.validatePAT();
+        if (!this.authService.isAuthenticated() && !this.signInService.user()) {
+          await this.signInService.validatePAT();
         }
       }
     } finally {

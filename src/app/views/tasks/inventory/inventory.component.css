@@ -1,0 +1,143 @@
+:host {
+  --top-toolbar-height: 6.7rem;
+  --bottom-toolbar-height: 3rem;
+  --group-header-height: 3rem;
+  --padding-right-desktop: 5rem;
+  --padding-right-mobile: 0rem;
+  --padding-left: 1.5rem;
+  --margin-left: -1.5rem;
+  --checkbox-width: 2rem;
+}
+
+/* Toolbar */
+.sticky-toolbar {
+  box-sizing: border-box;
+  left: calc(var(--mobile-nav-width));
+  margin-left: calc(var(--margin-left));
+  padding-left: calc(var(--padding-left));
+  padding-right: calc(var(--padding-right-mobile));
+  position: sticky;
+  width: calc(100vw - var(--mobile-nav-width) - 2rem);
+  z-index: 20;
+}
+
+.sticky-top-toolbar {
+  height: calc(var(--top-toolbar-height));
+  margin-top: -1.5rem;
+  padding-top: 1.5rem;
+  top: 0rem;
+  z-index: 20;
+}
+
+.sticky-bottom-toolbar {
+  height: calc(var(--bottom-toolbar-height));
+  top: calc(var(--top-toolbar-height));
+  z-index: 20;
+}
+
+/* Toolbar - desktop adjustments */
+@media screen and (min-width: 768px) {
+  .sticky-toolbar {
+    left: var(--desktop-nav-width);
+    padding-right: calc(var(--padding-right-desktop));
+    width: calc(100vw - var(--desktop-nav-width) - 5rem);
+  }
+}
+
+/* Allows sticky table columns */
+::ng-deep .p-datatable-table-container {
+  overflow: visible !important;
+}
+
+/* Table */
+.sticky-table {
+  margin-left: calc(var(--margin-left));
+  padding-left: calc(var(--padding-left));
+  position: sticky;
+  z-index: 11;
+}
+
+.sticky-table-column {
+  left: calc(var(--mobile-nav-width) + var(--checkbox-width));
+}
+
+.sticky-table-checkbox {
+  left: calc(var(--mobile-nav-width));
+}
+
+.sticky-table-group-header {
+  top: calc(var(--top-toolbar-height) + var(--bottom-toolbar-height));
+  height: calc(var(--group-header-height));
+}
+
+.sticky-table-header {
+  top: calc(var(--top-toolbar-height) + var(--bottom-toolbar-height) + var(--group-header-height));
+}
+
+.sticky-table-column.sticky-table-header,
+.sticky-table-column.sticky-table-group-header,
+.sticky-table-checkbox.sticky-table-header,
+.sticky-table-checkbox.sticky-table-group-header {
+  z-index: 12;
+}
+
+.sticky-table-column.sticky-table-group-header.sticky-table-corner {
+  z-index: 13;
+}
+
+/* Table - desktop adjustments */
+@media screen and (min-width: 768px) {
+  .sticky-table-column {
+    left: calc(var(--desktop-nav-width) + var(--checkbox-width));
+  }
+
+  .sticky-table-checkbox {
+    left: calc(var(--desktop-nav-width));
+  }
+}
+
+/* Keeps column headers on top of row headers in stacking context */
+::ng-deep .p-datatable .p-datatable-thead {
+  z-index: 13 !important;
+}
+
+.sticky-table {
+  transition: z-index 0s linear 0.1s;
+}
+
+.sticky-table:has([data-tooltip]:hover) {
+  transition: none;
+  z-index: 100 !important;
+}
+
+/* Horizontal sticky items */
+.sticky-horizontal {
+  position: sticky;
+  left: calc(var(--mobile-nav-width));
+
+  width: calc(100vw - var(--mobile-nav-width) - 2rem);
+  margin-left: calc(var(--margin-left));
+  padding-left: calc(var(--padding-left));
+  padding-right: calc(var(--padding-right-mobile));
+  box-sizing: border-box;
+  z-index: 21;
+}
+
+/* Horizontal sticky - desktop adjustments */
+@media screen and (min-width: 768px) {
+  .sticky-horizontal {
+    left: var(--desktop-nav-width);
+    padding-right: calc(var(--padding-right-desktop));
+    width: calc(100vw - var(--desktop-nav-width) - 3.5rem);
+  }
+}
+
+.hasMenu:hover {
+  background-color: var(--p-primary-100) !important;
+  cursor: help;
+}
+
+html.dark-mode .hasMenu:hover {
+  background-color: var(--p-primary-500) !important;
+  cursor: help;
+}

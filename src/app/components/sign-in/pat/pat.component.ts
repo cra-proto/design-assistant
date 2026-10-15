@@ -8,7 +8,7 @@ import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { PasswordModule } from 'primeng/password';
 
-import { ExportGitHubService } from '../../../services/github/export-github.service';
+import { SignInService } from '../../../services/github/sign-in.service';
 
 import { environment } from '../../../../environments/environment';
 
@@ -19,14 +19,14 @@ import { environment } from '../../../../environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PatComponent {
-  private readonly exportGitHubService = inject(ExportGitHubService);
+  private readonly signInService = inject(SignInService);
 
   protected get pat(): string {
-    return this.exportGitHubService.pat;
+    return this.signInService.pat;
   }
 
   protected set pat(value: string) {
-    this.exportGitHubService.pat = value;
+    this.signInService.pat = value;
   }
 
   protected showHelp = false;

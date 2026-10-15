@@ -11,6 +11,7 @@ import { FetchService } from '../../../services/fetch.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { ProjectStorageService } from '../../../services/storage/project-storage.service';
 import { TreeNodeStyleService } from '../../../services/treenode-style.service';
+import { GetChildPagesService } from '../by-children/get-child-urls.service';
 
 import { LangData, PageActions, PageTemplate } from '../../../common/data.model';
 
@@ -23,7 +24,7 @@ export interface ValidationItem {
 
 export interface AddItem {
   href: string;
-  status: 'pending' | 'added' | 'error';
+  status: 'pending' | 'added' | 'skipped' | 'error';
 }
 
 export interface UrlState {
@@ -48,6 +49,7 @@ export class AddUrlsService {
   private readonly vanityService = inject(VanityService);
   private readonly projectStorageService = inject(ProjectStorageService);
   private readonly treeNodeStyleService = inject(TreeNodeStyleService);
+  private readonly getChildUrlsService = inject(GetChildPagesService);
 
   /********************************************************************************************************************
    *  STEPS                                                                                                           *
@@ -312,11 +314,11 @@ export class AddUrlsService {
 
     for (const url of urls) {
       try {
-        await this.addUrl(url.href, true, parent);
+        const added = await this.addUrl(url.href, true, parent);
         // Mark as added
         this.urlState.update((curr) => ({
           ...curr,
-          urlsToAdd: curr.urlsToAdd.map((u) => (u.href === url.href ? { ...u, status: 'added' } : u)),
+          urlsToAdd: curr.urlsToAdd.map((u) => (u.href === url.href ? { ...u, status: added ? 'added' : 'skipped' } : u)),
         }));
       } catch {
         // Mark as error
@@ -330,17 +332,17 @@ export class AddUrlsService {
     this.projectState.setProjectTree(this.projectState.getProjectTree());
     this.projectStorageService.rebuildParents(this.projectState.getProjectTree(), undefined);
     this.treeNodeStyleService.updateNodeStyles(this.projectState.getProjectTree(), 0);
-    this.setUrlState({ isAdding: false, urlsToAdd: [], rawUrls: '' });
     this.messageService.add({
       severity: 'success',
       summary: this.translate.instant('addPages.done.summary'),
-      detail: this.translate.instant('addPages.done.detail', { count: urls.length }),
+      detail: this.translate.instant('addPages.done.detail', { count: this.urlState().urlsToAdd.filter((url) => url.status === 'added').length }),
       life: 5000,
     });
+    this.setUrlState({ isAdding: false, urlsToAdd: [], rawUrls: '' });
   }
 
   // Step 2: Add a single URL
-  private async addUrl(url: string, inScope: boolean, parent: string | null = null) {
+  private async addUrl(url: string, inScope: boolean, parent: string | null = null): Promise<boolean> {
     // Step 1: lookup url in tree and if found, flip status to inScope if mode is inScope, then return if found for either mode
     const inTree = this.projectState.urlExists(url);
     if (inTree) {
@@ -349,7 +351,7 @@ export class AddUrlsService {
         const lang = this.fetchService.getLang(url) ?? 'en';
         this.projectState.setScope([path], lang);
       }
-      return;
+      return false;
     }
 
     // Step 2: Fetch page data
@@ -357,7 +359,7 @@ export class AddUrlsService {
     const breadcrumb = this.fetchService.getBreadcrumb(doc, 'https://www.canada.ca');
     // Step 2a: Early return for find child mode
     if (parent && breadcrumb) {
-      if (parent !== breadcrumb.at(-1)?.url) return;
+      if (parent !== breadcrumb.at(-1)?.url) return false;
     }
     // Step 2b: Build out breadcrumb context for inScope pages
     if (inScope) {
@@ -373,7 +375,7 @@ export class AddUrlsService {
     const oppPageData = oppDoc ? await this.fetchService.extractPageMetadata(oppDoc, pageData.oppUrl!) : undefined;
 
     const urlLang = this.fetchService.getLang(url);
-    if (!urlLang) return;
+    if (!urlLang) return false;
 
     const pageDataEN = urlLang === 'en' ? pageData : oppPageData;
     const pageDataFR = urlLang === 'fr' ? pageData : oppPageData;
@@ -535,13 +537,13 @@ export class AddUrlsService {
 
     if (parentPath) {
       const parentNode = this.projectState.findNodeByPath(tree, parentPath, urlLang);
-      if (parentNode) {
-        parentNode.children = parentNode.children ?? [];
-        parentNode.children.push(node);
-      }
+      if (!parentNode) return false;
+      parentNode.children = parentNode.children ?? [];
+      parentNode.children.push(node);
     } else {
       tree.push(node); // Root level
     }
+    return true;
   }
 
   // Step 2: adding URL progress bar
@@ -591,36 +593,76 @@ export class AddUrlsService {
   }
 
   // Add child pages
-  public async addChildren(node: TreeNode | null, lang: 'en' | 'fr'): Promise<void> {
+  public async addChildren(node: TreeNode | null, lang: 'en' | 'fr', autoAdd = true): Promise<void> {
     if (!node) return;
     const parentLink = this.fetchService.generateUrl(node.data?.path[lang], 'live');
     if (!parentLink) return;
+    const existingPages = new Set(this.projectState.getAllPages(lang, 'live', 'inScope').map((page) => page.url));
 
-    // Step 1: Get all Canada.ca links from parent page
-    const allLinks = new Set<string>();
-    try {
-      const doc = await this.fetchService.fetchContent(parentLink, 'prod', 3, 'none');
-      const links = this.fetchService.getLinks(doc, parentLink);
-      links.filter((link) => link.includes('canada.ca')).forEach((link) => allLinks.add(link));
-    } catch (error) {
-      console.warn(`Failed to fetch page ${parentLink}: ${error}`);
+    // AUTOADD MODE
+    if (autoAdd) {
+      console.log('Auto-adding child pages');
+      // Step 1: Get all Canada.ca links from parent page
+      const allLinks = new Set<string>();
+      try {
+        const doc = await this.fetchService.fetchContent(parentLink, 'prod', 3, 'none');
+        const links = this.fetchService.getLinks(doc, parentLink);
+        links.filter((link) => link.includes('canada.ca')).forEach((link) => allLinks.add(link));
+      } catch (error) {
+        console.warn(`Failed to fetch page ${parentLink}: ${error}`);
+      }
+
+      // Step 2: Strip out any links that are already in the project
+      const linksToAdd = [...allLinks].filter((url) => !existingPages.has(url));
+
+      const linksToLimit = this.getChildUrlsService.skipFormsAndPubs;
+      const linkLimit = this.getChildUrlsService.PAGE_LIMIT;
+      const limited = linksToLimit.has(parentLink);
+
+      const limitedLinksToAdd = limited ? linksToAdd.slice(0, linkLimit) : linksToAdd;
+
+      if (limitedLinksToAdd.length === 0) return;
+
+      // Step 3: add pages if they are a child of the parent page
+      this.setUrlState({
+        isAdding: true,
+        urlsToAdd: limitedLinksToAdd.map((url) => ({ href: url, status: 'pending' })),
+      });
+      await this.addUrls(parentLink);
+
+      if (limited) {
+        return;
+      }
+      node.data.isCrawled = true;
+    } else {
+      // POPUP MODE
+      console.log('Checking for child pages (popup mode)');
+      const childPages = (await this.getChildUrlsService.findChildren(new Set([parentLink]), 1)).filter((url) => !existingPages.has(url));
+      this.parentUrl.set(parentLink);
+      this.childUrls.set(childPages.map((url) => ({ url, selected: true })));
     }
+  }
 
-    // Step 2: Strip out any links that are already in the project
-    const projectPaths = new Set(this.projectState.getAllPages(lang, 'live', 'all').map((page) => page.path));
-    const linksToAdd = [...allLinks].filter((link) => {
-      const normalized = this.fetchService.generatePath(link);
-      return !projectPaths.has(normalized);
+  public readonly parentUrl = signal<string>('');
+  public readonly childUrls = signal<{ url: string; selected: boolean }[]>([]);
+  public readonly selectedChildUrlsCount = computed(() => this.childUrls().filter((child) => child.selected).length);
+
+  public toggleSelectedChildren(index: number, selected: boolean) {
+    this.childUrls.update((urls) => {
+      const updated = [...urls];
+      updated[index] = { ...updated[index], selected };
+      return updated;
     });
-    if (linksToAdd.length === 0) return;
+  }
 
-    // Step 3: add pages if they are a child of the parent page
+  public async addSelectedChildren() {
+    const selectedUrls = this.childUrls()
+      .filter((item) => item.selected)
+      .map((item) => item.url);
     this.setUrlState({
       isAdding: true,
-      urlsToAdd: linksToAdd.map((url) => ({ href: url, status: 'pending' })),
+      urlsToAdd: selectedUrls.map((url) => ({ href: url, status: 'pending' })),
     });
-
-    await this.addUrls(parentLink);
-    node.data.isCrawled = true;
+    await this.addUrls(this.parentUrl());
   }
 }

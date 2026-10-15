@@ -1,33 +1,44 @@
-<p-contextmenu [model]="options" #cm />
-<p-tree
-  [(selection)]="selectedNode"
-  [contextMenu]="cm"
-  [draggableNodes]="draggable"
-  [droppableNodes]="true"
-  [selectionMode]="selectable ? 'multiple' : null"
-  [validateDrop]="true"
-  [value]="projectTree()"
-  (onNodeContextMenuSelect)="onNodeContextMenu($event)"
-  (onNodeDrop)="handleNodeDrop($event)"
-  draggableScope="self"
-  droppableScope="self"
->
-  <ng-template let-node pTemplate="default">
-    <div class="flex flex-row align-items-center gap-2">
-      @if (draggable) {
-        <i class="pi pi-arrows-alt cursor-move text-color-secondary"></i>
-      } @else if (node.children?.length > 0) {
-        <i class="pi pi-folder"></i>
-      } @else {
-        <i class="pi pi-file"></i>
-      }
-      <a [href]="node.data.path[currentLanguage]" [innerHTML]="node.data.prototype[currentLanguage].h1" (click)="onNodeClick($event)" class="ia-label" target="_blank"></a>
-    </div>
-  </ng-template>
-</p-tree>
+<p-menu [model]="options" [popup]="true" #menu />
+
+@for (key of [treeKey()]; track key) {
+  <p-tree
+    [(selection)]="selectedNode"
+    [draggableNodes]="draggable"
+    [droppableNodes]="true"
+    [selectionMode]="selectable ? 'multiple' : null"
+    [validateDrop]="true"
+    [value]="projectTree()"
+    (contextmenu)="$event.preventDefault()"
+    (onNodeDrop)="handleNodeDrop($event)"
+    draggableScope="self"
+    droppableScope="self"
+  >
+    <ng-template let-node pTemplate="default">
+      <div (contextmenu)="onNodeMenuClick($event, node)" class="flex justify-content-between gap-2">
+        <div class="flex align-items-center gap-2">
+          @if (draggable) {
+            <i class="pi pi-arrows-alt cursor-move text-color-secondary"></i>
+          } @else if (node.children?.length > 0) {
+            <i class="pi pi-folder"></i>
+          } @else {
+            <i class="pi pi-file"></i>
+          }
+          <a
+            [href]="projectCache.selectedLang() === 'en' ? `https://www.canada.ca/${node.data.path.en}` : `https://www.canada.ca/${node.data.path.fr}`"
+            [innerHTML]="getH1Display(node)"
+            (click)="onNodeClick($event)"
+            class="ia-label cursor-help"
+            target="_blank"
+          ></a>
+        </div>
+        <p-button (onClick)="onNodeMenuClick($event, node)" icon="pi pi-ellipsis-h" text />
+      </div>
+    </ng-template>
+  </p-tree>
+}
 
 <p-dialog [(visible)]="editNode" [header]="selectedNode?.data?.prototype?.[currentLanguage]?.h1" [maximizable]="true" [modal]="true" [style]="{ height: '90vh' }" styleClass="w-10">
   @if (selectedNode) {
-    <aida-edit-node [isOpen]="editNode" [node]="selectedNode" (dialogClose)="editNode = false" />
+    <aida-edit-node [initialShowNotes]="showNotes" [isOpen]="editNode" [node]="selectedNode" (dialogClose)="editNode = false" />
   }
 </p-dialog>

@@ -26,12 +26,13 @@ import { SignInBannerComponent } from '../../../components/sign-in/sign-in-banne
 import { SignInButtonComponent } from '../../../components/sign-in/sign-in-button/sign-in-button.component';
 
 import { CollaboratorService } from '../../../services/github/collaborator.service';
-import { ExportGitHubService } from '../../../services/github/export-github.service';
+import { SignInService } from '../../../services/github/sign-in.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { ProjectStorageService } from '../../../services/storage/project-storage.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
 
 import { environment } from '../../../../environments/environment';
+import { AidaLinks } from '../../../common/aidaLinks.config';
 import { ProjectMetadata, ProjectPhase } from '../../../common/data.model';
 import { TooltipDirective } from '../../../common/tooltip.directive';
 
@@ -70,10 +71,10 @@ export class SwitchProjectComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly projectState = inject(ProjectStateService);
   protected readonly projectStorageService = inject(ProjectStorageService);
-  protected readonly exportGitHubService = inject(ExportGitHubService);
   protected readonly collaboratorService = inject(CollaboratorService);
   private readonly settingsService = inject(UserSettingsService);
   private readonly confirmationService = inject(ConfirmationService);
+  protected readonly signInService = inject(SignInService);
 
   private readonly router = inject(Router);
   private readonly message = inject(MessageService);
@@ -367,12 +368,12 @@ export class SwitchProjectComponent implements OnInit {
       }
     } finally {
       this.loadingKey = null;
-      this.router.navigate(['/']);
+      this.router.navigate([AidaLinks.Home]);
     }
   }
 
   protected async newProject() {
-    this.router.navigate(['/project/new']);
+    this.router.navigate([AidaLinks.NewProject]);
   }
 
   protected async saveProject() {

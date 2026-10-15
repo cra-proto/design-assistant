@@ -746,6 +746,9 @@ export class FetchService {
         const currentLang = this.translate.currentLang()?.startsWith('fr') ? '&lang=FR' : '';
         return `https://cra-arc.alpha.canada.ca/en/pages?url=https://www.canada.ca/${path}${currentLang}`;
       }
+      case 'aida': {
+        return `${environment.aida}/import-page?url=https://www.canada.ca/${path}`;
+      }
       default:
         return `https://www.canada.ca/${path}`;
     }

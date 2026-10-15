@@ -798,36 +798,38 @@
           }
         </div>
       } @else if (node().data?.notes) {
-        <div class="flex flex-column gap-1 mt-3">
-          <p-iftalabel>
-            <textarea
-              id="issue"
-              [(ngModel)]="node().data.notes.issue"
-              (ngModelChange)="markChanges()"
-              class="secondary-outline min-h-6rem"
-              autoResize="true"
-              fluid
-              pTextarea
-              rows="3"
-              variant="outlined"
-            ></textarea>
-            <label for="issue">{{ 'inventory.header.issue' | translate }}</label>
-          </p-iftalabel>
-          <p-iftalabel>
-            <textarea
-              id="solution"
-              [(ngModel)]="node().data.notes.solution"
-              (ngModelChange)="markChanges()"
-              class="secondary-outline min-h-6rem"
-              autoResize="true"
-              fluid
-              pTextarea
-              rows="3"
-              variant="outlined"
-            ></textarea>
-            <label for="solution">{{ 'inventory.header.solution' | translate }}</label>
-          </p-iftalabel>
-        </div>
+        <p-fieldset [legend]="'editNode.notes' | translate" class="flex-1">
+          <div class="flex flex-column gap-1">
+            <p-iftalabel>
+              <textarea
+                id="issue"
+                [(ngModel)]="node().data.notes.issue"
+                (ngModelChange)="markChanges()"
+                class="secondary-outline min-h-6rem"
+                autoResize="true"
+                fluid
+                pTextarea
+                rows="3"
+                variant="outlined"
+              ></textarea>
+              <label for="issue">{{ 'inventory.header.issue' | translate }}</label>
+            </p-iftalabel>
+            <p-iftalabel>
+              <textarea
+                id="solution"
+                [(ngModel)]="node().data.notes.solution"
+                (ngModelChange)="markChanges()"
+                class="secondary-outline min-h-6rem"
+                autoResize="true"
+                fluid
+                pTextarea
+                rows="3"
+                variant="outlined"
+              ></textarea>
+              <label for="solution">{{ 'inventory.header.solution' | translate }}</label>
+            </p-iftalabel>
+          </div>
+        </p-fieldset>
       }
     </div>
 

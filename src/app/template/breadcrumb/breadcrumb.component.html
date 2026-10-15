@@ -10,18 +10,7 @@
     @if (projectDisplay.tagLabel) {
       <p-tag [icon]="projectDisplay.tagIcon" [pTooltip]="projectDisplay.tagTooltip" [severity]="projectDisplay.tagSeverity" [value]="projectDisplay.tagLabel" tooltipPosition="left" />
     }
-    <a
-      [ngClass]="isEditActive() ? ['bg-primary-50', 'text-primary-500'] : ['surface-card', 'text-color-secondary']"
-      (click)="menu.toggle($event)"
-      (keydown.enter)="menu.toggle($event)"
-      class="no-underline border-round-bottom-xl cursor-pointer hover:bg-primary-50 hover:text-primary-500"
-      tabindex="0"
-    >
-      <div class="border-1 border-top-none border-round-bottom-xl border-dashed surface-border py-1 px-3">
-        <i [class]="'text-primary font-semibold mr-1 ' + projectDisplay.icon" [pTooltip]="projectDisplay.iconTooltip" tooltipPosition="left"></i>
-        <span class="text-sm">{{ projectDisplay.projectLabel }}</span>
-      </div>
-    </a>
+    <p-button [label]="'project._nav.edit' | translate" (onClick)="menu.toggle($event)" icon="pi pi-angle-down" iconPos="right" size="small" styleClass="border-noround-top border-round-bottom-xl" />
   </div>
 }
 
@@ -41,19 +30,9 @@
       </ng-template>
     </p-breadcrumb>
   </div>
+  @if (projectDisplay.projectLabel && isProjectRoute()) {
+    <p class="dbl-h1">{{ projectDisplay.projectLabel }}</p>
+  }
 }
 
-<!--Menu-->
-<p-menu [model]="items" [popup]="true" #menu>
-  <ng-template #submenuheader let-item>
-    <span class="text-primary font-bold">{{ item.label | translate }}</span>
-  </ng-template>
-  <ng-template #item let-item>
-    <a class="p-menu-item-link">
-      <i [class]="item.icon"></i>
-      <span>{{ item.label | translate }}</span>
-    </a>
-  </ng-template>
-</p-menu>
-
-<p-confirmdialog key="unlock" position="topright" />
+<aida-project-menu #menu />

@@ -3,53 +3,52 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRouteSnapshot, isActive, NavigationEnd, Router, RouterLink } from '@angular/router';
 
-import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { filter, map, startWith } from 'rxjs/operators';
 
-import { ConfirmationService, MenuItem } from 'primeng/api';
+import { MenuItem } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
+
+import { ProjectMenuComponent } from '../../components/project-menu/project-menu.component';
 
 import { CollaboratorService } from '../../services/github/collaborator.service';
 import { ProjectStateService } from '../../services/project-state.service';
 
 import { environment } from '../../../environments/environment';
+import { AidaLinks } from '../../common/aidaLinks.config';
 
-const HOME: MenuItem = { label: 'common.home', route: '/', icon: 'pi pi-home' };
-const PROJECT: MenuItem = { label: 'nav.project', route: '/project' };
-const TASKS: MenuItem = { label: 'nav.tasks', route: '/tasks' };
-const STANDALONE: MenuItem = { label: 'standalone._title', route: '/standalone' };
-const DEV: MenuItem = { label: 'dev._title', route: '/dev' };
+const HOME: MenuItem = { label: 'home._nav', route: AidaLinks.Home, icon: 'pi pi-home' };
+const DASHBOARD: MenuItem = { label: 'dashboard._title', route: AidaLinks.ProjectDashboard };
+const STANDALONE: MenuItem = { label: 'standalone._title', route: AidaLinks.Standalone };
+const DEV: MenuItem = { label: 'dev._title', route: AidaLinks.Dev };
 
 const BREADCRUMB_ANCESTORS: Record<string, MenuItem[]> = {
   home: [HOME],
-  'home.project': [HOME, PROJECT],
-  'home.tasks': [HOME, TASKS],
-  standalone: [STANDALONE],
-  dev: [DEV],
+  dashboard: [HOME, DASHBOARD],
+  standalone: [HOME, STANDALONE],
+  dev: [HOME, DEV],
 };
 
 @Component({
   selector: 'aida-breadcrumb',
-  imports: [CommonModule, RouterLink, TranslatePipe, BreadcrumbModule, ConfirmDialogModule, MenuModule, TagModule, TooltipModule],
+  imports: [CommonModule, RouterLink, TranslatePipe, BreadcrumbModule, ButtonModule, MenuModule, TagModule, TooltipModule, ProjectMenuComponent],
   templateUrl: './breadcrumb.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BreadcrumbComponent {
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
-  private readonly confirmationService = inject(ConfirmationService);
   private readonly projectState = inject(ProjectStateService);
   private readonly collaboratorService = inject(CollaboratorService);
 
   protected readonly production = environment.production;
   protected readonly sandbox = environment.sandbox;
-  protected readonly isEditActive = isActive('/project/edit', this.router);
+  protected readonly isEditActive = isActive(AidaLinks.ProjectEdit, this.router);
 
   protected readonly breadcrumbs = toSignal(
     this.router.events.pipe(
@@ -84,9 +83,8 @@ export class BreadcrumbComponent {
 
   // Check route information to determine if global project banner should show
   private readonly matchOptions = { paths: 'subset', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' } as const;
-  private readonly isProjectActive = isActive('/project', this.router, this.matchOptions);
-  private readonly isTasksActive = isActive('/tasks', this.router, this.matchOptions);
-  protected readonly isProjectRoute = computed(() => this.isProjectActive() || this.isTasksActive());
+  private readonly isProjectActive = isActive(AidaLinks.ProjectDashboard, this.router, this.matchOptions);
+  protected readonly isProjectRoute = computed(() => this.isProjectActive());
 
   get projectDisplay() {
     const project = this.projectState.getProject();
@@ -115,74 +113,5 @@ export class BreadcrumbComponent {
     const lockedSeverity = isLocked === 'byMe' ? ('secondary' as const) : isLocked ? ('danger' as const) : undefined;
 
     return { projectLabel, icon, iconTooltip, tagLabel, tagTooltip, tagSeverity, tagIcon, lockedLabel, lockedSeverity };
-  }
-
-  protected get items(): MenuItem[] {
-    const { isSignedIn, isCollaborator, isLocked } = this.collaboratorService.getUploadAccessInfo(this.projectState.getProject());
-    const dropdownOptions = [
-      {
-        label: this.translate.instant('project.global.myProject'),
-        items: [
-          {
-            label: this.translate.instant('project._nav.edit'),
-            icon: 'pi pi-pencil',
-            command: () => {
-              this.router.navigate(['/project/edit']);
-            },
-          },
-        ],
-      },
-    ];
-    if (isSignedIn && isCollaborator) {
-      if (!isLocked && this.projectState.getProject().storageType === 'cloud') {
-        dropdownOptions[0].items.push({
-          label: this.translate.instant('project.global.lockProject'),
-          icon: 'pi pi-lock',
-          command: () => {
-            this.projectState.setLockedBy();
-          },
-        });
-      } else if (isLocked) {
-        dropdownOptions[0].items.push({
-          label: this.translate.instant('project.global.unlockProject'),
-          icon: 'pi pi-unlock',
-          command: () => {
-            this.unlockProject(isLocked);
-          },
-        });
-      }
-    }
-
-    return dropdownOptions;
-  }
-
-  private unlockProject(user: string) {
-    if (user === 'byMe') {
-      this.projectState.removeLockedBy();
-    } else {
-      this.confirmationService.confirm({
-        key: 'unlock',
-        message: this.translate.instant('project.global.unlockMessage', { user: user }),
-        header: this.translate.instant('project.global.unlockHeader'),
-        icon: 'pi pi-exclamation-circle text-red-500',
-        rejectButtonProps: {
-          label: this.translate.instant('common.cancel'),
-          severity: 'secondary',
-          outlined: true,
-          styleClass: 'secondary-outline',
-        },
-        acceptButtonProps: {
-          label: this.translate.instant('common.unlock'),
-          severity: 'danger',
-        },
-        accept: () => {
-          this.projectState.removeLockedBy();
-        },
-      });
-    }
-  }
-
-  markForTranslation() {
-    marker('common.home');
   }
 }

@@ -31,12 +31,13 @@ export class GetChildPagesService {
   public readonly searchProgress = signal<SearchProgress | null>(null);
 
   //Pages to skip children when building IA chart
-  private readonly skipFormsAndPubs = new Set<string>([
+  public readonly skipFormsAndPubs = new Set<string>([
     'https://www.canada.ca/en/revenue-agency/services/forms-publications/forms.html',
     'https://www.canada.ca/fr/agence-revenu/services/formulaires-publications/formulaires.html',
     'https://www.canada.ca/en/revenue-agency/services/forms-publications/publications.html',
     'https://www.canada.ca/fr/agence-revenu/services/formulaires-publications/publications.html',
   ]);
+  public readonly PAGE_LIMIT = 10;
 
   public async findChildren(startingLinks: Set<string>, depth: number): Promise<string[]> {
     if (depth < 1) return [];
@@ -50,10 +51,12 @@ export class GetChildPagesService {
     await new Promise((resolve) => setTimeout(resolve, 100)); // Small delay to allow UI updates
     const allLinks: string[] = [];
     for (const url of startingLinks) {
+      const limited = this.skipFormsAndPubs.has(url);
       try {
         const doc = await this.fetchService.fetchContent(url, 'prod', 3, 50, false);
         const links = this.fetchService.getLinks(doc, url);
-        allLinks.push(...links);
+        const limitedLinks = limited ? links.slice(0, this.PAGE_LIMIT) : links;
+        allLinks.push(...limitedLinks);
       } catch (error) {
         console.warn(`Failed to fetch project URL ${url}: ${error}`);
       }
@@ -75,10 +78,12 @@ export class GetChildPagesService {
       await new Promise((resolve) => setTimeout(resolve, 100)); // Small delay to allow UI updates
 
       for (const url of currentDepthUrls) {
+        const limited = this.skipFormsAndPubs.has(url);
         try {
           const { doc, finalUrl } = await this.fetchService.fetchContentAndStatus(url, 'prod', 3, 50, false);
           const breadcrumbs = this.fetchService.getBreadcrumb(doc, finalUrl);
           const links = this.fetchService.getLinks(doc, finalUrl);
+          const limitedLinks = limited ? links.slice(0, this.PAGE_LIMIT) : links;
 
           let foundAncestor = false;
 
@@ -89,7 +94,7 @@ export class GetChildPagesService {
               addToProject.push({ url: finalUrl, depthFromInScope: i });
               foundAncestor = true;
               if (i < depth) {
-                nextDepthUrls.push(...links);
+                nextDepthUrls.push(...limitedLinks);
               }
               break;
             }
@@ -108,7 +113,7 @@ export class GetChildPagesService {
                 foundAncestor = true;
 
                 if (pageDepth < depth) {
-                  nextDepthUrls.push(...links);
+                  nextDepthUrls.push(...limitedLinks);
                 }
                 break;
               }

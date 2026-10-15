@@ -1,4 +1,13 @@
-<p-button [label]="'export._title' | translate" (onClick)="menu.toggle($event)" icon="pi pi-file-export" outlined size="small" styleClass="secondary-outline w-full white-space-nowrap" />
+<p-button
+  [label]="'export._title' | translate"
+  (onClick)="menu.toggle($event)"
+  icon="pi pi-angle-down"
+  iconClass="flex justify-content-end"
+  iconPos="right"
+  outlined
+  size="small"
+  styleClass="secondary-outline w-full white-space-nowrap"
+/>
 <p-menu [model]="exportItems" [popup]="true" #menu appendTo="body">
   <ng-template #item let-item>
     <a class="p-menu-item-link">

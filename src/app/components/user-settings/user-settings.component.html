@@ -1,4 +1,7 @@
 <div class="flex flex-column gap-2">
+  @if (mode() === 'all') {
+    {{ 'settings.description' | translate }}
+  }
   @if (mode() === 'language' || mode() === 'all') {
     <div class="flex flex-column border-round p-1 text-color-secondary hover:surface-100 hover:text-primary">
       <span class="text-xs my-1">{{ 'settings.language' | translate }}</span>
@@ -55,7 +58,7 @@
         }
       </div>
     </div>
-    <!--Token Help Dialog-->
+    <!--Version availability help Dialog-->
     <p-dialog
       [(visible)]="showVersionHelp"
       [appendTo]="'body'"
@@ -78,6 +81,12 @@
           <ng-container *ngTemplateOutlet="sourceList; context: { showPreview: false }" />
         </div>
       </div>
+
+      @defer {
+        <h2>{{ 'settings.relatedTools' | translate }}</h2>
+        <aida-doormats [headingLevel]="'h3'" [keys]="versionDoormats" [style]="'topic'" />
+      }
+
       <!--Source list template-->
       <ng-template #sourceList let-showPreview="showPreview">
         <ul>
@@ -116,6 +125,62 @@
           }
         </ul>
       </ng-template>
+    </p-dialog>
+  }
+  @if (mode() === 'autoChildren' || mode() === 'all') {
+    <div class="flex flex-column border-round p-1 text-color-secondary hover:surface-100 hover:text-primary">
+      <p-button
+        [label]="'settings.childPages' | translate"
+        [pTooltip]="'settings.childPages.tooltip' | translate"
+        (click)="showChildrenHelp = true"
+        icon="pi pi-question-circle"
+        iconPos="right"
+        severity="secondary"
+        size="small"
+        styleClass="p-0 my-1 hover:text-primary"
+        text
+        tooltipPosition="top"
+        tooltipStyleClass="white-space-nowrap"
+      />
+      <p-selectbutton
+        [allowEmpty]="false"
+        [ngModel]="settingsService.autoAddChildren()"
+        [options]="childPagesOptions"
+        [unselectable]="true"
+        (ngModelChange)="settingsService.setAutoAddChildren($event)"
+        class="mb-0"
+        optionLabel="label"
+        optionValue="value"
+      >
+        <ng-template let-item pTemplate="item">
+          {{ item.label }}
+        </ng-template>
+      </p-selectbutton>
+    </div>
+    <!--Toggle how AIDA adds children dialog-->
+    <p-dialog
+      [(visible)]="showChildrenHelp"
+      [appendTo]="'body'"
+      [breakpoints]="{ '1199px': '75vw', '575': '90vw' }"
+      [modal]="true"
+      [style]="{ width: '50vw' }"
+      header="{{ 'settings.childPages.tooltip' | translate }}"
+    >
+      @for (paragraph of ('settings.childPages.help.p1' | translate).split('|'); track paragraph; let first = $first) {
+        <p [class.mt-0]="$first">{{ paragraph }}</p>
+      }
+      <ul>
+        @for (listItem of ('settings.childPages.help.l1' | translate).split('|'); track listItem; let first = $first) {
+          <li [class.mt-0]="$first">{{ listItem }}</li>
+        }
+      </ul>
+      @for (paragraph of ('settings.childPages.help.p2' | translate).split('|'); track paragraph; let first = $first) {
+        <p [class.mt-0]="$first">{{ paragraph }}</p>
+      }
+      @defer {
+        <h2>{{ 'settings.relatedTools' | translate }}</h2>
+        <aida-doormats [headingLevel]="'h2'" [keys]="childPagesDoormats" [style]="'topic'" />
+      }
     </p-dialog>
   }
 </div>

@@ -18,6 +18,7 @@ import { SignInButtonComponent } from '../sign-in/sign-in-button/sign-in-button.
 import { CollaboratorService } from '../../services/github/collaborator.service';
 import { ProjectStateService } from '../../services/project-state.service';
 
+import { AidaLinks } from '../../common/aidaLinks.config';
 import { ProjectPhase } from '../../common/data.model';
 
 @Component({
@@ -33,6 +34,7 @@ export class SetupProjectComponent {
   private readonly translate = inject(TranslateService);
 
   public readonly mode = input<'name' | undefined>(undefined);
+  public readonly noHeader = input<boolean>(false);
 
   constructor() {
     // Refresh projectName when there are changes to repo name (for initial sync fxn)
@@ -63,8 +65,8 @@ export class SetupProjectComponent {
       .replace(/[']{2,}/g, "'");
     this.projectState.setProjectName(this.projectName);
     // Manage routes for named projects
-    if (this.router.url === '/project/new' && this.projectName) {
-      this.router.navigate(['/project/edit']);
+    if (this.router.url === AidaLinks.NewProject && this.projectName) {
+      this.router.navigate([AidaLinks.ProjectSettings]);
     }
   }
 

@@ -73,6 +73,24 @@
 
   <!-- Niche use-cases ----------------------------------------------->
 
+  <!--Choose IA display-->
+  @if (showDisplayIA()) {
+    <div class="flex flex-column hover:text-primary">
+      <label class="text-xs font-semibold xl:my-1" for="displayIA">{{ 'common.display' | translate }}</label>
+      <p-selectbutton
+        id="displayIA"
+        [ngModel]="projectCache.selectedDisplayIA()"
+        [options]="displayIAOptions"
+        (ngModelChange)="projectCache.selectedDisplayIA.set($event)"
+        allowEmpty="false"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        styleClass="secondary-outline white-space-nowrap text-primary max-h-3rem"
+      />
+    </div>
+  }
+
   <!--Choose IA view-->
   @if (showViewIA()) {
     <div class="flex flex-column hover:text-primary">

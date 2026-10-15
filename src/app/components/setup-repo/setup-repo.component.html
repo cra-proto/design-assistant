@@ -1,4 +1,6 @@
-<h2 class="text-2xl my-1">{{ 'project.repo._title' | translate }}</h2>
+@if (!noHeader()) {
+  <h2 class="text-2xl my-1">{{ 'project.repo._title' | translate }}</h2>
+}
 <div class="flex flex-column gap-2">
   <!--Repo Storage-->
   <p-selectbutton [(ngModel)]="projectRepo" [options]="repoOptions" [unselectable]="true" optionValue="value" styleClass="w-full">

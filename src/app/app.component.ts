@@ -12,7 +12,7 @@ import { HeaderComponent } from './template/header/header.component';
 import { SidebarComponent } from './template/sidebar/sidebar.component';
 
 import { CollaboratorService } from './services/github/collaborator.service';
-import { ExportGitHubService } from './services/github/export-github.service';
+import { SignInService } from './services/github/sign-in.service';
 import { ProjectStateService } from './services/project-state.service';
 import { CloudStorageService } from './services/storage/cloud-storage.service';
 import { ProjectStorageService } from './services/storage/project-storage.service';
@@ -36,7 +36,7 @@ export class AppComponent implements OnInit {
   private projectStorageService = inject(ProjectStorageService);
   private cloudStorageService = inject(CloudStorageService);
   private projectState = inject(ProjectStateService);
-  private exportGitHubService = inject(ExportGitHubService);
+  private readonly signInService = inject(SignInService);
   private collaboratorService = inject(CollaboratorService);
   private settingsService = inject(UserSettingsService);
   private usageService = inject(UsageService);
@@ -44,7 +44,7 @@ export class AppComponent implements OnInit {
   constructor() {
     // Auto-add current user as collaborator when they sign in
     effect(() => {
-      const user = this.exportGitHubService.user();
+      const user = this.signInService.user();
       if (user) {
         const tempUserId = this.settingsService.userId();
         this.settingsService.setUserId(user.id.toString());

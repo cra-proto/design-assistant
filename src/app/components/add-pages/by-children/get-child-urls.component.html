@@ -1,5 +1,6 @@
 <h3>{{ 'findPages.findChildren._title' | translate }}</h3>
 <p>{{ 'findPages.findChildren.description' | translate }}</p>
+<p>{{ 'findPages.findChildren.description2' | translate }}</p>
 <div class="flex flex-row gap-1">
   <p-iftalabel>
     <p-inputnumber [(ngModel)]="getChildPagesService.depth" [max]="6" [min]="0" [showButtons]="true" class="secondary-outline" inputId="depth" mode="decimal" variant="outlined" />
@@ -39,5 +40,5 @@
     }
   </div>
 } @else if (selectedChildUrlsCount() > 0) {
-  <p>{{ 'findPages.task.noUrls' | translate }}</p>
+  <p>{{ 'findPages.findChildren.noUrls' | translate }}</p>
 }

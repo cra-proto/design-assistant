@@ -59,6 +59,9 @@ export class ProjectCacheService {
   /** Signal for the IA diagram view. Defaults to changes. */
   public readonly selectedViewIA = signal<'baseline' | 'changes' | 'final'>('changes');
 
+  /** Signal for the IA diagram display. Defaults to tree. */
+  public readonly selectedDisplayIA = signal<'tree' | 'list'>('tree');
+
   /** Signal for the view URLs drawer. Defaults to url. */
   public readonly selectedDisplay = signal<'url' | 'title'>('url');
 

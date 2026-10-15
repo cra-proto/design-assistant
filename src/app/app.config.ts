@@ -23,7 +23,7 @@ registerLocaleData(localeEn);
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled' }), withComponentInputBinding()),
+    provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }), withComponentInputBinding()),
     { provide: TitleStrategy, useClass: CustomTitleStrategy },
     provideHttpClient(),
     provideTranslateService({

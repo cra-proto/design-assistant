@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, forwardRef, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
@@ -13,14 +13,17 @@ import { SelectModule } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { TooltipModule } from 'primeng/tooltip';
 
+import { DoormatsComponent } from '../doormats/doormats.component';
+import type { DoormatKey } from '../doormats/doormats.component';
+
 import { ProjectStateService } from '../../services/project-state.service';
 import { ColorScheme, UserSettingsService } from '../../services/user-settings.service';
 
-export type SettingsMode = 'all' | 'language' | 'theme' | 'versions';
+export type SettingsMode = 'all' | 'language' | 'theme' | 'versions' | 'autoChildren';
 
 @Component({
   selector: 'aida-user-settings',
-  imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, CheckboxModule, DialogModule, SelectButtonModule, SelectModule, TooltipModule],
+  imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, CheckboxModule, DialogModule, SelectButtonModule, SelectModule, TooltipModule, forwardRef(() => DoormatsComponent)],
   templateUrl: './user-settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -100,7 +103,23 @@ export class UserSettingsComponent {
 
   protected showVersionHelp = false;
 
+  protected versionDoormats: DoormatKey[] = ['exportPages', 'editPages', 'compare'];
+
+  // Auto-add child pages
+  protected get childPagesOptions(): MenuItem[] {
+    return [
+      { label: this.translate.instant('settings.childPages.promptToAdd'), value: false },
+      { label: this.translate.instant('settings.childPages.autoAdd'), value: true },
+    ];
+  }
+  protected showChildrenHelp = false;
+
+  protected childPagesDoormats: DoormatKey[] = ['iaDiagram', 'addPages'];
+
   private markForTranslation() {
     marker('settings.versions.help');
+    marker('settings.childPages.help.l1');
+    marker('settings.childPages.help.p1');
+    marker('settings.childPages.help.p2');
   }
 }

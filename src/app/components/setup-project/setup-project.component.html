@@ -1,5 +1,7 @@
 @if (!mode()) {
-  <h2 class="text-2xl my-1">{{ 'project.setup._title' | translate }}</h2>
+  @if (!noHeader()) {
+    <h2 class="text-2xl my-1">{{ 'project.setup._title' | translate }}</h2>
+  }
   <div class="flex flex-column gap-2">
     <!--Name-->
     <ng-container *ngTemplateOutlet="name" />

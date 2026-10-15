@@ -42,10 +42,13 @@ export class UserSettingsService {
   public readonly userId = signal<string>(this.getOrCreateUserId());
 
   //Version
-  public readonly includePreview = signal<boolean>(localStorage.getItem('includePreview') === 'true' ? true : false);
+  public readonly includePreview = signal<boolean>(localStorage.getItem('includePreview') === 'true');
   public readonly includeGitHub = signal<boolean>(false);
   public readonly includeLocal = signal<boolean>(false);
   public readonly includeBaseline = signal<boolean>(false);
+
+  //Auto-add preference
+  public readonly autoAddChildren = signal<boolean>(localStorage.getItem('autoAddChildren') === 'true');
 
   constructor() {
     // Language
@@ -155,5 +158,11 @@ export class UserSettingsService {
   public setUserId(id: string): void {
     localStorage.setItem('userId', id);
     this.userId.set(id);
+  }
+
+  // Auto-add children
+  setAutoAddChildren(value: boolean) {
+    localStorage.setItem('autoAddChildren', value.toString());
+    this.autoAddChildren.set(value);
   }
 }

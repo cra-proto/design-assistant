@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, effect, inject, input, OnInit } fro
 import { FormsModule } from '@angular/forms';
 
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { AutoCompleteCompleteEvent, AutoCompleteModule, AutoCompleteSelectEvent } from 'primeng/autocomplete';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -13,7 +13,7 @@ import { KeyFilterModule } from 'primeng/keyfilter';
 import { MessageModule } from 'primeng/message';
 import { SelectButtonModule } from 'primeng/selectbutton';
 
-import { ExportGitHubService } from '../../services/github/export-github.service';
+import { SignInService } from '../../services/github/sign-in.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { UserSettingsService } from '../../services/user-settings.service';
 
@@ -29,13 +29,13 @@ type RepoMode = 'default' | 'baseline';
 })
 export class SetupRepoComponent implements OnInit {
   private projectState = inject(ProjectStateService);
-  private exportGitHubService = inject(ExportGitHubService);
+  private readonly signInService = inject(SignInService);
   private settingsService = inject(UserSettingsService);
-  private translate = inject(TranslateService);
 
   defaultOrg = environment.defaultOrg;
 
   public readonly mode = input<RepoMode>('default');
+  public readonly noHeader = input<boolean>(false);
 
   //Local or GitHub content repository
   get projectRepo(): 'local' | 'github' {
@@ -154,7 +154,7 @@ export class SetupRepoComponent implements OnInit {
     this.repos = [];
 
     try {
-      const repos = await this.exportGitHubService.getRepoList(this.gitHubOwner);
+      const repos = await this.signInService.getRepoList(this.gitHubOwner);
       this.repos = repos.map((r) => r.name);
     } catch (error) {
       if ((error as Error).message?.includes('404')) {

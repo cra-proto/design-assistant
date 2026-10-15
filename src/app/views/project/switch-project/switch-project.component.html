@@ -2,7 +2,7 @@
 <p>{{ 'switch.description' | translate }}{{ 'switch.description2' | translate }}</p>
 
 <!-- Authentication Banner -->
-@if (!exportGitHubService.user()) {
+@if (!signInService.user()) {
   <p-message severity="info" styleClass="mb-2 sticky top-0 z-2">
     <div class="flex align-items-center gap-2">
       <i class="pi pi-info-circle font-bold"></i>

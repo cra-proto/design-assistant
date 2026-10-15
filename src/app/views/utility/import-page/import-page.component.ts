@@ -1,0 +1,91 @@
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
+import { TranslatePipe } from '@ngx-translate/core';
+
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+
+import { AddUrlsService } from '../../../components/add-pages/by-url/add-urls.service';
+import { ProjectStateService } from '../../../services/project-state.service';
+import { ProjectStorageService } from '../../../services/storage/project-storage.service';
+
+import { AidaLinks } from '../../../common/aidaLinks.config';
+
+@Component({
+  selector: 'aida-import-page',
+  imports: [RouterModule, TranslatePipe, ProgressSpinnerModule],
+  templateUrl: 'import-page.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class ImportPageComponent implements OnInit {
+  router = inject(Router);
+  route = inject(ActivatedRoute);
+  private projectState = inject(ProjectStateService);
+  private projectStorageService = inject(ProjectStorageService);
+  private addUrlsService = inject(AddUrlsService);
+
+  isLoading = false;
+
+  markForTranslation() {
+    marker('importPage._title');
+  }
+
+  async ngOnInit(): Promise<void> {
+    this.isLoading = true;
+
+    try {
+      this.route.queryParams.subscribe((params) => {
+        const url = params['url']?.trim();
+        const title = params['title']?.replaceAll('- Canada.ca', '').trim();
+
+        // Check if params exist
+        if (!url) {
+          console.warn('Missing URL parameter. Redirecting to new project.');
+          this.router.navigate([AidaLinks.NewProject]);
+          return;
+        }
+
+        try {
+          const parsedUrl = new URL(url);
+          if (parsedUrl.hostname === 'canada.ca' || parsedUrl.hostname === 'www.canada.ca') {
+            //Add to "Add pages" input
+            this.addUrlsService.setUrlState({
+              rawUrls: parsedUrl.href,
+            });
+            //Set project name if unnamed
+            if (title && !this.projectState.getProject().projectName) {
+              this.projectState.setProjectName(title);
+            }
+            //Set highlight signal
+            this.addUrlsService.setHighlight(true);
+            this.router.navigate([AidaLinks.ProjectSettings]);
+            return;
+          } else {
+            const active = this.projectStorageService.getActiveProject('session');
+            if (active) {
+              console.warn('Invalid URL domain. Skipping new project creation and redirecting user to dashboard for previously opened project.');
+              this.router.navigate([AidaLinks.ProjectDashboard]);
+              return;
+            } else {
+              console.warn('Invalid URL domain. Redirecting user to create a new project.');
+              this.router.navigate([AidaLinks.NewProject]);
+              return;
+            }
+          }
+        } catch (urlError) {
+          // Invalid URL format
+          console.warn(`Invalid URL format. Redirecting user. ${urlError}`);
+          this.router.navigate([AidaLinks.ProjectDashboard]);
+          return;
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      this.router.navigate([AidaLinks.ProjectSettings]);
+      return;
+    } finally {
+      this.isLoading = false;
+    }
+  }
+}

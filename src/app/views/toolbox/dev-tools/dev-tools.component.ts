@@ -38,6 +38,7 @@ export class DevToolsComponent {
     marker('findPages._');
     marker('github._');
     marker('help._');
+    marker('home._');
     marker('iaDiagram._');
     marker('importPage._');
     marker('invalidUrls._');
@@ -64,5 +65,7 @@ export class DevToolsComponent {
     marker('common.edited');
     marker('common.error');
     marker('common.pending');
+    marker('common.new');
+    marker('common.problems');
   }
 }

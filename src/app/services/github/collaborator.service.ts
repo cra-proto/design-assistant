@@ -2,14 +2,14 @@ import { inject, Injectable } from '@angular/core';
 
 import { ProjectStorageService } from '../storage/project-storage.service';
 import { UserSettingsService } from '../user-settings.service';
-import { ExportGitHubService } from './export-github.service';
+import { SignInService } from './sign-in.service';
 
 import { GitHubUser, Project, ProjectMetadata } from '../../common/data.model';
 
 @Injectable({ providedIn: 'root' })
 export class CollaboratorService {
   private projectStorageService = inject(ProjectStorageService);
-  private exportGitHubService = inject(ExportGitHubService);
+  private readonly signInService = inject(SignInService);
   private settingsService = inject(UserSettingsService);
 
   /**
@@ -18,7 +18,7 @@ export class CollaboratorService {
    * Accepts an optional user param to check if signed-out user is a collab
    */
   canEditProject(project: ProjectMetadata | Project, user?: number): boolean {
-    const currentUser = this.exportGitHubService.user(); // OAuth or PAT
+    const currentUser = this.signInService.user(); // OAuth or PAT
     if (currentUser) {
       return project.collaborators.some((c) => {
         if (c.id != null && currentUser.id != null) {
@@ -39,14 +39,14 @@ export class CollaboratorService {
     const hasCollaborators = project.collaborators.length > 0;
     const userId = Number.isNaN(Number(this.settingsService.userId())) ? undefined : Number(this.settingsService.userId());
     const isCollaborator = this.canEditProject(project, userId);
-    const isSignedIn = !!this.exportGitHubService.user();
-    const isLocked = project.lockedBy && project.lockedBy === this.exportGitHubService.user()?.login ? 'byMe' : project.lockedBy ? project.lockedBy : undefined;
+    const isSignedIn = !!this.signInService.user();
+    const isLocked = project.lockedBy && project.lockedBy === this.signInService.user()?.login ? 'byMe' : project.lockedBy ? project.lockedBy : undefined;
     return { isSignedIn, isCollaborator, hasCollaborators, isLocked };
   }
 
   // Get current user to add to new projects
   getInitialCollaborators(): GitHubUser[] {
-    const currentUser = this.exportGitHubService.user();
+    const currentUser = this.signInService.user();
     return currentUser ? [currentUser] : [];
   }
 
@@ -186,7 +186,7 @@ export class CollaboratorService {
 
   // Get list of org members (for adding as collaborators)
   public async getOrgMembers(org: string): Promise<GitHubUser[]> {
-    const token = this.exportGitHubService.token();
+    const token = this.signInService.token();
 
     if (!token) {
       console.warn('No GitHub token available');
@@ -224,7 +224,7 @@ export class CollaboratorService {
 
   // Get detailed user information
   public async getUserDetails(username: string): Promise<GitHubUser | null> {
-    const token = this.exportGitHubService.token();
+    const token = this.signInService.token();
 
     if (!token) {
       console.warn('No GitHub token available');
@@ -265,7 +265,7 @@ export class CollaboratorService {
 
   /** Get GitHub login from id */
   public async getLogin(userID: string): Promise<string> {
-    const token = this.exportGitHubService.token();
+    const token = this.signInService.token();
 
     const headers = token
       ? {

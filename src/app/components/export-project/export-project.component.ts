@@ -10,6 +10,8 @@ import { MenuModule } from 'primeng/menu';
 import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
 
+import { AidaLinks } from '../../common/aidaLinks.config';
+
 @Component({
   selector: 'aida-export-project',
   imports: [TranslatePipe, ButtonModule, MenuModule],
@@ -30,7 +32,7 @@ export class ExportProjectComponent {
         command: () => {
           this.projectState.getProject().repoType = 'github';
           this.projectCache.checkLocalStatus();
-          this.router.navigate(['/tasks/export-pages']);
+          this.router.navigate([AidaLinks.ProjectExport]);
         },
       },
       {
@@ -39,7 +41,7 @@ export class ExportProjectComponent {
         command: () => {
           this.projectState.getProject().repoType = 'local';
           this.projectCache.checkLocalStatus();
-          this.router.navigate(['/tasks/export-pages']);
+          this.router.navigate([AidaLinks.ProjectExport]);
         },
       },
       {

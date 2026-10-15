@@ -33,6 +33,7 @@ export class ProjectSettingsComponent {
   public readonly onlyValid = input(false);
 
   public readonly showViewIA = input(false);
+  public readonly showDisplayIA = input(false);
 
   public readonly showDisplay = input(false);
 
@@ -140,7 +141,15 @@ export class ProjectSettingsComponent {
     ];
   }
 
-  //Choose display (for IA diagram)
+  //Choose display type (for IA diagram)
+  protected get displayIAOptions() {
+    return [
+      { label: this.translate.instant('common.display.tree'), value: 'tree' },
+      { label: this.translate.instant('common.display.list'), value: 'list' },
+    ];
+  }
+
+  //Choose display (for view project urls drawer)
   protected get displayOptions() {
     return [
       { label: this.translate.instant('common.display.url'), value: 'url' },

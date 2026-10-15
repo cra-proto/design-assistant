@@ -3,8 +3,8 @@ import { inject, Injectable } from '@angular/core';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 
-import { ExportGitHubService } from '../services/github/export-github.service';
 import { ProjectStateService } from '../services/project-state.service';
+import { SignInService } from './github/sign-in.service';
 
 export interface MailtoContext {
   projectName?: string;
@@ -28,7 +28,7 @@ export interface MailtoContext {
 export class MailtoService {
   private translate = inject(TranslateService);
   private projectState = inject(ProjectStateService);
-  private exportGitHubService = inject(ExportGitHubService);
+  private readonly signInService = inject(SignInService);
 
   markForTranslation() {
     marker('feedback.email.bodyEN');
@@ -46,7 +46,7 @@ export class MailtoService {
       projectSaved: project.lastSaved,
       projectVersion: project.version,
       projectRepo: project.github.repo ? `https://${project.github.owner}.github.io/${project.github.repo}` : '',
-      user: this.exportGitHubService.user()?.login ?? '',
+      user: this.signInService.user()?.login ?? '',
       browser: this.getBrowserInfo(),
       screen: `${window.screen.width}x${window.screen.height}`,
       viewport: `${window.innerWidth}x${window.innerHeight}`,

@@ -17,7 +17,7 @@ import { MessageModule } from 'primeng/message';
 import { TooltipModule } from 'primeng/tooltip';
 
 import { CollaboratorService } from '../../services/github/collaborator.service';
-import { ExportGitHubService } from '../../services/github/export-github.service';
+import { SignInService } from '../../services/github/sign-in.service';
 import { ProjectStateService } from '../../services/project-state.service';
 
 import { GitHubUser } from '../../common/data.model';
@@ -54,12 +54,13 @@ export class AddCollaboratorsComponent {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly projectState = inject(ProjectStateService);
   protected readonly collaboratorService = inject(CollaboratorService);
-  protected readonly exportGitHubService = inject(ExportGitHubService);
+  protected readonly signInService = inject(SignInService);
 
   /** Display modes: list, view, dashboard, or switch */
   public readonly mode = input<CollaboratorMode>('list');
   /** Only used to display collaborators for non-active projects, leave undefined for the active project */
   public readonly collabs = input<GitHubUser[] | null>(null);
+  public readonly noHeader = input<boolean>(false);
 
   protected readonly maxVisibleCollaborators = 5;
 
@@ -68,7 +69,7 @@ export class AddCollaboratorsComponent {
 
   /**  Remove collaborator (with confirmation for removing self) */
   protected removeCollaborator(collab: GitHubUser) {
-    const currentUser = this.exportGitHubService.user();
+    const currentUser = this.signInService.user();
     if (currentUser && collab.id === currentUser.id) {
       this.confirmationService.confirm({
         key: 'collab',
@@ -205,7 +206,7 @@ export class AddCollaboratorsComponent {
     const emails = this.collaboratorService.getCollaboratorEmails(this.collaborators());
     if (emails.length === 0) return '';
     const name = this.projectData().projectName;
-    const user = this.exportGitHubService.user();
+    const user = this.signInService.user();
 
     const subject = this.translate.instant('collaborators.email.requestAccess.subject', { name });
     const bodyEn = this.translate.instant('collaborators.email.requestAccess.bodyEN', { user, name });
