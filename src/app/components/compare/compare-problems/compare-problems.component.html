@@ -1,0 +1,32 @@
+<p-accordion [(value)]="activePanels" [multiple]="true" class="flex flex-column gap-3">
+  @for (tool of tools; track tool.key) {
+    @if (tool.visible || !production) {
+      <p-accordion-panel [value]="tool.key" class="border-1 border-round-lg surface-border">
+        <p-accordion-header>
+          <div class="flex align-items-center gap-2">
+            <span class="material-icons-outlined text-primary text-3xl">{{ tool.icon }}</span>
+            <span [class.text-red-500]="!tool.visible">{{ tool.header }}</span>
+          </div>
+        </p-accordion-header>
+        @if (!isPanelOpen(tool.key)) {
+          <p class="mt-0 ml-4 text-color-secondary">{{ tool.description }}</p>
+        }
+        <p-accordion-content>
+          <ng-container *ngTemplateOutlet="tool.template" />
+        </p-accordion-content>
+      </p-accordion-panel>
+    }
+  }
+</p-accordion>
+
+<ng-template #data>
+  <p>DATA</p>
+</ng-template>
+
+<ng-template #components>
+  <aida-design-components />
+</ng-template>
+
+<ng-template #links>
+  <p>LINKS</p>
+</ng-template>

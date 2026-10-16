@@ -1,72 +1,79 @@
-import { Component, inject } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
-import { marker } from '@colsen1991/ngx-translate-extract-marker';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
-//PrimeNG modules
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
+import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
-import { MenuItem } from 'primeng/api';
 
-//Services
+import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
 
+import { AidaLinks } from '../../common/aidaLinks.config';
+
 @Component({
-    selector: 'aida-export-project',
-    imports: [
-        TranslateModule,
-        ButtonModule, MenuModule
-    ],
-    templateUrl: './export-project.component.html',
-    styles: ``
+  selector: 'aida-export-project',
+  imports: [TranslatePipe, ButtonModule, MenuModule],
+  templateUrl: './export-project.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExportProjectComponent {
-    private projectState = inject(ProjectStateService);
-    private router = inject(Router);
+  private translate = inject(TranslateService);
+  private projectState = inject(ProjectStateService);
+  private projectCache = inject(ProjectCacheService);
+  private router = inject(Router);
 
-    markForTranslation() {
-        marker('export.github');
-        marker('export.csv.inventory');
-        marker('export.csv.tree');
-        marker('export.json');
-    }
-    exportItems: MenuItem[] = [
-        {
-            label: 'export.github',
-            icon: 'pi pi-github',
-            command: () => {
-                this.router.navigate(['/export-github']);
-            },
+  get exportItems(): MenuItem[] {
+    return [
+      {
+        label: this.translate.instant('export.github'),
+        icon: 'pi pi-github',
+        command: () => {
+          this.projectState.getProject().repoType = 'github';
+          this.projectCache.checkLocalStatus();
+          this.router.navigate([AidaLinks.ProjectExport]);
         },
-        {
-            separator: true,
+      },
+      {
+        label: this.translate.instant('export.html'),
+        icon: 'pi pi-link',
+        command: () => {
+          this.projectState.getProject().repoType = 'local';
+          this.projectCache.checkLocalStatus();
+          this.router.navigate([AidaLinks.ProjectExport]);
         },
-        {
-            label: 'export.csv.inventory',
-            icon: 'pi pi-list-check',
-            command: () => {
-                this.projectState.exportTreeAsCsv();
-            },
-            disabled: false,
+      },
+      {
+        separator: true,
+      },
+      {
+        label: this.translate.instant('export.csv.inventory'),
+        icon: 'pi pi-list-check',
+        command: () => {
+          this.projectState.exportTreeAsCsv();
         },
-        {
-            label: 'export.csv.tree',
-            icon: 'pi pi-align-right',
-            command: () => {
-                this.projectState.exportAsTreeCsv()
-            },
-            disabled: false,
+        disabled: false,
+      },
+      {
+        label: this.translate.instant('export.csv.tree'),
+        icon: 'pi pi-align-right',
+        command: () => {
+          this.projectState.exportAsTreeCsv();
         },
-        {
-            separator: true,
+        disabled: false,
+      },
+      {
+        separator: true,
+      },
+      {
+        label: this.translate.instant('export.json'),
+        icon: 'pi pi-code',
+        command: () => {
+          this.projectState.exportProjectAsJson();
         },
-        {
-            label: 'export.json',
-            icon: 'pi pi-code',
-            command: () => {
-                this.projectState.exportProjectAsJson();
-            },
-            disabled: false,
-        },
+        disabled: false,
+      },
     ];
+  }
 }

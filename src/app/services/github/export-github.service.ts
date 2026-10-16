@@ -1,356 +1,115 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
-import { FetchService } from '../fetch.service';
+import { inject, Injectable } from '@angular/core';
 
-import { GitHubAuthService } from './github-auth.service';
-import { GitHubUser } from '../../common/data.model';
 import { TreeNode } from 'primeng/api';
+
+import { FetchService } from '../fetch.service';
+import { HtmlNormalizationService } from '../html-normalization.service';
+import { SignInService } from './sign-in.service';
+
 import { environment } from '../../../environments/environment';
 
 export interface GitHubFileRequest {
   message: string;
   content: string; // convert to base64
   branch?: string;
-  sha?: string;    // needed when overwriting
-}
-
-interface MermaidNode {
-  id: string;
-  h1: string;
-  url: string;
-  inScope: boolean;
-  children: MermaidNode[];
+  sha?: string; // needed when overwriting
 }
 
 @Injectable({ providedIn: 'root' })
 export class ExportGitHubService {
-  private fetchService = inject(FetchService);
-  private authService = inject(GitHubAuthService);
-  templateOrg = environment.templateOrg;
-
-  // Manage GitHub token & user integration from OAuth and PAT
-  token = computed(() =>
-    this.authService.isAuthenticated()
-      ? this.authService.getToken() ?? ""
-      : this.patToken()
-  );
-
-  user = computed(() =>
-    this.authService.isAuthenticated()
-      ? this.authService.user()
-      : this.patUser()
-  );
-
-  // PAT - token (fallback access when OAuth not available)
-  private readonly PAT_STORAGE_KEY = 'github_pat';
-  private readonly PAT_USER_STORAGE_KEY = 'github_pat_user';
-  private patToken = signal<string>(this.loadPAT());
-  private patUser = signal<GitHubUser | null>(this.loadPATUser());
-
-  public get pat(): string {
-    return this.patToken();
-  }
-  public set pat(value: string) {
-    this.patToken.set(value);
-    sessionStorage.setItem(this.PAT_STORAGE_KEY, value);
-  }
-
-  //Note: we do not need get/set for the patUser. It's updated when the token is validated.
-
-  private loadPAT(): string {
-    return sessionStorage.getItem(this.PAT_STORAGE_KEY) ?? "";
-  }
-
-  private loadPATUser(): GitHubUser | null {
-    const stored = sessionStorage.getItem(this.PAT_USER_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : null;
-  }
-
-  public clearPAT(): void {
-    this.patToken.set('');
-    this.patUser.set(null);
-    sessionStorage.removeItem(this.PAT_STORAGE_KEY);
-    sessionStorage.removeItem(this.PAT_USER_STORAGE_KEY);
-  }
-
-  // PAT - user (fallback access when OAuth not available)
-  private mapGitHubUser(patUser: any): GitHubUser {
-    return {
-      login: patUser.login,
-      id: patUser.id,
-      avatar_url: patUser.avatar_url,
-      name: patUser.name,
-      email: patUser.email
-    };
-  }
-
-  // Validate PAT
-  public async validatePAT() {
-    const token = this.pat;
-    console.log('Validating: ' + token);
-    try {
-      // Step 1: Validate token by calling /user endpoint
-      const userResponse = await fetch('https://api.github.com/user', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github+json'
-        }
-      });
-
-      if (!userResponse.ok) {
-        this.clearPAT()
-      }
-      else {
-        const user = await userResponse.json();
-        this.patUser.set(this.mapGitHubUser(user));
-        sessionStorage.setItem(this.PAT_USER_STORAGE_KEY, JSON.stringify(user));
-      }
-    } catch (error) {
-      console.log('Network error validating token')
-    }
-  }
-
-
-  // Validate GitHub token
-  public async validateToken(token: string, owner: string, repo: string): Promise<{ valid: boolean, repoExists?: boolean, hasRepoAccess?: boolean, canCreateRepo?: boolean, showDisclaimer?: boolean, error?: string }> {
-
-    try {
-      // Step 1: Validate token by calling /user endpoint
-      const userResponse = await fetch('https://api.github.com/user', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github+json'
-        }
-      });
-
-      if (!userResponse.ok) {
-        const error = userResponse.status === 401
-          ? 'Invalid or expired token'
-          : `GitHub API error: ${userResponse.status}`;
-        return { valid: false, error };
-      }
-
-      const user = await userResponse.json();
-      //if (!this.authService.isAuthenticated()) {
-      //  this.patUser.set(this.mapGitHubUser(user));
-      //}
-      const tokenScopes = userResponse.headers.get('x-oauth-scopes')?.split(',').map(s => s.trim()) || []; //Will be empty if using PAT
-
-      // Step 2: Check if repo exists (and get permissions if it does)
-      const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github+json'
-        }
-      });
-
-      // Step 3a: Existing repo, check permissions
-      if (repoResponse.ok) {
-        const repoData = await repoResponse.json();
-        let hasWriteAccess = false;
-
-        if (this.authService.isAuthenticated()) {
-          hasWriteAccess = repoData.permissions?.push === true || repoData.permissions?.admin === true;
-        }
-        else {
-          hasWriteAccess = await this.checkWritePermission(token, owner, repo, user.login);
-        }
-        return {
-          valid: true,
-          repoExists: true,
-          hasRepoAccess: hasWriteAccess,
-          showDisclaimer: false
-        };
-      }
-      // Step 3b: New repo, check if user can create
-      else if (repoResponse.status === 404) {
-        let canCreate = false;
-        let showDisclaimer = false;
-
-        if (this.authService.isAuthenticated()) {
-          if (owner === user.login) {
-            canCreate = tokenScopes.includes('repo') || tokenScopes.includes('public_repo');
-          }
-          else {
-            const orgMemberResponse = await fetch(`https://api.github.com/orgs/${owner}/memberships/${user.login}`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/vnd.github+json'
-              }
-            });
-            if (orgMemberResponse.ok) {
-              const memberData = await orgMemberResponse.json();
-              canCreate = memberData.role === 'admin' || memberData.state === 'active';
-            }
-          }
-        } else {
-          // For PATs
-          // Check an existing repo to see if we have 'repo' scope
-          const repoList = await this.getRepoList(owner);
-          if (repoList.length > 0) {
-            const testRepo = repoList[0].name;
-            canCreate = await this.checkWritePermission(token, owner, testRepo, user.login);
-          } else {
-            //Assume access if an org member or personal repo but show disclaimer
-            if (owner === user.login) {
-              canCreate = true;
-              showDisclaimer = true;
-            } else {
-              const orgMemberResponse = await fetch(`https://api.github.com/orgs/${owner}/memberships/${user.login}`, {
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Accept': 'application/vnd.github+json'
-                }
-              });
-              canCreate = orgMemberResponse.ok;
-              showDisclaimer = orgMemberResponse.ok;
-            }
-          }
-        }
-        return {
-          valid: true,
-          repoExists: false,
-          canCreateRepo: canCreate,
-          showDisclaimer: showDisclaimer
-        };
-      }
-      // Step 3c: Other errors
-      else {
-        return { valid: false, error: `Error checking repo: ${repoResponse.status}` };
-      }
-    } catch (error) {
-      return { valid: false, error: 'Network error validating token' };
-    }
-  }
-
-  private async checkWritePermission(token: string, owner: string, repo: string, userLogin: string): Promise<boolean> {
-    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/collaborators/${userLogin}/permission`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github+json'
-      }
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return data.permission === 'admin' || data.permission === 'write';
-    }
-    return false;
-  }
-
-  //TODO: replace this with version from html-normalization service
-  private async formatHtmlWithPrettier(html: string): Promise<string> {
-    if (!(navigator as any).languages) {
-      (navigator as any).languages = ['en']; // fallback locale
-    }
-
-    try {
-      const [{ default: prettier }, parserHtml] = await Promise.all([
-        import('prettier/standalone'),
-        import('prettier/plugins/html'),
-      ]);
-
-      return prettier.format(html, {
-        parser: 'html',
-        plugins: [parserHtml],
-        printWidth: Infinity,
-        tabWidth: 4,
-        useTabs: false,
-        htmlWhitespaceSensitivity: 'css',
-        arrowParens: "always",
-        bracketSameLine: false,
-        bracketSpacing: false,
-        embeddedLanguageFormatting: "auto",
-        endOfLine: "crlf",
-        jsxSingleQuote: false,
-        objectWrap: "collapse",
-        ProseWrap: "never",
-        quoteProps: "consistent",
-        singleAttributePerLine: false,
-        singleQuote: false,
-        trailingComma: "none",
-        vueIndentScriptAndStyle: true
-      });
-    } catch (error) {
-      console.error("Prettier formatting error:", error);
-      return html; // fallback - return unformatted html
-    }
-  }
+  private readonly fetchService = inject(FetchService);
+  private readonly htmlNormalizationService = inject(HtmlNormalizationService);
+  private readonly signInService = inject(SignInService);
+  private readonly templateOrg = environment.templateOrg;
 
   public async formatDocumentAsJekyll(doc: Document, url: string, owner: string, repo: string, breadcrumbs?: { title: string; link: string }[]): Promise<string> {
-
-    let layout = "default";
+    let layout = 'default';
 
     // Extract metadata
-    const title = (doc.querySelector('meta[name="dcterms.title"]') as HTMLMetaElement)?.content.trim() || doc.title.trim() || "";
-    const description = (doc.querySelector('meta[name="description"]') as HTMLMetaElement)?.content.trim() || "";
-    const subject = (doc.querySelector('meta[name="dcterms.subject"]') as HTMLMetaElement)?.content.trim() || "";
-    const keywords = (doc.querySelector('meta[name="keywords"]') as HTMLMetaElement)?.content.trim() || "";
-    const pageLang = (doc.querySelector('meta[name="dcterms.language"]') as HTMLMetaElement)?.content?.slice(0, 2) || "en";
-    const issued = (doc.querySelector('meta[name="dcterms.issued"]') as HTMLMetaElement)?.content || "";
-    const modified = (doc.querySelector('meta[name="dcterms.modified"]') as HTMLMetaElement)?.content || "";
-    const robots = (doc.querySelector('meta[name="robots"]') as HTMLMetaElement)?.content || "";
-    const robotsYaml = robots ? "\r\nrobots: \"" + robots + "\"" : "";
-    const limitedWidth = doc.querySelector('.cnt-wdth-lmtd') ? "\r\npageclass: cnt-wdth-lmtd" : "";
+    const title = (doc.querySelector('meta[name="dcterms.title"]') as HTMLMetaElement)?.content.trim() || doc.title.trim() || '';
+    const description = (doc.querySelector('meta[name="description"]') as HTMLMetaElement)?.content.trim() || '';
+    const subject = (doc.querySelector('meta[name="dcterms.subject"]') as HTMLMetaElement)?.content.trim() || '';
+    const keywords = (doc.querySelector('meta[name="keywords"]') as HTMLMetaElement)?.content.trim() || '';
+    const pageLang = (doc.querySelector('meta[name="dcterms.language"]') as HTMLMetaElement)?.content?.slice(0, 2) || 'en';
+    const issued = (doc.querySelector('meta[name="dcterms.issued"]') as HTMLMetaElement)?.content || '';
+    const modified = (doc.querySelector('meta[name="dcterms.modified"]') as HTMLMetaElement)?.content || '';
+    const robots = (doc.querySelector('meta[name="robots"]') as HTMLMetaElement)?.content || '';
+    const robotsYaml = robots ? '\r\nrobots: "' + robots + '"' : '';
+    const limitedWidth = doc.querySelector('.cnt-wdth-lmtd') ? '\r\npageclass: cnt-wdth-lmtd' : '';
+    const isThemePage = doc.querySelector('.page-type-theme') ? '\r\npageclass: page-type-theme\r\nnomenu: true' : '';
 
     // Set alternate language link
-    const altLangPage =
-      Array.from(doc.querySelectorAll<HTMLLinkElement>('link[rel="alternate"]'))
-        .find(link => link.getAttribute("hreflang") !== pageLang)?.href || "";
+    const altLangPage = Array.from(doc.querySelectorAll<HTMLLinkElement>('link[rel="alternate"]')).find((link) => link.getAttribute('hreflang') !== pageLang)?.href || '';
 
     // Breadcrumbs (use the breadcrumb structure passed from the component if available, otherwise use page content)
     let crumbsYaml: string;
     if (breadcrumbs) {
-      crumbsYaml = breadcrumbs.length > 0
-        ? breadcrumbs.map(crumb => `  - title: "${crumb.title}"\r\n    link: "${crumb.link}"`).join("\r\n")
-        : "  []";
+      crumbsYaml = breadcrumbs.length > 0 ? breadcrumbs.map((crumb) => `  - title: "${crumb.title}"\r\n    link: "${crumb.link}"`).join('\r\n') : '  []';
     } else {
-      const crumbs = Array.from(doc.querySelectorAll("ol.breadcrumb li"))
+      const crumbs = Array.from(doc.querySelectorAll('ol.breadcrumb li'))
         .slice(1) // skip homepage
-        .map(li => {
-          const a = li.querySelector("a");
+        .map((li) => {
+          const a = li.querySelector('a');
           if (!a) return null;
-          const rawHref = a.getAttribute("href") || "";
+          const rawHref = a.getAttribute('href') || '';
           return {
-            title: a.textContent?.trim() || "",
-            link: rawHref.startsWith("http") ? a.href : `https://www.canada.ca${a.getAttribute("href")}`,
+            title: a.textContent?.trim() || '',
+            link: rawHref.startsWith('http') ? a.href : `https://www.canada.ca${a.getAttribute('href')}`,
           };
         })
         .filter(Boolean) as { title: string; link: string }[];
 
-      crumbsYaml = crumbs.length > 0
-        ? crumbs.map(crumb => `  - title: "${crumb.title}"\r\n    link: "${crumb.link}"`).join("\r\n")
-        : "  []";
+      crumbsYaml = crumbs.length > 0 ? crumbs.map((crumb) => `  - title: "${crumb.title}"\r\n    link: "${crumb.link}"`).join('\r\n') : '  []';
     }
 
     // Sign in button
-    const auth = pageLang === "en"
-      ? `auth:\r\n  type: "contextual"\r\n  label: "Sign in"\r\n  labelExtended: "CRA sign in"\r\n  link: "https://www.canada.ca/en/revenue-agency/services/e-services/cra-login-services.html"`
-      : `auth:\r\n  type: "contextual"\r\n  label: "Se connecter"\r\n  labelExtended: "Se connecter à l'ARC"\r\n  link: "https://www.canada.ca/fr/agence-revenu/services/services-electroniques/services-ouverture-session-arc.html"`;
+    const auth =
+      pageLang === 'en'
+        ? `auth:\r\n  type: "contextual"\r\n  label: "Sign in"\r\n  labelExtended: "CRA sign in"\r\n  link: "https://www.canada.ca/en/revenue-agency/services/e-services/cra-login-services.html"`
+        : `auth:\r\n  type: "contextual"\r\n  label: "Se connecter"\r\n  labelExtended: "Se connecter à l'ARC"\r\n  link: "https://www.canada.ca/fr/agence-revenu/services/services-electroniques/services-ouverture-session-arc.html"`;
 
     // French overrides
-    const fra = pageLang === "en"
-      ? ''
-      : `\r\nlang: fr\r\nfeedbackPath: https://www.canada.ca/etc/designs/canada/wet-boew/assets/feedback/page-feedback-fr.html\r\nprivacyUrl: https://www.canada.ca/fr/agence-revenu/organisation/avis-confidentialite.html\r\ntermsURL: https://www.canada.ca/fr/transparence/avis.html\r\nsitemenuPath: https://www.canada.ca/content/dam/canada/sitemenu/sitemenu-v2-fr.html\r\ncontextualFooter:\r\n  title: "Agence du revenu du Canada (ARC)"\r\n  links:\r\n    - text: "Contacter l'ARC"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/coordonnees.html"\r\n    - text: "Mettre à jour vos renseignements"\r\n      url: "https://www.canada.ca/fr/agence-revenu/services/mettre-a-jour-renseignements-arc.html"\r\n    - text: "À propos de l'ARC"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/a-propos-agence-revenu-canada-arc.html"`
+    const fra =
+      pageLang === 'en'
+        ? ''
+        : `\r\nlang: fr\r\nfeedbackPath: https://www.canada.ca/etc/designs/canada/wet-boew/assets/feedback/page-feedback-fr.html\r\nprivacyUrl: https://www.canada.ca/fr/agence-revenu/organisation/avis-confidentialite.html\r\ntermsURL: https://www.canada.ca/fr/transparence/avis.html\r\nsitemenuPath: https://www.canada.ca/content/dam/canada/sitemenu/sitemenu-v2-fr.html\r\ncontextualFooter:\r\n  title: "Agence du revenu du Canada (ARC)"\r\n  links:\r\n    - text: "Contacter l'ARC"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/coordonnees.html"\r\n    - text: "Mettre à jour vos renseignements"\r\n      url: "https://www.canada.ca/fr/agence-revenu/services/mettre-a-jour-renseignements-arc.html"\r\n    - text: "À propos de l'ARC"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/a-propos-agence-revenu-canada-arc.html"`;
 
     // Page content
-    const mainEl = doc.querySelector("main");
-    let pageContent = "";
+    const mainEl = doc.querySelector('main');
+    let pageContent = '';
 
-    // Custom styles and scripts
-    const styles = Array.from(doc.querySelectorAll("style"))
-      .map(s => `<style>${s.textContent}</style>`)
+    // Preserve custom styles
+    const styles = Array.from(doc.querySelectorAll('style'))
+      .map((s) => `<style>${s.textContent}</style>`)
       .join('\r\n');
-    const scripts = Array.from(doc.querySelectorAll("body script:not([src])"))
-      .map(s => `<script>${s.textContent}</script>`)
+
+    // Preserve custom scripts (except pageBottom() and duplicates)
+    const seenScripts = new Set<string>();
+    const defVarPattern = /^\s*var\s+(defTop|defPreFooter|defFooter)\b/;
+    const scripts = Array.from(doc.querySelectorAll('body script:not([src])'))
+      .map((script) => script.textContent ?? '')
+      .filter((text) => text.replace(/\s+/g, '') !== '_satellite.pageBottom();')
+      .filter((text) => !defVarPattern.test(text))
+      .filter((text) => {
+        const normalized = text.replace(/\s+/g, '');
+        if (seenScripts.has(normalized)) return false;
+        seenScripts.add(normalized);
+        return true;
+      })
+      .map((text) => `<script>${text}</script>`)
       .join('\r\n');
 
     if (mainEl) {
       // Remove page details
-      mainEl.querySelectorAll("section.pagedetails").forEach(s => s.remove());
-      mainEl.querySelectorAll("div.pagedetails").forEach(d => d.remove());
+      mainEl.querySelectorAll('section.pagedetails').forEach((section) => section.remove());
+      mainEl.querySelectorAll('div.pagedetails').forEach((div) => div.remove());
+
+      // Remove scripts
+      mainEl.querySelectorAll('script').forEach((script) => script.remove());
+      mainEl.querySelectorAll('div[id="def-preFooter"]').forEach((div) => div.remove());
 
       // Flatten AEM mws wrappers
-      mainEl.querySelectorAll('div[class^="mws"]').forEach(div => {
+      mainEl.querySelectorAll('div[class^="mws"]').forEach((div) => {
         while (div.firstChild) {
           div.parentNode?.insertBefore(div.firstChild, div);
         }
@@ -385,82 +144,80 @@ export class ExportGitHubService {
       });*/
 
       // Fix relative URLs
-      mainEl.querySelectorAll<HTMLElement>("*").forEach(el => {
+      mainEl.querySelectorAll<HTMLElement>('*').forEach((el) => {
         for (const attr of Array.from(el.attributes)) {
-          if (attr.value && attr.value.includes('"/')) {
+          if (attr?.value.includes('"/')) {
             attr.value = attr.value.replace(/"\//g, '"https://www.canada.ca/');
           }
-          if (attr.value && attr.value.startsWith("/")) {
+          if (attr?.value.startsWith('/')) {
             attr.value = `https://www.canada.ca${attr.value}`;
           }
         }
       });
 
       // Change layout for atypical H1's or full width banners (most requested etc.)
-      const h1s = doc.querySelectorAll("h1");
-      const hasSubway = doc.querySelector(".gc-subway");
-      const hasLeadAboveH1 = h1s[0]?.previousElementSibling?.matches("p.lead") || !!h1s[0]?.previousElementSibling?.querySelector?.("p.lead");
-      const hasHgroup = doc.querySelector("hgroup");
-      if (
-        hasSubway ||
-        h1s.length > 1 ||
-        (h1s[0] && h1s[0].textContent?.trim().replace("&nbsp;", " ") !== title) ||
-        h1s[0]?.closest(".well") ||
-        hasLeadAboveH1 ||
-        hasHgroup
-      ) {
-        layout = "without-h1";
-      }
-      else if (!mainEl.classList.contains("container")) { layout = "no-container"; }
-      else {
+      const h1s = doc.querySelectorAll('h1');
+      const hasSubway = doc.querySelector('.gc-subway');
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      const hasLeadAboveH1 = h1s[0]?.previousElementSibling?.matches('p.lead') || !!h1s[0]?.previousElementSibling?.querySelector?.('p.lead');
+      const hasHgroup = doc.querySelector('hgroup');
+      if (hasSubway || h1s.length > 1 || (h1s[0] && h1s[0].textContent?.trim().replace('&nbsp;', ' ') !== title) || h1s[0]?.closest('.well') || hasLeadAboveH1 || hasHgroup) {
+        layout = 'without-h1';
+      } else if (!mainEl.classList.contains('container')) {
+        layout = 'no-container';
+      } else {
         // Remove the H1 since Jekyll will inject it
         h1s[0]?.remove();
       }
 
       pageContent = mainEl.innerHTML
-        .replace(/[ \t]+$/gm, "")
-        .replace(/\n{2,}/g, "\n")
-        .split("\n")
-        .map(line => line.replace(/(\S)( {2,})/g, (m, first) => first + " "))
-        .join("\n");
+        .replace(/[ \t]+$/gm, '')
+        .replace(/\n{2,}/g, '\n')
+        .split('\n')
+        .map((line) => line.replace(/(\S)( {2,})/g, (m, first) => first + ' '))
+        .join('\n');
     }
 
-    pageContent = await this.formatHtmlWithPrettier(pageContent);
+    pageContent = await this.htmlNormalizationService.formatHtml(pageContent);
 
     // Content in jekyll format
-    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\n${auth}${fra}${robotsYaml}${limitedWidth}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || "  []"}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
+    const frontMatter = `---\r\nlayout: ${layout}\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: "${subject}"\r\nkeywords: "${keywords}"\r\n${auth}${fra}${robotsYaml}${limitedWidth}${isThemePage}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${modified}\r\ndateIssued: ${issued}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml || '  []'}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n${styles}\r\n${pageContent}\r\n${scripts}`;
 
     return frontMatter;
   }
 
-  public formatNewPageAsJekyll(node: TreeNode, breadcrumbs: { title: string; link: string }[], owner: string, repo: string, lang: 'primary' | 'opposite' = 'primary'): string {
+  public formatNewPageAsJekyll(
+    node: TreeNode,
+    breadcrumbs: { title: string; link: string }[],
+    owner: string,
+    repo: string,
+    lang: 'en' | 'fr' = 'en',
+    version: 'prototype' | 'baseline' = 'prototype',
+  ): string {
     //Get URL
-    const url = lang === 'primary' ? node.data?.url : node.data?.metadata?.oppUrl;
-    const altLangPage = lang === 'primary' ? node.data?.metadata?.oppUrl || "" : node.data?.url || "";
-
-    // Determine language from URL
-    const pageLang = url.includes('/fr/') ? 'fr' : 'en';
+    const url = node.data.live?.[lang].url;
+    const altLangPage = lang === 'en' ? node.data.live?.fr.url || '' : node.data.live?.en.url || '';
 
     // Extract metadata from node
-    const title = lang === 'primary' ? node.data.h1 || "" : node.data.metadata.oppTitle || "";
-    const description = pageLang === "en" ? node.data.metadata?.descriptionEN || "" : node.data.metadata?.descriptionFR || "";
-    const keywords = pageLang === "en" ? node.data.metadata?.keywordsEN || "" : node.data.metadata?.keywordsFR || "";
+    const title = node.data[version][lang].h1 || '';
+    const description = node.data[version][lang].desciption || '';
+    const keywords = node.data[version][lang].keywords || '';
     const dateModified = new Date().toISOString().split('T')[0];
-    const limitedWidth = "\r\npageclass: cnt-wdth-lmtd"
+    const limitedWidth = '\r\npageclass: cnt-wdth-lmtd';
 
-    const crumbsYaml = breadcrumbs.length > 0
-      ? breadcrumbs.map(crumb => `  - title: "${crumb.title}"\r\n    link: "${crumb.link}"`).join("\r\n")
-      : "  []";
+    const crumbsYaml = breadcrumbs.length > 0 ? breadcrumbs.map((crumb) => `  - title: "${crumb.title}"\r\n    link: "${crumb.link}"`).join('\r\n') : '  []';
 
     // Sign in button based on language
-    const auth = pageLang === "en"
-      ? `auth:\r\n  type: "contextual"\r\n  label: "Sign in"\r\n  labelExtended: "CRA sign in"\r\n  link: "https://www.canada.ca/en/revenue-agency/services/e-services/cra-login-services.html"`
-      : `auth:\r\n  type: "contextual"\r\n  label: "Se connecter"\r\n  labelExtended: "Se connecter à l'ARC"\r\n  link: "https://www.canada.ca/fr/agence-revenu/services/services-electroniques/services-ouverture-session-arc.html"`;
+    const auth =
+      lang === 'en'
+        ? `auth:\r\n  type: "contextual"\r\n  label: "Sign in"\r\n  labelExtended: "CRA sign in"\r\n  link: "https://www.canada.ca/en/revenue-agency/services/e-services/cra-login-services.html"`
+        : `auth:\r\n  type: "contextual"\r\n  label: "Se connecter"\r\n  labelExtended: "Se connecter à l'ARC"\r\n  link: "https://www.canada.ca/fr/agence-revenu/services/services-electroniques/services-ouverture-session-arc.html"`;
 
     // French overrides
-    const fra = pageLang === "en"
-      ? ''
-      : `\r\nlang: fr\r\nfeedbackPath: https://www.canada.ca/etc/designs/canada/wet-boew/assets/feedback/page-feedback-fr.html\r\nprivacyUrl: https://www.canada.ca/fr/agence-revenu/organisation/avis-confidentialite.html\r\ntermsURL: https://www.canada.ca/fr/transparence/avis.html\r\nsitemenuPath: https://www.canada.ca/content/dam/canada/sitemenu/sitemenu-v2-fr.html\r\ncontextualFooter:\r\n  title: "Agence du revenu du Canada (ARC)"\r\n  links:\r\n    - text: "Contacter l'ARCA"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/coordonnees.html"\r\n    - text: "Mettre à jour vos renseignements"\r\n      url: "https://www.canada.ca/fr/agence-revenu/services/mettre-a-jour-renseignements-arc.html"\r\n    - text: "À propos de l'ARC"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/a-propos-agence-revenu-canada-arc.html"`
+    const fra =
+      lang === 'en'
+        ? ''
+        : `\r\nlang: fr\r\nfeedbackPath: https://www.canada.ca/etc/designs/canada/wet-boew/assets/feedback/page-feedback-fr.html\r\nprivacyUrl: https://www.canada.ca/fr/agence-revenu/organisation/avis-confidentialite.html\r\ntermsURL: https://www.canada.ca/fr/transparence/avis.html\r\nsitemenuPath: https://www.canada.ca/content/dam/canada/sitemenu/sitemenu-v2-fr.html\r\ncontextualFooter:\r\n  title: "Agence du revenu du Canada (ARC)"\r\n  links:\r\n    - text: "Contacter l'ARCA"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/coordonnees.html"\r\n    - text: "Mettre à jour vos renseignements"\r\n      url: "https://www.canada.ca/fr/agence-revenu/services/mettre-a-jour-renseignements-arc.html"\r\n    - text: "À propos de l'ARC"\r\n      url: "https://www.canada.ca/fr/agence-revenu/organisation/a-propos-agence-revenu-canada-arc.html"`;
 
     // Build front matter
     const frontMatter = `---\r\nlayout: default\r\ntitle: "${title}"\r\ndescription: "${description}"\r\nsubject: ""\r\nkeywords: "${keywords}"\r\n${auth}${fra}${limitedWidth}\r\naltLangPage: "${altLangPage}"\r\ndateModified: ${dateModified}\r\ndateIssued: ${dateModified}\r\nbreadcrumbs: # By default the Canada.ca crumbs is already set\r\n${crumbsYaml}\r\nfeedbackData:\r\n  section: "${title}"\r\nnotedlinks:\r\n  - title: "${title}"\r\n    link: "${url}"\r\n  - title: "Repository sitemap"\r\n    link: "https://${owner}.github.io/${repo}/index.html"\r\n---\r\n\r\n<!-- Add your content here -->`;
@@ -469,8 +226,8 @@ export class ExportGitHubService {
   }
 
   private async createConfigYaml(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>): Promise<void> {
-    const orgUrl = owner === 'cra-proto' ? 'https://cra-test-arc.canada.ca' : `https://${owner}.github.io`
-    const templateUrl = this.templateOrg === 'cra-proto' ? 'https://cra-test-arc.canada.ca' : `https://${owner}.github.io`
+    const orgUrl = owner === 'cra-proto' ? 'https://cra-test-arc.canada.ca' : `https://${owner}.github.io`;
+    const templateUrl = this.templateOrg === 'cra-proto' ? 'https://cra-test-arc.canada.ca' : `https://${owner}.github.io`;
     const content = `---
 # standard jekyll configuration
 content_editable: true
@@ -498,7 +255,7 @@ creator:
 # Custom settings
 developerOptions: false
 devOptionsLocStore: "gitCRATemplateDevOptions"
-exitByURL: true
+exitByURL: false
 exitPage:
   en: "/${repo}/source/exit-intent-e.html"
   fr: "/${repo}/source/exit-intent-f.html"
@@ -542,10 +299,10 @@ defaults:
       script:
         - https://wet-boew.github.io/themes-dist/GCWeb/GCWeb/m%C3%A9li-m%C3%A9lo/2025-12-mille-iles.js
         - ${templateUrl}/core-prototype/source/scripts/external-link-detour.js
-        `
+        `;
     try {
       console.log(`Creating _config.yml for ${repo}`);
-      await this.exportToGitHub(owner, repo, branch, "_config.yml", "_config.yml", content, token, existingFiles, true, false);
+      await this.exportToGitHub(owner, repo, branch, '_config.yml', '_config.yml', content, token, existingFiles, true, false);
     } catch (error) {
       console.error(`Failed to create _config.yml for ${repo}:`, error);
     }
@@ -554,7 +311,7 @@ defaults:
   // Create index.html (sitemap)
   private async createSitemap(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>): Promise<void> {
     const date = new Date();
-    const today = date.toISOString().split("T")[0];
+    const today = date.toISOString().split('T')[0];
     const content = `---
 testBanner: false
 title: "${repo} repository sitemap"
@@ -573,7 +330,7 @@ noFooterMain: true
 <div class="mrgn-tp-md">
     <div class="row">
         <ul class="toc lst-spcd col-md-12">
-            <li class="col-md-4 col-sm-6"><a class="list-group-item active" data-exit="false" href="https://github.com/${owner}/${repo}/tree/main">GitHub repository</a></li>
+            <li class="col-md-4 col-sm-6"><a class="list-group-item active" data-exit="false" href="{{ site.github.repository_url }}">GitHub repository</a></li>
         </ul>
     </div>
 </div>
@@ -633,11 +390,11 @@ noFooterMain: true
         <li><a href="{{ site.baseurl }}{{ enPage.url }}">{{ enPage.title | default: enPage.url }}</a></li>
     {% endfor %}
     </ul>
-{% endif %}`
+{% endif %}`;
 
     try {
       console.log(`Creating sitemap for ${repo}`);
-      await this.exportToGitHub(owner, repo, branch, "index.html", "index.html", content, token, existingFiles, true, false);
+      await this.exportToGitHub(owner, repo, branch, 'index.html', 'index.html', content, token, existingFiles, true, false);
     } catch (error) {
       console.error(`Failed to create sitemap for ${repo}:`, error);
     }
@@ -647,29 +404,27 @@ noFooterMain: true
   private async createRobotsTxt(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>): Promise<void> {
     const content = `User-agent: *
 Disallow: /
-`
+`;
     try {
       console.log(`Creating robots.txt for ${repo}`);
-      await this.exportToGitHub(owner, repo, branch, "robots.txt", "robots.txt", content, token, existingFiles, true, false);
+      await this.exportToGitHub(owner, repo, branch, 'robots.txt', 'robots.txt', content, token, existingFiles, true, false);
     } catch (error) {
       console.error(`Failed to create robots.txt for ${repo}:`, error);
     }
   }
 
   //Set up README.md <-- add mermaid chart to this
-  async createInitialReadme(owner: string, repo: string, branch: string, token: string, projectName: string, existingFiles: Map<string, string>, treeNodes?: TreeNode[]) {
-    const filename = "README.md";
+  private async createInitialReadme(owner: string, repo: string, branch: string, token: string, projectName: string, existingFiles: Map<string, string>, treeNodes?: TreeNode[]) {
+    const filename = 'README.md';
     const date = new Date();
-    const today = date.toISOString().split("T")[0];
+    const today = date.toISOString().split('T')[0];
     date.setDate(date.getDate() - 14);
-    const startDate = date.toISOString().split("T")[0]; // 2 weeks ago
+    const startDate = date.toISOString().split('T')[0]; // 2 weeks ago
     date.setDate(date.getDate() + 98);
-    const endDate = date.toISOString().split("T")[0]; // 14 weeks from start
-    const orgUrl = owner === 'cra-proto' ? 'https://cra-test-arc.canada.ca' : `https://${owner}.github.io`
+    const endDate = date.toISOString().split('T')[0]; // 14 weeks from start
+    const orgUrl = owner === 'cra-proto' ? 'https://cra-test-arc.canada.ca' : `https://${owner}.github.io`;
 
-    const mermaidChart = treeNodes
-      ? this.generateMermaidChart(treeNodes)
-      : 'flowchart TD;\n    A[No pages in project]';
+    const mermaidChart = treeNodes ? this.generateMermaidChart(treeNodes) : 'flowchart TD;\n    A[No pages in project]';
 
     const content = `# ${projectName}
 
@@ -727,12 +482,11 @@ ${mermaidChart}
   ];
 
   private async copyCoreFiles(owner: string, repo: string, branch: string, token: string, existingFiles: Map<string, string>, templateFilesToExport: string[]) {
-
     // Set up list of files to copy from template repo
     const templateTree = await this.getRepoTree(this.templateOrg, 'core-prototype', 'main', token);
     const includesFiles = Array.from(templateTree.keys())
-      .filter(path => path.startsWith('_includes/'))
-      .map(path => `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/${path}`);
+      .filter((path) => path.startsWith('_includes/'))
+      .map((path) => `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/${path}`);
     const allFilesToCopy = [
       ...includesFiles,
       `https://raw.githubusercontent.com/${this.templateOrg}/core-prototype/main/source/exit-intent-e.html`,
@@ -743,84 +497,50 @@ ${mermaidChart}
     // Copy files
     for (const file of allFilesToCopy) {
       try {
-        const urlParts = new URL(file).pathname.split("/");
-        const destPath = urlParts.slice(4).join("/"); // everything after /main/
+        const urlParts = new URL(file).pathname.split('/');
+        const destPath = urlParts.slice(4).join('/'); // everything after /main/
 
         // Check if user wants to export this file
-        if (!templateFilesToExport.includes(destPath)) {
+        const includesAllowed = templateFilesToExport.includes('_includes/*') && destPath.startsWith('_includes/');
+        if (!templateFilesToExport.includes(destPath) && !includesAllowed) {
           console.log(`Skipping ${destPath} - not in export list`);
           continue;
         }
 
-        // Fetch file content from source repo   
-        const response = await this.fetchService.fetchWithRetry(file, "GET");
+        // Fetch file content from source repo
+        const response = await this.fetchService.fetchWithRetry(file, 'GET');
         if (!response.ok) throw new Error(`Failed to fetch: ${file}`);
         const content = await response.text();
 
         // Upload to destination repo
-        await this.exportToGitHub(owner, repo, branch, destPath, destPath.split("/").pop() || destPath, content, token, existingFiles, true, true);
-
+        await this.exportToGitHub(owner, repo, branch, destPath, destPath.split('/').pop() || destPath, content, token, existingFiles, true, true);
       } catch (error) {
         console.error(`Error copying core file ${file}:`, error);
       }
     }
   }
 
-  // Get list of public repos for an owner (user or org)
-  public async getRepoList(owner: string): Promise<{ name: string }[]> {
-    const type = await this.getOwnerType(owner);
-    const url =
-      type === 'Organization'
-        ? `https://api.github.com/orgs/${owner}/repos?per_page=100&type=public`
-        : `https://api.github.com/users/${owner}/repos?per_page=100&type=public`;
-
-    const response = await fetch(url, {
-      headers: {
-        "Accept": "application/vnd.github+json"
-      }
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to load repos: ${response.status}`);
-    }
-    return response.json(); // array of repos
-  }
-
-  // Determine if owner is a user or organization
-  private async getOwnerType(owner: string): Promise<'User' | 'Organization'> {
-    const response = await fetch(`https://api.github.com/users/${owner}`, {
-      headers: { "Accept": "application/vnd.github+json" }
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch owner type for ${owner}: ${response.status}`);
-    }
-    const data = await response.json();
-    return data.type as 'User' | 'Organization';
-  }
-
   //Check if repo exists
   private async repoExists(owner: string, repo: string): Promise<boolean> {
     const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-      headers: { "Accept": "application/vnd.github+json" }
+      headers: { Accept: 'application/vnd.github+json' },
     });
     return response.ok;
   }
 
   private async createRepo(owner: string, repo: string, branch: string, token: string, projectName: string) {
     console.log(`Repo ${owner}/${repo} not found. Creating...`);
-    const type = await this.getOwnerType(owner);
-    const url =
-      type === 'Organization'
-        ? `https://api.github.com/orgs/${owner}/repos`
-        : `https://api.github.com/user/repos`;
+    const type = await this.signInService.getOwnerType(owner);
+    const url = type === 'Organization' ? `https://api.github.com/orgs/${owner}/repos` : `https://api.github.com/user/repos`;
     const createdDate = new Date().toLocaleDateString('en-CA', { month: 'short', year: 'numeric' });
 
     const indexPage = owner === 'cra-proto' ? `https://cra-test-arc.canada.ca/${repo}` : owner === 'gc-proto' ? `https://test.canada.ca/${repo}` : `https://${owner}.github.io/${repo}/`;
 
     const response = await fetch(url, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Authorization": `Bearer ${token}`,
-        "Accept": "application/vnd.github+json"
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
       },
       body: JSON.stringify({
         name: repo,
@@ -834,8 +554,8 @@ ${mermaidChart}
         has_projects: false,
         has_downloads: false,
         has_discussions: false,
-        license_template: "mit"
-      })
+        license_template: 'mit',
+      }),
     });
 
     if (!response.ok) {
@@ -849,9 +569,9 @@ ${mermaidChart}
     // Check if Pages is already enabled
     const checkResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pages`, {
       headers: {
-        "Authorization": `Bearer ${token}`,
-        "Accept": "application/vnd.github+json"
-      }
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+      },
     });
 
     if (checkResponse.ok) {
@@ -861,17 +581,17 @@ ${mermaidChart}
 
     // Enabled pages (if not already enabled)
     const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/pages`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Authorization": `Bearer ${token}`,
-        "Accept": "application/vnd.github+json"
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
       },
       body: JSON.stringify({
         source: {
           branch: branch,
-          path: "/"
-        }
-      })
+          path: '/',
+        },
+      }),
     });
 
     if (!response.ok) {
@@ -882,14 +602,22 @@ ${mermaidChart}
     return response.json();
   }
 
-  public async setupRepo(owner: string, repo: string, branch: string, token: string, projectName: string, templateFilesToExport: string[], treeNodes?: TreeNode[]): Promise<{ success: boolean, error?: { status: number, message: string } }> {
+  public async setupRepo(
+    owner: string,
+    repo: string,
+    branch: string,
+    token: string,
+    projectName: string,
+    templateFilesToExport: string[],
+    treeNodes?: TreeNode[],
+  ): Promise<{ success: boolean; error?: { status: number; message: string } }> {
     try {
       const exists = await this.repoExists(owner, repo);
 
       //Create repo
       if (!exists) {
         await this.createRepo(owner, repo, branch, token, projectName);
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for GitHub to fully initialize the repo        
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for GitHub to fully initialize the repo
       } else {
         console.log(`Repo ${owner}/${repo} already exists. Skipping creation.`);
       }
@@ -923,19 +651,14 @@ ${mermaidChart}
         success: false,
         error: {
           status,
-          message: errorMessage
-        }
+          message: errorMessage,
+        },
       };
     }
   }
 
   //Check for existing files in a repo
-  public async getRepoTree(
-    owner: string,
-    repo: string,
-    branch: string,
-    token?: string
-  ): Promise<Map<string, string>> {
+  public async getRepoTree(owner: string, repo: string, branch: string, token?: string): Promise<Map<string, string>> {
     const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`;
 
     const headers: Record<string, string> = {}; //fallback if token not provided
@@ -953,7 +676,7 @@ ${mermaidChart}
 
     if (Array.isArray(data.tree)) {
       for (const item of data.tree) {
-        if (item.type === "blob") {
+        if (item.type === 'blob') {
           fileMap.set(item.path, item.sha);
         }
       }
@@ -964,18 +687,29 @@ ${mermaidChart}
 
   private b64EncodeUnicode(str: string): string {
     const utf8Bytes = new TextEncoder().encode(str);
-    let binary = "";
-    utf8Bytes.forEach(b => binary += String.fromCharCode(b));
+    let binary = '';
+    utf8Bytes.forEach((b) => (binary += String.fromCharCode(b)));
     return btoa(binary);
   }
 
-  async exportToGitHub(owner: string, repo: string, branch: string, path: string, filename: string, content: string, token: string, existingFiles: Map<string, string>, overwrite = false, copyFromCore = false) {
+  public async exportToGitHub(
+    owner: string,
+    repo: string,
+    branch: string,
+    path: string,
+    filename: string,
+    content: string,
+    token: string,
+    existingFiles: Map<string, string>,
+    overwrite = false,
+    copyFromCore = false,
+  ) {
     const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
 
     // Skip exporting if file already exists and overwrite is false
     if (!overwrite && existingFiles?.has(path)) {
       console.log(`Skipping ${path} (already exists, overwrite=false)`);
-      return { skipped: true, path, reason: "exists" };
+      return { skipped: true, path, reason: 'exists' };
     }
 
     // Check if file exists to get the SHA for updating if overwrite is true (otherwise it will throw an error for existing files)
@@ -985,13 +719,9 @@ ${mermaidChart}
     }
 
     const body: GitHubFileRequest = {
-      message: copyFromCore
-        ? `Copy ${filename} from core-prototype (via Design Assistant)`
-        : sha
-          ? `Update ${filename} (via Design Assistant)`
-          : `Add ${filename} (via Design Assistant)`,
+      message: copyFromCore ? `Copy ${filename} from core-prototype (via Design Assistant)` : sha ? `Update ${filename} (via Design Assistant)` : `Add ${filename} (via Design Assistant)`,
       content: this.b64EncodeUnicode(content),
-      branch: branch
+      branch: branch,
     };
 
     if (sha) {
@@ -999,26 +729,30 @@ ${mermaidChart}
     }
 
     const response = await fetch(url, {
-      method: "PUT",
+      method: 'PUT',
       headers: {
-        "Authorization": `token ${token}`,
-        "Content-Type": "application/json",
+        Authorization: `token ${token}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
     });
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      throw new Error(`GitHub API error: ${response.status} ${error.message || ""}`)
+      throw new Error(`GitHub API error: ${response.status} ${error.message || ''}`);
     }
 
     return response.json();
   }
 
-  private generateMermaidChart(treeNodes: TreeNode[]): string {
+  private generateMermaidChart(treeNodes: TreeNode[], version: 'prototype' | 'baseline' = 'prototype'): string {
     if (!treeNodes || treeNodes.length === 0) {
       return 'flowchart TD;\n    A[No pages in project]';
     }
+
+    // Check lang
+    const firstUrl = treeNodes[0].data?.url || '';
+    const lang = firstUrl.includes('/fr/') || firstUrl.includes('/fr.html') ? 'fr' : 'en';
 
     let nodeCounter = 1;
     const nodeDefinitions: string[] = [];
@@ -1032,13 +766,13 @@ ${mermaidChart}
     // Recursive function to traverse tree and build mermaid data
     const traverse = (node: TreeNode, parentId?: string): void => {
       const nodeId = `node${nodeCounter++}`;
-      const h1 = node.data?.h1 || 'Untitled';
-      const url = node.data?.url || '';
+      const h1 = node.data[version][lang].h1 || 'Untitled';
+      const url = node.data[version][lang].url || '';
       const inScope = node.data?.status?.inScope || false;
-      const isOrphan = node.data?.status?.isOrphan || false;
       const isRot = node.data?.status?.isRot || false;
       const isNew = node.data?.status?.isNew || false;
       const isMoved = node.data?.status?.isMoved || false;
+      const isOrphan = node.data[version][lang].isOrphan || false;
 
       // Define the node with its label
       nodeDefinitions.push(`    ${nodeId}(${this.sanitizeMermaidLabel(h1)})`);
@@ -1075,7 +809,7 @@ ${mermaidChart}
     };
 
     // Start traversal from root
-    treeNodes.forEach(rootNode => traverse(rootNode));
+    treeNodes.forEach((rootNode) => traverse(rootNode));
 
     // Build final mermaid chart
     let chart = 'flowchart TD;\n';
@@ -1101,29 +835,42 @@ ${mermaidChart}
       chart += `\n    class ${isMovedNodes.join(',')} ismoved`;
     }
 
-    console.log(chart)
+    //console.log(chart)
     return chart;
   }
 
   // Helper method to sanitize labels for mermaid (escape special characters)
   private sanitizeMermaidLabel(label: string): string {
-    return label
-      .replace(/"/g, '#quot;')
-      .replace(/\(/g, '#40;')
-      .replace(/\)/g, '#41;')
-      .replace(/\[/g, '#91;')
-      .replace(/\]/g, '#93;')
-      .trim();
+    return label.replace(/"/g, '#quot;').replace(/\(/g, '#40;').replace(/\)/g, '#41;').replace(/\[/g, '#91;').replace(/\]/g, '#93;').trim();
+  }
+
+  // Get last modified date
+  public async getLastModified(url: string, owner: string, repo: string, branch: string, token?: string): Promise<string | undefined> {
+    try {
+      const headers: Record<string, string> = {}; //fallback if token not provided
+      if (token) headers['Authorization'] = `token ${token}`;
+
+      const filePath = new URL(url).pathname;
+
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?path=${filePath}&sha=${branch}&per_page=1`, { headers });
+
+      const commits = await response.json();
+      return commits[0]?.commit?.committer?.date ?? undefined;
+    } catch {
+      return undefined;
+    }
   }
 
   // Pull request method for prompt updates
-  async createPullRequestForPrompts(category: string, path: string, filename: string, content: string): Promise<{ prUrl: string; branchName: string }> {
+  public async createPullRequestForPrompts(category: string, path: string, filename: string, content: string): Promise<{ prUrl: string; branchName: string }> {
     const owner = this.templateOrg;
     const repo = 'ai-design-assistant';
     const baseBranch = 'dev';
-    const token = this.token();
+    const token = this.signInService.token();
 
-    if (!token) { throw new Error('GitHub token not found. Please configure your Personal Access Token.'); }
+    if (!token) {
+      throw new Error('GitHub token not found. Please configure your Personal Access Token.');
+    }
 
     // 1. Generate branch name with timestamp
     const now = new Date();
@@ -1132,31 +879,27 @@ ${mermaidChart}
     const branchName = `prompts/update-${category}-${dateStr}-${timeStr}`;
 
     // 2. Get the SHA of the base branch (dev)
-    const refResponse = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${baseBranch}`,
-      { headers: { Authorization: `token ${token}` } }
-    );
+    const refResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${baseBranch}`, { headers: { Authorization: `token ${token}` } });
 
-    if (!refResponse.ok) { throw new Error(`Failed to get ${baseBranch} branch SHA: ${refResponse.status}`); }
+    if (!refResponse.ok) {
+      throw new Error(`Failed to get ${baseBranch} branch SHA: ${refResponse.status}`);
+    }
 
     const refData = await refResponse.json();
     const baseSha = refData.object.sha;
 
     // 3. Create the new branch
-    const createBranchResponse = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/git/refs`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `token ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ref: `refs/heads/${branchName}`,
-          sha: baseSha
-        })
-      }
-    );
+    const createBranchResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs`, {
+      method: 'POST',
+      headers: {
+        Authorization: `token ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ref: `refs/heads/${branchName}`,
+        sha: baseSha,
+      }),
+    });
 
     if (!createBranchResponse.ok) {
       const error = await createBranchResponse.json().catch(() => ({}));
@@ -1167,22 +910,19 @@ ${mermaidChart}
     await this.exportToGitHub(owner, repo, branchName, path, filename, content, token, new Map(), true, false);
 
     // 5. Create the pull request
-    const prResponse = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/pulls`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `token ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          title: `Update ${category} prompts`,
-          head: branchName,
-          base: baseBranch,
-          body: `Update  to ${category} prompts via Design Assistant.\n\n**File:** \`${path}\`\n**Branch:** \`${branchName}\`\n**UserID:** \`${this.user()?.id}\`\n**Username:** \`${this.user()?.login}\``
-        })
-      }
-    );
+    const prResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
+      method: 'POST',
+      headers: {
+        Authorization: `token ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: `Update ${category} prompts`,
+        head: branchName,
+        base: baseBranch,
+        body: `Update  to ${category} prompts via Design Assistant.\n\n**File:** \`${path}\`\n**Branch:** \`${branchName}\`\n**UserID:** \`${this.signInService.user()?.id}\`\n**Username:** \`${this.signInService.user()?.login}\``,
+      }),
+    });
 
     if (!prResponse.ok) {
       const error = await prResponse.json().catch(() => ({}));
@@ -1193,9 +933,7 @@ ${mermaidChart}
 
     return {
       prUrl: prData.html_url,
-      branchName: branchName
+      branchName: branchName,
     };
   }
-
 }
-

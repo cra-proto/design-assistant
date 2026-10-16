@@ -1,0 +1,291 @@
+import { inject, Injectable } from '@angular/core';
+
+import { ProjectStorageService } from '../storage/project-storage.service';
+import { UserSettingsService } from '../user-settings.service';
+import { SignInService } from './sign-in.service';
+
+import { GitHubUser, Project, ProjectMetadata } from '../../common/data.model';
+
+@Injectable({ providedIn: 'root' })
+export class CollaboratorService {
+  private projectStorageService = inject(ProjectStorageService);
+  private readonly signInService = inject(SignInService);
+  private settingsService = inject(UserSettingsService);
+
+  /**
+   * Check if current user is a collaborator
+   *
+   * Accepts an optional user param to check if signed-out user is a collab
+   */
+  canEditProject(project: ProjectMetadata | Project, user?: number): boolean {
+    const currentUser = this.signInService.user(); // OAuth or PAT
+    if (currentUser) {
+      return project.collaborators.some((c) => {
+        if (c.id != null && currentUser.id != null) {
+          return c.id === currentUser.id;
+        } else {
+          return !!c.login && !!currentUser.login && c.login.toLowerCase() === currentUser.login.toLowerCase();
+        }
+      });
+    } else if (user) {
+      return project.collaborators.some((c) => {
+        return c.id === user;
+      });
+    } else return false;
+  }
+
+  /** Returns 2 booleans for if user is signed in and if they are a collaborator */
+  public getUploadAccessInfo(project: ProjectMetadata | Project): { isSignedIn: boolean; isCollaborator: boolean; hasCollaborators: boolean; isLocked: 'byMe' | string | undefined } {
+    const hasCollaborators = project.collaborators.length > 0;
+    const userId = Number.isNaN(Number(this.settingsService.userId())) ? undefined : Number(this.settingsService.userId());
+    const isCollaborator = this.canEditProject(project, userId);
+    const isSignedIn = !!this.signInService.user();
+    const isLocked = project.lockedBy && project.lockedBy === this.signInService.user()?.login ? 'byMe' : project.lockedBy ? project.lockedBy : undefined;
+    return { isSignedIn, isCollaborator, hasCollaborators, isLocked };
+  }
+
+  // Get current user to add to new projects
+  getInitialCollaborators(): GitHubUser[] {
+    const currentUser = this.signInService.user();
+    return currentUser ? [currentUser] : [];
+  }
+
+  // Add current user to all local projects without collaborators
+  async addCurrentUserToLocalProjects(user: GitHubUser): Promise<void> {
+    //console.log('Adding current user to local projects as collaborator:', user.login);
+
+    // Get list of all local projects
+    const savedProjects = this.projectStorageService.getLocalProjectList('saved');
+    for (const metadata of savedProjects) {
+      // Only process projects with empty collaborators
+      if (!metadata.collaborators || metadata.collaborators.length === 0) {
+        await this.addUserToProject(metadata.key, user);
+      }
+    }
+
+    //console.log('Finished adding user to local projects');
+  }
+
+  // Add current user to specific project
+  private async addUserToProject(projectKey: string, user: GitHubUser): Promise<void> {
+    try {
+      // Load the full project
+      const project = await this.projectStorageService.loadProjectData(projectKey, 'local');
+
+      if (!project) {
+        console.warn(`Could not load project ${projectKey}`);
+        return;
+      }
+
+      // Add user to collaborators
+      project.collaborators = [user];
+      project.lastModified = new Date();
+
+      // Save back to localStorage
+      const projectToSave = this.projectStorageService.prepareProjectForSave(project); // Remove circular TreeNode references
+      localStorage.setItem(projectKey, JSON.stringify(projectToSave)); // Save
+      this.projectStorageService.updateLocalProjectList(projectKey, project); // Update local storage list
+      this.projectStorageService.projectListVersion.update((v) => v + 1); // Update signal
+
+      //console.log(`Added ${user.login} as collaborator to project ${projectKey}`);
+    } catch (error) {
+      console.error(`Failed to add user to project ${projectKey}:`, error);
+    }
+  }
+
+  addCollaborators(project: Project, collabs: GitHubUser[]): Project {
+    console.log(`Adding/updating ${collabs.length} collaborator(s) for project ${project.projectName}`);
+
+    const updatedCollaborators = [...project.collaborators];
+    let addedCount = 0;
+    let updatedCount = 0;
+
+    collabs.forEach((newCollab) => {
+      const existingIndex = updatedCollaborators.findIndex((existing) => existing.id === newCollab.id);
+
+      if (existingIndex !== -1) {
+        // Update existing collaborator with fresh data
+        updatedCollaborators[existingIndex] = newCollab;
+        updatedCount++;
+        //console.log(`Updated collaborator: ${newCollab.login}`);
+      } else {
+        // Add new collaborator
+        updatedCollaborators.push(newCollab);
+        addedCount++;
+        //console.log(`Added new collaborator: ${newCollab.login}`);
+      }
+    });
+
+    console.log(`Added ${addedCount}, updated ${updatedCount} collaborator(s)`);
+
+    return {
+      ...project,
+      collaborators: updatedCollaborators,
+      lastModified: new Date(),
+    };
+  }
+
+  removeCollaborator(project: Project, collab: GitHubUser): Project {
+    console.log(`Removing ${collab.login} from project ${project.projectName}`);
+    const originalCount = project.collaborators.length;
+    const updatedCollaborators = (project.collaborators = project.collaborators.filter((c) => c.id !== collab.id));
+
+    // Check if anything was actually removed
+    if (updatedCollaborators.length === originalCount) {
+      return project;
+    }
+
+    return {
+      ...project,
+      collaborators: updatedCollaborators,
+      lastModified: new Date(),
+    };
+  }
+
+  //NOTE - avatars will always return images due to GitHub identicons
+  //       we can add parameter s=40 to get a 40x40 image for custom images and default size identicons
+  //       use that to strip out identicons and display initials instead or get rid of the functions below
+
+  // Collaborator avatar - Get initials
+  getCollaboratorName(collab: GitHubUser): string {
+    return collab.name ? collab.name : collab.login;
+  }
+
+  // Collaborator avatar - Get initials
+  getCollaboratorInitials(collab: GitHubUser): string {
+    if (collab.name) {
+      const nameParts = collab.name.trim().split(/\s+/);
+      if (nameParts.length >= 2) {
+        // First and last initial
+        return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+      } else {
+        // Single name - use first 2 chars
+        return collab.name.substring(0, 2).toUpperCase();
+      }
+    }
+    // Fallback to login (first 2 chars)
+    return collab.login.substring(0, 2).toUpperCase();
+  }
+
+  // Collaborator avatar - Assign colors to user ids (same user will always be same color)
+  getCollaboratorColorClass(collab: GitHubUser): string {
+    const colors = [
+      'bg-primary text-white',
+      'bg-blue-500 text-white',
+      'bg-green-500 text-white',
+      'bg-yellow-500 text-black-alpha-90',
+      'bg-cyan-500 text-black-alpha-90',
+      'bg-pink-500 text-white',
+      'bg-indigo-500 text-white',
+      'bg-teal-500 text-black-alpha-90',
+      'bg-orange-500 text-black-alpha-90',
+    ];
+
+    return colors[collab.id % colors.length];
+  }
+
+  // Get list of org members (for adding as collaborators)
+  public async getOrgMembers(org: string): Promise<GitHubUser[]> {
+    const token = this.signInService.token();
+
+    if (!token) {
+      console.warn('No GitHub token available');
+      return [];
+    }
+
+    try {
+      const response = await fetch(`https://api.github.com/orgs/${org}/members?per_page=100`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+        },
+      });
+
+      if (!response.ok) {
+        console.error(`Failed to fetch org members: ${response.status}`);
+        return [];
+      }
+
+      const members = await response.json();
+
+      // Map to GitHubUser format (note: org members API returns limited info, name & email may be null)
+      return members.map((member: GitHubUser) => ({
+        login: member.login,
+        id: member.id,
+        avatar_url: member.avatar_url,
+        name: member.name || null,
+        email: member.email || null,
+      }));
+    } catch (error) {
+      console.error('Error fetching org members:', error);
+      return [];
+    }
+  }
+
+  // Get detailed user information
+  public async getUserDetails(username: string): Promise<GitHubUser | null> {
+    const token = this.signInService.token();
+
+    if (!token) {
+      console.warn('No GitHub token available');
+      return null;
+    }
+
+    try {
+      const response = await fetch(`https://api.github.com/users/${username}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+        },
+      });
+
+      if (!response.ok) {
+        console.error(`Failed to fetch user details for ${username}: ${response.status}`);
+        return null;
+      }
+
+      const userData = await response.json();
+      return {
+        login: userData.login,
+        id: userData.id,
+        avatar_url: userData.avatar_url,
+        name: userData.name || null,
+        email: userData.email || null,
+      };
+    } catch (error) {
+      console.error(`Error fetching user details for ${username}:`, error);
+      return null;
+    }
+  }
+
+  // Get collaborator emails (for requesting access)
+  public getCollaboratorEmails(collabs: GitHubUser[]): string[] {
+    return collabs.filter((collab): collab is GitHubUser & { email: string } => !!collab.email && collab.email.trim() !== '').map((collab) => collab.email);
+  }
+
+  /** Get GitHub login from id */
+  public async getLogin(userID: string): Promise<string> {
+    const token = this.signInService.token();
+
+    const headers = token
+      ? {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+        }
+      : undefined;
+
+    try {
+      const response = await fetch(`https://api.github.com/user/${userID}`, { headers });
+      if (!response.ok) {
+        console.error(`Failed to fetch user details for ${userID}: ${response.status}`);
+        return userID;
+      } else {
+        const userData = await response.json();
+        return userData.name ?? userData.login;
+      }
+    } catch (error) {
+      console.error(`Error fetching username for ${userID}:`, error);
+      return userID;
+    }
+  }
+}

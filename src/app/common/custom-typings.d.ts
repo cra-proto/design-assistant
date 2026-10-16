@@ -9,10 +9,9 @@ declare module 'mammoth/mammoth.browser' {
     messages?: MammothMessage[];
   }
 
-  export function convertToHtml(options: {
-    arrayBuffer: ArrayBuffer;
-  }): Promise<MammothResult>;
+  export function convertToHtml(options: { arrayBuffer: ArrayBuffer }): Promise<MammothResult>;
 }
 
 declare module 'prismjs/components/prism-markup';
 declare module 'prismjs/components/prism-typescript';
+declare module 'text-readability';

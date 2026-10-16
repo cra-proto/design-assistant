@@ -1,0 +1,12 @@
+<div class="surface-card border-round p-4">
+  <div class="flex align-items-center justify-content-between mb-3">
+    <h3 class="m-0">Custom preset code</h3>
+    <p-button [severity]="copied() ? 'success' : 'primary'" (onClick)="copyToClipboard()" icon="pi pi-copy" label="Copy to clipboard" size="small" />
+  </div>
+
+  <p class="text-sm text-color-secondary mb-3">
+    {{ copied() ? 'Copied! Send this to the AIDA development team.' : 'Copy this code to share your custom color scheme.' }}
+  </p>
+
+  <textarea [value]="generatedCode()" class="w-full font-mono text-sm" pInputTextarea readonly rows="30" style="resize: vertical"> </textarea>
+</div>

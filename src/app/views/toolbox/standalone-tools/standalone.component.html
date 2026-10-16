@@ -1,0 +1,22 @@
+<h1 id="wb-cont">{{ 'standalone._title' | translate }}</h1>
+<p [innerHTML]="'standalone.description' | translate"></p>
+
+<!--Standalone tools-->
+<h2>{{ 'standalone.tools._title' | translate }}</h2>
+<p>{{ 'standalone.tools.description' | translate }}</p>
+<aida-doormats [keys]="standaloneDoormats" />
+
+<!--Standalone bookmarklets-->
+<h2>{{ 'standalone.bookmarklet._title' | translate }}</h2>
+<p>{{ 'standalone.bookmarklet.description' | translate }}</p>
+<aida-bookmarklets [keys]="standaloneBookmarklets" />
+
+<!-- CRA tools -->
+@if (myToolbox() === 'CRA' || myToolbox() === 'ADMIN') {
+  <!--ADD ANYTHING UNIQUE TO CRA HERE-->
+}
+
+<!-- Dev tools -->
+@if (myToolbox() === 'DEV' || myToolbox() === 'ADMIN') {
+  <aida-dev-tools />
+}

@@ -1,26 +1,31 @@
-import { Component, OnInit, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, effect, inject, OnInit } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { TranslateModule } from "@ngx-translate/core";
-import { HeaderComponent } from './template/header.component';
-import { SidebarComponent } from './template/sidebar.component';
-import { FooterComponent } from './template/footer.component';
-import { CustomTitleStrategy } from './common/custom-title-strategy';
+import { ActivatedRoute, Router, RouterModule, RouterOutlet } from '@angular/router';
+
 import { PrimeNG } from 'primeng/config';
-import { ProjectStorageService } from './services/storage/project-storage.service';
+import { ToastModule } from 'primeng/toast';
+
+import { BreadcrumbComponent } from './template/breadcrumb/breadcrumb.component';
+import { FooterComponent } from './template/footer/footer.component';
+import { HeaderComponent } from './template/header/header.component';
+import { SidebarComponent } from './template/sidebar/sidebar.component';
+
+import { CollaboratorService } from './services/github/collaborator.service';
+import { SignInService } from './services/github/sign-in.service';
 import { ProjectStateService } from './services/project-state.service';
-import { ExportGitHubService } from './services/github/export-github.service';
-import { CollaboratorService } from './services/collaborator.service';
 import { CloudStorageService } from './services/storage/cloud-storage.service';
-import { UserSettingsService } from './services/user-settings.service';
+import { ProjectStorageService } from './services/storage/project-storage.service';
 import { UsageService } from './services/usage.service';
+import { UserSettingsService } from './services/user-settings.service';
+
+import { CustomTitleStrategy } from './common/custom-title-strategy';
 
 @Component({
   selector: 'aida-root',
-  imports: [CommonModule, RouterOutlet, RouterModule, TranslateModule, HeaderComponent, SidebarComponent, FooterComponent],
+  imports: [CommonModule, RouterModule, RouterOutlet, ToastModule, BreadcrumbComponent, FooterComponent, HeaderComponent, SidebarComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
   CustomTitle = inject(CustomTitleStrategy);
@@ -29,17 +34,17 @@ export class AppComponent implements OnInit {
   router = inject(Router);
   route = inject(ActivatedRoute);
   private projectStorageService = inject(ProjectStorageService);
-  private cloudStorageService = inject(CloudStorageService)
+  private cloudStorageService = inject(CloudStorageService);
   private projectState = inject(ProjectStateService);
-  private exportGitHubService = inject(ExportGitHubService);
+  private readonly signInService = inject(SignInService);
   private collaboratorService = inject(CollaboratorService);
   private settingsService = inject(UserSettingsService);
-  private usageService = inject(UsageService)
+  private usageService = inject(UsageService);
 
   constructor() {
     // Auto-add current user as collaborator when they sign in
     effect(() => {
-      const user = this.exportGitHubService.user();
+      const user = this.signInService.user();
       if (user) {
         const tempUserId = this.settingsService.userId();
         this.settingsService.setUserId(user.id.toString());
@@ -57,20 +62,22 @@ export class AppComponent implements OnInit {
     this.primeng.ripple.set(true);
 
     // Update settings from url parameter (if present) then remove the param
-    this.route.queryParams.subscribe(params => {
-      const allParams = { ...params }
+    this.route.queryParams.subscribe((params) => {
+      const allParams = { ...params };
 
       // Handle org parameter
       if (params['org'] !== undefined) {
         this.handleStorageParam('myOrg', params['org']);
-        delete allParams['org']
+        this.settingsService.org.set(params['org'].toUpperCase());
+        delete allParams['org'];
         this.cloudStorageService.loadProjects();
       }
 
       // Handle toolbox parameter
       if (params['toolbox'] !== undefined) {
         this.handleStorageParam('myToolbox', params['toolbox']);
-        delete allParams['toolbox']
+        this.settingsService.toolbox.set(params['toolbox'].toUpperCase());
+        delete allParams['toolbox'];
         this.settingsService.toolbox.set(localStorage.getItem('myToolbox'));
       }
 
@@ -98,21 +105,20 @@ export class AppComponent implements OnInit {
 
   // Load previously active project
   async loadProject() {
-    const active = this.projectStorageService.getActiveProject();
+    const active = this.projectStorageService.getActiveProject('session');
     if (!active) return;
     console.log(`Attempting to load active project: ${active.key} from ${active.storageType}`);
     try {
       const project = await this.projectStorageService.loadProject(active.key, active.storageType);
       if (project) {
-        this.projectState.setProject(project); // Update the project state
-        console.log(`Project loaded successfully: ${active.key}`)
+        await this.projectState.setProject(project, 'load'); // Update the project state
+        console.log(`Project loaded successfully: ${active.key}`);
       } else {
         console.error(`Failed to load project: ${active.key}`); // Show error message
         this.projectStorageService.clearActiveProject();
       }
-    }
-    catch (error) {
-      console.error(`Error loading active project: ${active.key}`, error)
+    } catch (error) {
+      console.error(`Error loading active project: ${active.key}`, error);
       this.projectStorageService.clearActiveProject();
     }
   }

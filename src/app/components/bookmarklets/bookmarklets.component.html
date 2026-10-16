@@ -1,0 +1,13 @@
+<div class="grid py-2 px-4 lg:px-6">
+  @for (key of keys(); track key) {
+    @if (items[key]; as item) {
+      <div class="col-12 md:col-6 lg:col-4">
+        <a [href]="getHref(key)" (click)="$event.preventDefault()" class="text-xl font-semibold">{{ item.titleKey | translate }}</a>
+        <p class="text-color-secondary mt-2">
+          {{ item.descriptionKey | translate }}<br />
+          <strong>{{ 'common.modified' | translate }}: </strong>{{ item.modified }}
+        </p>
+      </div>
+    }
+  }
+</div>

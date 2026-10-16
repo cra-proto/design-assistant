@@ -1,0 +1,91 @@
+<p-menu [model]="items" [popup]="true" #menu>
+  <ng-template #submenuheader let-item>
+    <span class="text-primary font-bold">{{ item.label | translate }}</span>
+  </ng-template>
+  <ng-template #item let-item>
+    <a class="p-menu-item-link">
+      @if (item.icon.startsWith('pi')) {
+        <i [class]="item.icon"></i>
+      } @else {
+        <span class="material-icons-outlined">{{ item.icon }}</span>
+      }
+      <span>{{ item.label | translate }}</span>
+    </a>
+  </ng-template>
+</p-menu>
+
+<p-dialog [(visible)]="visible" [appendTo]="'body'" [breakpoints]="{ '1199px': '75vw', '575': '90vw' }" [maximizable]="true" [modal]="true" [style]="{ width: '50vw' }" position="top">
+  <ng-template #header>
+    @switch (mode()) {
+      @case ('PAT') {
+        <h2 class="text-2xl my-1">{{ 'github.connect.pat.header' | translate }}</h2>
+      }
+      @case ('userSettings') {
+        <div class="flex gap-1">
+          <span class="material-icons-outlined text-5xl">manage_accounts</span>
+          <h2 class="text-2xl my-1">{{ 'settings._title' | translate }}</h2>
+        </div>
+      }
+      @case ('setupProject') {
+        <div class="flex gap-1">
+          <span class="material-icons-outlined text-5xl">settings</span>
+          <h2 class="text-2xl my-1">{{ 'project.setup._title' | translate }}</h2>
+        </div>
+      }
+      @case ('setupRepo') {
+        <div class="flex gap-1">
+          <span class="material-icons-outlined text-5xl">folder_zip</span>
+          <h2 class="text-2xl my-1">{{ 'project.repo._title' | translate }}</h2>
+        </div>
+      }
+      @case ('addPages') {
+        <div class="flex gap-1">
+          <span class="material-icons-outlined text-5xl">note_add</span>
+          <h2 class="text-2xl my-1">{{ 'findPages._title' | translate }}</h2>
+        </div>
+      }
+      @case ('addCollabs') {
+        <div class="flex gap-1">
+          <span class="material-icons-outlined text-5xl">group_add</span>
+          <h2 class="text-2xl my-1">{{ 'collaborators._title' | translate }}</h2>
+        </div>
+      }
+    }
+  </ng-template>
+  <!--MAIN CONTENT-->
+  @switch (mode()) {
+    @case ('PAT') {
+      <div class="flex flex-row align-items-center gap-3 -mt-2">
+        <i class="pi pi-key text-6xl text-900"></i>
+        <div class="w-full">
+          <p class="text-sm text-color-secondary my-2">{{ 'github.connect.pat.description' | translate }}</p>
+          <aida-pat />
+        </div>
+      </div>
+    }
+    @case ('userSettings') {
+      <aida-user-settings />
+    }
+    @case ('setupProject') {
+      <aida-setup-project [noHeader]="true" />
+    }
+    @case ('setupRepo') {
+      <aida-setup-repo [noHeader]="true" />
+    }
+    @case ('addPages') {
+      <aida-add-pages [noHeader]="true" />
+    }
+    @case ('addCollabs') {
+      <aida-add-collaborators [noHeader]="true" mode="list" />
+    }
+  }
+  <ng-template #footer>
+    @if (mode() === 'PAT') {
+      <p-button [label]="'common.signin' | translate" (onClick)="validatePAT()" />
+    } @else {
+      <p-button [label]="'common.close' | translate" (onClick)="visible.set(false)" outlined styleClass="secondary-outline" />
+    }
+  </ng-template>
+</p-dialog>
+
+<p-confirmdialog key="unlock" position="topright" />

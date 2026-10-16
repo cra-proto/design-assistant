@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import * as crypto from 'crypto';
 
@@ -65,7 +65,7 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
     const {
         isUpdate,
         projectId, pageUrl,
-        orgId, storageType, userId,
+        orgId, storageType, repoType, userId,
         model, promptConfig, generatedAt,
         originalDescEN, originalDescFR, originalKeywordsEN, originalKeywordsFR,
         aiDescEN, aiDescFR, aiKeywordsEN, aiKeywordsFR,
@@ -93,6 +93,7 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
             UpdateExpression: `SET 
         orgId = :orgId,
         storageType = :storageType,
+        repoType = :repoType,
         statusDescEN = :statusDescEN,
         statusDescFR = :statusDescFR,
         statusKeywordsEN = :statusKeywordsEN,
@@ -105,6 +106,7 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
             ExpressionAttributeValues: {
                 ':orgId': orgId ?? 'DEFAULT',
                 ':storageType': storageType ?? 'local',
+                ':repoType': repoType ?? 'github',
                 ':statusDescEN': statusDescEN,
                 ':statusDescFR': statusDescFR,
                 ':statusKeywordsEN': statusKeywordsEN,
@@ -130,6 +132,7 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
                 projectId,
                 orgId: orgId ?? 'DEFAULT',
                 storageType: storageType ?? 'local',
+                repoType: storageType ?? 'github',
                 userId: userId ?? 'anonymous',
                 pageUrl,
                 model,
@@ -154,6 +157,53 @@ async function trackMetadata(body: any): Promise<APIGatewayProxyResult> {
     };
 }
 
+// Track export usage
+async function trackExport(body: any): Promise<APIGatewayProxyResult> {
+    const corsHeaders = getCorsHeaders();
+
+    const {
+        projectId,
+        orgId, storageType, repoType, userId,
+        repo, exportTarget, exportLanguage,
+        pageCountEN, pageCountFR
+    } = body;
+
+    if (!projectId || !repo) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ error: 'projectId and repo are required' })
+        };
+    }
+
+    const timestamp = new Date().toISOString();
+
+    await docClient.send(new PutCommand({
+        TableName: USAGE_TABLE,
+        Item: {
+            pk: `export#${projectId}`,
+            sk: timestamp,
+            feature: 'export',
+            projectId,
+            orgId: orgId ?? 'DEFAULT',
+            storageType: storageType ?? 'local',
+            repoType: storageType ?? 'github',
+            userId: userId ?? 'anonymous',
+            repo,
+            exportTarget,
+            pageCountEN: pageCountEN ?? 0,
+            pageCountFR: pageCountFR ?? 0,
+            lastUpdated: timestamp
+        }
+    }));
+
+    return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({ message: 'Export tracked successfully' })
+    };
+}
+
 async function getUsageStats(): Promise<APIGatewayProxyResult> {
     const corsHeaders = getCorsHeaders();
 
@@ -168,21 +218,42 @@ async function getUsageStats(): Promise<APIGatewayProxyResult> {
     const uniqueUsersGitHub = new Set(items.filter(i => !i.userId?.startsWith('user_')).map(i => i.userId)).size;
     const uniqueUsersAnonymous = new Set(items.filter(i => i.userId?.startsWith('user_')).map(i => i.userId)).size;
 
-    // Generations by feature
-    const totalGenerations = items.length;
-    const metadataGenerations = items.filter(i => i.pk?.startsWith('metadata#')).length;
-    const pageGenerations = items.filter(i => i.pk?.startsWith('page#')).length;
-
     // Projects
-    const uniqueProjects = new Set(items.map(i => i.pk?.split('#')[1])).size;
+    const uniqueProjects = new Set(items.filter(i => i.pk?.includes('#')).map(i => i.pk?.split('#')[1])).size;
     const localProjects = new Set(items.filter(i => i.storageType === 'local').map(i => i.pk?.split('#')[1])).size;
     const cloudProjects = new Set(items.filter(i => i.storageType === 'cloud').map(i => i.pk?.split('#')[1])).size;
 
-    // URLs
-    const uniqueUrls = new Set(items.map(i => i.pageUrl)).size;
+    // URLs with AI assisted edits
+    const uniqueUrls = new Set(items.filter(i => i.pageUrl).map(i => i.pageUrl)).size;
     const enUrls = new Set(items.filter(i => i.pageUrl?.includes('/en/')).map(i => i.pageUrl)).size;
     const frUrls = new Set(items.filter(i => i.pageUrl?.includes('/fr/')).map(i => i.pageUrl)).size;
 
+    // Generations by feature
+    const totalGenerations = items.filter(i => i.pk?.startsWith('metadata#') || i.pk?.startsWith('page#')).length;
+    const metadataGenerations = items.filter(i => i.pk?.startsWith('metadata#')).length;
+    const pageGenerations = items.filter(i => i.pk?.startsWith('page#')).length;
+
+    // GitHub exports (repoType is 'github' or undefined for old data)
+    const githubExportItems = items.filter(i => i.pk?.startsWith('export#') && i.repoType !== 'local');
+    const exportCountGit = githubExportItems.length;
+    const enPageCountGit = githubExportItems.reduce((sum, i) => sum + (i.pageCountEN ?? 0), 0);
+    const frPageCountGit = githubExportItems.reduce((sum, i) => sum + (i.pageCountFR ?? 0), 0);
+
+    // GitHub Repos
+    const uniqueReposGit = new Set(githubExportItems.filter(i => i.repo).map(i => i.repo)).size;
+    const prototypeReposGit = new Set(githubExportItems.filter(i => i.exportTarget === 'prototype' && i.repo).map(i => i.repo)).size;
+    const baselineReposGit = new Set(githubExportItems.filter(i => i.exportTarget === 'baseline' && i.repo).map(i => i.repo)).size;
+
+    // Local exports
+    const localExportItems = items.filter(i => i.pk?.startsWith('export#') && i.repoType === 'local');
+    const exportCountLocal = localExportItems.length;
+    const enPageCountLocal = localExportItems.reduce((sum, i) => sum + (i.pageCountEN ?? 0), 0);
+    const frPageCountLocal = localExportItems.reduce((sum, i) => sum + (i.pageCountFR ?? 0), 0);
+
+    // Local Repos
+    const uniqueReposLocal = new Set(localExportItems.filter(i => i.repo).map(i => i.repo)).size;
+    const prototypeReposLocal = new Set(localExportItems.filter(i => i.exportTarget === 'prototype' && i.repo).map(i => i.repo)).size;
+    const baselineReposLocal = new Set(localExportItems.filter(i => i.exportTarget === 'baseline' && i.repo).map(i => i.repo)).size;
 
     // Orgs
     const uniqueOrgCount = new Set(items.map(i => i.orgId)).size;
@@ -194,15 +265,27 @@ async function getUsageStats(): Promise<APIGatewayProxyResult> {
             uniqueUsersTotal,
             uniqueUsersGitHub,
             uniqueUsersAnonymous,
-            totalGenerations,
-            metadataGenerations,
-            pageGenerations,
             uniqueProjects,
             localProjects,
             cloudProjects,
             uniqueUrls,
             enUrls,
             frUrls,
+            totalGenerations,
+            metadataGenerations,
+            pageGenerations,
+            exportCountGit,
+            enPageCountGit,
+            frPageCountGit,
+            uniqueReposGit,
+            prototypeReposGit,
+            baselineReposGit,
+            exportCountLocal,
+            enPageCountLocal,
+            frPageCountLocal,
+            uniqueReposLocal,
+            prototypeReposLocal,
+            baselineReposLocal,
             uniqueOrgCount,
         })
     };
@@ -270,6 +353,50 @@ async function updateUserId(body: any): Promise<APIGatewayProxyResult> {
     };
 }
 
+/** For deleting test data from specific users */
+async function deleteUserRecords(body: any): Promise<APIGatewayProxyResult> {
+    const corsHeaders = getCorsHeaders();
+    const { userId } = body;
+
+    if (!userId) {
+        return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ error: 'userId is required' })
+        };
+    }
+
+    // Scan for all records belonging to this user
+    const result = await docClient.send(new ScanCommand({
+        TableName: USAGE_TABLE,
+        FilterExpression: 'userId = :userId',
+        ExpressionAttributeValues: { ':userId': userId }
+    }));
+
+    const items = result.Items ?? [];
+
+    if (items.length === 0) {
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'No records found for this user', deleted: 0 })
+        };
+    }
+
+    await Promise.all(items.map(item =>
+        docClient.send(new DeleteCommand({
+            TableName: USAGE_TABLE,
+            Key: { pk: item.pk, sk: item.sk }
+        }))
+    ));
+
+    return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({ message: 'User records deleted successfully', deleted: items.length })
+    };
+}
+
 export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
     const corsHeaders = getCorsHeaders();
     const httpMethod = event.requestContext?.http?.method || event.httpMethod;
@@ -301,8 +428,12 @@ export const handler = async (event: any): Promise<APIGatewayProxyResult> => {
         switch (feature) {
             case 'update-user':
                 return updateUserId(body);
+            case 'delete-user':
+                return deleteUserRecords(body);
             case 'metadata':
                 return trackMetadata(body);
+            case 'export':
+                return trackExport(body);
             default:
                 return {
                     statusCode: 400,

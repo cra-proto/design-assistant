@@ -1,0 +1,132 @@
+<div class="flex flex-row flex-wrap align-items-end gap-2">
+  <!--Choose language-->
+  @if (showLang()) {
+    <div class="flex flex-column hover:text-primary">
+      <label class="text-xs font-semibold xl:my-1" for="language">{{ 'common.language' | translate }}</label>
+      <p-selectbutton
+        id="language"
+        [ngModel]="projectCache.selectedLang()"
+        [options]="languageOptions"
+        (ngModelChange)="projectCache.selectedLang.set($event)"
+        allowEmpty="false"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        styleClass="secondary-outline white-space-nowrap text-primary max-h-3rem"
+      />
+    </div>
+  }
+
+  <!--Choose scope-->
+  @if (showScope()) {
+    <div class="flex flex-column hover:text-primary">
+      <label class="text-xs font-semibold xl:my-1" for="scope">{{ 'common.scope' | translate }}</label>
+      <p-selectbutton
+        id="scope"
+        [ngModel]="projectCache.selectedScope()"
+        [options]="scopeOptions"
+        (ngModelChange)="projectCache.selectedScope.set($event)"
+        allowEmpty="false"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        styleClass="secondary-outline white-space-nowrap text-primary max-h-3rem"
+      />
+    </div>
+  }
+
+  <!--Choose version-->
+  @if (showVersion() && !isPrototype()) {
+    <div class="flex flex-column hover:text-primary">
+      <label class="text-xs font-semibold xl:my-1" for="version">{{ 'common.version' | translate }}</label>
+      <p-selectbutton
+        id="version"
+        [ngModel]="projectCache.selectedVersion()"
+        [options]="versionOptions"
+        (ngModelChange)="projectCache.selectedVersion.set($event)"
+        allowEmpty="false"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        styleClass="secondary-outline white-space-nowrap text-primary max-h-3rem"
+      />
+    </div>
+  }
+
+  <!--Choose source-->
+  @if (showSource() && sourceOptions.length > 1) {
+    <div class="flex flex-column hover:text-primary">
+      <label class="text-xs font-semibold xl:my-1" for="source">{{ 'common.source' | translate }}</label>
+      <p-selectbutton
+        id="source"
+        [ngModel]="projectCache.selectedSource()"
+        [options]="sourceOptions"
+        (ngModelChange)="projectCache.selectedSource.set($event)"
+        allowEmpty="false"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        styleClass="secondary-outline white-space-nowrap text-primary max-h-3rem"
+      />
+    </div>
+  }
+
+  <!-- Niche use-cases ----------------------------------------------->
+
+  <!--Choose IA display-->
+  @if (showDisplayIA()) {
+    <div class="flex flex-column hover:text-primary">
+      <label class="text-xs font-semibold xl:my-1" for="displayIA">{{ 'common.display' | translate }}</label>
+      <p-selectbutton
+        id="displayIA"
+        [ngModel]="projectCache.selectedDisplayIA()"
+        [options]="displayIAOptions"
+        (ngModelChange)="projectCache.selectedDisplayIA.set($event)"
+        allowEmpty="false"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        styleClass="secondary-outline white-space-nowrap text-primary max-h-3rem"
+      />
+    </div>
+  }
+
+  <!--Choose IA view-->
+  @if (showViewIA()) {
+    <div class="flex flex-column hover:text-primary">
+      <label class="text-xs font-semibold xl:my-1" for="viewIA">{{ 'common.view' | translate }}</label>
+      <p-selectbutton
+        id="viewIA"
+        [ngModel]="projectCache.selectedViewIA()"
+        [options]="viewIAOptions"
+        (ngModelChange)="projectCache.selectedViewIA.set($event)"
+        allowEmpty="false"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        styleClass="secondary-outline white-space-nowrap text-primary max-h-3rem"
+      />
+    </div>
+  }
+
+  <!--Choose display-->
+  @if (showDisplay()) {
+    <div class="flex flex-column hover:text-primary">
+      <label class="text-xs font-semibold xl:my-1" for="display">{{ 'common.display' | translate }}</label>
+      <p-selectbutton
+        id="display"
+        [ngModel]="projectCache.selectedDisplay()"
+        [options]="displayOptions"
+        (ngModelChange)="projectCache.selectedDisplay.set($event)"
+        allowEmpty="false"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        styleClass="secondary-outline white-space-nowrap text-primary max-h-3rem"
+      />
+    </div>
+  }
+
+  <!--Custom space to insert component-specific content-->
+  <ng-content />
+</div>

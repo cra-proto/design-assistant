@@ -3,9 +3,7 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
-    "schematicCollections": [
-      "angular-eslint"
-    ]
+    "schematicCollections": ["angular-eslint"]
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -25,15 +23,12 @@
       "prefix": "aida",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
+          "builder": "@angular/build:application",
           "options": {
             "outputPath": "dist/design-assistant",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js",
-              "@angular/localize/init"
-            ],
+            "polyfills": ["zone.js", "@angular/localize/init"],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {
@@ -66,15 +61,8 @@
                 "output": "css"
               }
             ],
-            "styles": [
-              "node_modules/primeflex/primeflex.css",
-              "node_modules/primeicons/primeicons.css",
-              "src/styles.css",
-              "diff2html/bundles/css/diff2html.min.css"
-            ],
-            "scripts": [
-              "node_modules/underscore/underscore-min.js"
-            ]
+            "styles": ["node_modules/primeflex/primeflex.css", "node_modules/primeicons/primeicons.css", "src/styles.css", "diff2html/bundles/css/diff2html.min.css"],
+            "scripts": ["node_modules/underscore/underscore-min.js"]
           },
           "configurations": {
             "production": {
@@ -82,13 +70,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2.6MB",
+                  "maximumWarning": "2.5MB",
                   "maximumError": "3MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "2kB",
+                  "maximumError": "4kB"
                 }
               ],
               "outputHashing": "all",
@@ -97,8 +85,10 @@
                 "prismjs",
                 "diff",
                 "diff2html/lib/ui/js/diff2html-ui-slim",
+                "diff2html/lib/types",
                 "highlight.js",
                 "hogan.js",
+                "@profoundlogic/hogan",
                 "mammoth",
                 "bluebird/js/release/promise",
                 "jszip",
@@ -106,10 +96,16 @@
                 "dingbat-to-unicode",
                 "xmlbuilder",
                 "lop",
-                "base64-js"
+                "base64-js",
+                "pluralize",
+                "normalize-strings"
               ]
             },
             "development": {
+              "index": {
+                "input": "src/index.dev.html",
+                "output": "index.html"
+              },
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
@@ -121,6 +117,7 @@
               ]
             },
             "sandbox": {
+              "index": "src/index.dev.html",
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
@@ -135,7 +132,7 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
               "buildTarget": "design-assistant:build:production"
@@ -150,16 +147,12 @@
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n"
+          "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:karma",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing",
-              "@angular/localize/init"
-            ],
+            "polyfills": ["zone.js", "zone.js/testing", "@angular/localize/init"],
             "tsConfig": "tsconfig.spec.json",
             "assets": [
               {
@@ -172,24 +165,43 @@
                 "output": "pdfjs"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ],
-            "scripts": [
-              "node_modules/underscore/underscore-min.js"
-            ]
+            "styles": ["src/styles.css"],
+            "scripts": ["node_modules/underscore/underscore-min.js"]
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         }
       }
+    }
+  },
+  "schematics": {
+    "@schematics/angular:component": {
+      "type": "component"
+    },
+    "@schematics/angular:directive": {
+      "type": "directive"
+    },
+    "@schematics/angular:service": {
+      "type": "service"
+    },
+    "@schematics/angular:guard": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:interceptor": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:module": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:pipe": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:resolver": {
+      "typeSeparator": "."
     }
   }
 }
