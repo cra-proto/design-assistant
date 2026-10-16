@@ -5,7 +5,7 @@ AIDA is an internal web application for Government of Canada departments to mana
 ## Prerequisites
 
 - **Node.js**: v22.22.0 (recommended to use [nvm](https://github.com/nvm-sh/nvm) for version management)
-- **Angular CLI**: v19.2.14 ([Angular CLI](https://github.com/angular/angular-cli))
+- **Angular CLI**: v21.2.25 ([Angular CLI](https://github.com/angular/angular-cli))
 - **Git**: Latest version
 
 ## First-Time Setup
@@ -15,14 +15,14 @@ AIDA is an internal web application for Government of Canada departments to mana
 If using nvm:
 
 ```bash
-nvm install 22.16.0
-nvm use 22.16.0
+nvm install 22.22.0
+nvm use 22.22.0
 ```
 
 ### 2. Install Angular CLI
 
 ```bash
-npm install -g @angular/cli@19.2.14
+npm install -g @angular/cli@21.2.25
 ```
 
 ### 3. Fork and Clone the Repository
@@ -177,16 +177,25 @@ Understanding the folder organization will help you find what you need quickly:
 ```
 src/
 ├── app/
-│   ├── common/           # Shared resources (interfaces, utilities, theme presets)
-│   ├── components/       # Reusable UI components
+│   ├── common/             # Shared resources (interfaces, utilities, theme presets)
+│   ├── components/         # Reusable UI components
 │   │   └── component-name/
 │   │       ├── component files
 │   │       └── component.service.ts (if component-specific)
-│   ├── services/         # Shared services used by multiple components (similar services may be grouped by folder)
-│   ├── template/         # App shell components (header, sidenav, footer)
-│   ├── views/            # Route components (pages)
-│   │   └── view-name/    # Each view composes multiple components
-│   └── app.routes.ts         # Route definitions
+│   ├── services/           # Shared services used by multiple components (similar services may be grouped by folder)
+│   ├── template/           # App shell components (header, sidenav, footer)
+│   ├── views/              # Route components (pages)
+│   │   ├── navigation/     # Subcategory for navigation views (home page, dashboard)
+│   │   |   └── view-name/  # Each view composes multiple components
+│   │   ├── project/        # Subcategory for project views (switch, new/settings)
+│   │   |   └── view-name/  # Each view composes multiple components
+│   │   ├── tasks/          # Subcategory for task views (anything used to do actual project work)
+│   │   |   └── view-name/  # Each view composes multiple components
+│   │   ├── toolbox/        # Subcategory for toolbox views (standalone & dev tools)
+│   │   |   └── view-name/  # Each view composes multiple components
+│   │   ├── utility/        # Subcategory for utility views (help content, 404, OAuth callback, import etc.)
+│   │   |   └── view-name/  # Each view composes multiple components
+│   └── app.routes.ts       # Route definitions
 └── public/               # Static assets
 ```
 
@@ -315,6 +324,14 @@ npm run lint
 
 **Run this before opening a PR to `dev`** to catch any code style or quality issues.
 
+### Organize imports and run prettier on entire codebase
+
+```bash
+npm run organize-imports
+```
+
+**Run this before opening a PR to `dev`** so we don't trigger changes based on formatting.
+
 ### Check for available schematics
 
 ```bash
@@ -405,7 +422,7 @@ Review the log output and fix any issues. Dynamically generated keys may need `m
 
 ### Avoid translate.instant()
 
-translate.instant() does not update when a user toggles languages. Let the template handle translations where possible and make sure to test the toggle experience for any translations in your .ts file. This isn't an issue with toast messages or other temporary content.
+translate.instant() does not update when a user toggles languages is you assign it to a plain variable. Let the template handle translations where possible and make sure to test the toggle experience for any translations in your .ts file. This isn't an issue with toast messages, temporary content, or anything that responds to change detection like get or computed.
 
 ## Official translations
 

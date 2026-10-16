@@ -17,7 +17,6 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { Menu, MenuModule } from 'primeng/menu';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { RadioButtonModule } from 'primeng/radiobutton';
 import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -75,7 +74,6 @@ export interface BooleanToggleItem extends MenuItem {
     InputTextModule,
     MenuModule,
     MultiSelectModule,
-    RadioButtonModule,
     SelectModule,
     TableModule,
     TagModule,

@@ -9,6 +9,7 @@
   --z-fixed: 100;
   --aida-border-width: 1.5px;
   --aida-border-width-checked: 2px;
+  --surface-ground: var(--p-zinc-50);
 }
 
 *,

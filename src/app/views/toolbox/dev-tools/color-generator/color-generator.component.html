@@ -1,11 +1,20 @@
 <h1 id="wb-cont">{{ 'dev.colors._title' | translate }}</h1>
 <p>{{ 'dev.colors.description' | translate }}{{ 'dev.colors.description2' | translate }}</p>
 
+<h2 class="text-xl mb-1">On this page</h2>
+<ul class="mt-0">
+  <li><a [routerLink]="[]" fragment="semantic-groups">Semantic colour grouping</a></li>
+  <li><a [routerLink]="[]" fragment="all-components">All components side-by-side</a></li>
+  <li><a [routerLink]="[]" fragment="messages">Messages by semantic meaning</a></li>
+  <li><a [routerLink]="[]" fragment="cards">Card contrast comparison</a></li>
+  <li><a [routerLink]="[]" fragment="palettes">Full colour palettes</a></li>
+</ul>
+
 <aida-user-settings mode="theme" />
 
 <!-- Semantic Color Grid -->
 <div class="mb-6">
-  <h2 class="mb-3">Semantic colour grouping</h2>
+  <h2 id="semantic-groups" class="mb-3">Semantic colour grouping</h2>
   <p class="mb-3 text-sm text-color-secondary">
     Colours should be clearly distinguishable between quadrants. Contrast ratio must be above 4.5 for normal text and above 3:1 for large text (24px or 18.5px bold) to meet AA WCAG requirements.
   </p>
@@ -249,7 +258,7 @@
 
   <!-- All Colors in One Row -->
   <div class="mb-6">
-    <h2 class="mb-3">All components side-by-side</h2>
+    <h2 id="all-components" class="mb-3">All components side-by-side</h2>
     <div class="flex flex-wrap gap-2 mb-4">
       <p>Regular Buttons</p>
       <p-button label="Primary" />
@@ -329,7 +338,7 @@
 
   <!-- Messages Grouped by Semantic Meaning -->
   <div class="mb-6">
-    <h2 class="mb-3">Messages by semantic meaning</h2>
+    <h2 id="messages" class="mb-3">Messages by semantic meaning</h2>
     <p class="mb-3 text-sm text-color-secondary">Colours should be clearly distinguishable between quadrants.</p>
 
     <div class="grid">
@@ -369,139 +378,289 @@
 
   <p-divider />
 
-  <!-- Color Palette Swatches -->
+  <!-- Card contrast comparison -->
   <div class="mb-6">
-    <h2 class="mb-3">Full colour palettes</h2>
-    <aida-user-settings mode="theme" />
-    <div class="flex flex-row gap-2 mt-2">
-      <div class="flex flex-column">
-        Primary
-        <aida-color-picker
-          [contrastTests]="[
-            { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
-            { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
-          ]"
-          [externalShades]="customShades()['primary']"
-          [key]="settingsService.colorScheme() + '-primary'"
-          (colorChanged)="onColorChange($event, 'primary')"
-          initialColor=" bg-primary-500"
-        />
+    <h2 id="cards" class="mb-3">Card contrast comparison</h2>
+    <p class="mb-3 text-sm text-color-secondary">Cards should be clearly distinguishable from the background.</p>
+    <div class="flex flex-column gap-3">
+      <div class="flex gap-3 mb-2">
+        <p>Width: border-1</p>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-0">border-0</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-50">border-50</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-100">border-100</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-200">border-200</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 surface-border">surface-border</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-300">border-300</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-400">border-400</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-500">border-500</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-600">border-600</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-700">border-700</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-800">border-800</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-900">border-900</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-primary">border-primary</div>
       </div>
-      <div class="flex flex-column">
-        Green (success)
-        <aida-color-picker
-          [contrastTests]="[
-            { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
-            { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
-          ]"
-          [externalShades]="customShades()['green']"
-          [key]="settingsService.colorScheme() + '-success'"
-          (colorChanged)="onColorChange($event, 'green')"
-          initialColor="bg-green-500"
-        />
+      <div class="flex gap-3 mb-2">
+        <p>Width: border-2</p>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-0">border-0</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-50">border-50</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-100">border-100</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-200">border-200</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 surface-border">surface-border</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-300">border-300</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-400">border-400</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-500">border-500</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-600">border-600</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-700">border-700</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-800">border-800</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-900">border-900</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-primary">border-primary</div>
       </div>
-      <div class="flex flex-column">
-        Red (danger)
-        <aida-color-picker
-          [contrastTests]="[
-            { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
-            { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
-          ]"
-          [externalShades]="customShades()['red']"
-          [key]="settingsService.colorScheme() + '-danger'"
-          (colorChanged)="onColorChange($event, 'red')"
-          initialColor="bg-red-500"
-        />
+      <div class="flex gap-3 mb-2">
+        <p>Width: border-3</p>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-0">border-0</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-50">border-50</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-100">border-100</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-200">border-200</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 surface-border">surface-border</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-300">border-300</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-400">border-400</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-500">border-500</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-600">border-600</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-700">border-700</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-800">border-800</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-900">border-900</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-primary">border-primary</div>
       </div>
-      <div class="flex flex-column">
-        Orange (warn)
-        <aida-color-picker
-          [contrastTests]="[
-            { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
-            { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
-          ]"
-          [externalShades]="customShades()['orange']"
-          [key]="settingsService.colorScheme() + '-warn'"
-          (colorChanged)="onWarnColorChange($event)"
-          initialColor="bg-orange-500"
-        />
+      <div class="flex gap-5 my-5">
+        <p>Shadow</p>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-none">shadow-none</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1">shadow-1</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-2">shadow-2</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-3">shadow-3</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-4">shadow-4</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-5">shadow-5</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-6">shadow-6</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-7">shadow-7</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-8">shadow-8</div>
       </div>
-      <div class="flex flex-column">
-        Blue (info)
-        <aida-color-picker
-          [contrastTests]="[
-            { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
-            { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
-          ]"
-          [externalShades]="customShades()['blue']"
-          [key]="settingsService.colorScheme() + '-info'"
-          (colorChanged)="onInfoColorChange($event)"
-          initialColor="bg-blue-500"
-        />
+      <div class="flex gap-3 mb-2">
+        <p>Hover effects</p>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-none hover:shadow-1">shadow-none<br />hover:shadow-1</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-none hover:shadow-2">shadow-none<br />hover:shadow-2</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-2">shadow-1<br />hover:shadow-2</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3">shadow-1<br />hover:shadow-3</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-2 hover:shadow-3">shadow-2<br />hover:shadow-3</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-2 hover:shadow-4">shadow-2<br />hover:shadow-4</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-3 hover:shadow-4">shadow-3<br />hover:shadow-4</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-3 hover:shadow-5">shadow-3<br />hover:shadow-5</div>
       </div>
-      <div class="flex flex-column">
-        Purple (help)
-        <aida-color-picker
-          [contrastTests]="[
-            { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
-            { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
-          ]"
-          [externalShades]="customShades()['purple']"
-          [key]="settingsService.colorScheme() + '-help'"
-          (colorChanged)="onColorChange($event, 'purple')"
-          initialColor="bg-purple-500"
-        />
+      <div class="flex gap-3 mb-2">
+        <p>Hover effects</p>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:surface-50">
+          shadow-1 & hover:shadow-3<br />hover:surface-50
+        </div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:surface-100">
+          shadow-1 & hover:shadow-3<br />hover:surface-100
+        </div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:surface-200">
+          shadow-1 & hover:shadow-3<br />hover:surface-200
+        </div>
       </div>
-    </div>
-    <div class="grid">
-      <div class="col-12 md:col-6">
-        <h4 class="text-sm">Primary</h4>
-        <ng-container *ngTemplateOutlet="shades; context: { shade: 'bg-primary', reverse: false }" />
-      </div>
-      <div class="col-12 md:col-6">
-        <h4 class="text-sm">Green (success)</h4>
-        <ng-container *ngTemplateOutlet="shades; context: { shade: 'bg-green', reverse: false }" />
-      </div>
-      <div class="col-12 md:col-6">
-        <h4 class="text-sm">Red (danger)</h4>
-        <ng-container *ngTemplateOutlet="shades; context: { shade: 'bg-red', reverse: false }" />
-      </div>
-      <div class="col-12 md:col-6">
-        <h4 class="text-sm">Orange (warn)</h4>
-        <ng-container *ngTemplateOutlet="shades; context: { shade: 'bg-orange', reverse: false }" />
-      </div>
-      <div class="col-12 md:col-6">
-        <h4 class="text-sm">Blue (info)</h4>
-        <ng-container *ngTemplateOutlet="shades; context: { shade: 'bg-blue', reverse: false }" />
-      </div>
-      <div class="col-12 md:col-6">
-        <h4 class="text-sm">Purple (help)</h4>
-        <ng-container *ngTemplateOutlet="shades; context: { shade: 'bg-purple', reverse: false }" />
-      </div>
-      <div class="col-12 md:col-6">
-        <h4 class="text-sm">Surface (secondary)</h4>
-        <ng-container *ngTemplateOutlet="shades; context: { shade: 'surface', reverse: false }" />
-      </div>
-      <div class="col-12 md:col-6">
-        <h4 class="text-sm">Surface (contrast)</h4>
-        <ng-container *ngTemplateOutlet="shades; context: { shade: 'surface', reverse: true }" />
+      <div class="flex gap-3 mb-2">
+        <p>Hover effects</p>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:bg-primary-50">
+          shadow-1 & hover:shadow-3<br />hover:primary-50
+        </div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:bg-primary-100">
+          shadow-1 & hover:shadow-3<br />hover:primary-100
+        </div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:bg-primary-200">
+          shadow-1 & hover:shadow-3<br />hover:primary-200
+        </div>
       </div>
     </div>
-  </div>
-  <aida-copy-preset [customShades]="customShades()" />
-</div>
 
-<ng-template #shades let-reverse="reverse" let-shade="shade">
-  <div [class.flex-row-reverse]="reverse" class="flex gap-1 mb-3">
-    <div [class]="'flex-1 h-3rem ' + shade + '-50 border-round'"></div>
-    <div [class]="'flex-1 h-3rem ' + shade + '-100 border-round'"></div>
-    <div [class]="'flex-1 h-3rem ' + shade + '-200 border-round'"></div>
-    <div [class]="'flex-1 h-3rem ' + shade + '-300 border-round'"></div>
-    <div [class]="'flex-1 h-3rem ' + shade + '-400 border-round'"></div>
-    <div [class]="'flex-1 h-3rem ' + shade + '-500 border-round'"></div>
-    <div [class]="'flex-1 h-3rem ' + shade + '-600 border-round'"></div>
-    <div [class]="'flex-1 h-3rem ' + shade + '-700 border-round'"></div>
-    <div [class]="'flex-1 h-3rem ' + shade + '-800 border-round'"></div>
-    <div [class]="'flex-1 h-3rem ' + shade + '-900 border-round'"></div>
+    <h3 class="mb-0">Card options</h3>
+    <div class="flex gap-2">
+      <p-iftalabel class="flex-1">
+        <p-select [(ngModel)]="selectedBorderWidth" [options]="borderWidthOptions" fluid inputId="border-width" />
+        <label for="border-width">Border width</label>
+      </p-iftalabel>
+      <p-iftalabel class="flex-1">
+        <p-select [(ngModel)]="selectedBorderColor" [options]="borderColorOptions" fluid inputId="border-color" />
+        <label for="border-color">Border colour</label>
+      </p-iftalabel>
+      <p-iftalabel class="flex-1">
+        <p-select [(ngModel)]="selectedBorderRadius" [options]="borderRadiusOptions" fluid inputId="border-radius" />
+        <label for="border-radius">Border radius</label>
+      </p-iftalabel>
+      <p-iftalabel class="flex-1">
+        <p-select [(ngModel)]="selectedShadow" [options]="shadowOptions" fluid inputId="shadow" />
+        <label for="shadow">Shadow</label>
+      </p-iftalabel>
+      <p-iftalabel class="flex-1">
+        <p-select [(ngModel)]="selectedHoverShadow" [options]="shadowOptions" fluid inputId="hover-shadow" />
+        <label for="hover-shadow">Hover shadow</label>
+      </p-iftalabel>
+      <p-iftalabel class="flex-1">
+        <p-select [(ngModel)]="selectedHoverBackground" [options]="backgroundOptions" fluid inputId="background" />
+        <label for="background">Hover background</label>
+      </p-iftalabel>
+      <p-iftalabel class="flex-1">
+        <p-select [(ngModel)]="selectedGround" [options]="groundOptions" fluid inputId="ground" />
+        <label for="ground">Ground</label>
+      </p-iftalabel>
+    </div>
+
+    <h3 class="mb-0">Preview</h3>
+    <div [ngStyle]="{ background: selectedGround }" class="mb-5 p-8 surface-border border-1">
+      <h1>Page header</h1>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis autem vel eum iure reprehenderit qui in ea voluptate velit.</p>
+      <div [ngClass]="cardStyles()" class="surface-card p-4 w-full">
+        <h2 class="mt-0">Example card</h2>
+        <p></p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis autem vel eum iure reprehenderit qui in ea voluptate velit.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Temporibus autem quibusdam et aut officiis debitis aut rerum.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit voluptatem.</p>
+      </div>
+    </div>
+
+    <p-divider />
+
+    <!-- Color Palette Swatches -->
+    <div class="mb-6">
+      <h2 id="palettes" class="mb-3">Full colour palettes</h2>
+      <aida-user-settings mode="theme" />
+      <div class="flex flex-row gap-2 mt-2">
+        <div class="flex flex-column">
+          Primary
+          <aida-color-picker
+            [contrastTests]="[
+              { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+              { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
+            ]"
+            [externalShades]="customShades()['primary']"
+            [key]="settingsService.colorScheme() + '-primary'"
+            (colorChanged)="onColorChange($event, 'primary')"
+            initialColor=" bg-primary-500"
+          />
+        </div>
+        <div class="flex flex-column">
+          Green (success)
+          <aida-color-picker
+            [contrastTests]="[
+              { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+              { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
+            ]"
+            [externalShades]="customShades()['green']"
+            [key]="settingsService.colorScheme() + '-success'"
+            (colorChanged)="onColorChange($event, 'green')"
+            initialColor="bg-green-500"
+          />
+        </div>
+        <div class="flex flex-column">
+          Red (danger)
+          <aida-color-picker
+            [contrastTests]="[
+              { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+              { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
+            ]"
+            [externalShades]="customShades()['red']"
+            [key]="settingsService.colorScheme() + '-danger'"
+            (colorChanged)="onColorChange($event, 'red')"
+            initialColor="bg-red-500"
+          />
+        </div>
+        <div class="flex flex-column">
+          Orange (warn)
+          <aida-color-picker
+            [contrastTests]="[
+              { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+              { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
+            ]"
+            [externalShades]="customShades()['orange']"
+            [key]="settingsService.colorScheme() + '-warn'"
+            (colorChanged)="onWarnColorChange($event)"
+            initialColor="bg-orange-500"
+          />
+        </div>
+        <div class="flex flex-column">
+          Blue (info)
+          <aida-color-picker
+            [contrastTests]="[
+              { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+              { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
+            ]"
+            [externalShades]="customShades()['blue']"
+            [key]="settingsService.colorScheme() + '-info'"
+            (colorChanged)="onInfoColorChange($event)"
+            initialColor="bg-blue-500"
+          />
+        </div>
+        <div class="flex flex-column">
+          Purple (help)
+          <aida-color-picker
+            [contrastTests]="[
+              { shade: 400, textColor: '#000000E6', textColorName: 'Black', requiredRatio: 4.5 },
+              { shade: 500, textColor: '#ffffff', textColorName: 'White', requiredRatio: 4.5 },
+            ]"
+            [externalShades]="customShades()['purple']"
+            [key]="settingsService.colorScheme() + '-help'"
+            (colorChanged)="onColorChange($event, 'purple')"
+            initialColor="bg-purple-500"
+          />
+        </div>
+      </div>
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <h4 class="text-sm">Primary</h4>
+          <ng-container *ngTemplateOutlet="shades; context: { shade: 'bg-primary', reverse: false }" />
+        </div>
+        <div class="col-12 md:col-6">
+          <h4 class="text-sm">Green (success)</h4>
+          <ng-container *ngTemplateOutlet="shades; context: { shade: 'bg-green', reverse: false }" />
+        </div>
+        <div class="col-12 md:col-6">
+          <h4 class="text-sm">Red (danger)</h4>
+          <ng-container *ngTemplateOutlet="shades; context: { shade: 'bg-red', reverse: false }" />
+        </div>
+        <div class="col-12 md:col-6">
+          <h4 class="text-sm">Orange (warn)</h4>
+          <ng-container *ngTemplateOutlet="shades; context: { shade: 'bg-orange', reverse: false }" />
+        </div>
+        <div class="col-12 md:col-6">
+          <h4 class="text-sm">Blue (info)</h4>
+          <ng-container *ngTemplateOutlet="shades; context: { shade: 'bg-blue', reverse: false }" />
+        </div>
+        <div class="col-12 md:col-6">
+          <h4 class="text-sm">Purple (help)</h4>
+          <ng-container *ngTemplateOutlet="shades; context: { shade: 'bg-purple', reverse: false }" />
+        </div>
+        <div class="col-12 md:col-6">
+          <h4 class="text-sm">Surface (secondary)</h4>
+          <ng-container *ngTemplateOutlet="shades; context: { shade: 'surface', reverse: false }" />
+        </div>
+        <div class="col-12 md:col-6">
+          <h4 class="text-sm">Surface (contrast)</h4>
+          <ng-container *ngTemplateOutlet="shades; context: { shade: 'surface', reverse: true }" />
+        </div>
+      </div>
+    </div>
+    <aida-copy-preset [customShades]="customShades()" />
   </div>
-</ng-template>
+
+  <ng-template #shades let-reverse="reverse" let-shade="shade">
+    <div [class.flex-row-reverse]="reverse" class="flex gap-1 mb-3">
+      <div [class]="'flex-1 h-3rem ' + shade + '-50 border-round'"></div>
+      <div [class]="'flex-1 h-3rem ' + shade + '-100 border-round'"></div>
+      <div [class]="'flex-1 h-3rem ' + shade + '-200 border-round'"></div>
+      <div [class]="'flex-1 h-3rem ' + shade + '-300 border-round'"></div>
+      <div [class]="'flex-1 h-3rem ' + shade + '-400 border-round'"></div>
+      <div [class]="'flex-1 h-3rem ' + shade + '-500 border-round'"></div>
+      <div [class]="'flex-1 h-3rem ' + shade + '-600 border-round'"></div>
+      <div [class]="'flex-1 h-3rem ' + shade + '-700 border-round'"></div>
+      <div [class]="'flex-1 h-3rem ' + shade + '-800 border-round'"></div>
+      <div [class]="'flex-1 h-3rem ' + shade + '-900 border-round'"></div>
+    </div>
+  </ng-template>
+</div>

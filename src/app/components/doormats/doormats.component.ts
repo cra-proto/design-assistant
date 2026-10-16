@@ -32,7 +32,7 @@ export const DOORMATS = {
   //Active project
   dashboard: { path: AidaLinks.ProjectDashboard, titleKey: 'dashboard._title', descriptionKey: 'dashboard.description', icon: 'view_quilt' },
   search: { path: undefined, titleKey: 'search._nav', descriptionKey: 'search.description', icon: 'manage_search', hideInProd: true },
-  problems: { path: undefined, titleKey: 'problems._nav', descriptionKey: 'problems.description', icon: 'troubleshoot', hideInProd: true },
+  problems: { path: undefined, titleKey: 'problems._nav', descriptionKey: 'problems.project.description', icon: 'troubleshoot', hideInProd: true },
   iaDiagram: { path: AidaLinks.ProjectDiagram, titleKey: 'iaDiagram._title', descriptionKey: 'iaDiagram.description', icon: 'lan' },
   inventory: { path: AidaLinks.ProjectInventory, titleKey: 'inventory._title', descriptionKey: 'inventory.description', icon: 'checklist_rtl' },
   metadata: { path: undefined, titleKey: 'metadata._nav', descriptionKey: 'metadata.description', icon: 'source', hideInProd: true },
@@ -126,7 +126,7 @@ export class DoormatsComponent {
     marker('search._nav');
     marker('search.description');
     marker('problems._nav');
-    marker('problems.description');
+    marker('problems.project.description');
     marker('iaDiagram.description');
     marker('compare.description');
     marker('help.description');

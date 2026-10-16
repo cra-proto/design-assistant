@@ -7,6 +7,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { TreeNode } from 'primeng/api';
 import { TabsModule } from 'primeng/tabs';
 
+import { CompareProblemsComponent } from '../../../components/compare/compare-problems/compare-problems.component';
 import { CompareRenderedComponent } from '../../../components/compare/compare-rendered/compare-rendered.component';
 import { CompareSelectComponent } from '../../../components/compare/compare-select/compare-select.component';
 import { CompareSourceComponent } from '../../../components/compare/compare-source/compare-source.component';
@@ -18,9 +19,11 @@ import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { CompareService } from './compare.service';
 
+import { environment } from '../../../../environments/environment';
+
 @Component({
   selector: 'aida-compare-versions',
-  imports: [FormsModule, TranslatePipe, TabsModule, CompareRenderedComponent, CompareSelectComponent, CompareSourceComponent, CompareToolsComponent, EditNodeComponent],
+  imports: [FormsModule, TranslatePipe, TabsModule, CompareProblemsComponent, CompareRenderedComponent, CompareSelectComponent, CompareSourceComponent, CompareToolsComponent, EditNodeComponent],
   templateUrl: './compare.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,6 +31,8 @@ export class CompareComponent {
   private projectState = inject(ProjectStateService);
   private readonly projectCache = inject(ProjectCacheService);
   public compareService = inject(CompareService);
+
+  protected readonly production = environment.production;
 
   public readonly mode = input.required<'compare' | 'ai'>();
   protected readonly showAiTools = computed(() => this.mode() === 'ai');

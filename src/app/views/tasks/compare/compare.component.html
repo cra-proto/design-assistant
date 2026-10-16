@@ -23,7 +23,9 @@
         <p-tab value="0"><i class="pi pi-eye mr-1"></i>{{ 'compare.tab.rendered' | translate }}</p-tab>
         <p-tab value="1"><i class="pi pi-code mr-1"></i>{{ 'compare.tab.source' | translate }}</p-tab>
         <p-tab value="2" (click)="editNode = true" (keydown.enter)="editNode = true"><i class="pi pi-pen-to-square mr-1"></i>{{ 'compare.tab.editNode' | translate }}</p-tab>
-        <!--p-tab value="3"><i class="pi pi-exclamation-triangle mr-1"></i>{{ 'compare.tab.problems' | translate }}</p-tab-->
+        @if (!production) {
+          <p-tab value="3" class="text-red-500"><i class="pi pi-exclamation-triangle mr-1"></i>{{ 'compare.tab.problems' | translate }}</p-tab>
+        }
       </p-tablist>
       <p-tabpanels class="shadow-1">
         <!-- Rendered page -->
@@ -57,9 +59,9 @@
           </p-tabpanel>
         }
         <!-- Problems -->
-        <!--p-tabpanel value="3">
-          <aida-compare-problems [afterContent]="compareService.modifiedHtml()" [beforeContent]="compareService.originalHtml()"></aida-compare-problems>
-        </p-tabpanel-->
+        <p-tabpanel value="3">
+          <aida-compare-problems [afterContent]="compareService.modifiedHtml()" [beforeContent]="compareService.originalHtml()" />
+        </p-tabpanel>
       </p-tabpanels>
     </p-tabs>
   </div>
