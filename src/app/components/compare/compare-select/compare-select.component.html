@@ -1,0 +1,105 @@
+<div class="flex justify-content-between">
+  <div class="flex-1">
+    <h2 class="text-2xl my-1">{{ 'compare.pageOptions._title' | translate }}</h2>
+    <p class="my-1">{{ compareMode() ? ('compare.pageOptions.description' | translate) : ('editPages.pageOptions.description' | translate) }}</p>
+  </div>
+  <p-button [label]="'common.options' | translate" (onClick)="menu.toggle($event)" icon="pi pi-ellipsis-v" iconPos="right" outlined styleClass="secondary-outline w-full min-w-max" />
+</div>
+
+@if (pageOptions.length > 0) {
+  <div class="flex flex-column lg:flex-row lg:align-items-center gap-2">
+    @if (compareMode()) {
+      <!--Selection-->
+      <div class="flex flex-column text-color-secondary hover:text-primary max-w-max">
+        <span class="text-xs my-1">{{ 'compare.pageOptions.selection' | translate }}</span>
+        <ng-container *ngTemplateOutlet="pageSelect" />
+      </div>
+      <!--Versions-->
+      <div class="flex flex-column text-color-secondary hover:text-primary max-w-max">
+        <span class="text-xs my-1">{{ 'compare.pageOptions.versions' | translate }}</span>
+        <div class="flex flex-column sm:flex-row sm:align-content-center gap-1 sm:gap-3 lg:gap-2">
+          <!--Before-->
+          <ng-container *ngTemplateOutlet="versionSelect; context: { mode: 'before', value: compareService.selectedBefore() }" />
+          <!--After-->
+          <ng-container *ngTemplateOutlet="versionSelect; context: { mode: 'after', value: compareService.selectedAfter() }" />
+        </div>
+      </div>
+    } @else {
+      <ng-container *ngTemplateOutlet="pageSelect" />
+      <ng-container *ngTemplateOutlet="versionSelect; context: { mode: 'source', value: compareService.selectedSource() }" />
+    }
+  </div>
+} @else {
+  <div class="flex justify-content-start my-2">
+    <aida-add-pages-link />
+  </div>
+}
+
+<!--Page Template-->
+<ng-template #pageSelect>
+  <p-iftalabel>
+    <p-select
+      [filter]="true"
+      [loading]="compareService.loading() || compareService.loadingAll()"
+      [ngModel]="compareService.selectedPage()"
+      [options]="pageOptions"
+      (ngModelChange)="onPageSelectionChange($event)"
+      class="w-20rem sm:w-27rem"
+      filterBy="label"
+      inputId="page"
+      loadingIcon="pi pi pi-spin pi-spinner"
+      optionLabel="label"
+      optionValue="path"
+    >
+      <ng-template #item let-page>
+        <div class="flex flex-column">
+          <span class="font-bold -mb-1">{{ page.label }}</span>
+          {{ page.path }}
+        </div>
+      </ng-template>
+    </p-select>
+    <label for="page">{{ 'compare.pageOptions.page' | translate }}</label>
+  </p-iftalabel>
+</ng-template>
+<!--Version Template-->
+<ng-template #versionSelect let-mode="mode" let-value="value">
+  <p-iftalabel>
+    <p-select
+      [inputId]="mode"
+      [loading]="isLoading(mode)"
+      [ngModel]="value"
+      [options]="versionOptions"
+      (ngModelChange)="onVersionSelectionChange($event, mode)"
+      class="w-20rem sm:w-13rem"
+      loadingIcon="pi pi pi-spin pi-spinner"
+      optionLabel="label"
+      optionValue="value"
+    />
+    <!-- duplicate 'pi' needed on loading icon, p-select strips one out as of 2026-08-13 -->
+    <label [for]="mode">{{ 'common.' + mode | translate }}</label>
+  </p-iftalabel>
+</ng-template>
+
+<!--DROPDOWN MENU-->
+<p-menu [model]="items" [popup]="true" #menu>
+  <ng-template #submenuheader let-item>
+    <span class="text-primary font-bold">{{ item.label | translate }}</span>
+    @if (item.Tooltip) {
+      <p class="text-gray-400 font-light text-xs my-0">{{ item.Tooltip | translate }}</p>
+    }
+  </ng-template>
+  <ng-template #item let-item>
+    <a class="p-menu-item-link">
+      <i [class]="item.icon"></i>
+      <span>{{ item.label | translate }}</span>
+    </a>
+  </ng-template>
+  <ng-template #end>
+    <span class="p-menu-item-link py-0">
+      <span class="text-primary font-bold">{{ 'common.versions' | translate }}</span>
+    </span>
+    <span class="p-menu-item-link py-0 hover:surface-100">
+      <aida-user-settings mode="versions" />
+    </span>
+  </ng-template>
+</p-menu>

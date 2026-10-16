@@ -1,615 +1,270 @@
-import { Component, inject, computed, ViewChild, effect, afterNextRender, OnDestroy } from '@angular/core';
-import { CommonModule, LocationStrategy } from '@angular/common';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
 
-// PrimeNG modules
-import { TreeModule, TreeNodeContextMenuSelectEvent, TreeNodeDropEvent } from 'primeng/tree';
-import { ContextMenuModule, ContextMenu } from 'primeng/contextmenu';
-import { TreeNode, MenuItem, TreeDragDropService } from 'primeng/api';
-import { InputGroupModule } from 'primeng/inputgroup';
-import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
-import { InputTextModule } from 'primeng/inputtext';
+import { TranslateService } from '@ngx-translate/core';
 
+import { MenuItem, TreeDragDropService, TreeNode } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { TooltipModule } from 'primeng/tooltip';
+import { DialogModule } from 'primeng/dialog';
+import { Menu, MenuModule } from 'primeng/menu';
+import { TreeModule, TreeNodeDropEvent } from 'primeng/tree';
 
-// Services
+import { EditNodeComponent } from '../edit-node/edit-node.component';
+
+import { FetchService } from '../../services/fetch.service';
+import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { TreeNodeStyleService } from '../../services/treenode-style.service';
 import { UserSettingsService } from '../../services/user-settings.service';
-
-//TODO: FIX HARDCODED TRANSLATIONS
+import { AddUrlsService } from '../add-pages/by-url/add-urls.service';
 
 @Component({
-    selector: 'aida-ia-table',
-    imports: [FormsModule, CommonModule, TranslateModule,
-        TreeModule, ContextMenuModule,
-        InputTextModule, InputGroupModule, InputGroupAddonModule,
-        ButtonModule, TooltipModule
-    ],
-    providers: [TreeDragDropService],
-    templateUrl: './ia-table.component.html',
-    styleUrl: './ia-table.component.css'
+  selector: 'aida-ia-table',
+  imports: [FormsModule, ButtonModule, DialogModule, MenuModule, TreeModule, EditNodeComponent],
+  providers: [TreeDragDropService],
+  templateUrl: './ia-table.component.html',
+  styleUrl: './ia-table.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class IaTableComponent implements OnDestroy {
-    private projectState = inject(ProjectStateService);
-    private treeNodeStyleService = inject(TreeNodeStyleService);
-    private settingsService = inject(UserSettingsService);
-    private locationStrategy = inject(LocationStrategy);
-    projectTree = computed(() => this.projectState.getProject().projectData);
+export class IaTableComponent {
+  private readonly projectState = inject(ProjectStateService);
+  private readonly treeNodeStyleService = inject(TreeNodeStyleService);
+  protected readonly projectCache = inject(ProjectCacheService);
+  private readonly settingsService = inject(UserSettingsService);
+  private readonly translate = inject(TranslateService);
+  private readonly addUrlsService = inject(AddUrlsService);
+  private readonly fetchService = inject(FetchService);
 
-    constructor() {
-        effect(() => {
-            this.settingsService.darkMode(); // track dark mode changes
-            this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
-        });
+  public readonly projectTree = input<TreeNode[]>(this.projectState.getProject().projectData);
+
+  protected readonly treeKey = signal(0);
+  protected selectedNode?: TreeNode | null;
+  protected readonly menu = viewChild.required<Menu>('menu');
+
+  //For edit node popup
+  protected editNode = false;
+  protected showNotes = false;
+
+  //Drag & drop states
+  protected draggable = true;
+  protected selectable = false;
+
+  protected get currentLanguage() {
+    return this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en';
+  }
+
+  // Display H1
+  protected getH1Display(node: TreeNode): string {
+    const lang = this.projectCache.selectedLang();
+    const liveH1 = node.data?.live?.[lang]?.h1 ?? '';
+    const protoH1 = node.data?.prototype?.[lang]?.h1 ?? '';
+    const changed = liveH1 !== protoH1;
+    if (this.projectCache.selectedViewIA() === 'baseline') return liveH1;
+    else if (this.projectCache.selectedViewIA() === 'final') return protoH1;
+    else if (changed) return `<s class="text-color-secondary text-sm">${liveH1}</s><br>${protoH1}`;
+    else return protoH1;
+  }
+
+  constructor() {
+    effect(() => {
+      this.settingsService.darkMode();
+      this.projectState.getProject();
+      this.treeKey.update((k) => k + 1);
+    });
+  }
+
+  /** Needed to get the actual node reference from a cloned getDisplayTree */
+  protected resolveRealNode(cloneNode: TreeNode | null): TreeNode | null {
+    if (!cloneNode) return null;
+    return this.projectState.findNodeByPath(this.projectState.getProjectTree(), cloneNode.data.path[this.currentLanguage], this.currentLanguage);
+  }
+
+  //Context menu
+  protected options: MenuItem[] = []; //options for editing nodes
+
+  //RIGHT & LEFT CLICK ACTIONS
+  protected onNodeClick(event: MouseEvent) {
+    if (event.button === 0) {
+      event.preventDefault();
+    }
+  }
+
+  protected onNodeMenuClick(event: MouseEvent, clonedNode: TreeNode) {
+    event.preventDefault();
+    this.menu().hide();
+    const target = event.currentTarget;
+    this.selectedNode = this.resolveRealNode(clonedNode);
+    if (!this.selectedNode) return;
+    const node = this.selectedNode;
+    const isContainer = this.selectedNode.data.isContainer;
+    const path = this.selectedNode.data.path[this.projectCache.selectedLang()];
+    if (!path) return;
+
+    // Options
+    this.options = [
+      {
+        label: this.translate.instant(`common.actions`),
+        items: [],
+      },
+      {
+        label: this.translate.instant(`common.openNewTab`),
+        items: [],
+      },
+    ];
+
+    // Action: edit node
+    if (!isContainer) {
+      this.options[0].items!.push({
+        label: this.translate.instant(`common.editNode`),
+        icon: 'pi pi-pen-to-square',
+        command: () => {
+          this.showNotes = false;
+          this.editNode = true;
+        },
+      });
+    }
+    // Action: View notes
+    if ((node.data?.notes?.issue?.length ?? 0) + (node.data?.notes?.solution?.length ?? 0) > 0) {
+      this.options[0].items!.push({
+        label: this.translate.instant(`common.viewNotes`),
+        icon: 'pi pi-list',
+        command: () => {
+          this.showNotes = true;
+          this.editNode = true;
+        },
+      });
     }
 
-    async ngOnInit() {
-        //Context menu
-        this.options = [
-            ...this.baseMenu
-        ];
-        this.baseHref = this.locationStrategy.getBaseHref();
-        this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
+    // Reorder siblings
+    const siblings = this.projectState.getSiblings(this.selectedNode);
+    const index = siblings.indexOf(this.selectedNode);
+    const canMoveLeft = index > 0;
+    const canMoveRight = index < siblings.length - 1;
+    if (canMoveRight || canMoveLeft) {
+      this.options[0].items!.push({ separator: true });
+    }
+    if (canMoveLeft) {
+      this.options[0].items!.push({
+        label: this.translate.instant(`common.moveUp`),
+        icon: 'pi pi-arrow-up',
+        command: () => this.projectState.reorderNode(node, 'left'),
+      });
+    }
+    if (canMoveRight) {
+      this.options[0].items!.push({
+        label: this.translate.instant(`common.moveDown`),
+        icon: 'pi pi-arrow-down',
+        command: () => this.projectState.reorderNode(node, 'right'),
+      });
+    }
+    if (canMoveRight || canMoveLeft) {
+      this.options[0].items!.push({ separator: true });
     }
 
-    ngOnDestroy(): void {
-        if (this.editingNode) { //auto-save before exiting
-            this.editingNode.data.editing = null;
-        }
+    // Actions: Find child pages
+    if (!this.selectedNode.data.isCrawled && !isContainer) {
+      this.options[0].items!.push({
+        label: this.translate.instant(`iaDiagram.menu.findChildren`),
+        icon: 'pi pi-search',
+        disabled: this.selectedNode.data.isCrawled,
+        command: () => {
+          this.addUrlsService.addChildren(node, this.projectState.detectPrimaryLanguage());
+        },
+      });
     }
+    // Action: Add child page or delete node
+    this.options[0].items!.push(
+      {
+        label: this.translate.instant(`iaDiagram.menu.createChild`),
+        icon: 'pi pi-file-plus text-green-500',
+        command: () => {
+          this.selectedNode = this.projectState.createNode(node);
+          this.editNode = true;
+        },
+      },
+      {
+        label: this.translate.instant(`iaDiagram.menu.deleteNode`),
+        icon: 'pi pi-trash text-red-500',
+        command: () => {
+          this.projectState.deleteNode(node);
+        },
+      },
+    );
 
-    //REVIEW THESE FUNCTIONS
-    onNodeClick(event: MouseEvent) {
-        if (event.button === 0) {
-            event.preventDefault();
-        }
-    }
-    //Context menu
-    @ViewChild('cm') cm!: ContextMenu;
-    options: MenuItem[] = []; //options for editing chart nodes
-
-    baseMenu: MenuItem[] = [
+    // Open in new tab
+    const github = this.projectState.getProject().github;
+    const liveUrl = this.fetchService.generateUrl(path, 'live');
+    const previewUrl = this.fetchService.generateUrl(path, 'preview');
+    const prototypeUrl = this.fetchService.generateUrl(path, 'protoGH', github.owner, github.repo);
+    const baselineUrl = this.fetchService.generateUrl(path, 'baseGH', github.owner, github.repo);
+    const updUrl = this.fetchService.generateUrl(path, 'upd');
+    if (!isContainer) {
+      this.options[1].items!.push(
         {
-            label: 'Edit label',
-            icon: 'pi pi-pen-to-square',
-            command: () => {
-                this.editNode('label');
-            }
+          label: this.translate.instant('inventory.menu.newTab.liveUrl'),
+          icon: 'pi pi-external-link',
+          command: () => {
+            window.open(liveUrl, '_blank');
+          },
         },
         {
-            label: 'Edit url',
-            icon: 'pi pi-link',
-            command: () => {
-                this.editNode('link');
-            }
+          label: this.translate.instant('inventory.menu.newTab.previewUrl'),
+          icon: 'pi pi-external-link',
+          command: () => {
+            window.open(previewUrl, '_blank');
+          },
         },
         {
-            separator: true
+          label: this.translate.instant('inventory.menu.newTab.prototypeUrl'),
+          icon: 'pi pi-external-link',
+          command: () => {
+            window.open(prototypeUrl, '_blank');
+          },
         },
         {
-            label: 'Add child page',
-            icon: 'pi pi-plus',
-            command: () => {
-                this.addChildNode();
-            }
+          label: this.translate.instant('inventory.menu.newTab.baselineUrl'),
+          icon: 'pi pi-external-link',
+          command: () => {
+            window.open(baselineUrl, '_blank');
+          },
         },
         {
-            label: 'Delete page',
-            icon: 'pi pi-trash',
-            disabled: true,
-            command: () => {
-                this.deleteNode();
-            }
+          label: this.translate.instant('inventory.menu.newTab.UPD'),
+          icon: 'pi pi-external-link',
+          command: () => {
+            window.open(updUrl, '_blank');
+          },
         },
-        {
-            separator: true
-        },
-        {
-            label: 'Change template',
-            icon: 'pi pi-sync',
-            items: [
-                {
-                    label: 'Split into subway pattern',
-                    icon: 'pi pi-sitemap',
-                    command: () => {
-                        this.addParentNode('subway');
-                    }
-                },
-                {
-                    label: 'Combine into single page',
-                    icon: 'pi pi-file-check',
-                    command: () => {
-                        this.addParentNode('combine');
-                    }
-                },
-            ]
-        },
-        {
-            label: 'Change status',
-            icon: 'pi pi-palette',
-            items: [
-                {
-                    label: 'In-scope',
-                    icon: 'pi pi-check text-green-500',
-                    command: () => {
-                        this.selectedNode.data.status.inScope = true;
-                        this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
-                        this.selectedNode = null!;
-                        this.projectState.setModifiedDate();
-                    }
-                },
-                {
-                    label: 'IA Orphan',
-                    icon: 'pi pi-times text-red-500',
-                    command: () => {
-                        this.selectedNode.data.status.isOrphan = true;
-                        this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
-                        this.selectedNode = null!;
-                        this.projectState.setModifiedDate();
-                    }
-                },
-                {
-                    label: 'New page',
-                    icon: 'pi pi-file-plus text-green-500',
-                    command: () => {
-                        this.selectedNode.data.status.isNew = true;
-                        this.selectedNode.data.status.isMoved = false;
-                        this.selectedNode.data.status.isROT = false;
-                        this.selectedNode.data.status.isArchived = 'current';
-                        this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
-                        this.selectedNode = null!;
-                        this.projectState.setModifiedDate();
-                    }
-                },
-                {
-                    label: 'ROT',
-                    icon: 'pi pi-trash text-red-500',
-                    command: () => {
-                        this.selectedNode.data.status.isROT = true
-                        this.selectedNode.data.status.isNew = false;
-                        this.selectedNode.data.status.isMoved = false;
-                        this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
-                        this.selectedNode = null!;
-                        this.projectState.setModifiedDate();
-                    }
-                },
-                {
-                    label: 'Page move',
-                    icon: 'pi pi-arrow-right text-orange-500',
-                    command: () => {
-                        this.selectedNode.data.status.isMoved = true
-                        this.selectedNode.data.status.isNew = false;
-                        this.selectedNode.data.status.isROT = false;
-                        this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
-                        this.selectedNode = null!;
-                        this.projectState.setModifiedDate();
-                    }
-                },
-                {
-                    label: 'Portal link',
-                    icon: 'pi pi-external-link text-blue-500',
-                    command: () => {
-                        this.selectedNode.data.status.linksToPortal = true;
-                        this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
-                        this.selectedNode = null!;
-                        this.projectState.setModifiedDate();
-                    }
-                },
-                {
-                    label: 'Archive',
-                    icon: 'pi pi-exclamation-triangle text-orange-500',
-                    command: () => {
-                        const status = this.selectedNode.data.status.archiveStatus;
-                        this.selectedNode.data.status.archiveStatus =
-                            status === 'current' ? 'to-archive' :
-                                status === 'to-archive' ? 'current' :
-                                    status === 'archived' ? 'unarchive' :
-                                        status === 'unarchive' ? 'archived' : status;
-                        this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
-                        this.selectedNode = null!;
-                        this.projectState.setModifiedDate();
-                    }
-                },
-                {
-                    separator: true
-                },
-                {
-                    label: 'Reset status',
-                    icon: 'pi pi-replay',
-                    command: () => {
-                        this.selectedNode.data.status.inScope = false;
-                        this.selectedNode.data.status.iaOrphan = false;
-                        this.selectedNode.data.status.isNew = false;
-                        this.selectedNode.data.status.isMoved = false;
-                        this.selectedNode.data.status.isROT = false;
-                        this.selectedNode.data.status.linksToPortal = false;
-                        this.selectedNode.data.status.archiveStatus = 'current';
-                        this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
-                        this.selectedNode = null!;
-                    }
-                },
-            ]
-        },
-        {
-            separator: true
-        },
-        {
-            label: 'Export to CSV',
-            icon: 'pi pi-file-export',
-            command: () => {
-                this.projectState.exportTreeAsCsv();
-            }
-        },
-        {
-            separator: true
-        },
-        {
-            label: 'Open page in page assistant',
-            icon: 'pi pi-sparkles',
-            disabled: true,
-            command: () => {
-                console.log('Open link in page assistant ', this.selectedNode)
-                this.openInPageAssistant();
-            }
-        },
-        {
-            label: 'Open page in new tab',
-            icon: 'pi pi-external-link',
-            command: () => {
-                console.log('Open link in new tab ', this.selectedNode)
-                this.openNodeUrl();
-            }
-        },
-    ]
-    selectedNode!: TreeNode;
-    draggable = true;
-    selectable = true;
+      );
+    }
+    setTimeout(() => this.menu().show({ currentTarget: target }));
+  }
 
-    //For tracking previous states
-    editingNode: TreeNode | null = null;
-    undoArray: { node: TreeNode; parent: TreeNode; index: number }[] = [];
+  // Page moves
+  protected handleNodeDrop(event: TreeNodeDropEvent): void {
+    const dragNode = event.dragNode;
+    const dropNode = event.dropNode;
 
-    //for loading in page assistant
-    baseHref: string | null = null;
+    if (!dragNode || !dropNode) return;
 
-    onNodeContextMenu(event: TreeNodeContextMenuSelectEvent) {
-        if (this.editingNode) { //auto-save before switching
-            this.editingNode.data.editing = null;
-        }
-        this.selectedNode = event.node;
-        const isContainer = this.selectedNode.data.status.isContainer;
+    // Prevent dropping containers into containers (not foolproof)
+    if ((dropNode.data.isContainer || dropNode.parent?.data?.isContainer) && dragNode.data.isContainer) return;
+    event.accept?.(); // accept the drop
 
-        this.options.forEach(item => {
-            if (item.label === 'Open page in new page assistant') {
-                item.disabled = true //disable until we add page assistant
-            }
-            if (item.label === 'Open page in new page assistant' || item.label === 'Open page in new tab') {
-                item.disabled = !this.selectedNode?.data?.url?.trim(); //disable if no URL
-            }
-            if (item.label === 'Change template' || item.label === 'Change style') {
-                item.disabled = isContainer; //disable if container
-            }
-        });
+    //Get target element
+    const targetEl = event.originalEvent?.target as HTMLElement;
+    const droppedOnNode = targetEl.tagName.toLowerCase() !== 'li'; // tag will be <a> or <div> if dropped on a node or <li> if dropped between nodes
+    const effectiveNewParent = droppedOnNode ? dropNode : dropNode.parent;
+
+    if (!dragNode.data.isContainer && !dragNode.data.status.isNew) {
+      this.projectState.applyMoveResult(dragNode, effectiveNewParent);
     }
 
-
-    //Edit URL or H1
-    editNode(mode: 'label' | 'link' | 'oppLabel' | 'oppLink' = 'label') {
-        if (this.selectedNode) {
-            this.selectedNode.data.editing = mode;
-            this.editingNode = this.selectedNode;
-            this.draggable = false;
-            this.selectable = false;
-            // auto-focus on input
-            setTimeout(() => {
-                const input = document.querySelector<HTMLInputElement>('input.ia-label');
-                input?.focus();
-            });
-        }
-    }
-
-    //Save changes to URL or H1
-    saveNode() {
-        let editLink = false;
-        const editFrench = this.selectedNode.data.metadata.oppTitle === "French title";
-        if (this.selectedNode.data.editing === "label" && !this.selectedNode.data.url.endsWith('.html')) {
-            const fragment = this.projectState.generateUrlFragment(this.selectedNode.data.h1);
-            const separator = this.selectedNode.data.url.endsWith('/') ? '' : '/';
-            this.selectedNode.data.url += separator + fragment;
-            editLink = true;
-        }
-        else if (this.selectedNode.data.editing === "link" && !this.selectedNode.data.url.endsWith('.html')) {
-            this.selectedNode.data.url = this.selectedNode.data.url.replace(/\/$/, '') + '.html'; // add .html if missing
-        }
-        else if (this.selectedNode.data.editing === "oppLabel" && !this.selectedNode.data.metadata.oppUrl.endsWith('.html')) {
-            const fragment = this.projectState.generateUrlFragment(this.selectedNode.data.metadata.oppTitle);
-            const separator = this.selectedNode.data.metadata.oppUrl.endsWith('/') ? '' : '/';
-            this.selectedNode.data.metadata.oppUrl += separator + fragment + '.html';
-        }
-
-        if (this.selectedNode) {
-            this.selectedNode.data.editing = null;
-        }
-        this.draggable = true;
-        this.selectable = false;
-
-        if (editLink) { this.editNode("link"); }
-        else if (editFrench) { this.editNode("oppLabel"); }
-        else { this.projectState.setModifiedDate(); }
-    }
-
-    //Handle keyboard events while editing URL or H1
-    onInputKeydown(event: KeyboardEvent) {
-        if (event.key === 'Enter') {
-            this.saveNode();
-            event.stopPropagation();
-            event.preventDefault();
-        }
-        if (event.key === ' ') {
-            event.stopPropagation(); //allows space to work in tree
-        }
-    }
-
-    addChildNode() {
-        if (!this.selectedNode) return;
-
-        // Ensure children array exists
-        if (!this.selectedNode.children) {
-            this.selectedNode.children = [];
-        }
-
-        const originalParent = this.selectedNode.data.url;
-        const pathPrefix = originalParent.replace(".html", "/")
-
-        const oppParent = this.selectedNode.data.metadata.oppUrl.replace(".html", "/");
-
-        // Create the new node
-        const newNode: TreeNode = {
-            label: 'New page',
-            data: {
-                h1: 'New page',
-                url: pathPrefix,
-                originalParent: originalParent,
-                status: {
-                    //Status
-                    inScope: true,
-                    isOrphan: true,
-                    isNew: true,
-                    isMoved: false,
-                    isROT: false,
-                    linksToPortal: false,
-                    archiveStatus: 'current',
-                },
-                metadata: {
-                    oppTitle: 'French title',
-                    oppUrl: oppParent,
-                }
-            },
-            children: []
-        };
-
-        // Push into parent
-        this.selectedNode.children.push(newNode);
-
-        // Expand parent so the new child is visible
-        this.selectedNode.expanded = true;
-
-        // Select the new node so the user can start editing
-        this.selectedNode = newNode;
-        this.editNode('label');
-
-        this.updateMenu(); // refresh context menu, undo, etc.
-        this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0); // refresh styles
-
-        // Trigger autosave
-        this.projectState.setModifiedDate();
-    }
-
-    //Will be used to create a container to mark pages for template change
-    addParentNode(action: 'subway' | 'combine') {
-        if (!this.selectedNode) return;
-
-        // Find the parent node and the array the selected node is in
-        const findParent = (nodes: TreeNode[], parentNode?: TreeNode): { parentContainer: TreeNode[]; parentNode: TreeNode | null } | null => {
-            for (const node of nodes) {
-                if (node === this.selectedNode) {
-                    return {
-                        parentContainer: nodes, // found at this level
-                        parentNode: parentNode ?? null,
-                    };
-                }
-                if (node.children) {
-                    const searchChildNodes = findParent(node.children, node);
-                    if (searchChildNodes) return searchChildNodes;
-                }
-            }
-            return null;
-        };
-
-        const location = findParent(this.projectTree() || []);
-        if (!location) return; // if not found
-
-        const { parentContainer, parentNode } = location;
-
-        const label = action === 'subway' ? 'Split into subway pattern' : 'Combine into single page';
-
-        //Create new parent node
-        const newParentNode: TreeNode = {
-            label: label,
-            data: {
-                h1: label,
-                url: '',
-                originalParent: parentNode?.data?.url ?? '',
-                status: {
-                    //Status
-                    inScope: false,
-                    isOrphan: false,
-                    isNew: false,
-                    isMoved: false,
-                    isROT: false,
-                    linksToPortal: false,
-                    archiveStatus: 'current',
-                    isContainer: true,
-                }
-            },
-            expanded: true,
-            children: [this.selectedNode]
-        };
-
-        // Replace the original node with the new parent node (which contains the original node as a child)
-        const index = parentContainer.indexOf(this.selectedNode);
-        if (index !== -1) {
-            parentContainer.splice(index, 1, newParentNode);
-        }
-
-        // Make the new parent the selection
-        this.selectedNode = newParentNode;
-
-        // UI refresh
-        this.updateMenu();
-        this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
-
-        // Trigger autosave
-        this.projectState.setModifiedDate();
-    }
-
-    //TODO: if this was notOrphan, update crawl status of parent node so that this node can be rediscovered on crawl
-    deleteNode() {
-        if (!this.projectTree() || !this.selectedNode) return;
-
-        const nodeToDelete = this.selectedNode;
-
-        // Root-level (don't delete the root!!!)
-        const rootIndex = this.projectTree().findIndex(n => n === nodeToDelete);
-        if (rootIndex > -1) {
-            console.warn('Cannot delete root node.');
-            return;
-        }
-
-        // Child node
-        const findAndDelete = (nodes: TreeNode[]): boolean => {
-            for (const node of nodes) {
-                const children: TreeNode[] = node.children ?? [];
-                const childIndex = children.findIndex(c => c === nodeToDelete);
-                if (childIndex > -1) {
-                    this.undoArray.push({ node: nodeToDelete, parent: node, index: childIndex });
-                    children.splice(childIndex, 1);
-                    return true;
-                }
-                // recurse into grandchildren
-                if (children.length && findAndDelete(children)) {
-                    return true;
-                }
-            }
-            return false;
-        };
-
-        findAndDelete(this.projectTree());
-        this.updateMenu();
-    }
-
-    restoreNode() {
-        if (this.undoArray.length === 0) return;
-
-        const last = this.undoArray.pop()!;
-
-        if (last.parent?.children) {
-            last.parent.children.splice(last.index, 0, last.node);
-        } else {
-            console.warn('Cannot restore node: parent missing.');
-            return;
-        }
-
-        this.selectedNode = last.node;
-        if (!this.selectedNode.data.status.isContainer) {
-            this.selectedNode.data.status.isROT = true;
-            this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
-        }
-        this.updateMenu();
-    }
-
-    //Add undo option under delete if there is something to restore
-    updateMenu() {
-        this.options = [...this.baseMenu];
-
-        const deleteIndex = this.options.findIndex(option => option.label === 'Delete page');
-
-        if (this.undoArray.length > 0 && deleteIndex !== -1) {
-            this.options.splice(deleteIndex + 1, 0, {
-                label: 'Restore page',
-                icon: 'pi pi-history',
-                command: () => this.restoreNode()
-            });
-        }
-    }
-
-    //Open link in new tab
-    openNodeUrl() {
-        window.open(this.selectedNode.data.url, '_blank');
-    }
-
-    //Make share link a service so it can be used on both share.component.ts and here
-    openInPageAssistant() {
-        const baseUrl = (window.location.origin + this.baseHref).replace(/\/+$/, '');
-        const urlParam = encodeURIComponent(this.selectedNode.data.url);
-        const shareLink = `${baseUrl}/page-assistant/share?url=${urlParam}`;
-        console.log('Open in page assistant: ', shareLink);
-        window.open(shareLink, '_blank');
-    }
-
-    // Page moves
-    handleNodeDrop(event: TreeNodeDropEvent): void {
-        const dragNode = event.dragNode;
-        const dropNode = event.dropNode;
-
-        if (!dragNode || !dropNode) return;
-
-        // Prevent dropping containers into containers (not foolproof)
-        if ((dropNode.data.status.isContainer || dropNode.parent?.data?.status.isContainer) && dragNode.data.status.isContainer) return;
-        event.accept?.(); // accept the drop       
-
-        // Save initial move status so we can compare and trigger a project save
-        const moveStatus = dragNode.data.status.isMoved
-
-        //Get target element
-        const targetEl = event.originalEvent?.target as HTMLElement;
-        const tag = targetEl.tagName.toLowerCase(); // will be <a> or <div> if dropped on a node or <li> if dropped between nodes
-        const droppedOnNode: boolean = tag !== 'li'
-
-        //Check for changes to IA structure
-        const dragParentUrl = dragNode.data.originalParent; //parentUrl is the original parent before any changes
-
-        const dropUrl = dropNode.data.url;
-        const dropParentUrl = dropNode.parent?.data?.url ?? '';
-        const dropGrandparentUrl = dropNode.parent?.data?.originalParent ?? '';
-
-        const droppedOnParent = droppedOnNode && dragParentUrl === dropUrl;
-        const reorderedSiblings = !droppedOnNode && dragParentUrl === dropParentUrl;
-
-        //Check if dropping sibling onto a container
-        const droppedOnContainerSibling = dropNode.data.status.isContainer && droppedOnNode && dragParentUrl === dropParentUrl;
-        const droppedBetweenContainerSibling = dropNode.parent?.data?.status.isContainer && !droppedOnNode && dragParentUrl === dropGrandparentUrl;
-
-        //Set isMoved status when not reordering siblings, moving siblings into a template container, or moving containers or new pages
-        if (!(droppedOnParent || reorderedSiblings || droppedOnContainerSibling || droppedBetweenContainerSibling || dragNode.data.status.isContainer || dragNode.data.status.isNew)) {
-            dragNode.data.status.isMoved = true;
-        }
-        else { dragNode.data.status.isMoved = false; }
-
-        //Update project if move status has changed
-        if (moveStatus !== dragNode.data.status.isMoved) {
-            this.projectState.setModifiedDate();
-        }
-
-        //Cleanup hover effect if hovering on parent but dropping between parent and top child      
-        document.querySelectorAll('.p-tree-node-dragover').forEach((el) => {
-            el.classList.remove('p-tree-node-dragover');
-        });
-        //Update styles
-        this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
-    }
-
+    //Cleanup hover effect if hovering on parent but dropping between parent and top child
+    document.querySelectorAll('.p-tree-node-dragover').forEach((el) => {
+      el.classList.remove('p-tree-node-dragover');
+    });
+    //Update styles
+    this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
+  }
 }

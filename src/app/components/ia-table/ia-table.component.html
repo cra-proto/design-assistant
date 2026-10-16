@@ -1,40 +1,44 @@
-<p-contextMenu #cm [model]="options"></p-contextMenu>
-<p-tree [value]="projectTree()"
-        [selectionMode]="selectable ? 'multiple' : null" [(selection)]="selectedNode"
-        [draggableNodes]="draggable" [droppableNodes]="true" draggableScope="self" droppableScope="self" (onNodeDrop)="handleNodeDrop($event)" [validateDrop]="true"
-        [contextMenu]="cm" (onNodeContextMenuSelect)="onNodeContextMenu($event)">
-    <ng-template pTemplate="default" let-node>
-        <div class="flex flex-row align-items-center gap-2">
-            @if(node.data.editing){
-            <!--Edit mode-->
-            <i class="pi pi-pencil text-color-secondary"></i>
-            @if(node.data.editing === 'label'){
-            <p-inputgroup>
-                <input type="text" pInputText [(ngModel)]="node.data.h1" pSize="small" class="ia-label" (keydown)="onInputKeydown($event)" fluid />
-                <p-inputgroup-addon><p-button icon="pi pi-check" severity="secondary" size="small" (onClick)="saveNode()" /></p-inputgroup-addon>
-            </p-inputgroup>
-            } @else if(node.data.editing === 'link'){
-            <p-inputgroup>
-                <input type="text" pInputText [(ngModel)]="node.data.url" pSize="small" class="ia-label" (keydown)="onInputKeydown($event)" />
-                <p-inputgroup-addon><p-button icon="pi pi-check" severity="secondary" size="small" (onClick)="saveNode()" /></p-inputgroup-addon>
-            </p-inputgroup>
-            } @else if(node.data.editing === 'oppLabel'){
-            <p-inputgroup>
-                <input type="text" pInputText [(ngModel)]="node.data.metadata.oppTitle" pSize="small" class="ia-label" (keydown)="onInputKeydown($event)" fluid />
-                <p-inputgroup-addon><p-button icon="pi pi-check" severity="secondary" size="small" (onClick)="saveNode()" /></p-inputgroup-addon>
-            </p-inputgroup>
-            }
-            } @else {
-            <!-- Display mode -->
-            @if(draggable){
+<p-menu [model]="options" [popup]="true" #menu />
+
+@for (key of [treeKey()]; track key) {
+  <p-tree
+    [(selection)]="selectedNode"
+    [draggableNodes]="draggable"
+    [droppableNodes]="true"
+    [selectionMode]="selectable ? 'multiple' : null"
+    [validateDrop]="true"
+    [value]="projectTree()"
+    (contextmenu)="$event.preventDefault()"
+    (onNodeDrop)="handleNodeDrop($event)"
+    draggableScope="self"
+    droppableScope="self"
+  >
+    <ng-template let-node pTemplate="default">
+      <div (contextmenu)="onNodeMenuClick($event, node)" class="flex justify-content-between gap-2">
+        <div class="flex align-items-center gap-2">
+          @if (draggable) {
             <i class="pi pi-arrows-alt cursor-move text-color-secondary"></i>
-            } @else if(node.children?.length > 0){
+          } @else if (node.children?.length > 0) {
             <i class="pi pi-folder"></i>
-            } @else{
+          } @else {
             <i class="pi pi-file"></i>
-            }
-            <a [href]="node.data.url" target="_blank" (click)="onNodeClick($event)" [innerHTML]="node.data.h1" class="ia-label"></a>
-            }
+          }
+          <a
+            [href]="projectCache.selectedLang() === 'en' ? `https://www.canada.ca/${node.data.path.en}` : `https://www.canada.ca/${node.data.path.fr}`"
+            [innerHTML]="getH1Display(node)"
+            (click)="onNodeClick($event)"
+            class="ia-label cursor-help"
+            target="_blank"
+          ></a>
         </div>
+        <p-button (onClick)="onNodeMenuClick($event, node)" icon="pi pi-ellipsis-h" text />
+      </div>
     </ng-template>
-</p-tree>
+  </p-tree>
+}
+
+<p-dialog [(visible)]="editNode" [header]="selectedNode?.data?.prototype?.[currentLanguage]?.h1" [maximizable]="true" [modal]="true" [style]="{ height: '90vh' }" styleClass="w-10">
+  @if (selectedNode) {
+    <aida-edit-node [initialShowNotes]="showNotes" [isOpen]="editNode" [node]="selectedNode" (dialogClose)="editNode = false" />
+  }
+</p-dialog>

@@ -1,0 +1,32 @@
+{
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 200,
+  "plugins": ["@ianvs/prettier-plugin-sort-imports", "prettier-plugin-organize-attributes"],
+  "importOrder": [
+    "^@angular/(.*)$",
+    "",
+    "^@(ngx-translate|colsen1991)/(.*)$",
+    "",
+    "<THIRD_PARTY_MODULES>",
+    "",
+    "^primeng/(.*)$",
+    "",
+    "^\\.{1,2}/.*\\.component$",
+    "",
+    "^\\.{1,2}/.*\\.service$",
+    "",
+    "^[./]"
+  ],
+  "importOrderParserPlugins": ["typescript", "decorators-legacy"],
+  "overrides": [
+    {
+      "files": "src/app/app.routes.ts",
+      "options": {
+        "importOrder": []
+      }
+    }
+  ],
+  "attributeGroups": ["$ANGULAR_STRUCTURAL_DIRECTIVE", "$ID", "^value$", "$ANGULAR_TWO_WAY_BINDING", "$ANGULAR_INPUT", "$ANGULAR_OUTPUT", "$CLASS", "^\\[style", "$ARIA", "$ROLE", "$DEFAULT"],
+  "attributeSort": "ASC"
+}

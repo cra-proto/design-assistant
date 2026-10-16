@@ -1,0 +1,15 @@
+@if (showSaveButton()) {
+  <div class="flex flex-row align-items-center gap-2 lg:gap-3">
+    <p-button
+      [icon]="saveButtonConfig().icon"
+      [label]="saveButtonConfig().label"
+      [severity]="saveButtonConfig().severity"
+      (onClick)="save()"
+      rounded
+      size="small"
+      styleClass="white-space-nowrap -mr-2"
+      text
+    />
+    <p-divider class="mx-0" layout="vertical" />
+  </div>
+}

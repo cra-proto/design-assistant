@@ -3,9 +3,12 @@
 
 :root {
   --header-height: 3rem;
-  --nav-width: 4.8rem;
-  --body-font: "Noto Sans", sans-serif;
+  --mobile-nav-width: 4.8rem;
+  --desktop-nav-width: calc(var(--mobile-nav-width) + 8.5rem);
+  --body-font: 'Noto Sans', sans-serif;
   --z-fixed: 100;
+  --aida-border-width: 1.5px;
+  --aida-border-width-checked: 2px;
 }
 
 *,
@@ -20,7 +23,7 @@ body {
   padding: 0 1rem;
   font-family: var(--body-font);
   font-size: var(--font-size);
-  transition: .3s;
+  transition: 0.3s;
 }
 
 /* ========== Layout ========== */
@@ -29,7 +32,7 @@ div.container {
   min-height: 97vh;
   display: flex;
   flex-direction: column;
-  padding-left: var(--nav-width);
+  padding-left: var(--mobile-nav-width);
 }
 
 main.container {
@@ -41,7 +44,7 @@ main.container {
   position: fixed;
   top: 0;
   left: 0;
-  width: var(--nav-width);
+  width: var(--mobile-nav-width);
   height: 100vh;
   transition: width 0.3s ease;
   z-index: var(--z-fixed);
@@ -56,11 +59,11 @@ main.container {
 /* ========== Desktop Layout ========== */
 @media screen and (min-width: 768px) {
   .l-navbar {
-    width: calc(var(--nav-width) + 7rem);
+    width: var(--desktop-nav-width);
   }
 
   div.container {
-    padding-left: calc(var(--nav-width) + 7rem);
+    padding-left: var(--desktop-nav-width);
   }
 }
 
@@ -219,7 +222,7 @@ html.dark-mode .p-button.p-button-primary {
 */
 
 /*override accordion style*/
-.p-accordion>.p-accordionpanel {
+.p-accordion > .p-accordionpanel {
   box-shadow: none !important;
   margin: 0 !important;
 }
@@ -238,6 +241,34 @@ html.dark-mode .secondary-outline .p-splitbutton-dropdown,
 html.dark-mode .secondary-outline.p-button,
 html.dark-mode .secondary-outline {
   border-color: var(--p-zinc-600) !important;
+}
+
+.border-primary-50 {
+  border-color: var(--p-primary-50);
+}
+.border-primary-100 {
+  border-color: var(--p-primary-100);
+}
+.border-primary-200 {
+  border-color: var(--p-primary-200);
+}
+.border-primary-300 {
+  border-color: var(--p-primary-300);
+}
+.border-primary-400 {
+  border-color: var(--p-primary-400);
+}
+.border-primary-500 {
+  border-color: var(--p-primary-500);
+}
+.border-primary-600 {
+  border-color: var(--p-primary-600);
+}
+.border-primary-700 {
+  border-color: var(--p-primary-700);
+}
+.border-primary-800 {
+  border-color: var(--p-primary-800);
 }
 
 /*Allow buttons to be bold*/
@@ -318,7 +349,9 @@ html.dark-mode .secondary-outline {
   transform: translate(-50%, -50%) !important;
   width: auto !important;
   z-index: 1 !important;
-  text-shadow: 0 0 3px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.7) !important;
+  text-shadow:
+    0 0 3px rgba(0, 0, 0, 1),
+    0 0 6px rgba(0, 0, 0, 0.7) !important;
 }
 
 .transparent .p-toolbar {
@@ -394,7 +427,6 @@ html.dark-mode .secondary-outline {
 }
 
 @keyframes bounce-left {
-
   0%,
   100% {
     transform: translateX(0);
@@ -429,4 +461,214 @@ code.custom {
   color: var(--p-primary-color);
   padding: 0.22rem;
   border-radius: 4px;
+}
+
+.translate-x-50 {
+  transform: translateX(50%);
+}
+
+.-translate-x-50 {
+  transform: translateX(-50%);
+}
+
+/*Make selected togglebuttons stand out more*/
+.p-togglebutton.p-togglebutton-checked {
+  border-width: var(--aida-border-width-checked) !important;
+  border-color: var(--p-primary-color) !important;
+  background: var(--p-primary-50) !important;
+}
+
+.p-togglebutton.p-togglebutton-checked:first-child {
+  border-inline-start-width: var(--aida-border-width-checked) !important;
+}
+
+.p-togglebutton:first-child {
+  border-inline-start-width: var(--aida-border-width) !important;
+}
+
+.p-togglebutton {
+  border-block-width: var(--aida-border-width) !important;
+  border-inline-end-width: var(--aida-border-width) !important;
+}
+
+.p-togglebutton:not(.p-togglebutton-checked):not(.p-disabled) .p-togglebutton-content {
+  color: var(--p-zinc-500) !important;
+}
+
+.p-togglebutton:not(.p-togglebutton-checked):not(.p-disabled) {
+  background: var(--p-zinc-50) !important;
+}
+
+html.dark-mode .p-togglebutton.p-togglebutton-checked {
+  border-color: var(--p-primary-color) !important;
+  background: var(--p-primary-800) !important;
+}
+
+html.dark-mode .p-togglebutton:not(.p-togglebutton-checked):not(.p-disabled) .p-togglebutton-content {
+  color: var(--p-zinc-300) !important;
+}
+
+html.dark-mode .p-togglebutton:not(.p-togglebutton-checked):not(.p-disabled) {
+  background: var(--p-zinc-800) !important;
+}
+
+/*Increase other borders so togglebutton doesn't look out of place*/
+.p-button,
+.p-panel,
+.p-inputtext,
+.p-select,
+.p-multiselect,
+.p-textarea {
+  border-width: var(--aida-border-width) !important;
+}
+
+.p-autocomplete-dropdown {
+  border-top: none !important;
+  border-right: none !important;
+}
+
+.z-50 {
+  z-index: 50;
+}
+
+.h-1\.5 {
+  height: 1.5rem;
+}
+.min-h-1\.5 {
+  min-height: 1.5rem;
+}
+
+.min-w-15rem {
+  min-width: 15rem;
+}
+
+h1:not(.noline) {
+  border-bottom-color: var(--p-primary-500); /* fallback for browsers without border-image support */
+  border-bottom-style: solid;
+  border-bottom-width: 6px;
+  border-image-source: linear-gradient(to right, var(--p-primary-500) 72px, rgba(0, 0, 0, 0) 72px);
+  border-image-slice: 1;
+  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+  letter-spacing: 0.01em;
+}
+
+/*After H1*/
+h1 + p {
+  margin-top: 0.5rem;
+  max-width: 130ch;
+}
+
+/*Before H1*/
+p:has(+ h1) {
+  margin-bottom: -0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--p-surface-400);
+}
+
+.dbl-h1 {
+  margin-bottom: -0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--p-surface-400);
+}
+
+/* AIDA Custom tooltip CSS */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--p-surface-600);
+  color: var(--p-surface-0);
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--p-border-radius-md);
+  font-size: 1rem;
+  font-weight: 500;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  width: max-content;
+  max-width: 16rem;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.1s ease,
+    visibility 0.1s ease;
+}
+
+[data-tooltip]::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 0.25rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 0.4rem solid transparent;
+  border-right: 0.4rem solid transparent;
+  border-top: 0.4rem solid var(--p-surface-600);
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.1s ease,
+    visibility 0.1s ease;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:hover::before {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.3s;
+}
+
+/* Position variants for cells near screen edges */
+[data-tooltip-pos='right']::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+[data-tooltip-pos='right']::before {
+  left: auto;
+  right: 0.6rem;
+  transform: none;
+}
+
+[data-tooltip-pos='left']::after {
+  left: 0;
+  right: auto;
+  transform: none;
+}
+[data-tooltip-pos='left']::before {
+  left: 0.6rem;
+  right: auto;
+  transform: none;
+}
+
+[data-tooltip-pos='bottom']::after {
+  bottom: auto;
+  top: 100%;
+  transform: translateX(-50%) translateY(0.25rem);
+}
+[data-tooltip-pos='bottom']::before {
+  bottom: auto;
+  top: 100%;
+  transform: translateX(-50%) translateY(-0.05rem);
+  border-top-color: transparent;
+  border-bottom-color: var(--p-surface-600);
+}
+
+.cursor-help {
+  cursor: help;
 }

@@ -1,0 +1,7 @@
+<h1 id="wb-cont">{{ ProjectPhase.Discover | translate }}</h1>
+<p>{{ ProjectPhase.Discover + '.description' | translate }}{{ ProjectPhase.Discover + '.description2' | translate }}</p>
+<!--Task Doormats-->
+<aida-doormats [keys]="discoverDoormats" />
+<!--External Doormats-->
+<h2>{{ 'common.extResources' | translate }}</h2>
+<aida-doormats [keys]="externalDoormats" />

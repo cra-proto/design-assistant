@@ -1,0 +1,44 @@
+<h3>{{ 'findPages.findChildren._title' | translate }}</h3>
+<p>{{ 'findPages.findChildren.description' | translate }}</p>
+<p>{{ 'findPages.findChildren.description2' | translate }}</p>
+<div class="flex flex-row gap-1">
+  <p-iftalabel>
+    <p-inputnumber [(ngModel)]="getChildPagesService.depth" [max]="6" [min]="0" [showButtons]="true" class="secondary-outline" inputId="depth" mode="decimal" variant="outlined" />
+    <label for="depth">{{ 'findPages.findChildren.depth' | translate }}</label>
+  </p-iftalabel>
+  <p-button
+    [label]="'findPages.findChildren.add' | translate"
+    [loading]="getChildPagesService.searchProgress()"
+    (click)="findChildPages()"
+    class="flex min-h-full white-space-nowrap"
+    icon="pi pi-search"
+  />
+</div>
+@if (getChildPagesService.searchProgress(); as progress) {
+  <p-progressbar [value]="(progress.processedUrls / progress.totalUrls) * 100 | number: '1.0-0'" styleClass="h-2rem centered-label mt-1 transition-duration-100">
+    <ng-template #content>
+      <div class="flex flex-row gap-6">
+        <span class="text-white">{{ 'findPages.findChildren.progressDepth' | translate }} {{ progress.depth }}</span>
+        <span class="text-white">{{ progress.processedUrls }}/{{ progress.totalUrls }}</span>
+      </div>
+    </ng-template>
+  </p-progressbar>
+}
+<!-- URLs List Section -->
+@if (childUrls().length > 0) {
+  <h3 class="text-xl my-2">{{ 'findPages.findChildren.urls' | translate }}</h3>
+  <div class="flex flex-row align-items-center gap-2">
+    <p-button [label]="'findPages.task.addToProject' | translate" (onClick)="addUrlsToProject()" icon="pi pi-plus" />
+    <p class="text-color-secondary">{{ 'findPages.task.addToProject.description' | translate: { number: selectedChildUrlsCount() } }}</p>
+  </div>
+  <div class="flex flex-column gap-2 max-h-64 overflow-y-auto border border-color-border p-2 rounded">
+    @for (item of childUrls(); track item.url; let i = $index) {
+      <div class="flex align-items-center gap-2">
+        <p-checkbox [(ngModel)]="childUrls()[i].selected" [binary]="true" [inputId]="'url-' + i" (ngModelChange)="toggleChildUrl(i, $event)" size="large" />
+        <label [for]="'url-' + i" class="break-all">{{ item.url }}</label>
+      </div>
+    }
+  </div>
+} @else if (selectedChildUrlsCount() > 0) {
+  <p>{{ 'findPages.findChildren.noUrls' | translate }}</p>
+}

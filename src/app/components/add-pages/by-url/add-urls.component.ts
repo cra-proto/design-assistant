@@ -1,0 +1,92 @@
+import { ChangeDetectionStrategy, Component, inject, input, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { IftaLabelModule } from 'primeng/iftalabel';
+import { MessageModule } from 'primeng/message';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { TextareaModule } from 'primeng/textarea';
+
+import { InvalidUrlsComponent } from './invalid-urls/invalid-urls.component';
+
+import { ProjectStateService } from '../../../services/project-state.service';
+import { AddUrlsService } from './add-urls.service';
+
+@Component({
+  selector: 'aida-add-urls',
+  imports: [FormsModule, TranslatePipe, ButtonModule, DialogModule, IftaLabelModule, MessageModule, ProgressBarModule, TextareaModule, InvalidUrlsComponent],
+  templateUrl: './add-urls.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class AddUrlsComponent implements OnInit {
+  private translate = inject(TranslateService);
+  private projectState = inject(ProjectStateService);
+  protected addUrlsService = inject(AddUrlsService);
+
+  public readonly directInput = input<boolean>(true);
+
+  // Parse URLs from textarea
+  parseUrls(): void {
+    const rawUrls = this.addUrlsService.urlState().rawUrls;
+    const currentLang = this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en';
+    const existingUrls = new Set(this.projectState.getAllPages(currentLang, 'live', 'inScope').map((u) => u.url));
+    const { parsedUrls, duplicates, invalidUrls, oppositeLangUrls } = this.addUrlsService.parseUrls(rawUrls, existingUrls, currentLang);
+
+    this.addUrlsService.urlState().rawUrls = [...parsedUrls.map((item) => item.href), ...duplicates, ...invalidUrls, ...oppositeLangUrls].join('\n');
+
+    this.addUrlsService.setUrlState({
+      urlsToValidate: parsedUrls,
+      isValidating: false,
+      isAdding: false,
+    });
+  }
+  onPasteUrls() {
+    setTimeout(() => this.parseUrls(), 0);
+  }
+
+  // Warning message for duplicates skipped
+  getDuplicateMessage(): string {
+    const count = this.addUrlsService.duplicatesSkipped().length;
+    if (count === 1) return this.translate.instant('addPages.duplicatesSkipped', { count });
+    else return this.translate.instant('addPages.duplicatesSkipped.plural', { count });
+  }
+
+  // Warning message for invalid URLs skipped
+  getInvalidUrlMessage(): string {
+    const count = this.addUrlsService.invalidUrlsSkipped().length;
+    if (count === 1) return this.translate.instant('addPages.invalidUrlsSkipped', { count });
+    else return this.translate.instant('addPages.invalidUrlsSkipped.plural', { count });
+  }
+
+  // Warning message for opposite language URLs skipped
+  getOppositeLangMessage(): string {
+    const count = this.addUrlsService.oppositeLangSkipped().length;
+    if (count === 1) return this.translate.instant('addPages.oppositeLangSkipped', { count });
+    else return this.translate.instant('addPages.oppositeLangSkipped.plural', { count });
+  }
+
+  //Undo add pages
+  undoAddPages(): void {
+    const previous = this.addUrlsService.getPreviousProjectData();
+    if (previous) {
+      this.projectState.setProjectTree(previous);
+      this.projectState.saveProject();
+      this.addUrlsService.setPreviousProjectData(null);
+    }
+  }
+
+  //Highlight the component (for users coming from import-pages)
+  highlightAddPages = false;
+  ngOnInit() {
+    if (this.addUrlsService.getHighlight()) {
+      this.highlightAddPages = true;
+      this.addUrlsService.setHighlight(false); // Reset it
+      setTimeout(() => (this.highlightAddPages = false), 3000);
+    }
+  }
+
+  viewInvalidUrls = false;
+}
