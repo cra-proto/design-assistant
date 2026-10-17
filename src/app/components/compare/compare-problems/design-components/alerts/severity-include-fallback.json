@@ -1,0 +1,23 @@
+{
+  "Misuse": { "severity": "Medium", "include": true },
+  "Too wordy": { "severity": "Medium", "include": true },
+  "Generic titles": { "severity": "High", "include": true },
+  "Generic title": { "severity": "High", "include": true },
+  "Unclear impact": { "severity": "Low", "include": true },
+  "Outdated": { "severity": "Medium", "include": true },
+  "Missing heading": { "severity": "High", "include": true },
+  "Wrong type": { "severity": "Medium", "include": true },
+  "Hidden content": { "severity": "Medium", "include": true },
+  "Wrong component": { "severity": "Medium", "include": true },
+  "Accessibility/code": { "severity": "High", "include": false },
+  "Too many links": { "severity": "Medium", "include": true },
+  "Wrong placement": { "severity": "Medium", "include": true },
+  "Alert overload": { "severity": "High", "include": true },
+  "Low relevance": { "severity": "High", "include": true },
+  "Incorrect hierarchy": { "severity": "High", "include": true },
+  "Nothing actionable": { "severity": "Low", "include": true },
+  "Focus order": { "severity": "High", "include": true },
+  "Sensory/color reliance": { "severity": "Medium", "include": true },
+  "Content clarity": { "severity": "Medium", "include": true },
+  "Non-text content": { "severity": "High", "include": true }
+}

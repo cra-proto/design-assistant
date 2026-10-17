@@ -1,0 +1,8 @@
+{
+  "id": "alerts-issues",
+  "includes": [],
+  "references": ["references/issue-analysis-instructions.json"],
+  "optionalReferences": [],
+  "assets": ["assets/issues-output-schema.json"],
+  "outputModes": ["json"]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "sample-analysis",
+  "includes": [],
+  "references": ["references/instructions.json"],
+  "optionalReferences": [],
+  "assets": ["assets/output-schema.json"],
+  "outputModes": ["json"]
+}

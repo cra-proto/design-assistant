@@ -1,0 +1,8 @@
+{
+  "id": "link-writing",
+  "includes": [],
+  "references": ["references/link-writing-rules.json"],
+  "optionalReferences": [],
+  "assets": [],
+  "outputModes": ["any"]
+}

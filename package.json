@@ -38,7 +38,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "organize-imports": "node scripts/organize-imports.mjs && prettier --write .",
-    "organize-imports:check": "node scripts/organize-imports.mjs --check"
+    "organize-imports:check": "node scripts/organize-imports.mjs --check",
+    "skills:generate": "node scripts/generate-skills-manifest.mjs",
+    "skills:check": "node scripts/generate-skills-manifest.mjs --check",
+    "skills:test": "node scripts/test-skills-manifest.mjs"
   },
   "private": true,
   "dependencies": {
