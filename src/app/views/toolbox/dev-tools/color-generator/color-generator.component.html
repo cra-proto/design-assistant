@@ -480,48 +480,111 @@
       </div>
     </div>
 
-    <h3 class="mb-0">Card options</h3>
+    <h3 class="mb-0">Card border options</h3>
     <div class="flex gap-2">
+      <p-iftalabel class="flex-1">
+        <p-select [(ngModel)]="selectedBorderRadius" [options]="borderRadiusOptions" fluid inputId="border-radius" />
+        <label for="border-radius">Border radius</label>
+      </p-iftalabel>
       <p-iftalabel class="flex-1">
         <p-select [(ngModel)]="selectedBorderWidth" [options]="borderWidthOptions" fluid inputId="border-width" />
         <label for="border-width">Border width</label>
+      </p-iftalabel>
+      <p-iftalabel class="flex-1">
+        <p-select [(ngModel)]="selectedActiveBorderWidth" [options]="borderWidthOptions" fluid inputId="active-border-width" />
+        <label for="active-border-width">Active border width</label>
       </p-iftalabel>
       <p-iftalabel class="flex-1">
         <p-select [(ngModel)]="selectedBorderColor" [options]="borderColorOptions" fluid inputId="border-color" />
         <label for="border-color">Border colour</label>
       </p-iftalabel>
       <p-iftalabel class="flex-1">
-        <p-select [(ngModel)]="selectedBorderRadius" [options]="borderRadiusOptions" fluid inputId="border-radius" />
-        <label for="border-radius">Border radius</label>
+        <p-select [(ngModel)]="selectedActiveBorderColor" [options]="borderColorOptions" fluid inputId="active-border-color" />
+        <label for="active-border-color">Active border colour</label>
+      </p-iftalabel>
+    </div>
+    <h3 class="mb-0">Card shadow options</h3>
+    <div class="flex gap-2">
+      <p-iftalabel class="flex-1">
+        <p-select [(ngModel)]="selectedFlatShadow" [options]="shadowOptions" fluid inputId="flat-shadow" />
+        <label for="flat-shadow">Flat shadow</label>
       </p-iftalabel>
       <p-iftalabel class="flex-1">
-        <p-select [(ngModel)]="selectedShadow" [options]="shadowOptions" fluid inputId="shadow" />
-        <label for="shadow">Shadow</label>
+        <p-select [(ngModel)]="selectedInteractiveShadow" [options]="shadowOptions" fluid inputId="interactive-shadow" />
+        <label for="interactive-shadow">Interactive shadow</label>
       </p-iftalabel>
       <p-iftalabel class="flex-1">
         <p-select [(ngModel)]="selectedHoverShadow" [options]="shadowOptions" fluid inputId="hover-shadow" />
-        <label for="hover-shadow">Hover shadow</label>
+        <label for="hover-shadow">Interactive hover shadow</label>
+      </p-iftalabel>
+    </div>
+    <h3 class="mb-0">Card background options</h3>
+    <div class="flex gap-2">
+      <p-iftalabel class="flex-1">
+        <p-select [ngModel]="selectedHoverBackground()" [options]="backgroundOptions()" (ngModelChange)="selectedHoverBackground.set($event)" fluid inputId="background" />
+        <label for="background">Interactive hover background</label>
       </p-iftalabel>
       <p-iftalabel class="flex-1">
-        <p-select [(ngModel)]="selectedHoverBackground" [options]="backgroundOptions" fluid inputId="background" />
-        <label for="background">Hover background</label>
+        <p-select [ngModel]="selectedActiveBackground()" [options]="backgroundOptions()" (ngModelChange)="selectedActiveBackground.set($event)" fluid inputId="active-background" />
+        <label for="active-background">Interactive active background</label>
       </p-iftalabel>
       <p-iftalabel class="flex-1">
-        <p-select [(ngModel)]="selectedGround" [options]="groundOptions" fluid inputId="ground" />
+        <p-select [ngModel]="selectedGround()" [options]="groundOptions()" (ngModelChange)="selectedGround.set($event)" fluid inputId="ground" />
         <label for="ground">Ground</label>
       </p-iftalabel>
     </div>
 
-    <h3 class="mb-0">Preview</h3>
-    <div [ngStyle]="{ background: selectedGround }" class="mb-5 p-8 surface-border border-1">
-      <h1>Page header</h1>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis autem vel eum iure reprehenderit qui in ea voluptate velit.</p>
-      <div [ngClass]="cardStyles()" class="surface-card p-4 w-full">
-        <h2 class="mt-0">Example card</h2>
-        <p></p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis autem vel eum iure reprehenderit qui in ea voluptate velit.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Temporibus autem quibusdam et aut officiis debitis aut rerum.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit voluptatem.</p>
+    <div class="flex justify-content-between align-items-end gap-2 mt-2">
+      <h3 class="mb-0">Preview</h3>
+      <aida-user-settings mode="theme" />
+    </div>
+    <div [ngStyle]="{ background: selectedGround() }" class="mb-5 p-8 surface-border border-1">
+      <div class="flex gap-2 justify-content-between">
+        <div>
+          <h1>Page header</h1>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis autem vel eum iure reprehenderit qui in ea voluptate velit. Temporibus autem quibusdam et aut officiis debitis aut rerum.</p>
+        </div>
+        <div class="flex flex-column gap-2">
+          <p-button fluid label="Primary button" />
+          <p-button class="secondary outline" fluid label="Secondary button" outlined />
+        </div>
+      </div>
+      <div class="flex flex-column gap-3">
+        <div [ngClass]="cardStyles()" class="p-4 w-full">
+          <h2 class="mt-0">Static card</h2>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis autem vel eum iure reprehenderit qui in ea voluptate velit. Temporibus autem quibusdam et aut officiis debitis aut rerum.</p>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit voluptatem. Neque porro quisquam est, qui dolorem ipsum quia dolor sit.</p>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit {{ cardStyles() }}.</p>
+        </div>
+        <div class="grid">
+          @for (i of [0, 1, 2, 3]; track i) {
+            <div class="col-12 md:col-6">
+              <div [ngClass]="cardStyles(true, activeCard() === i)" (click)="activeCard.set(i)" class="p-4 w-full">
+                <h2 class="mt-0 text-primary hover:underline">Interactive card</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. {{ cardStyles(true, activeCard() === i) }}.</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+    <p>If you are happy with your selections, send these class lists to Amber so AIDA can be updated.</p>
+    <div class="grid">
+      <div class="col-12 xl:col-2">Flat card:</div>
+      <div class="col-12 xl:col-10">
+        <pre class="m-0">{{ cardStyles() }}</pre>
+      </div>
+      <div class="col-12 xl:col-2">Interactive card:</div>
+      <div class="col-12 xl:col-10">
+        <pre class="m-0">{{ cardStyles(true) }}</pre>
+      </div>
+      <div class="col-12 xl:col-2">Active card:</div>
+      <div class="col-12 xl:col-10">
+        <pre class="m-0">{{ cardStyles(true, true) }}</pre>
+      </div>
+      <div class="col-12 xl:col-2">Global app background:</div>
+      <div class="col-12 xl:col-10">
+        <pre class="m-0">var(--p-{{ selectedGroundLabel() }})</pre>
       </div>
     </div>
 

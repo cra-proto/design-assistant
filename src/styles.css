@@ -10,6 +10,7 @@
   --aida-border-width: 1.5px;
   --aida-border-width-checked: 2px;
   --surface-ground: var(--p-zinc-50);
+  --surface-ground-dark: var(--p-zinc-950);
 }
 
 *,
@@ -25,6 +26,10 @@ body {
   font-family: var(--body-font);
   font-size: var(--font-size);
   transition: 0.3s;
+}
+
+html.dark-mode body {
+  background-color: var(--surface-ground-dark);
 }
 
 /* ========== Layout ========== */

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -111,7 +111,7 @@ export class ColorGeneratorComponent {
   }
 
   borderWidthOptions = [
-    { label: 'Undefined', value: undefined },
+    { label: 'undefined', value: null },
     { label: 'border-none', value: 'border-none' },
     { label: 'border-1', value: 'border-1' },
     { label: 'border-2', value: 'border-2' },
@@ -119,7 +119,7 @@ export class ColorGeneratorComponent {
   ];
 
   borderColorOptions = [
-    { label: 'Undefined', value: undefined },
+    { label: 'undefined', value: null },
     { label: 'border-primary', value: 'border-primary' },
     { label: 'surface-border', value: 'surface-border' },
     { label: 'border-0', value: 'border-0' },
@@ -136,7 +136,7 @@ export class ColorGeneratorComponent {
   ];
 
   borderRadiusOptions = [
-    { label: 'Undefined', value: undefined },
+    { label: 'undefined', value: null },
     { label: 'border-noround', value: 'border-noround' },
     { label: 'border-round', value: 'border-round' },
     { label: 'border-round-xs', value: 'border-round-xs' },
@@ -150,7 +150,7 @@ export class ColorGeneratorComponent {
   ];
 
   shadowOptions = [
-    { label: 'Undefined', value: undefined },
+    { label: 'undefined', value: null },
     { label: 'shadow-none', value: 'shadow-none' },
     { label: 'shadow-1', value: 'shadow-1' },
     { label: 'shadow-2', value: 'shadow-2' },
@@ -162,54 +162,74 @@ export class ColorGeneratorComponent {
     { label: 'shadow-8', value: 'shadow-8' },
   ];
 
-  backgroundOptions = [
-    { label: 'Undefined', value: undefined },
-    { label: 'surface-50', value: 'surface-50' },
-    { label: 'surface-100', value: 'surface-100' },
-    { label: 'surface-200', value: 'surface-200' },
-    { label: 'primary-50', value: 'bg-primary-50' },
-    { label: 'primary-100', value: 'bg-primary-100' },
-    { label: 'primary-200', value: 'bg-primary-200' },
-  ];
+  protected readonly backgroundOptions = computed(() => {
+    const primaryShades = this.settingsService.darkMode() ? [900, 800, 700] : [50, 100, 200];
+    return [
+      { label: 'undefined', value: null },
+      { label: 'surface-50', value: 'surface-50' },
+      { label: 'surface-100', value: 'surface-100' },
+      { label: 'surface-200', value: 'surface-200' },
+      ...primaryShades.map((s) => ({ label: `primary-${s}`, value: `bg-primary-${s}` })),
+    ];
+  });
 
-  groundOptions = [
-    { label: 'Undefined', value: undefined },
-    { label: 'slate-50', value: this.getColour('--p-slate-50') },
-    { label: 'slate-100', value: this.getColour('--p-slate-100') },
-    { label: 'slate-200', value: this.getColour('--p-slate-200') },
-    { label: 'gray-50', value: this.getColour('--p-gray-50') },
-    { label: 'gray-100', value: this.getColour('--p-gray-100') },
-    { label: 'gray-200', value: this.getColour('--p-gray-200') },
-    { label: 'zinc-50', value: this.getColour('--p-zinc-50') },
-    { label: 'zinc-100', value: this.getColour('--p-zinc-100') },
-    { label: 'zinc-200', value: this.getColour('--p-zinc-200') },
-    { label: 'neutral-50', value: this.getColour('--p-neutral-50') },
-    { label: 'neutral-100', value: this.getColour('--p-neutral-100') },
-    { label: 'neutral-200', value: this.getColour('--p-neutral-200') },
-    { label: 'stone-50', value: this.getColour('--p-stone-50') },
-    { label: 'stone-100', value: this.getColour('--p-stone-100') },
-    { label: 'stone-200', value: this.getColour('--p-stone-200') },
-  ];
+  private readonly palettes = ['slate', 'gray', 'zinc', 'neutral', 'stone'];
+  protected readonly groundOptions = computed(() => {
+    const shades = this.settingsService.darkMode() ? [950, 900, 800] : [50, 100, 200];
+    return [{ label: 'undefined', value: null }, ...this.palettes.flatMap((palette) => shades.map((shade) => ({ label: `${palette}-${shade}`, value: this.getColour(`--p-${palette}-${shade}`) })))];
+  });
+  protected readonly selectedGroundLabel = computed(() => this.groundOptions().find((o) => o.value === this.selectedGround())?.label ?? '');
+
+  constructor() {
+    effect(() => {
+      this.selectedGround.set(this.getColour(this.settingsService.darkMode() ? '--p-zinc-950' : '--p-zinc-50'));
+      this.selectedHoverBackground.set('surface-50');
+      this.selectedActiveBackground.set(this.settingsService.darkMode() ? 'bg-primary-900' : 'bg-primary-50');
+    });
+  }
 
   private getColour(variable: string): string {
     return getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
   }
 
+  //Global card settings
   selectedBorderWidth = 'border-none';
   selectedBorderColor = 'surface-border';
   selectedBorderRadius = 'border-round-lg';
-  selectedShadow = 'shadow-1';
-  selectedHoverShadow = 'shadow-3';
-  selectedHoverBackground = 'surface-50';
-  selectedGround = this.getColour('--p-zinc-50');
 
-  cardStyles() {
-    const borderWidth = this.selectedBorderWidth ? this.selectedBorderWidth + ' ' : '';
-    const borderColor = this.selectedBorderColor ? this.selectedBorderColor + ' ' : '';
+  //Flat only
+  selectedFlatShadow = 'shadow-2';
+
+  //Interactive only
+  selectedInteractiveShadow = 'shadow-1';
+  selectedHoverShadow = 'shadow-3';
+
+  //Active only
+  protected readonly activeCard = signal(2);
+  selectedActiveBorderWidth = 'border-3';
+  selectedActiveBorderColor = 'border-primary';
+
+  //Background colours
+  protected readonly selectedActiveBackground = signal<string | null>('bg-primary-50');
+  protected readonly selectedHoverBackground = signal<string | null>('surface-50');
+  protected readonly selectedGround = signal<string | null>(null);
+
+  cardStyles(isInteractive: boolean = false, isActive: boolean = false) {
+    //Global card settings
     const borderRadius = this.selectedBorderRadius ? this.selectedBorderRadius + ' ' : '';
-    const shadow = this.selectedShadow ? this.selectedShadow + ' ' : '';
-    const hoverShadow = this.selectedHoverShadow ? 'hover:' + this.selectedHoverShadow + ' ' : '';
-    const hoverBG = this.selectedHoverBackground ? 'hover:' + this.selectedHoverBackground : '';
-    return borderWidth + borderColor + borderRadius + shadow + hoverShadow + hoverBG;
+    const borderWidth = this.selectedBorderWidth && !isActive ? this.selectedBorderWidth + ' ' : '';
+    const borderColor = this.selectedBorderColor && !isActive ? this.selectedBorderColor + ' ' : '';
+    //Flat only
+    const flatShadow = this.selectedFlatShadow && !isInteractive ? this.selectedFlatShadow + ' ' : '';
+    //Interactive
+    const interactiveShadow = this.selectedInteractiveShadow && isInteractive ? this.selectedInteractiveShadow + ' ' : '';
+    const hoverShadow = this.selectedHoverShadow && isInteractive ? 'hover:' + this.selectedHoverShadow + ' ' : '';
+    const hoverBG = this.selectedHoverBackground() && isInteractive ? 'hover:' + this.selectedHoverBackground() + ' ' : '';
+    const cursor = isInteractive ? 'cursor-pointer ' : '';
+    //Active
+    const activeBG = this.selectedActiveBackground() && isActive ? this.selectedActiveBackground() + ' ' : 'surface-card ';
+    const activeBorderWidth = this.selectedActiveBorderWidth && isActive ? this.selectedActiveBorderWidth + ' ' : '';
+    const activeBorderColor = this.selectedActiveBorderColor && isActive ? this.selectedActiveBorderColor + ' ' : '';
+    return (borderRadius + flatShadow + interactiveShadow + borderWidth + activeBorderWidth + borderColor + activeBorderColor + activeBG + hoverShadow + hoverBG + cursor).trim();
   }
 }
