@@ -222,16 +222,16 @@ export class ColorGeneratorComponent {
     const borderRadius = this.selectedBorderRadius ? this.selectedBorderRadius + ' ' : '';
     const borderWidth = this.selectedBorderWidth && !isActive ? this.selectedBorderWidth + ' ' : '';
     const borderColor = this.selectedBorderColor && !isActive ? this.selectedBorderColor + ' ' : '';
-    //Flat only
+    //Flat & interactive shadows
     const flatShadow = this.selectedFlatShadow && !isInteractive ? this.selectedFlatShadow + ' ' : '';
-    //Interactive
     const interactiveShadow = this.selectedInteractiveShadow && isInteractive ? this.selectedInteractiveShadow + ' ' : '';
-    const hoverBorderWidth = this.selectedHoverBorderWidth && isInteractive ? this.selectedHoverBorderWidth + ' ' : '';
-    const hoverBorderColor = this.selectedHoverBorderColor && isInteractive ? this.selectedHoverBorderColor + ' ' : '';
+    //Hover state
+    const hoverBorderWidth = this.selectedHoverBorderWidth && isInteractive ? 'hover:' + this.selectedHoverBorderWidth + ' ' : '';
+    const hoverBorderColor = this.selectedHoverBorderColor && isInteractive ? 'hover:' + this.selectedHoverBorderColor + ' ' : '';
     const hoverShadow = this.selectedHoverShadow && isInteractive ? 'hover:' + this.selectedHoverShadow + ' ' : '';
     const hoverBG = this.selectedHoverBackground() && isInteractive ? 'hover:' + this.selectedHoverBackground() + ' ' : '';
     const cursor = isInteractive ? 'cursor-pointer ' : '';
-    //Active
+    //Active state
     const activeBG = this.selectedActiveBackground() && isActive ? this.selectedActiveBackground() + ' ' : 'surface-card ';
     const activeBorderWidth = this.selectedActiveBorderWidth && isActive ? this.selectedActiveBorderWidth + ' ' : '';
     const activeBorderColor = this.selectedActiveBorderColor && isActive ? this.selectedActiveBorderColor + ' ' : '';
