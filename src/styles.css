@@ -9,6 +9,8 @@
   --z-fixed: 100;
   --aida-border-width: 1.5px;
   --aida-border-width-checked: 2px;
+  --surface-ground: var(--p-zinc-50);
+  --surface-ground-dark: var(--p-zinc-950);
 }
 
 *,
@@ -24,6 +26,10 @@ body {
   font-family: var(--body-font);
   font-size: var(--font-size);
   transition: 0.3s;
+}
+
+html.dark-mode body {
+  background-color: var(--surface-ground-dark);
 }
 
 /* ========== Layout ========== */
@@ -671,4 +677,14 @@ p:has(+ h1) {
 
 .cursor-help {
   cursor: help;
+}
+
+.hover\:border-1:hover {
+  border-width: 1px !important;
+}
+.hover\:border-2:hover {
+  border-width: 2px !important;
+}
+.hover\:border-3:hover {
+  border-width: 3px !important;
 }
