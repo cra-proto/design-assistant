@@ -9,6 +9,7 @@ import { MessageModule } from 'primeng/message';
 import { TableModule } from 'primeng/table';
 
 import { AlertsComponent } from './alerts/alerts.component';
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 import { htmlProcessingResult } from '../../../../services/html-normalization.service';
 import { CompareService } from '../../../../views/tasks/compare/compare.service';
@@ -140,4 +141,14 @@ export class DesignComponentsComponent {
     if (normalized === 'ok') return 'chip-ok';
     return 'chip-unk';
   }
+
+  markForTranslation() {
+    marker('problems.components.alerts.title');
+    marker('problems.components.health.unknown');
+    marker('problems.components.health.high');
+    marker('problems.components.health.medium');
+    marker('problems.components.health.low');
+    marker('problems.components.health.ok');
+  }
 }
+
