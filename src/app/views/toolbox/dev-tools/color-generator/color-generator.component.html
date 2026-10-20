@@ -284,6 +284,30 @@
     </div>
 
     <div class="flex flex-wrap gap-2 mb-4">
+      <p>Grey Outlined Buttons</p>
+      <p-button label="Primary" outlined styleClass="secondary-outline" />
+      <p-button label="Success" outlined severity="success" styleClass="secondary-outline" />
+      <p-button label="Danger" outlined severity="danger" styleClass="secondary-outline" />
+      <p-button label="Warning" outlined severity="warn" styleClass="secondary-outline" />
+      <p-button label="Info" outlined severity="info" styleClass="secondary-outline" />
+      <p-button label="Help" outlined severity="help" styleClass="secondary-outline" />
+      <p-button label="Secondary" outlined severity="secondary" styleClass="secondary-outline" />
+      <p-button label="Contrast" outlined severity="contrast" styleClass="secondary-outline" />
+    </div>
+
+    <div class="flex flex-wrap gap-2 mb-4">
+      <p>Icon Buttons</p>
+      <p-button icon="pi pi-bars" outlined styleClass="secondary-outline" />
+      <p-button icon="pi pi-check-circle" outlined severity="success" styleClass="secondary-outline" />
+      <p-button icon="pi pi-trash" outlined severity="danger" styleClass="secondary-outline" />
+      <p-button icon="pi pi-refresh" outlined severity="warn" styleClass="secondary-outline" />
+      <p-button icon="pi pi-question-circle" outlined severity="info" styleClass="secondary-outline" />
+      <p-button icon="pi pi-ellipsis-h" outlined severity="help" styleClass="secondary-outline" />
+      <p-button icon="pi pi-ellipsis-v" outlined severity="secondary" styleClass="secondary-outline" />
+      <p-button icon="pi pi-external-link" outlined severity="contrast" styleClass="secondary-outline" />
+    </div>
+
+    <div class="flex flex-wrap gap-2 mb-4">
       <span>Tags</span>
       <p-tag value="Primary" />
       <p-tag value="Success" severity="success" />
@@ -325,10 +349,10 @@
 
     <div class="flex flex-column gap-1 mb-2">
       <p>Messages</p>
-      <p-message severity="info" text="Info: message" />
-      <p-message severity="success" text="Success: message" />
-      <p-message severity="error" text="Error: message" />
-      <p-message severity="warn" text="Warning: message" />
+      <p-message icon="pi pi-info-circle" severity="info" text="Info: message" />
+      <p-message icon="pi pi-check-circle" severity="success" text="Success: message" />
+      <p-message icon="pi pi-exclamation-circle" severity="error" text="Error: message" />
+      <p-message icon="pi pi-exclamation-triangle" severity="warn" text="Warning: message" />
       <p-message severity="secondary" text="Secondary: message" />
       <p-message severity="contrast" text="Contrast: message" />
     </div>
@@ -346,22 +370,22 @@
         <h4 class="mb-2 text-sm font-semibold uppercase text-green-600">Positive Messages</h4>
         <div class="flex flex-column gap-2 mb-4">
           <!--p-message text="Primary: Click here to continue" /-->
-          <p-message severity="success" text="Success: message" />
+          <p-message icon="pi pi-check-circle" severity="success" text="Success: message" />
         </div>
       </div>
 
       <div class="col-12 md:col-6">
         <h4 class="mb-2 text-sm font-semibold uppercase text-red-600">Negative Messages</h4>
         <div class="flex flex-column gap-2 mb-4">
-          <p-message severity="error" text="Error: message" />
-          <p-message severity="warn" text="Warning: message" />
+          <p-message icon="pi pi-exclamation-circle" severity="error" text="Error: message" />
+          <p-message icon="pi pi-exclamation-triangle" severity="warn" text="Warning: message" />
         </div>
       </div>
 
       <div class="col-12 md:col-6">
         <h4 class="mb-2 text-sm font-semibold uppercase text-blue-600">Information Messages</h4>
         <div class="flex flex-column gap-2 mb-4">
-          <p-message severity="info" text="Info: message" />
+          <p-message icon="pi pi-info-circle" severity="info" text="Info: message" />
           <!--p-message text="Help: Click here for assistance" /-->
         </div>
       </div>
@@ -388,8 +412,8 @@
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-0">border-0</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-50">border-50</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-100">border-100</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-200">border-200</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 surface-border">surface-border</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-200">border-200</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-300">border-300</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-400">border-400</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-500">border-500</div>
@@ -404,8 +428,8 @@
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-0">border-0</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-50">border-50</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-100">border-100</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-200">border-200</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 surface-border">surface-border</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-200">border-200</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-300">border-300</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-400">border-400</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-500">border-500</div>
@@ -420,8 +444,8 @@
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-0">border-0</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-50">border-50</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-100">border-100</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-200">border-200</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 surface-border">surface-border</div>
+        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-200">border-200</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-300">border-300</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-400">border-400</div>
         <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-500">border-500</div>
@@ -480,63 +504,86 @@
       </div>
     </div>
 
-    <h3 class="mb-0">Card border options</h3>
-    <div class="flex gap-2">
-      <p-iftalabel class="flex-1">
-        <p-select [(ngModel)]="selectedBorderRadius" [options]="borderRadiusOptions" fluid inputId="border-radius" />
-        <label for="border-radius">Border radius</label>
-      </p-iftalabel>
-      <p-iftalabel class="flex-1">
-        <p-select [(ngModel)]="selectedBorderWidth" [options]="borderWidthOptions" fluid inputId="border-width" />
-        <label for="border-width">Border width</label>
-      </p-iftalabel>
-      <p-iftalabel class="flex-1">
-        <p-select [(ngModel)]="selectedActiveBorderWidth" [options]="borderWidthOptions" fluid inputId="active-border-width" />
-        <label for="active-border-width">Active border width</label>
-      </p-iftalabel>
-      <p-iftalabel class="flex-1">
-        <p-select [(ngModel)]="selectedBorderColor" [options]="borderColorOptions" fluid inputId="border-color" />
-        <label for="border-color">Border colour</label>
-      </p-iftalabel>
-      <p-iftalabel class="flex-1">
-        <p-select [(ngModel)]="selectedActiveBorderColor" [options]="borderColorOptions" fluid inputId="active-border-color" />
-        <label for="active-border-color">Active border colour</label>
-      </p-iftalabel>
-    </div>
-    <h3 class="mb-0">Card shadow options</h3>
-    <div class="flex gap-2">
-      <p-iftalabel class="flex-1">
-        <p-select [(ngModel)]="selectedFlatShadow" [options]="shadowOptions" fluid inputId="flat-shadow" />
-        <label for="flat-shadow">Flat shadow</label>
-      </p-iftalabel>
-      <p-iftalabel class="flex-1">
-        <p-select [(ngModel)]="selectedInteractiveShadow" [options]="shadowOptions" fluid inputId="interactive-shadow" />
-        <label for="interactive-shadow">Interactive shadow</label>
-      </p-iftalabel>
-      <p-iftalabel class="flex-1">
-        <p-select [(ngModel)]="selectedHoverShadow" [options]="shadowOptions" fluid inputId="hover-shadow" />
-        <label for="hover-shadow">Interactive hover shadow</label>
-      </p-iftalabel>
-    </div>
-    <h3 class="mb-0">Card background options</h3>
-    <div class="flex gap-2">
-      <p-iftalabel class="flex-1">
-        <p-select [ngModel]="selectedHoverBackground()" [options]="backgroundOptions()" (ngModelChange)="selectedHoverBackground.set($event)" fluid inputId="background" />
-        <label for="background">Interactive hover background</label>
-      </p-iftalabel>
-      <p-iftalabel class="flex-1">
-        <p-select [ngModel]="selectedActiveBackground()" [options]="backgroundOptions()" (ngModelChange)="selectedActiveBackground.set($event)" fluid inputId="active-background" />
-        <label for="active-background">Interactive active background</label>
-      </p-iftalabel>
-      <p-iftalabel class="flex-1">
-        <p-select [ngModel]="selectedGround()" [options]="groundOptions()" (ngModelChange)="selectedGround.set($event)" fluid inputId="ground" />
-        <label for="ground">Ground</label>
-      </p-iftalabel>
+    <div class="grid mt-3">
+      <div class="col-9">
+        <h3 class="mb-0">Global card options</h3>
+        <div class="grid">
+          <p-iftalabel class="col-3">
+            <p-select [(ngModel)]="selectedBorderWidth" [options]="borderWidthOptions" fluid inputId="border-width" />
+            <label for="border-width">Border width</label>
+          </p-iftalabel>
+          <p-iftalabel class="col-3">
+            <p-select [(ngModel)]="selectedBorderColor" [options]="borderColorOptions" fluid inputId="border-color" />
+            <label for="border-color">Border colour</label>
+          </p-iftalabel>
+          <p-iftalabel class="col-3">
+            <p-select [(ngModel)]="selectedBackground" [options]="[{ label: 'surface-card', value: 'surface-card' }]" fluid inputId="background" />
+            <label for="background">Background</label>
+          </p-iftalabel>
+          <p-iftalabel class="col-3">
+            <p-select [(ngModel)]="selectedBorderRadius" [options]="borderRadiusOptions" fluid inputId="border-radius" />
+            <label for="border-radius">Border radius</label>
+          </p-iftalabel>
+        </div>
+        <h3 class="mb-0">Active state card options (interactive cards only)</h3>
+        <div class="grid">
+          <p-iftalabel class="col-3">
+            <p-select [(ngModel)]="selectedActiveBorderWidth" [options]="borderWidthOptions" fluid inputId="active-border-width" />
+            <label for="active-border-width">Active border width</label>
+          </p-iftalabel>
+          <p-iftalabel class="col-3">
+            <p-select [(ngModel)]="selectedActiveBorderColor" [options]="borderColorOptions" fluid inputId="active-border-color" />
+            <label for="active-border-color">Active border colour</label>
+          </p-iftalabel>
+          <p-iftalabel class="col-3">
+            <p-select [ngModel]="selectedActiveBackground()" [options]="backgroundOptions()" (ngModelChange)="selectedActiveBackground.set($event)" fluid inputId="active-background" />
+            <label for="active-background">Active background</label>
+          </p-iftalabel>
+        </div>
+        <h3 class="mb-0">Hover state card options (interactive cards only)</h3>
+        <div class="grid">
+          <p-iftalabel class="col-3">
+            <p-select [(ngModel)]="selectedHoverBorderWidth" [options]="borderWidthOptions" fluid inputId="hover-border-width" />
+            <label for="hover-border-width">Hover border width</label>
+          </p-iftalabel>
+          <p-iftalabel class="col-3">
+            <p-select [(ngModel)]="selectedHoverBorderColor" [options]="borderColorOptions" fluid inputId="hover-border-color" />
+            <label for="hover-border-color">Hover border colour</label>
+          </p-iftalabel>
+          <p-iftalabel class="col-3">
+            <p-select [ngModel]="selectedHoverBackground()" [options]="backgroundOptions()" (ngModelChange)="selectedHoverBackground.set($event)" fluid inputId="hover-background" />
+            <label for="hover-background">Hover background</label>
+          </p-iftalabel>
+        </div>
+      </div>
+      <div class="col-3 border-3 border-dashed surface-border">
+        <h3 class="mb-0">Shadow options</h3>
+        <div class="grid">
+          <p-iftalabel class="col-12 mb-5">
+            <p-select [(ngModel)]="selectedFlatShadow" [options]="shadowOptions" fluid inputId="flat-shadow" />
+            <label for="flat-shadow">Static shadow</label>
+          </p-iftalabel>
+          <p-iftalabel class="col-12 mb-5">
+            <p-select [(ngModel)]="selectedInteractiveShadow" [options]="shadowOptions" fluid inputId="interactive-shadow" />
+            <label for="interactive-shadow">Interactive shadow</label>
+          </p-iftalabel>
+          <p-iftalabel class="col-12">
+            <p-select [(ngModel)]="selectedHoverShadow" [options]="shadowOptions" fluid inputId="hover-shadow" />
+            <label for="hover-shadow">Hover shadow</label>
+          </p-iftalabel>
+        </div>
+      </div>
     </div>
 
     <div class="flex justify-content-between align-items-end gap-2 mt-2">
       <h3 class="mb-0">Preview</h3>
-      <aida-user-settings mode="theme" />
+      <div class="flex align-items-end gap-2">
+        <aida-user-settings mode="theme" />
+        <div class="flex flex-column border-round p-1 text-color-secondary hover:surface-100 hover:text-primary">
+          <span class="text-xs my-1">Ground</span>
+          <p-select [ngModel]="selectedGround()" [options]="groundOptions()" (ngModelChange)="selectedGround.set($event)" inputId="ground" />
+        </div>
+      </div>
     </div>
     <div [ngStyle]="{ background: selectedGround() }" class="mb-5 p-8 surface-border border-1">
       <div class="flex gap-2 justify-content-between">
@@ -559,7 +606,7 @@
         <div class="grid">
           @for (i of [0, 1, 2, 3]; track i) {
             <div class="col-12 md:col-6">
-              <div [ngClass]="cardStyles(true, activeCard() === i)" (click)="activeCard.set(i)" class="p-4 w-full">
+              <div [ngClass]="cardStyles(true, activeCard() === i)" (click)="activeCard.set(i)" (keydown.enter)="activeCard.set(i)" class="p-4 w-full h-full" tabindex="0">
                 <h2 class="mt-0 text-primary hover:underline">Interactive card</h2>
                 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. {{ cardStyles(true, activeCard() === i) }}.</p>
               </div>

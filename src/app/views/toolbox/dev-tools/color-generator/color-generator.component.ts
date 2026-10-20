@@ -193,9 +193,10 @@ export class ColorGeneratorComponent {
   }
 
   //Global card settings
-  selectedBorderWidth = 'border-none';
-  selectedBorderColor = 'surface-border';
+  selectedBorderWidth = null;
+  selectedBorderColor = null;
   selectedBorderRadius = 'border-round-lg';
+  selectedBackground = 'surface-card';
 
   //Flat only
   selectedFlatShadow = 'shadow-2';
@@ -203,6 +204,8 @@ export class ColorGeneratorComponent {
   //Interactive only
   selectedInteractiveShadow = 'shadow-1';
   selectedHoverShadow = 'shadow-3';
+  selectedHoverBorderWidth = null;
+  selectedHoverBorderColor = null;
 
   //Active only
   protected readonly activeCard = signal(2);
@@ -214,7 +217,7 @@ export class ColorGeneratorComponent {
   protected readonly selectedHoverBackground = signal<string | null>('surface-50');
   protected readonly selectedGround = signal<string | null>(null);
 
-  cardStyles(isInteractive: boolean = false, isActive: boolean = false) {
+  cardStyles(isInteractive = false, isActive = false) {
     //Global card settings
     const borderRadius = this.selectedBorderRadius ? this.selectedBorderRadius + ' ' : '';
     const borderWidth = this.selectedBorderWidth && !isActive ? this.selectedBorderWidth + ' ' : '';
@@ -223,6 +226,8 @@ export class ColorGeneratorComponent {
     const flatShadow = this.selectedFlatShadow && !isInteractive ? this.selectedFlatShadow + ' ' : '';
     //Interactive
     const interactiveShadow = this.selectedInteractiveShadow && isInteractive ? this.selectedInteractiveShadow + ' ' : '';
+    const hoverBorderWidth = this.selectedHoverBorderWidth && isInteractive ? this.selectedHoverBorderWidth + ' ' : '';
+    const hoverBorderColor = this.selectedHoverBorderColor && isInteractive ? this.selectedHoverBorderColor + ' ' : '';
     const hoverShadow = this.selectedHoverShadow && isInteractive ? 'hover:' + this.selectedHoverShadow + ' ' : '';
     const hoverBG = this.selectedHoverBackground() && isInteractive ? 'hover:' + this.selectedHoverBackground() + ' ' : '';
     const cursor = isInteractive ? 'cursor-pointer ' : '';
@@ -230,6 +235,20 @@ export class ColorGeneratorComponent {
     const activeBG = this.selectedActiveBackground() && isActive ? this.selectedActiveBackground() + ' ' : 'surface-card ';
     const activeBorderWidth = this.selectedActiveBorderWidth && isActive ? this.selectedActiveBorderWidth + ' ' : '';
     const activeBorderColor = this.selectedActiveBorderColor && isActive ? this.selectedActiveBorderColor + ' ' : '';
-    return (borderRadius + flatShadow + interactiveShadow + borderWidth + activeBorderWidth + borderColor + activeBorderColor + activeBG + hoverShadow + hoverBG + cursor).trim();
+    return (
+      borderRadius +
+      flatShadow +
+      interactiveShadow +
+      borderWidth +
+      activeBorderWidth +
+      borderColor +
+      activeBorderColor +
+      activeBG +
+      hoverShadow +
+      hoverBorderWidth +
+      hoverBorderColor +
+      hoverBG +
+      cursor
+    ).trim();
   }
 }
