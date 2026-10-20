@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "id": "alerts-issues",
+      "name": "alerts-issues",
+      "description": "Analyze Canada.ca web alerts and return issue reports only. Use when the task is to identify alert problems, classify issues, or assess alert accessibility and content quality.",
+      "skillMdPath": "alerts/alerts-issues/SKILL.md",
+      "includedSkillIds": [],
+      "defaultReferencePaths": [
+        "alerts/alerts-issues/references/issue-analysis-instructions.json"
+      ],
+      "optionalReferencePaths": [],
+      "defaultAssetPaths": [
+        "alerts/alerts-issues/assets/issues-output-schema.json"
+      ],
+      "outputModes": [
+        "json"
+      ]
+    },
+    {
+      "id": "alerts-rewriting",
+      "name": "alerts-rewriting",
+      "description": "Rewrite Canada.ca web alerts and return corrected output only. Use when the task is to produce updated alert HTML from identified issues.",
+      "skillMdPath": "alerts/alerts-rewriting/SKILL.md",
+      "includedSkillIds": [
+        "link-writing",
+        "canada-ca-style"
+      ],
+      "defaultReferencePaths": [
+        "alerts/alerts-rewriting/references/shared-rewrite-guidance.json",
+        "alerts/alerts-rewriting/references/rewrite-instructions.json",
+        "alerts/alerts-rewriting/references/runtime-rewrite-rules.json"
+      ],
+      "optionalReferencePaths": [
+        "alerts/alerts-rewriting/references/examples.json"
+      ],
+      "defaultAssetPaths": [
+        "alerts/alerts-rewriting/assets/rewriting-output-schema.json"
+      ],
+      "outputModes": [
+        "json"
+      ]
+    },
+    {
+      "id": "canada-ca-style",
+      "name": "canada-ca-style",
+      "description": "Apply reusable Canada.ca writing style rules for plain language, direct instructions, tone, and task-oriented Government of Canada web content.",
+      "skillMdPath": "canada-ca-style/SKILL.md",
+      "includedSkillIds": [],
+      "defaultReferencePaths": [
+        "canada-ca-style/references/writing-rules.json"
+      ],
+      "optionalReferencePaths": [],
+      "defaultAssetPaths": [],
+      "outputModes": [
+        "any"
+      ]
+    },
+    {
+      "id": "link-writing",
+      "name": "link-writing",
+      "description": "Apply reusable Canada.ca link-writing rules for descriptive, accessible, non-redundant links while preserving original destinations.",
+      "skillMdPath": "link-writing/SKILL.md",
+      "includedSkillIds": [],
+      "defaultReferencePaths": [
+        "link-writing/references/link-writing-rules.json"
+      ],
+      "optionalReferencePaths": [],
+      "defaultAssetPaths": [],
+      "outputModes": [
+        "any"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+@if (!sourceHtml()) {
+  <p-message [text]="'problems.alerts.noPage' | translate" severity="info" />
+} @else if (!alertCount()) {
+  <p-message [text]="'problems.alerts.noAlerts' | translate" severity="info" />
+} @else {
+  <p class="mt-0">{{ 'problems.alerts.found' | translate: { count: alertCount() } }}</p>
+
+  @if (issues().length) {
+    <p-table [value]="issues()" styleClass="p-datatable-sm alert-table">
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="include-col">{{ 'problems.alerts.include' | translate }}</th>
+          <th class="severity-col">{{ 'problems.alerts.severity' | translate }}</th>
+          <th>{{ 'problems.alerts.category' | translate }}</th>
+          <th class="wrap-col">{{ 'problems.alerts.issueDescription' | translate }}</th>
+          <th class="wrap-col">{{ 'problems.alerts.recommendation' | translate }}</th>
+        </tr>
+      </ng-template>
+      <ng-template let-issue pTemplate="body">
+        <tr>
+          <td class="include-col">
+            <p-checkbox [(ngModel)]="issue.include" [binary]="true" [disabled]="isNoIssueRow(issue)" (onChange)="onIncludeToggle()" />
+          </td>
+          <td class="severity-col">
+            <span [ngClass]="severityClass(issue.severity)" class="chip">{{ issue.severity }}</span>
+          </td>
+          <td>{{ issue.category }}</td>
+          <td class="wrap-col">{{ issue.description }}</td>
+          <td class="wrap-col">{{ issue.recommendation }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  } @else if (hasAnalysis()) {
+    <p-message [text]="'problems.alerts.noIssues' | translate" severity="success" />
+  }
+
+  @if (error()) {
+    <p-message [text]="error()!" severity="error" />
+  }
+  @if (loading()) {
+    <div class="flex justify-content-center mt-3"><p-progressspinner /></div>
+  }
+
+  <div class="alert-table-actions">
+    <p-button
+      [disabled]="loading()"
+      [label]="(hasAnalysis() ? 'problems.alerts.reanalyze' : 'problems.alerts.analyze') | translate"
+      [severity]="reanalysisRecommended() ? 'primary' : 'secondary'"
+      (click)="analyze()"
+      icon="pi pi-refresh"
+    />
+  </div>
+}

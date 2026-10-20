@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, input, TemplateRef, viewChild } from '@angular/core';
 
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 
 import { AccordionModule } from 'primeng/accordion';
 
@@ -13,7 +13,7 @@ import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'aida-compare-problems',
-  imports: [CommonModule, TranslatePipe, AccordionModule, DesignComponentsComponent],
+  imports: [CommonModule, AccordionModule, DesignComponentsComponent],
   templateUrl: './compare-problems.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -47,7 +47,7 @@ export class CompareProblemsComponent {
         description: this.translate.instant('problems.components.description'),
         template: this.componentsTemplate(),
         icon: 'draw',
-        visible: false,
+        visible: true,
       },
       {
         key: 'links',

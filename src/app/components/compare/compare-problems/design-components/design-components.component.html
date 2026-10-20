@@ -1,1 +1,89 @@
-<p>Add component problem table here for alerts and doormats</p>
+@if (rows().length) {
+  <p-table
+    [(selection)]="selectedRows"
+    [expandedRowKeys]="expandedRows"
+    [value]="rows()"
+    (selectionChange)="onSelectionChange($event)"
+    dataKey="id"
+    expandableRows
+    selectionMode="multiple"
+    styleClass="p-datatable-sm component-guidance-table"
+  >
+    <ng-template pTemplate="caption">
+      <div class="caption-actions">
+        <p-button [label]="'problems.components.expandAll' | translate" (click)="expandAll()" icon="pi pi-plus" severity="secondary" text />
+        <p-button [label]="'problems.components.collapseAll' | translate" (click)="collapseAll()" icon="pi pi-minus" severity="secondary" text />
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th class="toggle-col">
+          <span class="sr-only">{{ 'common.expandCollapse' | translate }}</span>
+        </th>
+        <th class="checkbox-col"><p-tableHeaderCheckbox /></th>
+        <th>{{ 'problems.components.index' | translate }}</th>
+        <th>{{ 'problems.components.guidance' | translate }}</th>
+        <th>{{ 'problems.components.health' | translate }}</th>
+        <th>{{ 'problems.components.painPoints' | translate }}</th>
+      </tr>
+    </ng-template>
+
+    <ng-template let-expanded="expanded" let-row pTemplate="body">
+      <tr [pSelectableRow]="row">
+        <td class="toggle-col">
+          <button [attr.aria-label]="'common.expandCollapse' | translate" [pRowToggler]="row" class="p-button-text p-button-rounded p-button-plain" pButton type="button">
+            <i [ngClass]="{ 'pi-chevron-down': expanded, 'pi-chevron-right': !expanded }" class="pi" aria-hidden="true"></i>
+          </button>
+        </td>
+        <td class="checkbox-col"><p-tableCheckbox [value]="row" /></td>
+        <td>{{ row.order }}</td>
+        <td>
+          <a [href]="row.guidanceUrl" rel="noopener noreferrer" target="_blank">{{ row.componentKey | translate }}</a>
+        </td>
+        <td>
+          <p-chip [icon]="healthIcon()" [label]="healthLabel()" [styleClass]="'chip ' + severityChip(healthStatus())" />
+        </td>
+        <td>
+          @if (alertState().loading) {
+            <span><i class="pi pi-spinner pi-spin" aria-hidden="true"></i> {{ 'problems.components.analyzing' | translate }}</span>
+          } @else if (alertState().error) {
+            <span class="text-danger">{{ 'problems.components.aiError' | translate }}</span>
+          } @else if (alertState().categories.length) {
+            <div class="chip-list">
+              @for (category of alertState().categories; track category.label) {
+                <p-chip [label]="category.label" [styleClass]="'chip ' + severityChip(category.severity)" />
+              }
+            </div>
+          } @else if (alertState().hasAnalysis) {
+            <span class="muted">{{ 'problems.components.noPainPoints' | translate }}</span>
+          } @else {
+            <span class="muted">{{ 'problems.components.expandAlerts' | translate }}</span>
+          }
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template let-row pTemplate="expandedrow">
+      <tr>
+        <td colspan="6">
+          <div class="p-3">
+            @if (row.id === 'alerts') {
+              <aida-alerts
+                [analyzeOnInit]="true"
+                [preferredModel]="compareService.selectedModel()"
+                [selectAll]="alertSelectAll"
+                [sourceHtml]="sourceHtml()"
+                (stateChange)="onAlertStateChange($event)"
+              />
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+} @else if (sourceHtml()) {
+  <p-message [text]="'problems.alerts.noAlerts' | translate" severity="info" />
+} @else {
+  <p-message [text]="'problems.alerts.noPage' | translate" severity="info" />
+}

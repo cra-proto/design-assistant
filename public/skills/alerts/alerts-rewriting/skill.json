@@ -1,0 +1,12 @@
+{
+  "id": "alerts-rewriting",
+  "includes": ["link-writing", "canada-ca-style"],
+  "references": [
+    "references/shared-rewrite-guidance.json",
+    "references/rewrite-instructions.json",
+    "references/runtime-rewrite-rules.json"
+  ],
+  "optionalReferences": ["references/examples.json"],
+  "assets": ["assets/rewriting-output-schema.json"],
+  "outputModes": ["json"]
+}

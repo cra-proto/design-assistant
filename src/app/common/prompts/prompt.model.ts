@@ -29,8 +29,14 @@ function markForTranslation() {
   marker('aiPrompt.page.doormats');
   marker('aiPrompt.page.plainLanguage');
   marker('aiPrompt.page.tense');
+  marker('aiPrompt.page.alertRewrite');
 
-  marker('aiPrompt.problem.alerts');
+  marker('aiPrompt.problem.alertIssues');
+}
+
+export interface PromptSkillBinding {
+  id: string;
+  includeOptionalReferences?: boolean;
 }
 
 export interface PromptConfig {
@@ -39,6 +45,7 @@ export interface PromptConfig {
   rubric: RubricKey[]; // Shared
   output: OutputKey; // Shared
   jsonSchema?: string; // Unique schema
+  skills?: PromptSkillBinding[]; // Explicit skill packages composed with this prompt
   available?: boolean; // Hides prompt in prod if not ready
 }
 
@@ -78,6 +85,7 @@ export enum InventoryPromptKey {
 
 //Page task fragments
 export enum PagePromptKey {
+  AlertRewrite = 'aiPrompt.page.alertRewrite',
   Headings = 'aiPrompt.page.headings',
   Doormats = 'aiPrompt.page.doormats',
   PlainLanguage = 'aiPrompt.page.plainLanguage',
@@ -86,5 +94,5 @@ export enum PagePromptKey {
 
 //Problem task fragments
 export enum ProblemPromptKey {
-  Alerts = 'aiPrompt.problem.alerts',
+  AlertIssues = 'aiPrompt.problem.alertIssues',
 }
