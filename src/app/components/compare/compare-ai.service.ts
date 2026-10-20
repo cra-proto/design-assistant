@@ -40,11 +40,10 @@ export class CompareAiService {
 
     //Set AI job cache
     const pagePath = this.compareService.selectedPage();
+    this.projectCache.setAiJobStatus(pagePath, 'pending');
 
     //Build prompt
     const promptKey = this.compareService.selectedPrompt();
-    this.projectCache.setAiJobStatus(pagePath, 'pending');
-
     const selectedTense = this.compareService.selectedTense();
     const basePrompt = PagePrompts[PagePromptKey[promptKey]];
     const prompt =
