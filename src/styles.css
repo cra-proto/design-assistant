@@ -678,3 +678,13 @@ p:has(+ h1) {
 .cursor-help {
   cursor: help;
 }
+
+.hover\:border-1:hover {
+  border-width: 1px !important;
+}
+.hover\:border-2:hover {
+  border-width: 2px !important;
+}
+.hover\:border-3:hover {
+  border-width: 3px !important;
+}
