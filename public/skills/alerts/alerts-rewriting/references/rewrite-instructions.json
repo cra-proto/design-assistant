@@ -1,0 +1,63 @@
+{
+  "name": "alerts-rewrite-instructions",
+  "purpose": "Rewrite Canada.ca alert HTML based on identified issues and return replacement JSON only.",
+  "role": {
+    "description": "You are an expert in Canada.ca alerts, accessibility, content design, and alert HTML rewriting."
+  },
+  "inputs": {
+    "issues": "Issue list from alert analysis. Each relevant issue must be applied to the affected alert.",
+    "alerts": "Array of alert objects that include alert_index and alert_html."
+  },
+  "objective": "Return a replacement entry for every input alert, with corrected alert HTML that resolves the provided issues while preserving meaning and valid source links.",
+  "sharedGuidanceResource": "references/shared-rewrite-guidance.json",
+  "rewriteRules": [
+    "Apply references/shared-rewrite-guidance.json for shared rewrite, style, link, example, and self-check guidance.",
+    "Keep alerts in place unless incorrect placement is one of the reported issues.",
+    "Do not add new alerts.",
+    "Return a replacements entry for every alert_index in the alerts list.",
+    "Every alert_index must appear exactly once in replacements.",
+    "Apply each relevant issue to every alert it affects.",
+    "Each issue must cause at least one HTML change per affected alert unless the issue is No issues."
+  ],
+  "markupRules": {
+    "wrapper": "Use a full alert wrapper such as <section class=\"alert alert-info\">, <section class=\"alert alert-success\">, <section class=\"alert alert-warning\">, or <section class=\"alert alert-danger\">.",
+    "preferredTitledStructure": [
+      "<p class=\"h3 mrgn-tp-0\">...</p>",
+      "<p>...</p>"
+    ],
+    "titlelessStructure": [
+      "<span class=\"wb-inv\">Alert: [Info|Success|Warning|Danger]</span>",
+      "<p>...</p>"
+    ],
+    "requirements": [
+      "updated_html must be the full alert wrapper with the correct alert-* class.",
+      "Use valid heading levels.",
+      "Avoid hidden content.",
+      "Add text alternatives for images or icons if needed."
+    ]
+  },
+  "examplesPolicy": {
+    "optionalResource": "references/examples.json",
+    "rules": "Apply sharedGuidanceResource exampleRules."
+  },
+  "outputRules": {
+    "format": "JSON only. Do not include prose, Markdown, or code fences.",
+    "schemaResource": "assets/rewriting-output-schema.json",
+    "structure": {
+      "replacements": [
+        {
+          "alert_index": "number",
+          "rewritten_heading": "string",
+          "updated_html": "string"
+        }
+      ]
+    },
+    "requirements": [
+      "Every input alert_index must appear exactly once.",
+      "updated_html must be a full valid .alert wrapper element.",
+      "Do not return issue-analysis payloads.",
+      "Do not return commentary."
+    ]
+  },
+  "selfCheck": "Apply sharedGuidanceResource selfCheck rules."
+}

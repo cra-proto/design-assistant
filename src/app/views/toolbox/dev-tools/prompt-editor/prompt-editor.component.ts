@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, ElementRef, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
@@ -21,7 +21,7 @@ import { TabsModule } from 'primeng/tabs';
 import { TextareaModule } from 'primeng/textarea';
 
 import { OpenRouterResponse, OpenRouterService } from '../../../../services/ai/openrouter.service';
-import { AiPromptService } from '../../../../services/ai/prompt.service';
+import { AiPromptService, ComposedPrompt } from '../../../../services/ai/prompt.service';
 import { ExportGitHubService } from '../../../../services/github/export-github.service';
 import { UserSettingsService } from '../../../../services/user-settings.service';
 
@@ -44,6 +44,12 @@ interface TabConfig {
   fragments?: { key: string; label: string; data: PromptEntry[] }[];
   tool: string;
   original: string;
+}
+
+interface TestPromptOption {
+  value: string;
+  label: string;
+  prompt: PromptEntry;
 }
 
 @Component({
@@ -80,6 +86,7 @@ export class PromptEditorComponent {
       const isDarkMode = this.settingsService.darkMode(); //watching for changes to dark mode to update diff theme
       this.updateDiff();
     });
+    void this.resolveTestPrompt();
     effect(() => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const tab = this.selectedTab; //watching for changes to selected tab
@@ -206,30 +213,119 @@ export class PromptEditorComponent {
     marker('aiPrompt.component.rubric');
     marker('aiPrompt.component.task');
     marker('aiPrompt.component.jsonSchema');
+    marker('aiPrompt.component.skills');
+    marker('aiPrompt.component.skillOptionalReferences');
+    marker('aiPrompt.component.skillSchema');
 
     marker('dev.prompts.button.openPR');
+    marker('dev.prompts.button.resolve');
+    marker('dev.prompts.test._title');
+    marker('dev.prompts.test.compositionError');
+    marker('dev.prompts.test.description');
+    marker('dev.prompts.test.estimatedTokens');
+    marker('dev.prompts.test.loadedResources');
+    marker('dev.prompts.test.loadedSkills');
+    marker('dev.prompts.test.prompt');
+    marker('dev.prompts.test.response');
+    marker('dev.prompts.test.result');
   }
 
-  //For testing
+  // Resolve and test prompts
   readonly aiState = this.openRouterService.state;
-  aiPrompt = this.aiPromptService.composePrompt(InventoryPrompts[InventoryPromptKey.Metadata]);
+  readonly composedPrompt = signal<ComposedPrompt | null>(null);
+  readonly compositionError = signal<string | null>(null);
+  readonly compositionLoading = signal(false);
   description = 'Official CRA information on Canadian taxes. File your return, manage payments, and explore credits and deductions for individuals and businesses.';
   response: OpenRouterResponse | null = null;
   result = '';
 
+  readonly testPromptOptions: TestPromptOption[] = this.tabs.flatMap((tab) =>
+    (tab.prompts ?? []).map((prompt) => ({
+      value: `${tab.tool}.${prompt.enumKey}`,
+      label: prompt.translationKey,
+      prompt,
+    })),
+  );
+  selectedTestPrompt = this.testPromptOptions[0]?.value ?? '';
+
+  async resolveTestPrompt(): Promise<void> {
+    const config = this.getSelectedTestPromptConfig();
+    this.composedPrompt.set(null);
+    this.compositionError.set(null);
+    if (!config) return;
+
+    this.compositionLoading.set(true);
+    try {
+      this.composedPrompt.set(await this.aiPromptService.composePromptDetails(config));
+    } catch (error) {
+      this.compositionError.set(error instanceof Error ? error.message : 'Unknown prompt composition error');
+    } finally {
+      this.compositionLoading.set(false);
+    }
+  }
+
   async testResponse() {
-    this.response = await this.openRouterService.sendToAI(InventoryPrompts[InventoryPromptKey.Metadata], this.description);
+    const config = this.getSelectedTestPromptConfig();
+    if (!config) return;
+    this.response = await this.openRouterService.sendToAI(config, this.description);
   }
   async testResult() {
-    this.result = await this.openRouterService.getTextFromAI(InventoryPrompts[InventoryPromptKey.Metadata], this.description);
+    const config = this.getSelectedTestPromptConfig();
+    if (!config) return;
+    this.result = await this.openRouterService.getTextFromAI(config, this.description);
   }
 
-  //TODO: test this
   // Rebuild prompt file
   rebuildPromptFile(tool: string, prompts: PromptEntry[]) {
-    const updatedPrompts = prompts.map((p) => ` [${tool}PromptKey.${p.enumKey}]: \`${p.promptText}\`,`).join('\n');
+    const updatedPrompts = prompts
+      .map((prompt) => {
+        let value: string;
+        if (this.isPromptConfig(prompt)) {
+          value = this.serializePromptConfig(prompt.promptText);
+        } else if (this.isPromptString(prompt)) {
+          value = this.toTemplateLiteral(prompt.promptText);
+        } else {
+          throw new Error(`Unsupported prompt value for ${prompt.enumKey}`);
+        }
+        return `  [${tool}PromptKey.${prompt.enumKey}]: ${value},`;
+      })
+      .join('\n');
 
-    return `import { ${tool}PromptKey } from './prompt.model'\nexport const ${tool}Prompts: Record<${tool}PromptKey, string> = {\n${updatedPrompts}\n};`;
+    return `import { OutputKey, ${tool}PromptKey, PromptConfig, RoleKey, RubricKey } from './prompt.model';\n\nexport const ${tool}Prompts: Record<${tool}PromptKey, PromptConfig> = {\n${updatedPrompts}\n};\n`;
+  }
+
+  private getSelectedTestPromptConfig(): PromptConfig | null {
+    const selected = this.testPromptOptions.find((option) => option.value === this.selectedTestPrompt)?.prompt;
+    return selected && this.isPromptConfig(selected) ? selected.promptText : null;
+  }
+
+  private serializePromptConfig(config: PromptConfig): string {
+    const lines = [
+      '{',
+      `    role: RoleKey.${this.getEnumKey(RoleKey, config.role)},`,
+      `    task: ${this.toTemplateLiteral(config.task)},`,
+      `    rubric: [${config.rubric.map((rubric) => `RubricKey.${this.getEnumKey(RubricKey, rubric)}`).join(', ')}],`,
+      `    output: OutputKey.${this.getEnumKey(OutputKey, config.output)},`,
+    ];
+
+    if (config.jsonSchema !== undefined) lines.push(`    jsonSchema: ${this.toTemplateLiteral(config.jsonSchema)},`);
+    if (config.skills?.length) {
+      const skills = config.skills.map((skill) => `{ id: '${skill.id}'${skill.includeOptionalReferences === true ? ', includeOptionalReferences: true' : ''} }`).join(', ');
+      lines.push(`    skills: [${skills}],`);
+    }
+    if (config.available !== undefined) lines.push(`    available: ${config.available},`);
+    lines.push('  }');
+    return lines.join('\n');
+  }
+
+  private getEnumKey<T extends Record<string, string>>(enumObject: T, value: T[keyof T]): string {
+    const key = Object.entries(enumObject).find(([, enumValue]) => enumValue === value)?.[0];
+    if (!key) throw new Error(`Unknown prompt enum value: ${value}`);
+    return key;
+  }
+
+  private toTemplateLiteral(value: string): string {
+    return `\`${value.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')}\``;
   }
 
   rebuildSharedFile(): string {

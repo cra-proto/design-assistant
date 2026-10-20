@@ -9,6 +9,8 @@ import { OpenRouterService } from '../../services/ai/openrouter.service';
 import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { CompareService } from '../../views/tasks/compare/compare.service';
+import { AlertRewriteOrchestratorService } from './compare-problems/design-components/alerts/alert-rewrite-orchestrator.service';
+import { AlertService } from './compare-problems/design-components/alerts/alert.service';
 
 import { AidaLinks } from '../../common/aidaLinks.config';
 import { PagePrompts } from '../../common/prompts/page.prompts';
@@ -27,6 +29,8 @@ export class CompareAiService {
   private readonly projectCache = inject(ProjectCacheService);
   private readonly compareService = inject(CompareService);
   private readonly openRouterService = inject(OpenRouterService);
+  private readonly alertService = inject(AlertService);
+  private readonly alertRewriteOrchestrator = inject(AlertRewriteOrchestratorService);
 
   public async sendToAI() {
     //Snapshot of current before & after version
@@ -52,7 +56,26 @@ export class CompareAiService {
 
     // Call OpenRouter
     try {
-      const response = await this.openRouterService.getTextFromAI(prompt, JSON.stringify(initialAfter.html)); // note: this can take up to 5 min
+      let response: string;
+      let fallbackCount = 0;
+      if (promptKey === 'AlertRewrite') {
+        if (this.alertService.getCachedIssues(initialAfter.html) === null) {
+          await this.alertService.analyze(initialAfter.html, this.compareService.selectedModel());
+        }
+        const selectedAlertIssues = this.alertService.getSelectedIssues(initialAfter.html);
+        const rewriteResult = await this.alertRewriteOrchestrator.generateRecommendations({
+          html: initialAfter.html,
+          issues: selectedAlertIssues,
+          preferredModel: this.compareService.selectedModel(),
+          includeExamples: true,
+          useCompactAlertsPageContext: true,
+          forceLocalRepairForTesting: false,
+        });
+        response = rewriteResult.formattedHtml;
+        fallbackCount = rewriteResult.fallbackNotices.length;
+      } else {
+        response = await this.openRouterService.getTextFromAI(prompt, JSON.stringify(initialAfter.html)); // note: this can take up to 5 min
+      }
 
       // Cached versions (or snapshot if no cached version available)
       const cached = this.projectCache.getPageEdit(pagePath);
@@ -78,6 +101,14 @@ export class CompareAiService {
         detail: this.translate.instant('aiJob.done.detail', { page: this.getPageLabel(pagePath) }),
         life: 5000,
       });
+      if (fallbackCount) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: this.translate.instant('alertRewrite.fallback.summary'),
+          detail: this.translate.instant('alertRewrite.fallback.detail', { count: fallbackCount }),
+          life: 8000,
+        });
+      }
     } catch (error) {
       console.warn(`AI call failed`, error);
       this.projectCache.setAiJobStatus(pagePath, 'error');

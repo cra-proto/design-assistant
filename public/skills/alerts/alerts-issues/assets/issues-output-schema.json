@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "required": ["issues"],
+  "properties": {
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "alert_index",
+          "issue_category",
+          "description",
+          "recommendation",
+          "severity"
+        ],
+        "properties": {
+          "alert_index": { "type": "integer", "minimum": 1 },
+          "issue_category": { "type": "string" },
+          "description": { "type": "string" },
+          "recommendation": { "type": "string" },
+          "severity": { "type": "string", "enum": ["High", "Medium", "Low"] },
+          "include": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

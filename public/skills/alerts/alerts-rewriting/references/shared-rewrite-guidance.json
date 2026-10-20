@@ -1,0 +1,63 @@
+{
+  "name": "alerts-shared-rewrite-guidance",
+  "purpose": "Shared behavioural guidance for Canada.ca alert rewriting. Used by the AIDA skill contract and the current per-alert runtime.",
+  "rewriteRules": [
+    "Edit only the alert content needed to resolve the provided issues.",
+    "Edit only inside each .alert container.",
+    "Prefer preserving the original meaning and existing links.",
+    "Prefer original wording and meaning. Edit text only when required by issues such as too wordy, multiple links, unclear impact, missing heading, or wrong type.",
+    "Do not invent facts, dates, URLs, program names, or destination details.",
+    "Do not add new links. Only keep, rename, or remove links from the original alert HTML. If the original alert has links, keep at least one original link.",
+    "Do not use placeholder tokens such as [LINK] or [END LINK]. Use real anchors: <a href=\"...\">text</a>."
+  ],
+  "styleRules": [
+    "Prefer short sentences. Use 1 or 2 sentences when the sentences are short, or 1 sentence when the sentence is longer. Treat these as flexible guidance, not hard limits.",
+    "Do not use semicolons to combine ideas just to reduce the sentence count.",
+    "If the alert includes a standalone lead-in to a link, first include one substantive sentence that explains the alert.",
+    "Do not output an alert whose only body text is a link-introduction sentence such as Learn about: or Refer to:.",
+    "If a link stands alone as its own sentence or paragraph, or if a sentence mainly directs the user to a link, place that link direction in its own paragraph.",
+    "Prefer putting standalone link sentences or paragraphs last in the alert content when possible, but do not treat placement as a hard requirement.",
+    "When more than one standalone link must be kept at the end of an alert, use one lead-in paragraph followed by <ul class=\"list-unstyled\"> with one link per <li>. Do not use separate standalone link paragraphs for multiple final links.",
+    "Standalone link sentences or paragraphs must not end with punctuation after the closing anchor. For example, use <p>Refer to: <a href=\"...\">link text</a></p>, not <p>Refer to: <a href=\"...\">link text</a>.</p>.",
+    "When choosing a standalone link lead-in, use a natural lead-in that matches the link purpose. \"Refer to:\" and \"For details:\" are both valid for supporting detail, reference, status, or explanatory links. Prefer \"Refer to:\" for required task, service, form, or procedural reference links. Prefer \"For details:\" when the link provides supporting information or more context. Prefer \"Learn more:\" for optional background, status, or update links. If a standalone link already contains a clear action verb, do not add lead-in text. Clear action verbs include View, Get, Apply, Register, Sign in, Sign up, Log in, Login, File, Review, Check, Submit, Download, Pay, Request, Update, Manage, Start, Use, Learn, Find out, How to, Create, Cancel, Send, and Confirm.",
+    "For phrasal lead-ins such as \"Find out\" or \"Learn about\", let the anchor text complete the phrase. Do not repeat the object or topic noun before the link when the link text already supplies it.",
+    "If the original alert already ends with an acceptable standalone final link sentence or paragraph, preserve it unless a selected issue clearly requires a change. Do not rewrite a valid existing lead-in such as \"For details:\" to \"Refer to:\" when it already reads naturally.",
+    "Add or preserve a short, descriptive heading.",
+    "State what happened, then what to do.",
+    "Use plain, active, neutral language.",
+    "Include a next step when possible.",
+    "Keep alert content concise for UI."
+  ],
+  "linkRules": [
+    "Apply the included link-writing skill for shared link-writing behavior.",
+    "Only use URLs already present in the source input.",
+    "Do not add hyperlinks if the original alert has no links.",
+    "If the original alert has a link, keep at least one real hyperlink. A too-many-links issue can justify removing extras, but not removing every link.",
+    "Keep to one primary link when possible.",
+    "Do not add new link text unless the issue requires improving existing link text.",
+    "Use valid HTML anchors in updated_html, for example <a href=\"...\">text</a>.",
+    "Use a natural standalone lead-in before the anchor when the standalone link text does not already contain a clear action verb. Refer to: and For details: are both valid for supporting detail, reference, status, or explanatory links.",
+    "For required task, service, form, or procedural reference links, prefer Refer to: before the anchor when the standalone link text does not already contain a clear action verb.",
+    "For links that provide supporting information or more context, prefer For details: before the anchor when it reads naturally.",
+    "For optional background, status, or update links, prefer Learn more: before the anchor when the standalone link text does not already contain a clear action verb.",
+    "Do not add a lead-in before standalone action links such as \"View CRA processing times\", \"Check CRA processing times\", \"Get an access code\", \"Sign up for direct deposit\", \"Create an account\", \"Cancel a payment\", \"Send documents\", \"Confirm your information\", \"Review the proposed rates\", \"Register a business\", \"Sign in or register for a CRA account\", \"Learn about the Canada Groceries and Essentials Benefit\", \"Find out how to get an access code\", or \"How to get an access code\".",
+    "Use Learn about without a colon when the linked text naturally completes the phrase. If an article is needed, place it before the anchor, for example: Learn about the <a>Canada Groceries and Essentials Benefit</a>.",
+    "Use Find out only without a colon and only when the linked text naturally completes the phrase, such as Find out how to... or Find out if....",
+    "Do not append link lead-ins to the explanatory sentence.",
+    "If the original alert already has a valid standalone link lead-in such as For details:, preserve that wording unless a selected issue clearly requires changing it. Do not rewrite a natural For details: lead-in to Refer to:."
+  ],
+  "exampleRules": [
+    "Use examples as pattern guidance only.",
+    "When examples include updatedHtml, use that field as the example's final HTML pattern.",
+    "Do not copy example wording.",
+    "Keep wording specific to the input alert's own facts and wording."
+  ],
+  "selfCheck": [
+    "If wrapper HTML is invalid, regenerate updated_html as a full .alert wrapper element.",
+    "If placeholder link tokens remain, replace them with real HTML anchors.",
+    "If a relevant selected issue did not cause a material HTML change for the affected alert, revise updated_html so the issue is addressed while preserving the original meaning.",
+    "If the original alert has no links, remove all added hyperlinks.",
+    "If the original alert has a link, keep at least one real hyperlink. A too-many-links issue can justify removing extras, but not removing every link.",
+    "If output wording copies examples too closely, rewrite using the input alert's own facts and wording."
+  ]
+}
