@@ -1,6 +1,14 @@
 import { OutputKey, PagePromptKey, PromptConfig, RoleKey, RubricKey } from './prompt.model';
 
 export const PagePrompts: Record<PagePromptKey, PromptConfig> = {
+  [PagePromptKey.AlertRewrite]: {
+    role: RoleKey.ContentDesigner,
+    task: 'Rewrite the supplied alerts, using identified issues where available, preserving valid content and returning safe alert replacements.',
+    rubric: [RubricKey.NoCommentary],
+    output: OutputKey.Json,
+    skills: [{ id: 'alerts-rewriting', includeOptionalReferences: true }],
+    available: true,
+  },
   [PagePromptKey.Headings]: {
     role: RoleKey.ContentDesigner,
     task: `Structure content into clear, hierarchical headings at h1, h2, h3 and more rarely h4 and h5 levels to improve scannability of the tasks on the page.

@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "required": ["replacements"],
+  "properties": {
+    "replacements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["alert_index", "rewritten_heading", "updated_html"],
+        "properties": {
+          "alert_index": { "type": "integer", "minimum": 1 },
+          "rewritten_heading": { "type": "string" },
+          "updated_html": { "type": "string" }
+        }
+      }
+    }
+  }
+}

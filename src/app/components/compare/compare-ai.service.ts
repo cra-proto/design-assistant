@@ -9,6 +9,8 @@ import { OpenRouterService } from '../../services/ai/openrouter.service';
 import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { CompareService } from '../../views/tasks/compare/compare.service';
+import { AlertRewriteOrchestratorService } from './compare-problems/design-components/alerts/alert-rewrite-orchestrator.service';
+import { AlertService } from './compare-problems/design-components/alerts/alert.service';
 
 import { AidaLinks } from '../../common/aidaLinks.config';
 import { PagePrompts } from '../../common/prompts/page.prompts';
@@ -27,6 +29,8 @@ export class CompareAiService {
   private readonly projectCache = inject(ProjectCacheService);
   private readonly compareService = inject(CompareService);
   private readonly openRouterService = inject(OpenRouterService);
+  private readonly alertService = inject(AlertService);
+  private readonly alertRewriteOrchestrator = inject(AlertRewriteOrchestratorService);
 
   public async sendToAI() {
     //Snapshot of current before & after version
@@ -78,6 +82,14 @@ export class CompareAiService {
         detail: this.translate.instant('aiJob.done.detail', { page: this.getPageLabel(pagePath) }),
         life: 5000,
       });
+      if (fallbackCount) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: this.translate.instant('alertRewrite.fallback.summary'),
+          detail: this.translate.instant('alertRewrite.fallback.detail', { count: fallbackCount }),
+          life: 8000,
+        });
+      }
     } catch (error) {
       console.warn(`AI call failed`, error);
       this.projectCache.setAiJobStatus(pagePath, 'error');

@@ -1,0 +1,80 @@
+{
+  "version": "1.0.0",
+  "rules": [
+    {
+      "id": "L1_keep_links_default",
+      "condition": "always",
+      "text": "Keep links by default. If the original alert has exactly one <a> link, the rewritten alert must include one real <a> element with the same href."
+    },
+    {
+      "id": "L2_keep_url_change_text",
+      "condition": "always",
+      "text": "Link text may be rewritten, but any kept link must keep its original URL. Do not convert a kept link to plain text, omit it, or replace it with placeholder text."
+    },
+    {
+      "id": "L3_descriptive_text",
+      "condition": "always",
+      "text": "Link text must clearly describe the intended destination using available context (URL path/slug, current link text, and surrounding sentence), and avoid inventing destination details not supported by that context."
+    },
+    {
+      "id": "L4_avoid_duplicate_link_text",
+      "condition": "always",
+      "text": "Avoid duplicate wording. Do not repeat the linked phrase outside the anchor when meaning is preserved. Keep the destination phrase in the link. For phrasal lead-ins such as \"Find out\" or \"Learn about\", let the link text complete the phrase instead of repeating the object before the anchor. Avoid using \"see\" before links; use inclusive alternatives like \"refer to\" or \"visit\". When a link is present, prefer a short plain-text lead-in plus unique link text, with minimal repeated wording outside the anchor."
+    },
+    {
+      "id": "L5_no_vague_anchor_text",
+      "condition": "always",
+      "text": "Never use vague anchor text (for example: \"click here\", \"here\", \"learn more\", or similar)."
+    },
+    {
+      "id": "L6_sentence_end_preferred",
+      "condition": "always",
+      "text": "Prefer placing links at the end of their sentence."
+    },
+    {
+      "id": "L6a_short_sentences_no_semicolons",
+      "condition": "always",
+      "text": "Prefer short sentences. Use 1 or 2 sentences when the sentences are short, or 1 sentence when the sentence is longer. Treat these as flexible guidance, not hard limits. Do not use semicolons to combine ideas just to reduce the sentence count."
+    },
+    {
+      "id": "L7_learn_more_fallback",
+      "condition": "always",
+      "text": "If a link is an entire sentence, or if a sentence mainly directs the user to a link, move it to a new paragraph. When possible, place that standalone link paragraph last in the alert content. Use one of these lead-ins before the anchor: \"Refer to:\" or \"Learn more:\". Use \"Find out\" or \"Learn about\" without a colon only when the link text naturally completes the phrase. If the phrase needs an article, place it before the anchor, for example \"Learn about the <a>Canada Groceries and Essentials Benefit</a>\"."
+    },
+    {
+      "id": "L7a_multiple_standalone_links_list",
+      "condition": "always",
+      "text": "When more than one standalone link must be kept at the end of an alert, use one lead-in paragraph followed by <ul class=\"list-unstyled\"> with one link per <li>. Do not use separate standalone link paragraphs for multiple final links."
+    },
+    {
+      "id": "L8_remove_only_when_too_many",
+      "condition": "too_many_links",
+      "text": "Only remove links when the original alert has multiple links and a too-many-links issue is identified; keep one primary <a> link with its original href."
+    },
+    {
+      "id": "L9_do_not_remove_without_issue",
+      "condition": "not_too_many_links",
+      "text": "Do not remove links unless the original alert has multiple links and a too-many-links issue is identified. If only one link is present, preserve a real <a> element with the original href."
+    },
+    {
+      "id": "L10_concise_link_text",
+      "condition": "always",
+      "text": "Keep link text concise when possible. Remove details already present in the alert or page context (for example, \" - Canada.ca\" is not needed)."
+    },
+    {
+      "id": "L11_find_out_usage",
+      "condition": "always",
+      "text": "Do not use \"Find out:\" with a colon. Use \"Find out\" only when the anchor text completes it naturally, for example \"Find out how to...\", \"Find out if...\", or \"Find out whether...\". Do not use \"Find out\" before imperative link text such as \"Get...\", \"Apply...\", or \"Register...\"."
+    },
+    {
+      "id": "L12_lead_in_selection",
+      "condition": "always",
+      "text": "Choose the lead-in that matches the destination and keep it in its own paragraph when the sentence mainly directs the user to the link. Prefer placing that paragraph last in the alert content, but treat this as a preference rather than a strict rule. Prefer \"Refer to:\" when the link is needed to complete a task, access a service, sign in, apply, register, submit, get a code, or take a required next step. Prefer \"Learn more:\" when the link is optional background, a status page, an update page, or supplemental information. Use \"Learn about\" without a colon when the linked text naturally completes the phrase for explainer or topic pages. If the phrase needs an article, place it before the anchor, for example \"Learn about the <a>Canada Groceries and Essentials Benefit</a>\". Avoid repeating the topic noun outside the link if the anchor already names it."
+    },
+    {
+      "id": "L13_action_link_no_lead_in",
+      "condition": "always",
+      "text": "If a standalone link already contains a clear action verb, do not add lead-in text such as \"Refer to:\" or \"Learn more:\". Examples include standalone links such as \"View CRA processing times\", \"Get an access code\", \"Apply for benefits\", \"Register a business\", \"Sign in or register for a CRA account\", \"File your return online\", \"Review the proposed rates\", \"Learn about the Canada Groceries and Essentials Benefit\", \"Find out how to get an access code\", and \"How to get an access code\"."
+    }
+  ]
+}

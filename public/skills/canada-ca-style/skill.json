@@ -1,0 +1,8 @@
+{
+  "id": "canada-ca-style",
+  "includes": [],
+  "references": ["references/writing-rules.json"],
+  "optionalReferences": [],
+  "assets": [],
+  "outputModes": ["any"]
+}

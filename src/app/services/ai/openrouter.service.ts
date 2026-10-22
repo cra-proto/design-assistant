@@ -51,37 +51,23 @@ export class OpenRouterService {
 
   // Returns full OpenRouter response
   async sendToAI(config: PromptConfig, content: string, preferredModel?: string, temperature = 0): Promise<OpenRouterResponse> {
-    this.state.set({ loading: true, error: null, respondingModel: null });
+    const systemPrompt = await this.aiPromptService.composePrompt(config);
+    console.log(systemPrompt);
+    return this.sendRawPrompt(systemPrompt, content, preferredModel, temperature);
+  }
 
-    const MAX_FALLBACK_MODELS = 3;
+  // Sends an already-composed system/user message pair. Specialized runtimes,
+  // such as alert rewriting, use this to preserve their tuned prompt assembly.
+  async sendMessages(messages: ChatMessage[], preferredModel?: string, temperature = 0): Promise<{ text: string; usedModel: string }> {
+    const systemPrompt = messages.find((message) => message.role === 'system')?.content ?? '';
+    const content = messages.find((message) => message.role === 'user')?.content ?? '';
+    if (!systemPrompt) throw new Error('A system message is required.');
 
-    const models = (preferredModel ? [preferredModel, ...AI_FREE_MODELS.filter((m) => m !== preferredModel)] : AI_FREE_MODELS).slice(0, MAX_FALLBACK_MODELS);
-
-    try {
-      const systemPrompt = this.aiPromptService.composePrompt(config);
-      console.log(systemPrompt);
-
-      const response = await firstValueFrom(
-        this.http.post<OpenRouterResponse>(this.apiUrl, {
-          models,
-          systemPrompt,
-          content,
-          temperature,
-        }),
-      );
-
-      this.state.set({
-        loading: false,
-        error: null,
-        respondingModel: response.model ?? null,
-      });
-
-      return response;
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      this.state.set({ loading: false, error: message, respondingModel: null });
-      throw error;
-    }
+    const response = await this.sendRawPrompt(systemPrompt, content, preferredModel, temperature);
+    return {
+      text: response.choices?.[0]?.message?.content ?? '',
+      usedModel: response.model ?? preferredModel ?? 'unknown',
+    };
   }
 
   // Returns just the text from the OpenRouter response
@@ -93,5 +79,30 @@ export class OpenRouterService {
       await this.htmlNormalizationService.formatHtml(responseContent);
     }
     return responseContent;
+  }
+
+  private async sendRawPrompt(systemPrompt: string, content: string, preferredModel?: string, temperature = 0): Promise<OpenRouterResponse> {
+    this.state.set({ loading: true, error: null, respondingModel: null });
+
+    const MAX_FALLBACK_MODELS = 3;
+    const models = (preferredModel ? [preferredModel, ...AI_FREE_MODELS.filter((model) => model !== preferredModel)] : AI_FREE_MODELS).slice(0, MAX_FALLBACK_MODELS);
+
+    try {
+      const response = await firstValueFrom(
+        this.http.post<OpenRouterResponse>(this.apiUrl, {
+          models,
+          systemPrompt,
+          content,
+          temperature,
+        }),
+      );
+
+      this.state.set({ loading: false, error: null, respondingModel: response.model ?? null });
+      return response;
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.state.set({ loading: false, error: message, respondingModel: null });
+      throw error;
+    }
   }
 }

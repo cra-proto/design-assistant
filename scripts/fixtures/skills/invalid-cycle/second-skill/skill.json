@@ -1,0 +1,8 @@
+{
+  "id": "second-skill",
+  "includes": ["first-skill"],
+  "references": [],
+  "optionalReferences": [],
+  "assets": [],
+  "outputModes": ["text"]
+}

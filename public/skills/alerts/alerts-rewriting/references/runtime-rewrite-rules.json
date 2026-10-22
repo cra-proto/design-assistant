@@ -1,0 +1,39 @@
+{
+  "version": "2026-02-28",
+  "alertRewrite": {
+      "styleRulesBase": [
+      "Do not add new links. If the original alert has one or more <a> links, rewrittenAlertHtml must include at least one real <a> element with an original href. Do not convert every link to plain text, omit all links, or replace links with placeholder text. You may rewrite anchor text only if it improves clarity and still describes the same destination. If the original alert has multiple links, only remove extra links when the selected issues or plan identify too many links or link removal.",
+      "Do not output [LINK] or [END LINK]. Use real anchors: <a href=\"...\">text</a>.",
+      "Set rewrittenAlertHtml to full .alert wrapper HTML (for example: <div class=\"alert alert-info\">...</div>)."
+    ],
+    "styleRulesWithExamples": [],
+    "systemPromptWithExamplesLines": [
+      "You are alertRewrite for UI alerts.",
+      "Use examples as pattern guidance, not copy/paste text.",
+      "Only include exampleIdsUsed values that match the provided example ids.",
+      "Keep the alert wrapper and classes valid.",
+      "Do not return any sentence copied from the examples.",
+      "Return JSON only. No extra text.",
+      "Output schema:",
+      "{\"rewrittenAlertHtml\":\"string\",\"rewrittenHeading\":\"string\",\"rewrittenAlert\":\"string\",\"appliedDirectives\":[\"...\"],\"exampleIdsUsed\":[\"ex-001\"]}"
+    ],
+    "systemPromptWithoutExamplesLines": [
+      "You are alertRewrite for UI alerts.",
+      "No examples are provided for this request.",
+      "Return exampleIdsUsed as an empty array: [].",
+      "Keep the alert wrapper and classes valid.",
+      "Return JSON only. No extra text.",
+      "Output schema:",
+      "{\"rewrittenAlertHtml\":\"string\",\"rewrittenHeading\":\"string\",\"rewrittenAlert\":\"string\",\"appliedDirectives\":[\"...\"],\"exampleIdsUsed\":[]}"
+    ],
+    "retryInstructions": {
+      "invalidWrapperHtml": "Return valid rewrittenAlertHtml as a full .alert wrapper element.",
+      "placeholderLinks": "Do not output [LINK] or [END LINK]. Use real HTML anchors (<a href=\"...\">text</a>) in rewrittenAlertHtml.",
+      "noLinksAllowed": "The original alert has no links. Do not add hyperlinks. Return rewrittenAlertHtml without any <a> tags.",
+      "mustKeepLink": "The original alert has one or more required <a> links. Your previous rewrittenAlertHtml removed every link. Return rewrittenAlertHtml with at least one real <a> element using an original href. If the issue is too many links, remove only extra links and keep the most useful original link.",
+      "mustHaveHeading": "Alerts must include a semantic heading element in rewrittenAlertHtml. Add a short, descriptive heading using <h2 class=\"h3\"> or <h3> to <h6> as needed, and place it before the body text.",
+      "avoidExampleCopy": "Your previous output matched example wording. Rewrite using alert-specific wording and facts only.",
+      "fullSentenceLinksNeedLeadIn": "If a link stands alone as its own sentence or paragraph, or if a sentence mainly directs the user to a link, place that link direction in its own paragraph. Prefer putting a standalone link sentence or paragraph last in the alert content, but do not treat placement as a hard requirement. Use a natural lead-in before the anchor when the standalone link text does not already contain a clear action verb. \"Refer to:\" and \"For details:\" are both valid for supporting detail, reference, status, or explanatory links. Prefer \"Refer to:\" for required task, service, form, or procedural reference links. Prefer \"For details:\" when the link provides supporting information or more context. Prefer \"Learn more:\" for optional background, status, or update links. Do not add a lead-in before standalone action links such as \"View CRA processing times\", \"Check CRA processing times\", \"Get an access code\", \"Sign up for direct deposit\", \"Create an account\", \"Cancel a payment\", \"Send documents\", \"Confirm your information\", \"Review the proposed rates\", \"Register a business\", \"Sign in or register for a CRA account\", \"Learn about the Canada Groceries and Essentials Benefit\", \"Find out how to get an access code\", or \"How to get an access code\". Use \"Learn about\" without a colon when the linked text naturally completes the phrase, especially for explainer or topic pages. If the phrase needs an article, place it before the anchor, for example \"Learn about the <a>Canada Groceries and Essentials Benefit</a>\". Do not put a period or other punctuation after the closing anchor in a standalone link sentence or paragraph."
+    }
+  }
+}
