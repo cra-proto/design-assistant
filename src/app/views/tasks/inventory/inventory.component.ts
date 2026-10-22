@@ -30,6 +30,7 @@ import { ViewPagesComponent } from '../../../components/view-pages/view-pages.co
 import { OpenRouterService } from '../../../services/ai/openrouter.service';
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectStateService } from '../../../services/project-state.service';
+import { StyleCardService } from '../../../services/style-card.service';
 import { CompareService } from '../compare/compare.service';
 import { IaDiagramService } from '../ia-diagram/ia-diagram.service';
 
@@ -90,6 +91,7 @@ export interface BooleanToggleItem extends MenuItem {
 })
 export class InventoryComponent implements OnInit {
   private readonly router = inject(Router);
+  protected readonly styleCardService = inject(StyleCardService);
   protected readonly projectState = inject(ProjectStateService);
   protected readonly translate = inject(TranslateService);
   private readonly confirmationService = inject(ConfirmationService);

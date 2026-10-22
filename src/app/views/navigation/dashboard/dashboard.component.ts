@@ -19,6 +19,7 @@ import { ExportProjectComponent } from '../../../components/export-project/expor
 import { SetupProjectComponent } from '../../../components/setup-project/setup-project.component';
 
 import { ProjectStateService } from '../../../services/project-state.service';
+import { StyleCardService } from '../../../services/style-card.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
 
 import { environment } from '../../../../environments/environment';
@@ -49,6 +50,7 @@ import { CurrentPhase, GitHubRepo, PhaseStatus, ProjectPhase } from '../../../co
 export class DashboardComponent {
   private readonly projectState = inject(ProjectStateService);
   private readonly settingsService = inject(UserSettingsService);
+  protected readonly styleCardService = inject(StyleCardService);
   protected readonly production = environment.production;
   protected readonly sandbox = environment.production;
   protected readonly AidaLinks = AidaLinks;

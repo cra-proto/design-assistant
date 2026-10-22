@@ -52,7 +52,7 @@ export class CompareAiService {
 
     // Call OpenRouter
     try {
-      const response = await this.openRouterService.getTextFromAI(prompt, JSON.stringify(initialAfter.html)); // note: this can take up to 5 min
+      const response = await this.openRouterService.getTextFromAI(prompt, JSON.stringify(initialAfter.html), this.compareService.selectedModel()); // note: this can take up to 5 min
 
       // Cached versions (or snapshot if no cached version available)
       const cached = this.projectCache.getPageEdit(pagePath);

@@ -1,0 +1,133 @@
+<h1 id="wb-cont">{{ 'metadata._title' | translate }}</h1>
+<div class="flex flex-column gap-2">
+  <div [class]="styleCardService.cardStyles()" class="flex flex-column gap-2">
+    <div class="flex gap-2 align-items-end">
+      <aida-compare-select [compareMode]="'page only'" />
+      <aida-project-settings [allowBoth]="true" [showLang]="true" />
+    </div>
+    @if (selectedNode()) {
+      <h2 class="mb-0">Edit prototype metadata</h2>
+      <div class="flex gap-2 h-full">
+        @if (projectCache.selectedLang() !== 'fr') {
+          @if (selectedNode()?.data?.prototype?.en; as meta) {
+            <p-fieldset [legend]="'common.language.english' | translate" class="flex-1 flex flex-column" styleClass="flex-1">
+              <aida-edit-metadata [meta]="meta" (changed)="onMetaChanged()" />
+            </p-fieldset>
+          }
+        }
+        @if (projectCache.selectedLang() !== 'en') {
+          @if (selectedNode()?.data?.prototype?.fr; as meta) {
+            <p-fieldset [legend]="'common.language.french' | translate" class="flex-1 flex flex-column" styleClass="flex-1">
+              <aida-edit-metadata [meta]="meta" (changed)="onMetaChanged()" />
+            </p-fieldset>
+          }
+        }
+      </div>
+    }
+  </div>
+
+  <div [class]="styleCardService.cardStyles()" class="flex flex-column gap-2">
+    <h2>Metadata for all in-scope pages</h2>
+    <div class="flex flex-wrap gap-2 align-items-end">
+      <div>
+        <span>{{ selectedNodes.length }} pages selected</span>
+        <!--aida-menu-bulk-page-actions /-->
+      </div>
+      <aida-project-settings [allowBoth]="true" [showLang]="true" />
+      <aida-project-settings [allowBoth]="true" [showMeta]="true" />
+      <aida-project-settings [allowBoth]="true" [showFilter]="true">
+        <p-iconfield>
+          <input
+            id="search"
+            [(ngModel)]="searchTerm"
+            [placeholder]="'common.search' | translate"
+            (input)="dt.filterGlobal(normalizeSearchValue($event.target.value), 'contains')"
+            class="min-w-min md:min-w-max w-full"
+            pInputText
+            type="text"
+          />
+          <p-inputicon class="pi pi-search" />
+        </p-iconfield>
+        @if (dt.filteredValue) {
+          <span>
+            {{ 'common.showingRows' | translate: { shown: dt.filteredValue.length, total: dt.value.length } }}
+          </span>
+        }
+      </aida-project-settings>
+    </div>
+    <p-table
+      [(selection)]="selectedNodes"
+      [globalFilterFields]="filterFields()"
+      [paginator]="visibleRows().length > 25"
+      [rows]="50"
+      [rowsPerPageOptions]="rowsPerPageOptions"
+      [scrollable]="false"
+      [value]="visibleRows()"
+      #dt
+      selectionMode="multiple"
+      stripedRows
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="sticky-table sticky-table-group-header sticky-table-checkbox" rowspan="2"><p-tableHeaderCheckbox /></th>
+          <th class="text-xl sticky-table sticky-table-group-header sticky-table-column" rowspan="2">{{ 'compare.pageOptions.page' | translate }}</th>
+          <th class="text-xl border-left-3" rowspan="2">{{ 'common.approved' | translate }}</th>
+          @for (group of groups(); track group.name) {
+            <th [attr.colspan]="group.span" class="text-lg border-left-3 sticky-table sticky-table-group-header">{{ group.name }}</th>
+          }
+        </tr>
+        <tr>
+          @for (column of columns(); track column.key) {
+            <th [class.border-left-1]="!column.isGroupStart" [class.border-left-3]="column.isGroupStart" class="sticky-table sticky-table-header">{{ column.version }}</th>
+          }
+        </tr>
+      </ng-template>
+      <ng-template #body let-row let-rowIndex="rowIndex">
+        <tr [class]="row.style" [pSelectableRow]="row" [pSelectableRowIndex]="rowIndex">
+          <td class="sticky-table sticky-table-checkbox border-bottom-1 border-300"><p-tableCheckbox [value]="row" /></td>
+          <th class="sticky-table sticky-table-column border-bottom-1 border-300 py-2 px-3">
+            <div class="flex flex-column text-left">
+              <span class="text-lg font-medium text-color-secondary">{{ row.label[uiLang()].doubleH1 }}</span>
+              <span class="text-xl">{{ row.label[uiLang()].h1 }}</span>
+              <span [aidaTooltip]="row.label[uiLang()].path" class="text-sm font-medium text-color-secondary white-space-nowrap">{{ '/' + row.label[uiLang()].path.split('/').pop() }}</span>
+            </div>
+          </th>
+          <td class="border-left-3">
+            <div
+              [class.no-preview]="noPreviewPath() === row.label[uiLang()].path"
+              [ngClass]="approvalClasses(row.approved)"
+              (click)="$event.stopPropagation(); noPreviewPath.set(row.label[uiLang()].path); updateApproval(!row.approved, row.label[uiLang()].path)"
+              (keydown.enter)="$event.stopPropagation(); updateApproval(!row.approved, row.label[uiLang()].path)"
+              (mouseenter)="onToggleEnter(row.label[uiLang()].path)"
+              (mouseleave)="noPreviewPath.set(null)"
+              class="flex align-items-center gap-3 p-1 border-round border-1 border-transparent icon-toggle"
+              tabindex="0"
+            >
+              <i [class]="row.approved ? 'pi-check-circle text-green-500' : 'pi-circle text-red-500'" class="icon-current pi text-5xl mt-1"></i>
+              <i [class]="row.approved ? 'pi-circle text-green-500' : 'pi-check-circle text-red-500'" class="icon-preview pi text-5xl mt-1"></i>
+              {{ 'metadata.status.' + approvalStatus(row) | translate }}
+            </div>
+          </td>
+          @for (column of columns(); track column.key) {
+            <td [class.border-left-1]="!column.isGroupStart" [class.border-left-3]="column.isGroupStart">
+              @if (row[column.key].content === 'noChange') {
+                <span [aidaTooltip]="'common.noChange' | translate" class="flex justify-content-center"><i class="pi pi-minus text-xl text-color-secondary"></i></span>
+              } @else {
+                <span [aidaTooltip]="tooltip(row[column.key].content, row.label, column.key) | translate" [class.text-red-500]="isRed(row[column.key].content, row.label, column.key)">
+                  {{ row[column.key].content }}
+                </span>
+              }
+            </td>
+          }
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td [attr.colspan]="columns().length + 2" class="text-center p-4">
+            {{ 'inventory.emptyMessage' | translate }}
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

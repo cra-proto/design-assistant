@@ -17,6 +17,7 @@ import { EditNodeComponent } from '../../../components/edit-node/edit-node.compo
 import { htmlProcessingResult } from '../../../services/html-normalization.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
+import { StyleCardService } from '../../../services/style-card.service';
 import { CompareService } from './compare.service';
 
 import { environment } from '../../../../environments/environment';
@@ -28,6 +29,7 @@ import { environment } from '../../../../environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompareComponent {
+  protected readonly styleCardService = inject(StyleCardService);
   private projectState = inject(ProjectStateService);
   private readonly projectCache = inject(ProjectCacheService);
   public compareService = inject(CompareService);

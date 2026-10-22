@@ -11,7 +11,7 @@
 }
 <div class="flex lg:flex-row flex-column gap-3 min-w-min">
   <!--Connect Card 4-->
-  <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-8 w-full min-w-min">
+  <div [class]="styleCardService.cardStyles()" class="lg:mb-3 lg:w-8">
     <!--Header & Settings-->
     <div class="flex flex-column lg:flex-row justify-content-between align-items-start">
       <div class="flex flex-column">
@@ -70,7 +70,7 @@
   </div>
   <!--GitHub settings (only visible if not configured)-->
   @if (!hasRepoConfig()) {
-    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full min-w-min">
+    <div [class]="styleCardService.cardStyles()" class="lg:mb-3 lg:w-4">
       <aida-setup-repo />
       @if (projectData().github.hasBaselineRepo) {
         <aida-project-settings [showVersion]="true" />
@@ -78,7 +78,7 @@
     </div>
   } @else {
     <!--Stats Card (only visible if GitHub repo is configured)-->
-    <div class="surface-card border-round-lg shadow-2 p-4 lg:mb-3 lg:w-4 w-full min-w-min">
+    <div [class]="styleCardService.cardStyles()" class="lg:mb-3 lg:w-4">
       <h2 class="text-2xl my-1">{{ 'exportPages.data' | translate }}</h2>
       <div class="p-3 text-center">
         <!-- Last Export Date -->
@@ -148,7 +148,7 @@
 </div>
 
 <!-- Export file table-->
-<div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0 min-w-min">
+<div [class]="styleCardService.cardStyles()" class="my-3 lg:mt-0">
   <h2 class="text-2xl my-1">{{ 'exportPages.export._title' | translate }}</h2>
   <p class="my-1">{{ repoType() === 'github' ? ('exportPages.export.github.description' | translate) : ('exportPages.export.zip.description' | translate) }}</p>
   @if (projectTable().length > 0) {
@@ -326,7 +326,7 @@
 
 @if (hasRepoConfig()) {
   <!-- Bookmarklet-->
-  <div class="surface-card border-round-lg shadow-2 p-4 my-3 lg:mt-0 min-w-min">
+  <div [class]="styleCardService.cardStyles()" class="my-3 lg:mt-0">
     <aida-bookmarklet [mode]="repoType()" />
   </div>
 }

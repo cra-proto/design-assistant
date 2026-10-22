@@ -32,8 +32,12 @@ export class ProjectSettingsComponent {
   public readonly allowPreview = input(false);
   public readonly onlyValid = input(false);
 
+  public readonly showFilter = input(false);
+
   public readonly showViewIA = input(false);
   public readonly showDisplayIA = input(false);
+
+  public readonly showMeta = input(false);
 
   public readonly showDisplay = input(false);
 
@@ -95,18 +99,12 @@ export class ProjectSettingsComponent {
 
   //Choose version (for AIDA data storage)
   protected get versionOptions() {
+    const options = [{ label: this.translate.instant('common.version.prototype'), value: 'prototype' }];
     if (this.allowLive()) {
-      return [
-        { label: this.translate.instant('common.version.prototype'), value: 'prototype' },
-        { label: this.translate.instant('common.version.live'), value: 'live' },
-        { label: this.translate.instant('common.version.baseline'), value: 'baseline' },
-      ];
-    } else {
-      return [
-        { label: this.translate.instant('common.version.prototype'), value: 'prototype' },
-        { label: this.translate.instant('common.version.baseline'), value: 'baseline' },
-      ];
+      options.push({ label: this.translate.instant('common.version.live'), value: 'live' });
     }
+    options.push({ label: this.translate.instant('common.version.baseline'), value: 'baseline' });
+    return options;
   }
 
   //Choose source (for external data storage)
@@ -132,6 +130,14 @@ export class ProjectSettingsComponent {
     return options;
   }
 
+  //Choose filter for changes (metadata to start)
+  protected get filterOptions() {
+    return [
+      { label: this.translate.instant('common.filter.all'), value: 'all' },
+      { label: this.translate.instant('common.filter.changes'), value: 'changes' },
+    ];
+  }
+
   //Choose view (for IA diagram)
   protected get viewIAOptions() {
     return [
@@ -146,6 +152,15 @@ export class ProjectSettingsComponent {
     return [
       { label: this.translate.instant('common.display.tree'), value: 'tree' },
       { label: this.translate.instant('common.display.list'), value: 'list' },
+    ];
+  }
+
+  //Choose metadata options (for metadata table)
+  protected get metaOptions() {
+    return [
+      { label: this.translate.instant('editNode.title'), value: 'title' },
+      { label: this.translate.instant('editNode.description'), value: 'description' },
+      { label: this.translate.instant('editNode.keywords'), value: 'keywords' },
     ];
   }
 

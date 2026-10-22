@@ -66,7 +66,7 @@
                   <div class="w-full h-3rem bg-green-400 border-round align-content-center text-black-alpha-90">Black text</div>
                   <div class="w-full h-3rem bg-green-500 border-round align-content-center text-white">White text</div>
                 </div>
-                <p-message severity="success" text="Success: message" />
+                <p-message icon="pi pi-check-circle" severity="success" text="Success: message" />
               </div>
               <aida-color-picker
                 [contrastTests]="[
@@ -103,7 +103,7 @@
                   <div class="w-full h-3rem bg-red-400 border-round align-content-center text-black-alpha-90">Black text</div>
                   <div class="w-full h-3rem bg-red-500 border-round align-content-center text-white">White text</div>
                 </div>
-                <p-message severity="error" text="Error: message" />
+                <p-message icon="pi pi-times-circle" severity="error" text="Error: message" />
               </div>
               <aida-color-picker
                 [contrastTests]="[
@@ -131,7 +131,7 @@
                   <div class="w-full h-3rem bg-orange-400 border-round align-content-center text-black-alpha-90">Black text</div>
                   <div class="w-full h-3rem bg-orange-500 border-round align-content-center text-white">White text</div>
                 </div>
-                <p-message severity="warn" text="Warning: message" />
+                <p-message icon="pi pi-exclamation-triangle" severity="warn" text="Warning: message" />
               </div>
               <aida-color-picker
                 [contrastTests]="[
@@ -168,7 +168,7 @@
                   <div class="w-full h-3rem bg-blue-400 border-round align-content-center text-black-alpha-90">Black text</div>
                   <div class="w-full h-3rem bg-blue-500 border-round align-content-center text-white">White text</div>
                 </div>
-                <p-message severity="info" text="Info: message" />
+                <p-message icon="pi pi-info-circle" severity="info" text="Info: message" />
               </div>
               <aida-color-picker
                 [contrastTests]="[
@@ -351,7 +351,7 @@
       <p>Messages</p>
       <p-message icon="pi pi-info-circle" severity="info" text="Info: message" />
       <p-message icon="pi pi-check-circle" severity="success" text="Success: message" />
-      <p-message icon="pi pi-exclamation-circle" severity="error" text="Error: message" />
+      <p-message icon="pi pi-times-circle" severity="error" text="Error: message" />
       <p-message icon="pi pi-exclamation-triangle" severity="warn" text="Warning: message" />
       <p-message severity="secondary" text="Secondary: message" />
       <p-message severity="contrast" text="Contrast: message" />
@@ -377,7 +377,7 @@
       <div class="col-12 md:col-6">
         <h4 class="mb-2 text-sm font-semibold uppercase text-red-600">Negative Messages</h4>
         <div class="flex flex-column gap-2 mb-4">
-          <p-message icon="pi pi-exclamation-circle" severity="error" text="Error: message" />
+          <p-message icon="pi pi-times-circle" severity="error" text="Error: message" />
           <p-message icon="pi pi-exclamation-triangle" severity="warn" text="Warning: message" />
         </div>
       </div>
@@ -409,96 +409,96 @@
     <div class="flex flex-column gap-3">
       <div class="flex gap-3 mb-2">
         <p>Width: border-1</p>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-0">border-0</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-50">border-50</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-100">border-100</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 surface-border">surface-border</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-200">border-200</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-300">border-300</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-400">border-400</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-500">border-500</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-600">border-600</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-700">border-700</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-800">border-800</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-900">border-900</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-1 border-primary">border-primary</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-1 border-0">border-0</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-1 border-50">border-50</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-1 border-100">border-100</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-1 surface-border">surface-border</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-1 border-200">border-200</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-1 border-300">border-300</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-1 border-400">border-400</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-1 border-500">border-500</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-1 border-600">border-600</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-1 border-700">border-700</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-1 border-800">border-800</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-1 border-900">border-900</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-1 border-primary">border-primary</div>
       </div>
       <div class="flex gap-3 mb-2">
         <p>Width: border-2</p>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-0">border-0</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-50">border-50</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-100">border-100</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 surface-border">surface-border</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-200">border-200</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-300">border-300</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-400">border-400</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-500">border-500</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-600">border-600</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-700">border-700</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-800">border-800</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-900">border-900</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-2 border-primary">border-primary</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-2 border-0">border-0</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-2 border-50">border-50</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-2 border-100">border-100</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-2 surface-border">surface-border</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-2 border-200">border-200</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-2 border-300">border-300</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-2 border-400">border-400</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-2 border-500">border-500</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-2 border-600">border-600</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-2 border-700">border-700</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-2 border-800">border-800</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-2 border-900">border-900</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-2 border-primary">border-primary</div>
       </div>
       <div class="flex gap-3 mb-2">
         <p>Width: border-3</p>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-0">border-0</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-50">border-50</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-100">border-100</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 surface-border">surface-border</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-200">border-200</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-300">border-300</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-400">border-400</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-500">border-500</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-600">border-600</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-700">border-700</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-800">border-800</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-900">border-900</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold border-3 border-primary">border-primary</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-3 border-0">border-0</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-3 border-50">border-50</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-3 border-100">border-100</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-3 surface-border">surface-border</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-3 border-200">border-200</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-3 border-300">border-300</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-3 border-400">border-400</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-3 border-500">border-500</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-3 border-600">border-600</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-3 border-700">border-700</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-3 border-800">border-800</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-3 border-900">border-900</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold border-3 border-primary">border-primary</div>
       </div>
       <div class="flex gap-5 my-5">
         <p>Shadow</p>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-none">shadow-none</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1">shadow-1</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-2">shadow-2</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-3">shadow-3</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-4">shadow-4</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-5">shadow-5</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-6">shadow-6</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-7">shadow-7</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-8">shadow-8</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-none">shadow-none</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-1">shadow-1</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-2">shadow-2</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-3">shadow-3</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-4">shadow-4</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-5">shadow-5</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-6">shadow-6</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-7">shadow-7</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-8">shadow-8</div>
       </div>
       <div class="flex gap-3 mb-2">
         <p>Hover effects</p>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-none hover:shadow-1">shadow-none<br />hover:shadow-1</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-none hover:shadow-2">shadow-none<br />hover:shadow-2</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-2">shadow-1<br />hover:shadow-2</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3">shadow-1<br />hover:shadow-3</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-2 hover:shadow-3">shadow-2<br />hover:shadow-3</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-2 hover:shadow-4">shadow-2<br />hover:shadow-4</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-3 hover:shadow-4">shadow-3<br />hover:shadow-4</div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-3 hover:shadow-5">shadow-3<br />hover:shadow-5</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-none hover:shadow-1">shadow-none<br />hover:shadow-1</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-none hover:shadow-2">shadow-none<br />hover:shadow-2</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-2">shadow-1<br />hover:shadow-2</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3">shadow-1<br />hover:shadow-3</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-2 hover:shadow-3">shadow-2<br />hover:shadow-3</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-2 hover:shadow-4">shadow-2<br />hover:shadow-4</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-3 hover:shadow-4">shadow-3<br />hover:shadow-4</div>
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-3 hover:shadow-5">shadow-3<br />hover:shadow-5</div>
       </div>
       <div class="flex gap-3 mb-2">
         <p>Hover effects</p>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:surface-50">
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:surface-50">
           shadow-1 & hover:shadow-3<br />hover:surface-50
         </div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:surface-100">
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:surface-100">
           shadow-1 & hover:shadow-3<br />hover:surface-100
         </div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:surface-200">
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:surface-200">
           shadow-1 & hover:shadow-3<br />hover:surface-200
         </div>
       </div>
       <div class="flex gap-3 mb-2">
         <p>Hover effects</p>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:bg-primary-50">
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:bg-primary-50">
           shadow-1 & hover:shadow-3<br />hover:primary-50
         </div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:bg-primary-100">
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:bg-primary-100">
           shadow-1 & hover:shadow-3<br />hover:primary-100
         </div>
-        <div class="flex-1 h-4rem surface-card border-round-lg flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:bg-primary-200">
+        <div class="flex-1 h-4rem surface-card border-round flex align-items-center justify-content-center text-xs font-semibold shadow-1 hover:shadow-3 hover:bg-primary-200">
           shadow-1 & hover:shadow-3<br />hover:primary-200
         </div>
       </div>
@@ -542,11 +542,7 @@
         </div>
         <h3 class="mb-0">Hover state card options (interactive cards only)</h3>
         <div class="grid">
-          <p-iftalabel class="col-3">
-            <p-select [(ngModel)]="selectedHoverBorderWidth" [options]="borderWidthOptions" fluid inputId="hover-border-width" />
-            <label for="hover-border-width">Hover border width</label>
-          </p-iftalabel>
-          <p-iftalabel class="col-3">
+          <p-iftalabel class="col-3 col-offset-3">
             <p-select [(ngModel)]="selectedHoverBorderColor" [options]="borderColorOptions" fluid inputId="hover-border-color" />
             <label for="hover-border-color">Hover border colour</label>
           </p-iftalabel>

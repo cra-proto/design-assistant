@@ -15,6 +15,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 
 import { CollaboratorService } from '../../../../services/github/collaborator.service';
+import { StyleCardService } from '../../../../services/style-card.service';
 import { UsageRecord, UsageService, UsageStats } from '../../../../services/usage.service';
 import { UserSettingsService } from '../../../../services/user-settings.service';
 
@@ -41,6 +42,7 @@ const STATUS_FIELDS: Record<string, (keyof UsageRecord)[]> = {
 })
 export class UsageMonitoringComponent implements OnInit {
   private readonly translate = inject(TranslateService);
+  protected readonly styleCardService = inject(StyleCardService);
   private readonly usageService = inject(UsageService);
   private readonly settingsService = inject(UserSettingsService);
   private readonly collaboratorService = inject(CollaboratorService);

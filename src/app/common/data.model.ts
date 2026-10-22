@@ -28,6 +28,9 @@ export interface CurrentPhase {
   status: PhaseStatus;
 }
 
+//Project version
+export type DataVersion = 'live' | 'prototype' | 'baseline';
+
 //Templates
 export enum PageTemplate {
   Content = 'template.content',
@@ -210,6 +213,8 @@ export interface TreeNodeData {
   metadataReview?: MetadataReview;
   // User notes
   notes?: PageNotes;
+  // Approval tracking
+  approved?: ApprovalData;
   //Hidden tracking info
   isContainer: boolean; // True if page is a container page (used to group together pages for AI combine/split actions)
   isCrawled: boolean; // True after crawling for children
@@ -260,6 +265,10 @@ export interface LangData {
   phoneNumbers: string[];
   // Data from problem assistant
   problem?: PageProblem;
+}
+
+export interface ApprovalData {
+  metadata?: string; //stores a hash of the 6 approved metadata values so state can be cleared if edits are made
 }
 
 export interface FlattenedTreeNode {

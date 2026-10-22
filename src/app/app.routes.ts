@@ -130,6 +130,11 @@ export const routes: Routes = [
         title: 'inventory._title',
       },
       {
+        path: 'metadata',
+        loadComponent: () => import('./views/tasks/metadata/metadata.component').then((m) => m.MetadataComponent),
+        title: 'metadata._title',
+      },
+      {
         path: 'export-pages',
         loadComponent: () => import('./views/tasks/export-pages/export-pages.component').then((m) => m.ExportPagesComponent),
         title: 'exportPages._nav',

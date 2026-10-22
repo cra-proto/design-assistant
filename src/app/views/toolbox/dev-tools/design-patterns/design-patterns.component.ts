@@ -13,6 +13,7 @@ import { TabsModule } from 'primeng/tabs';
 import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
 
+import { StyleCardService } from '../../../../services/style-card.service';
 import { UserSettingsService } from '../../../../services/user-settings.service';
 
 interface CodeExample<T = PreviewConfig> {
@@ -48,7 +49,7 @@ interface ButtonPreviewConfig {
 }
 
 interface CardPreviewConfig {
-  type: 'standard' | 'hover';
+  type: 'standard' | 'hover' | 'active' | 'deleted';
   content: string;
 }
 
@@ -72,6 +73,7 @@ type PreviewConfig = MessagePreviewConfig | ButtonPreviewConfig | CardPreviewCon
 })
 export class DesignPatternsComponent {
   private settingsService = inject(UserSettingsService);
+  protected readonly styleCardService = inject(StyleCardService);
 
   protected readonly codeContainers = viewChildren<ElementRef>('codeContainer');
 
@@ -233,7 +235,7 @@ export class DesignPatternsComponent {
   public cardExamples: CodeExample<CardPreviewConfig>[] = [
     {
       label: 'Card',
-      code: `<div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+      code: `<div class="${this.styleCardService.cardStyles()}">
     <!-- Content here -->
 </div>`,
       description: 'dev.patterns.card.desc',
@@ -245,7 +247,7 @@ export class DesignPatternsComponent {
     },
     {
       label: 'Card with hover effect',
-      code: `<div class="surface-card border-round-lg shadow-1 hover:shadow-3 p-4 w-full min-w-min">
+      code: `<div class="${this.styleCardService.cardStyles(true)}">
     <!-- Content here -->
 </div>`,
       description: 'dev.patterns.cardHover.desc',
@@ -253,6 +255,30 @@ export class DesignPatternsComponent {
       previewConfig: {
         type: 'hover',
         content: 'Example content in a hover card',
+      },
+    },
+    {
+      label: 'Active card with hover effect',
+      code: `<div class="${this.styleCardService.cardStyles(true, true)}">
+    <!-- Content here -->
+</div>`,
+      description: 'dev.patterns.cardHover.desc',
+      previewType: 'card',
+      previewConfig: {
+        type: 'active',
+        content: 'Example content in an active hover card',
+      },
+    },
+    {
+      label: 'Deleted card with hover effect',
+      code: `<div class="${this.styleCardService.cardStyles(true, true, false, undefined, 'border-red-500')}">
+    <!-- Content here -->
+</div>`,
+      description: 'dev.patterns.cardHover.desc',
+      previewType: 'card',
+      previewConfig: {
+        type: 'deleted',
+        content: 'Example content in a deleted hover card',
       },
     },
   ];

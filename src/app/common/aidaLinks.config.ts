@@ -10,6 +10,7 @@ export enum AidaLinks {
   ProjectSearch = '/active-project/search',
   ProjectDiagram = '/active-project/ia-diagram',
   ProjectInventory = '/active-project/inventory',
+  ProjectMetadata = '/active-project/metadata',
   ProjectExport = '/active-project/export-pages',
   ProjectEdit = '/active-project/edit-pages',
   ProjectCompare = '/active-project/compare-pages',

@@ -117,7 +117,10 @@
               ]
             },
             "sandbox": {
-              "index": "src/index.dev.html",
+              "index": {
+                "input": "src/index.dev.html",
+                "output": "index.html"
+              },
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,

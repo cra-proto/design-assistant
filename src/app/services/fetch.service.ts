@@ -245,6 +245,8 @@ export class FetchService {
 
   // Extracts metadata from an HTML document
   public async extractPageMetadata(doc: Document, url: string): Promise<PageMetadata> {
+    const removeExtraWhiteSpace = (s: string | null | undefined) => (s ?? '').replace(/[ \t\r\n\f]+/g, ' ').replace(/^ | $/g, '');
+
     //Opposite language url
     const htmlLang = doc.documentElement.getAttribute('lang');
     const metaLang = doc.querySelector('meta[name="dcterms.language"]')?.getAttribute('content');
@@ -256,9 +258,9 @@ export class FetchService {
 
     // Get H1 (or double H1)
     const h1Elements = Array.from(doc.querySelectorAll('h1')).filter((h1) => !h1.classList.contains('wb-inv'));
-    const h1Texts = h1Elements.map((e) => e.textContent?.trim()).filter(Boolean);
+    const h1Texts = h1Elements.map((e) => removeExtraWhiteSpace(e.textContent)).filter(Boolean);
 
-    let doubleH1 = doc.querySelector('hgroup p:has(+ h1)')?.innerHTML || doc.querySelector('p.lead:has(+ h1)')?.innerHTML || '';
+    let doubleH1 = removeExtraWhiteSpace(doc.querySelector('hgroup p:has(+ h1)')?.innerHTML || doc.querySelector('p.lead:has(+ h1)')?.innerHTML || '');
     let h1 = '';
 
     if (h1Texts.length === 1) {
@@ -450,12 +452,27 @@ export class FetchService {
     };
   }
 
+  /** Async SHA-256. Use when you need a cryptographic hash or one that must match an external value. Can't be called from a computed(). */
   public async generateSHA(content: string): Promise<string> {
     return await crypto.subtle.digest('SHA-256', new TextEncoder().encode(content)).then((buf) =>
       Array.from(new Uint8Array(buf))
         .map((b) => b.toString(16).padStart(2, '0'))
         .join(''),
     );
+  }
+
+  /** Synchronous, non-cryptographic hash (cyrb53). Use for quick change detection where a result is needed immediately, for example, inside a computed(). */
+  public hashString(content: string): string {
+    let h1 = 0xdeadbeef;
+    let h2 = 0x41c6ce57;
+    for (let i = 0; i < content.length; i++) {
+      const ch = content.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
   }
 
   markForTranslation() {

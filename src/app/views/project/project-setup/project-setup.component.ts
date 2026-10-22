@@ -13,6 +13,7 @@ import { SetupRepoComponent } from '../../../components/setup-repo/setup-repo.co
 import { ViewPagesComponent } from '../../../components/view-pages/view-pages.component';
 
 import { ProjectStateService } from '../../../services/project-state.service';
+import { StyleCardService } from '../../../services/style-card.service';
 import { IaDiagramService } from '../../tasks/ia-diagram/ia-diagram.service';
 
 @Component({
@@ -23,6 +24,7 @@ import { IaDiagramService } from '../../tasks/ia-diagram/ia-diagram.service';
 })
 export class ProjectSetupComponent {
   public projectState = inject(ProjectStateService);
+  protected readonly styleCardService = inject(StyleCardService);
   iaDiagram = inject(IaDiagramService);
 
   //Check if project is named and has repo

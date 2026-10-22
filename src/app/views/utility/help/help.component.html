@@ -34,7 +34,7 @@
 </ul>
 
 <div class="flex flex-column gap-3 my-3">
-  <section class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+  <section [class]="styleCardService.cardStyles()">
     <h2 id="about">About AIDA</h2>
     <p>The DDPD GenAI Project is exploring how artificial intelligence and automation can improve web content design for Canada.ca.</p>
     <p>The AI Design Assistant (AIDA) helps content designers manage projects, analyze pages, identify issues, and create prototypes.</p>
@@ -67,7 +67,7 @@
     </div>
   </section>
 
-  <section class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+  <section [class]="styleCardService.cardStyles()">
     <h2 id="start">Starting a project</h2>
     <p>
       When you load AIDA for the first time, it's going to bring you to the "New project" page. There is <strong>no</strong> requirement to complete any steps on this page in any particular order.
@@ -93,7 +93,7 @@
     <p>Go ahead and look around. We'll add more detailed instructions for each of these tools in a future release.</p>
   </section>
 
-  <!--section class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+  <!--section [class]="styleCardService.cardStyles()">
         <h2 id="inventory">Manage your content inventory</h2>
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.</p>
 
@@ -113,7 +113,7 @@
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minima veniam, quis nostrum exercitationem ullam.</p>
     </section>
 
-    <section class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+    <section [class]="styleCardService.cardStyles()">
         <h2 id="signin">Sign in</h2>
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quis autem vel eum iure reprehenderit qui in ea voluptate velit.</p>
 
@@ -133,7 +133,7 @@
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Temporibus autem quibusdam et aut officiis debitis aut rerum.</p>
     </section-->
 
-  <section class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+  <section [class]="styleCardService.cardStyles()">
     <h2 id="documentation">Documentation</h2>
     <p>Some of the information below is intended for AIDA contributors and may be a bit technical. You don't need to understand this part to use AIDA.</p>
 
@@ -269,8 +269,19 @@
     </div>
   </section>
 
-  <section class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+  <section [class]="styleCardService.cardStyles()">
     <h2 id="release">Release notes</h2>
+    <h3 id="0-7-7">Release 0.7.7 (Oct 23, 2026)</h3>
+    <h4>Minor fixes</h4>
+    <ul>
+      <li>Add warning when loading a local version of a cloud project</li>
+    </ul>
+    <h4>Style changes</h4>
+    <ul>
+      <li>Update card styles to more clearly differentiate static and interactive cards</li>
+      <li>Give outlined buttons a background colour (they were transparent)</li>
+      <li>Apply border-round consistently</li>
+    </ul>
     <h3 id="0-7-6">Release 0.7.6 (Oct 15, 2026)</h3>
     <h4>Update IA</h4>
     <ul>

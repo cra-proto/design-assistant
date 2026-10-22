@@ -18,28 +18,28 @@
   <!--Row 1: Project, GitHub, & Collaborators-->
   <div class="flex lg:flex-row flex-column gap-3">
     <!--Project Card-->
-    <div [ngClass]="hasName && hasPages ? 'lg:w-4' : 'lg:w-6'" class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+    <div [class]="styleCardService.cardStyles() + (hasName && hasPages ? ' lg:w-4' : ' lg:w-6')">
       <aida-setup-project />
     </div>
     @if (hasName && hasPages) {
       <!--GitHub Card-->
-      <div class="surface-card border-round-lg shadow-2 p-4 w-full lg:w-4 min-w-min">
+      <div [class]="styleCardService.cardStyles()" class="lg:w-4">
         <aida-setup-repo />
       </div>
     }
     <!--Collaborators Card-->
-    <div [ngClass]="hasName && hasPages ? 'lg:w-4' : 'lg:w-6'" class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+    <div [class]="styleCardService.cardStyles() + (hasName && hasPages ? ' lg:w-4' : ' lg:w-6')">
       <aida-add-collaborators mode="list" />
     </div>
   </div>
 
   <!--Row 2: Add pages-->
-  <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+  <div [class]="styleCardService.cardStyles()">
     <aida-add-pages />
   </div>
 
   <!--Row 3: View pages-->
-  <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+  <div [class]="styleCardService.cardStyles()">
     <aida-view-pages />
   </div>
 </div>

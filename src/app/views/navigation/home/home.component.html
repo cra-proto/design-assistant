@@ -2,11 +2,11 @@
 <div class="flex flex-column gap-2">
   <!--RETURNING USER-->
   @if (showProject()) {
-    <div class="surface-card border-round-lg shadow-2 p-4 min-w-min">
+    <div [class]="styleCardService.cardStyles()">
       <div class="flex justify-content-between">
         <div class="flex-1">
           <h2 class="mt-0">{{ 'home.header.resumeWork' | translate }}</h2>
-          <div class="flex flex-column lg:flex-row gap-2 justify-content-between surface-ground border-round-lg shadow-2 p-4 min-w-min flex-1">
+          <div [class]="styleCardService.cardStyles(false, false, false, 'surface-ground')" class="flex flex-column lg:flex-row gap-2 justify-content-between flex-1">
             @if (projectInfo.value(); as info) {
               <div>
                 <h3 class="m-0 text-xl">{{ info.title | translate }}</h3>
@@ -30,7 +30,7 @@
   }
   <!--ALL USERS-->
   <div class="flex flex-column lg:flex-row justify-content-between gap-2">
-    <div class="surface-card border-round-lg shadow-2 p-4 min-w-min flex-1">
+    <div [class]="styleCardService.cardStyles()" class="flex-1">
       <h2 class="mt-0">{{ 'home.aida.header' | translate }}</h2>
       <p>{{ 'home.aida.description' | translate }}</p>
     </div>

@@ -5,7 +5,7 @@ import { htmlProcessingResult } from './html-normalization.service';
 import { ProjectStateService } from './project-state.service';
 import { UserSettingsService } from './user-settings.service';
 
-import { SourceVersion } from '../common/data.model';
+import { DataVersion, SourceVersion } from '../common/data.model';
 import { DiffUndoStack } from '../components/compare/compare-undo.store';
 
 export interface PageEditState {
@@ -15,6 +15,7 @@ export interface PageEditState {
 }
 
 export type AiJobStatus = 'pending' | 'done' | 'error';
+export type MetaType = 'title' | 'description' | 'keywords';
 
 /*
  * Use this service to cache temporary variables related to the active project
@@ -51,16 +52,22 @@ export class ProjectCacheService {
   public readonly selectedScope = signal<'inScope' | 'all'>('inScope');
 
   /** Signal can be used to access specific versions stored in AIDA. Defaults to prototype. */
-  public readonly selectedVersion = signal<'prototype' | 'live' | 'baseline'>('prototype');
+  public readonly selectedVersion = signal<DataVersion>('prototype');
 
   /** Signal can be used to access specific versions stored outside of AIDA. Defaults to live. */
   public readonly selectedSource = signal<SourceVersion>('live');
+
+  /** Signal can be used to filter data to all or changes. Defaults to all. */
+  public readonly selectedFilter = signal<'all' | 'changes'>('all');
 
   /** Signal for the IA diagram view. Defaults to changes. */
   public readonly selectedViewIA = signal<'baseline' | 'changes' | 'final'>('changes');
 
   /** Signal for the IA diagram display. Defaults to tree. */
   public readonly selectedDisplayIA = signal<'tree' | 'list'>('tree');
+
+  /** Signal for the metadata view. Defaults to undefined. */
+  public readonly selectedMeta = signal<MetaType[]>([]);
 
   /** Signal for the view URLs drawer. Defaults to url. */
   public readonly selectedDisplay = signal<'url' | 'title'>('url');

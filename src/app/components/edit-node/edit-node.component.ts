@@ -18,9 +18,11 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 
+import { EditMetadataComponent } from './edit-metadata/edit-metadata.component';
+
 import { ProjectStateService } from '../../services/project-state.service';
 
-import { SourceVersion, TreeNodeData } from '../../common/data.model';
+import { DataVersion, SourceVersion, TreeNodeData } from '../../common/data.model';
 
 @Component({
   selector: 'aida-edit-node',
@@ -40,6 +42,7 @@ import { SourceVersion, TreeNodeData } from '../../common/data.model';
     SelectModule,
     TagModule,
     TextareaModule,
+    EditMetadataComponent,
   ],
   templateUrl: './edit-node.component.html',
   styleUrl: './edit-node.component.css',
@@ -56,7 +59,7 @@ export class EditNodeComponent {
 
   private readonly originalData = signal<TreeNodeData | null>(null);
   protected readonly selectedLanguage = signal<'en' | 'fr' | 'both'>(this.projectState.detectPrimaryLanguage());
-  protected readonly selectedVersion = signal<'prototype' | 'live' | 'baseline'>('prototype');
+  protected readonly selectedVersion = signal<DataVersion>('prototype');
   protected readonly pathEN = signal<string>('');
   protected readonly pathFR = signal<string>('');
   private readonly autoPath = signal<{ en: boolean; fr: boolean }>({ en: false, fr: false });
@@ -175,7 +178,7 @@ export class EditNodeComponent {
   }
 
   /** Sync name to all versions and to url for new pages until they go live */
-  protected syncNewName(node: TreeNode, version: 'prototype' | 'live' | 'baseline', lang: 'en' | 'fr') {
+  protected syncNewName(node: TreeNode, version: DataVersion, lang: 'en' | 'fr') {
     if (version !== 'prototype' || !node.data.live[lang].is404) return;
 
     //Update name
@@ -201,7 +204,7 @@ export class EditNodeComponent {
     }
   }
 
-  protected moveNode(node: TreeNode, newParentUrl: string, lang: 'en' | 'fr', version: 'prototype' | 'live' | 'baseline') {
+  protected moveNode(node: TreeNode, newParentUrl: string, lang: 'en' | 'fr', version: DataVersion) {
     this.moveError.set(false);
     //Find new parent node
     if (version === 'prototype') {

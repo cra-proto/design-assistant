@@ -220,51 +220,10 @@
                   </p-message>
                 }
 
-                <h3 class="my-0">{{ 'editNode.metadata' | translate }}</h3>
-                <p-iftalabel>
-                  <input
-                    id="title"
-                    [(ngModel)]="node().data[selectedVersion()].en.title"
-                    [disabled]="!!versionConfig() && !editsEnabled()"
-                    (ngModelChange)="markChanges()"
-                    class="secondary-outline"
-                    fluid
-                    pInputText
-                    type="text"
-                    variant="outlined"
-                  />
-                  <label for="title">{{ 'editNode.title' | translate }}</label>
-                </p-iftalabel>
-                <p-iftalabel>
-                  <textarea
-                    id="description"
-                    [(ngModel)]="node().data[selectedVersion()].en.description"
-                    [disabled]="!!versionConfig() && !editsEnabled()"
-                    (ngModelChange)="markChanges()"
-                    class="secondary-outline"
-                    autoResize="true"
-                    fluid
-                    pTextarea
-                    rows="1"
-                    variant="outlined"
-                  ></textarea>
-                  <label for="description">{{ 'editNode.description' | translate }}</label>
-                </p-iftalabel>
-                <p-iftalabel>
-                  <textarea
-                    id="keywords"
-                    [(ngModel)]="node().data[selectedVersion()].en.keywords"
-                    [disabled]="!!versionConfig() && !editsEnabled()"
-                    (ngModelChange)="markChanges()"
-                    class="secondary-outline"
-                    autoResize="true"
-                    fluid
-                    pTextarea
-                    rows="1"
-                    variant="outlined"
-                  ></textarea>
-                  <label for="keywords">{{ 'editNode.keywords' | translate }}</label>
-                </p-iftalabel>
+                @if (node().data[selectedVersion()].en; as meta) {
+                  <h3 class="my-0">{{ 'editNode.metadata' | translate }}</h3>
+                  <aida-edit-metadata [disabled]="!!versionConfig() && !editsEnabled()" [meta]="meta" (changed)="markChanges()" />
+                }
 
                 <h3 class="my-0">{{ 'editNode.pageOwner' | translate }}</h3>
                 <p-iftalabel>
@@ -569,51 +528,10 @@
                   </p-message>
                 }
 
-                <h3 class="my-0">{{ 'editNode.metadata' | translate }}</h3>
-                <p-iftalabel>
-                  <input
-                    id="title-fr"
-                    [(ngModel)]="node().data[selectedVersion()].fr.title"
-                    [disabled]="!!versionConfig() && !editsEnabled()"
-                    (ngModelChange)="markChanges()"
-                    class="secondary-outline"
-                    fluid
-                    pInputText
-                    type="text"
-                    variant="outlined"
-                  />
-                  <label for="title-fr">{{ 'editNode.title' | translate }}</label>
-                </p-iftalabel>
-                <p-iftalabel>
-                  <textarea
-                    id="description-fr"
-                    [(ngModel)]="node().data[selectedVersion()].fr.description"
-                    [disabled]="!!versionConfig() && !editsEnabled()"
-                    (ngModelChange)="markChanges()"
-                    class="secondary-outline"
-                    autoResize="true"
-                    fluid
-                    pTextarea
-                    rows="1"
-                    variant="outlined"
-                  ></textarea>
-                  <label for="description-fr">{{ 'editNode.description' | translate }}</label>
-                </p-iftalabel>
-                <p-iftalabel>
-                  <textarea
-                    id="keywords-fr"
-                    [(ngModel)]="node().data[selectedVersion()].fr.keywords"
-                    [disabled]="!!versionConfig() && !editsEnabled()"
-                    (ngModelChange)="markChanges()"
-                    class="secondary-outline"
-                    autoResize="true"
-                    fluid
-                    pTextarea
-                    rows="1"
-                    variant="outlined"
-                  ></textarea>
-                  <label for="keywords-fr">{{ 'editNode.keywords' | translate }}</label>
-                </p-iftalabel>
+                @if (node().data[selectedVersion()].fr; as meta) {
+                  <h3 class="my-0">{{ 'editNode.metadata' | translate }}</h3>
+                  <aida-edit-metadata [disabled]="!!versionConfig() && !editsEnabled()" [meta]="meta" (changed)="markChanges()" />
+                }
 
                 <h3 class="my-0">{{ 'editNode.pageOwner' | translate }}</h3>
                 <p-iftalabel>

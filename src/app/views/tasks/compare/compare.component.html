@@ -8,16 +8,16 @@
 
 <div class="flex flex-column gap-3">
   <div class="flex flex-column xl:flex-row gap-3 min-w-min">
-    <div [class.xl:w-6]="showAiTools()" class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
-      <aida-compare-select [compareMode]="mode() === 'compare'" />
+    <div [class.xl:w-6]="showAiTools()" [class]="styleCardService.cardStyles()">
+      <aida-compare-select [compareMode]="mode() === 'compare' ? '2 versions' : '1 version'" />
     </div>
     @if (showAiTools()) {
-      <div class="surface-card border-round-lg shadow-2 p-4 w-full xl:w-6 min-w-min">
+      <div [class]="styleCardService.cardStyles()" class="xl:w-6">
         <aida-compare-tools [jobPending]="aiJobPending" />
       </div>
     }
   </div>
-  <div class="surface-card border-round-lg shadow-2 p-4 w-full">
+  <div [class]="styleCardService.cardStyles()">
     <p-tabs value="0" class="mt-3">
       <p-tablist>
         <p-tab value="0"><i class="pi pi-eye mr-1"></i>{{ 'compare.tab.rendered' | translate }}</p-tab>

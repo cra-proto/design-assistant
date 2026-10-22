@@ -13,6 +13,7 @@ import { CompareSourceComponent } from '../../../../components/compare/compare-s
 
 import { FetchService } from '../../../../services/fetch.service';
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../../services/html-normalization.service';
+import { StyleCardService } from '../../../../services/style-card.service';
 
 import { DiffUndoStack } from '../../../../components/compare/compare-undo.store';
 
@@ -25,6 +26,7 @@ import { DiffUndoStack } from '../../../../components/compare/compare-undo.store
 export class StandaloneCompareComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  protected readonly styleCardService = inject(StyleCardService);
   public readonly htmlNormalizationService = inject(HtmlNormalizationService);
   private readonly fetchService = inject(FetchService);
 

@@ -1,0 +1,46 @@
+<div class="flex flex-column gap-1">
+  <p-iftalabel>
+    <input
+      [(ngModel)]="meta().title"
+      [disabled]="disabled()"
+      [id]="'title-' + lang()"
+      (ngModelChange)="changed.emit()"
+      class="secondary-outline block"
+      fluid
+      pInputText
+      type="text"
+      variant="outlined"
+    />
+    <label [for]="'title-' + lang()">{{ 'editNode.title' | translate }}</label>
+  </p-iftalabel>
+  <p-iftalabel>
+    <textarea
+      [(ngModel)]="meta().description"
+      [disabled]="disabled()"
+      [id]="'description-' + lang()"
+      (ngModelChange)="changed.emit()"
+      class="secondary-outline block"
+      autoResize="true"
+      fluid
+      pTextarea
+      rows="1"
+      variant="outlined"
+    ></textarea>
+    <label [for]="'description-' + lang()">{{ 'editNode.description' | translate }}</label>
+  </p-iftalabel>
+  <p-iftalabel>
+    <textarea
+      [(ngModel)]="meta().keywords"
+      [disabled]="disabled()"
+      [id]="'keywords-' + lang()"
+      (ngModelChange)="changed.emit()"
+      class="secondary-outline block"
+      autoResize="true"
+      fluid
+      pTextarea
+      rows="1"
+      variant="outlined"
+    ></textarea>
+    <label [for]="'keywords-' + lang()">{{ 'editNode.keywords' | translate }}</label>
+  </p-iftalabel>
+</div>

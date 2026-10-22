@@ -1,0 +1,90 @@
+:host {
+  --group-header-height: 3rem;
+  --checkbox-width: 2.8rem;
+  --padding-left: 1.5rem;
+  --margin-left: -1.5rem;
+}
+
+td,
+th {
+  vertical-align: top;
+}
+
+/* Allows sticky table columns */
+::ng-deep .p-datatable-table-container {
+  overflow: visible !important;
+}
+
+/* Sets stacking context for table headers */
+:host ::ng-deep .p-datatable-thead {
+  z-index: 10;
+}
+
+/* Table */
+.sticky-table {
+  margin-left: calc(var(--margin-left));
+  padding-left: calc(var(--padding-left));
+  position: sticky;
+}
+
+/* Inherit table body background colours */
+.sticky-table:not(.sticky-table-header):not(.sticky-table-group-header) {
+  background-color: inherit;
+}
+
+/* Selected rows: add opaque base under the translucent highlight */
+:host ::ng-deep .p-datatable-tbody > tr.p-datatable-row-selected > .sticky-table {
+  background-color: var(--p-content-background);
+  background-image: linear-gradient(var(--p-highlight-background), var(--p-highlight-background));
+}
+
+.sticky-table-checkbox {
+  left: var(--mobile-nav-width);
+  width: var(--checkbox-width);
+  z-index: 2;
+}
+
+.sticky-table-column {
+  left: calc(var(--mobile-nav-width) + var(--checkbox-width));
+  z-index: 1;
+}
+
+.sticky-table-group-header {
+  top: 0;
+  height: var(--group-header-height);
+  z-index: 2;
+}
+
+.sticky-table-header {
+  top: var(--group-header-height);
+  z-index: 1;
+}
+
+.sticky-table-column.sticky-table-header,
+.sticky-table-column.sticky-table-group-header,
+.sticky-table-checkbox.sticky-table-header,
+.sticky-table-checkbox.sticky-table-group-header {
+  z-index: 3;
+}
+
+/* Table - desktop adjustments */
+@media screen and (min-width: 768px) {
+  .sticky-table-column {
+    left: calc(var(--desktop-nav-width) + var(--checkbox-width));
+  }
+
+  .sticky-table-checkbox {
+    left: calc(var(--desktop-nav-width));
+  }
+}
+
+/* Approval icon toggle */
+.icon-toggle .icon-preview {
+  display: none;
+}
+.icon-toggle:not(.no-preview):hover .icon-current {
+  display: none;
+}
+.icon-toggle:not(.no-preview):hover .icon-preview {
+  display: inline-block;
+}

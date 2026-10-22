@@ -44,7 +44,7 @@ export class CompareSelectComponent implements OnInit {
   private readonly fetchService = inject(FetchService);
   private readonly htmlNormalizationService = inject(HtmlNormalizationService);
 
-  public readonly compareMode = input<boolean>(true);
+  public readonly compareMode = input<'2 versions' | '1 version' | 'page only'>('2 versions');
 
   async ngOnInit(): Promise<void> {
     // Initialize to 1st page in project if none selected
@@ -100,7 +100,7 @@ export class CompareSelectComponent implements OnInit {
     this.compareService.loading.set(true);
     try {
       this.compareService.selectedPage.set(path);
-      if (!this.compareService.selectedPage()) return;
+      if (!this.compareService.selectedPage() || this.compareMode() === 'page only') return;
       // Clear current HTML (but not cache)
       this.compareService.originalHtml.set(undefined);
       this.compareService.modifiedHtml.set(undefined);

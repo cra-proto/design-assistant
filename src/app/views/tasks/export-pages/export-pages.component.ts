@@ -30,6 +30,7 @@ import { SignInService } from '../../../services/github/sign-in.service';
 import { HtmlNormalizationService } from '../../../services/html-normalization.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
+import { StyleCardService } from '../../../services/style-card.service';
 import { UsageService } from '../../../services/usage.service';
 
 import { AidaLinks } from '../../../common/aidaLinks.config';
@@ -95,6 +96,7 @@ interface ExportMessage {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExportPagesComponent {
+  protected readonly styleCardService = inject(StyleCardService);
   private readonly projectState = inject(ProjectStateService);
   protected readonly exportGitHubService = inject(ExportGitHubService);
   protected readonly signInService = inject(SignInService);

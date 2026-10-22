@@ -7,7 +7,7 @@
     <p-accordion value="1" class="flex flex-column gap-3">
       <!--TASK OPTIONS-->
       @if (!prod) {
-        <p-accordion-panel value="0" class="border-1 border-round-sm border-surface">
+        <p-accordion-panel value="0" class="border-1 border-round border-surface">
           <p-accordion-header>{{ 'compare.aiOptions.comparison.header' | translate }}</p-accordion-header>
           <p-accordion-content>
             <div class="flex flex-row align-items-center">
@@ -33,7 +33,7 @@
         </p-accordion-panel>
       }
       <!--PROMPT OPTIONS-->
-      <p-accordion-panel value="1" class="border-1 border-round-md border-surface">
+      <p-accordion-panel value="1" class="border-1 border-round border-surface">
         <p-accordion-header>{{ 'compare.aiOptions.prompt.header' | translate }}</p-accordion-header>
         <p-accordion-content>
           @if (compareService.selectedTask() === 'prompts') {
@@ -62,7 +62,7 @@
         </p-accordion-content>
       </p-accordion-panel>
       <!--AI OPTIONS-->
-      <p-accordion-panel value="2" class="border-1 border-round-md border-surface">
+      <p-accordion-panel value="2" class="border-1 border-round border-surface">
         <p-accordion-header>{{ 'compare.aiOptions.model.header' | translate }}</p-accordion-header>
         <p-accordion-content>
           @if (compareService.selectedTask() === 'models') {

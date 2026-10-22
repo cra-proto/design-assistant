@@ -109,6 +109,25 @@
     </div>
   }
 
+  <!--Choose metadata view-->
+  @if (showMeta()) {
+    <div class="flex flex-column hover:text-primary">
+      <label class="text-xs font-semibold xl:my-1" for="meta">{{ 'common.view' | translate }}</label>
+      <p-selectbutton
+        id="meta"
+        [ngModel]="projectCache.selectedMeta()"
+        [options]="metaOptions"
+        (ngModelChange)="projectCache.selectedMeta.set($event ?? [])"
+        allowEmpty="true"
+        multiple="true"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        styleClass="secondary-outline white-space-nowrap text-primary max-h-3rem"
+      />
+    </div>
+  }
+
   <!--Choose display-->
   @if (showDisplay()) {
     <div class="flex flex-column hover:text-primary">
@@ -118,6 +137,24 @@
         [ngModel]="projectCache.selectedDisplay()"
         [options]="displayOptions"
         (ngModelChange)="projectCache.selectedDisplay.set($event)"
+        allowEmpty="false"
+        optionLabel="label"
+        optionValue="value"
+        size="small"
+        styleClass="secondary-outline white-space-nowrap text-primary max-h-3rem"
+      />
+    </div>
+  }
+
+  <!--Choose filter-->
+  @if (showFilter()) {
+    <div class="flex flex-column hover:text-primary">
+      <label class="text-xs font-semibold xl:my-1" for="filter">{{ 'common.filter' | translate }}</label>
+      <p-selectbutton
+        id="filter"
+        [ngModel]="projectCache.selectedFilter()"
+        [options]="filterOptions"
+        (ngModelChange)="projectCache.selectedFilter.set($event)"
         allowEmpty="false"
         optionLabel="label"
         optionValue="value"
