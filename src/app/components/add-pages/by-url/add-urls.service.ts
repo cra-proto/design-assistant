@@ -10,7 +10,7 @@ import { VanityService } from '../../../services/data-sources/vanity.service';
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { ProjectStorageService } from '../../../services/storage/project-storage.service';
-import { TreeNodeStyleService } from '../../../services/treenode-style.service';
+import { StyleTreeNodeService } from '../../../services/style-treenode.service';
 import { GetChildPagesService } from '../by-children/get-child-urls.service';
 
 import { LangData, PageActions, PageTemplate } from '../../../common/data.model';
@@ -48,7 +48,7 @@ export class AddUrlsService {
   private readonly airtableService = inject(AirtableService);
   private readonly vanityService = inject(VanityService);
   private readonly projectStorageService = inject(ProjectStorageService);
-  private readonly treeNodeStyleService = inject(TreeNodeStyleService);
+  private readonly styleTreeNodeService = inject(StyleTreeNodeService);
   private readonly getChildUrlsService = inject(GetChildPagesService);
 
   /********************************************************************************************************************
@@ -331,7 +331,7 @@ export class AddUrlsService {
 
     this.projectState.setProjectTree(this.projectState.getProjectTree());
     this.projectStorageService.rebuildParents(this.projectState.getProjectTree(), undefined);
-    this.treeNodeStyleService.updateNodeStyles(this.projectState.getProjectTree(), 0);
+    this.styleTreeNodeService.updateNodeStyles(this.projectState.getProjectTree(), 0);
     this.messageService.add({
       severity: 'success',
       summary: this.translate.instant('addPages.done.summary'),

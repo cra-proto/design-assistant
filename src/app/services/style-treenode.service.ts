@@ -7,7 +7,7 @@ import { UserSettingsService } from './user-settings.service';
 export type NodeContext = 'new' | 'rot' | 'move' | 'navChild' | 'navChildTemp' | 'template';
 
 @Injectable({ providedIn: 'root' })
-export class TreeNodeStyleService {
+export class StyleTreeNodeService {
   private theme = inject(UserSettingsService);
 
   //TreeNode styles

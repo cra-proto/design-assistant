@@ -1,6 +1,8 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 
-import { TreeNode } from 'primeng/api';
+import { TranslateService } from '@ngx-translate/core';
+
+import { MessageService, TreeNode } from 'primeng/api';
 
 import { FetchService } from '../fetch.service';
 import { UserSettingsService } from '../user-settings.service';
@@ -19,6 +21,8 @@ export interface ActiveProject {
 @Injectable({ providedIn: 'root' })
 export class ProjectStorageService {
   //Services
+  private readonly translate = inject(TranslateService);
+  private readonly messageService = inject(MessageService);
   private readonly cloudStorageService = inject(CloudStorageService);
   private readonly settingsService = inject(UserSettingsService);
   private readonly fetchService = inject(FetchService);
@@ -312,13 +316,25 @@ export class ProjectStorageService {
 
   // Gets project from local or cloud storage (caller will need to update project-state)
   public async loadProject(key: string, storageType: 'local' | 'cloud'): Promise<Project | null> {
-    //console.log(`Loading project: ${key} from ${storageType}`);
+    console.log(`Loading project: ${key} from ${storageType}`);
 
     try {
       let project: Project | null = null;
 
       if (storageType === 'local') {
         project = await this.loadFromLocal(key);
+        const hasCloudVersionToo = project?.id ? await this.loadFromCloud(project?.id) : null;
+        if (project && hasCloudVersionToo) {
+          console.log(hasCloudVersionToo);
+          const localIsNewer = new Date(project.lastModified) >= new Date(hasCloudVersionToo.lastModified);
+          const detail = localIsNewer ? this.translate.instant('switch.usingLocalVersion.localIsNewer') : this.translate.instant('switch.usingLocalVersion.cloudIsNewer');
+          this.messageService.add({
+            severity: 'warn',
+            summary: this.translate.instant('switch.usingLocalVersion.summary'),
+            detail: detail,
+            sticky: true,
+          });
+        }
       } else {
         project = await this.loadFromCloud(key);
       }

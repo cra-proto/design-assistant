@@ -10,10 +10,10 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { Menu, MenuModule } from 'primeng/menu';
 
-import { AddCollaboratorsComponent } from '../../components/add-collaborators/add-collaborators.component';
-import { AddPagesComponent } from '../../components/add-pages/add-pages.component';
-import { SetupProjectComponent } from '../../components/setup-project/setup-project.component';
-import { SetupRepoComponent } from '../../components/setup-repo/setup-repo.component';
+import { AddCollaboratorsComponent } from '../add-collaborators/add-collaborators.component';
+import { AddPagesComponent } from '../add-pages/add-pages.component';
+import { SetupProjectComponent } from '../setup-project/setup-project.component';
+import { SetupRepoComponent } from '../setup-repo/setup-repo.component';
 import { PatComponent } from '../sign-in/pat/pat.component';
 import { UserSettingsComponent } from '../user-settings/user-settings.component';
 
@@ -26,7 +26,7 @@ import { ProjectStateService } from '../../services/project-state.service';
 export type DialogMode = 'PAT' | 'userSettings' | 'setupProject' | 'setupRepo' | 'addPages' | 'addCollabs';
 
 @Component({
-  selector: 'aida-project-menu',
+  selector: 'aida-menu-project',
   imports: [
     TranslatePipe,
     ButtonModule,
@@ -40,10 +40,10 @@ export type DialogMode = 'PAT' | 'userSettings' | 'setupProject' | 'setupRepo' |
     SetupRepoComponent,
     UserSettingsComponent,
   ],
-  templateUrl: './project-menu.component.html',
+  templateUrl: './menu-project.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProjectMenuComponent {
+export class MenuProjectComponent {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly confirmationService = inject(ConfirmationService);

@@ -1,14 +1,24 @@
 <div class="flex justify-content-between">
   <div class="flex-1">
     <h2 class="text-2xl my-1">{{ 'compare.pageOptions._title' | translate }}</h2>
-    <p class="my-1">{{ compareMode() ? ('compare.pageOptions.description' | translate) : ('editPages.pageOptions.description' | translate) }}</p>
+    <p class="my-1">
+      {{
+        compareMode() === '2 versions'
+          ? ('compare.pageOptions.description' | translate)
+          : compareMode() === '1 version'
+            ? ('editPages.pageOptions.description' | translate)
+            : ('metadata.pageOptions.description' | translate)
+      }}
+    </p>
   </div>
-  <p-button [label]="'common.options' | translate" (onClick)="menu.toggle($event)" icon="pi pi-ellipsis-v" iconPos="right" outlined styleClass="secondary-outline w-full min-w-max" />
+  @if (compareMode() !== 'page only') {
+    <p-button [label]="'common.options' | translate" (onClick)="menu.toggle($event)" icon="pi pi-ellipsis-v" iconPos="right" outlined styleClass="secondary-outline w-full min-w-max" />
+  }
 </div>
 
 @if (pageOptions.length > 0) {
   <div class="flex flex-column lg:flex-row lg:align-items-center gap-2">
-    @if (compareMode()) {
+    @if (compareMode() === '2 versions') {
       <!--Selection-->
       <div class="flex flex-column text-color-secondary hover:text-primary max-w-max">
         <span class="text-xs my-1">{{ 'compare.pageOptions.selection' | translate }}</span>
@@ -24,9 +34,11 @@
           <ng-container *ngTemplateOutlet="versionSelect; context: { mode: 'after', value: compareService.selectedAfter() }" />
         </div>
       </div>
-    } @else {
+    } @else if (compareMode() === '1 version') {
       <ng-container *ngTemplateOutlet="pageSelect" />
       <ng-container *ngTemplateOutlet="versionSelect; context: { mode: 'source', value: compareService.selectedSource() }" />
+    } @else if (compareMode() === 'page only') {
+      <ng-container *ngTemplateOutlet="pageSelect" />
     }
   </div>
 } @else {

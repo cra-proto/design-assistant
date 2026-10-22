@@ -11,6 +11,7 @@ import { DoormatKey, DoormatsComponent } from '../../../components/doormats/door
 import { CollaboratorService } from '../../../services/github/collaborator.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { ProjectStorageService } from '../../../services/storage/project-storage.service';
+import { StyleCardService } from '../../../services/style-card.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
 
 import { AidaLinks } from '../../../common/aidaLinks.config';
@@ -23,6 +24,7 @@ import { AidaLinks } from '../../../common/aidaLinks.config';
 })
 export class HomeComponent {
   private readonly translate = inject(TranslateService);
+  protected readonly styleCardService = inject(StyleCardService);
   private readonly projectState = inject(ProjectStateService);
   private readonly settingsService = inject(UserSettingsService);
   private readonly collaboratorService = inject(CollaboratorService);

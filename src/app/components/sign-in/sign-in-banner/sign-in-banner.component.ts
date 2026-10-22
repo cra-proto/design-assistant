@@ -141,7 +141,7 @@ export class SignInBannerComponent implements OnInit {
     const status = this.connectionStatus();
     const isDark = this.settingsService.darkMode();
 
-    const baseClasses = 'flex align-items-center gap-2 p-3 border-round-md mb-3';
+    const baseClasses = 'flex align-items-center gap-2 p-3 border-round mb-3';
 
     const bgMap: Record<ConnectionStatus, string> = {
       connected: isDark ? 'bg-green-950' : 'bg-green-50',

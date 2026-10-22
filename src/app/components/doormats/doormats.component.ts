@@ -5,9 +5,10 @@ import { RouterLink } from '@angular/router';
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { DialogMode, ProjectMenuComponent } from '../project-menu/project-menu.component';
+import { DialogMode, MenuProjectComponent } from '../menu-project/menu-project.component';
 
 import { MailtoService } from '../../services/mailto.service';
+import { StyleCardService } from '../../services/style-card.service';
 import { UserSettingsService } from '../../services/user-settings.service';
 
 import { environment } from '../../../environments/environment';
@@ -35,7 +36,7 @@ export const DOORMATS = {
   problems: { path: undefined, titleKey: 'problems._nav', descriptionKey: 'problems.project.description', icon: 'troubleshoot', hideInProd: true },
   iaDiagram: { path: AidaLinks.ProjectDiagram, titleKey: 'iaDiagram._title', descriptionKey: 'iaDiagram.description', icon: 'lan' },
   inventory: { path: AidaLinks.ProjectInventory, titleKey: 'inventory._title', descriptionKey: 'inventory.description', icon: 'checklist_rtl' },
-  metadata: { path: undefined, titleKey: 'metadata._nav', descriptionKey: 'metadata.description', icon: 'source', hideInProd: true },
+  metadata: { path: AidaLinks.ProjectMetadata, titleKey: 'metadata._nav', descriptionKey: 'metadata.description', icon: 'source', hideInProd: true },
   exportPages: { path: AidaLinks.ProjectExport, titleKey: 'exportPages._title', descriptionKey: 'exportPages.description', icon: 'drive_folder_upload' },
   editPages: { path: AidaLinks.ProjectEdit, titleKey: 'editPages._title', descriptionKey: 'editPages.description', icon: 'auto_fix_high' },
   compare: { path: AidaLinks.ProjectCompare, titleKey: 'compare._title', descriptionKey: 'compare.description', icon: 'library_books' },
@@ -65,11 +66,12 @@ export type DoormatKey = keyof typeof DOORMATS;
 
 @Component({
   selector: 'aida-doormats',
-  imports: [CommonModule, RouterLink, TranslatePipe, ProjectMenuComponent],
+  imports: [CommonModule, RouterLink, TranslatePipe, MenuProjectComponent],
   templateUrl: './doormats.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DoormatsComponent {
+  protected readonly styleCardService = inject(StyleCardService);
   private readonly settingsService = inject(UserSettingsService);
   private readonly mailtoService = inject(MailtoService);
 
@@ -80,10 +82,10 @@ export class DoormatsComponent {
   public readonly headingLevel = input<'h2' | 'h3' | 'h4' | 'h5'>('h3');
   public readonly style = input<'topic' | 'card'>('topic');
 
-  private readonly dialog = viewChild.required(ProjectMenuComponent);
+  private readonly dialog = viewChild.required(MenuProjectComponent);
 
   protected iconClasses(notOutlined?: boolean) {
-    const baseClasses = 'text-primary text-4xl p-2 border-1 border-round-lg surface-border';
+    const baseClasses = 'text-primary text-4xl p-2 border-1 border-round surface-border';
     const materialClass = notOutlined ? 'material-icons' : 'material-icons-outlined';
     const bgClass = this.settingsService.darkMode() ? 'bg-primary-800' : 'bg-primary-50';
     return baseClasses + ' ' + materialClass + ' ' + bgClass;

@@ -14,7 +14,7 @@ import { EditNodeComponent } from '../edit-node/edit-node.component';
 import { FetchService } from '../../services/fetch.service';
 import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
-import { TreeNodeStyleService } from '../../services/treenode-style.service';
+import { StyleTreeNodeService } from '../../services/style-treenode.service';
 import { UserSettingsService } from '../../services/user-settings.service';
 import { AddUrlsService } from '../add-pages/by-url/add-urls.service';
 
@@ -28,7 +28,7 @@ import { AddUrlsService } from '../add-pages/by-url/add-urls.service';
 })
 export class IaTableComponent {
   private readonly projectState = inject(ProjectStateService);
-  private readonly treeNodeStyleService = inject(TreeNodeStyleService);
+  private readonly styleTreeNodeService = inject(StyleTreeNodeService);
   protected readonly projectCache = inject(ProjectCacheService);
   private readonly settingsService = inject(UserSettingsService);
   private readonly translate = inject(TranslateService);
@@ -265,6 +265,6 @@ export class IaTableComponent {
       el.classList.remove('p-tree-node-dragover');
     });
     //Update styles
-    this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0);
+    this.styleTreeNodeService.updateNodeStyles(this.projectTree(), 0);
   }
 }

@@ -4,7 +4,7 @@
 <!--Content-->
 <div class="flex flex-column gap-3">
   <!-- Active Project Card -->
-  <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+  <div [class]="styleCardService.cardStyles()">
     <div class="flex flex-column lg:flex-row justify-content-between align-items-start gap-2">
       <div class="flex flex-column gap-2 w-full">
         <h2 class="text-2xl my-1 flex align-items-center gap-2">
@@ -95,7 +95,7 @@
   <div class="flex flex-column lg:flex-row gap-3 w-full">
     <div class="flex flex-column gap-3 w-full">
       <!-- Baseline -->
-      <!--div class="surface-card border-round-lg shadow-2 p-0 w-full min-w-min flex justify-content-center h-3rem">
+      <!--div [class]="styleCardService.cardStyles(true, false, true)" class="p-0 flex justify-content-center h-3rem">
         @if (projectData.github.hasBaselineRepo) {
           <p-button (onClick)="openRepo(projectData.github, 'baseline')" class="w-full h-full" fluid icon="pi pi-github" label="View baseline repository" size="large" text />
         } @else {
@@ -112,7 +112,7 @@
     </div>
     <div class="flex flex-column gap-3 w-full">
       <!-- Prototype -->
-      <!--div class="surface-card border-round-lg shadow-2 p-0 w-full min-w-min flex justify-content-center h-3rem">
+      <!--div [class]="styleCardService.cardStyles(true, false, true)" class="p-0 flex justify-content-center h-3rem">
         @if (projectData.github.repo) {
           <p-button (onClick)="openRepo(projectData.github, 'prototype')" class="w-full h-full" fluid icon="pi pi-github" label="View prototype repository" size="large" text />
         } @else {
@@ -210,14 +210,14 @@
 <!--Phase card template-->
 <ng-template #phase let-content="content" let-icon="icon" let-path="path" let-phase="phase" let-ready="ready" let-stats="stats">
   <div
-    [class]="getCardClasses(phase, ready)"
+    [class]="styleCardService.cardStyles(ready || !production, phase === projectData.phase)"
     [routerLink]="ready || !production ? path : null"
-    class="surface-card border-round-lg p-4 w-full min-w-min md:w-6 flex flex-column justify-content-between"
+    class="md:w-6 flex flex-column justify-content-between"
   >
     <div class="flex-1">
       <div class="flex align-items-center mb-3">
         <i [class]="icon + ' text-xl'"></i>
-        <h3 class="text-lg font-semibold text-900 ml-2 m-0">{{ phase | translate }}</h3>
+        <h3 [class]="!ready && !production ? 'text-red-500' : 'text-900'" class="text-lg font-semibold ml-2 m-0">{{ phase | translate }}</h3>
       </div>
       <p class="text-600 text-sm mb-3 min-h-2rem">{{ phase + '.description' | translate }}</p>
       <div class="border-top-1 surface-border pt-3">

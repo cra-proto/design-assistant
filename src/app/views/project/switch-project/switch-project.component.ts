@@ -29,6 +29,7 @@ import { CollaboratorService } from '../../../services/github/collaborator.servi
 import { SignInService } from '../../../services/github/sign-in.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { ProjectStorageService } from '../../../services/storage/project-storage.service';
+import { StyleCardService } from '../../../services/style-card.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
 
 import { environment } from '../../../../environments/environment';
@@ -69,6 +70,7 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
 })
 export class SwitchProjectComponent implements OnInit {
   private readonly translate = inject(TranslateService);
+  protected readonly styleCardService = inject(StyleCardService);
   private readonly projectState = inject(ProjectStateService);
   protected readonly projectStorageService = inject(ProjectStorageService);
   protected readonly collaboratorService = inject(CollaboratorService);
@@ -135,16 +137,6 @@ export class SwitchProjectComponent implements OnInit {
     const active = this.projectStorageService.currentActive();
     if (!active) return false;
     return project.storageType === 'local' ? active.key === project.key : active.key === project.id;
-  }
-
-  protected getCardClasses(project: ProjectMetadata): string {
-    const isDark = this.settingsService.darkMode();
-    const border =
-      this.projectId === project.id ? 'border-3 border-primary hover:shadow-4' : this.currentMode() === 'deleted' ? 'border-2 border-red-500 hover:shadow-4' : 'border-1 surface-border hover:shadow-3';
-
-    const background = this.isActiveProject(project) && !isDark ? 'bg-primary-50' : this.isActiveProject(project) ? 'bg-primary-800' : '';
-
-    return `${border} ${background}`.trim();
   }
 
   protected getCollabStatus(project: ProjectMetadata): 'sign-in' | 'read-only' | undefined {

@@ -14,7 +14,7 @@
 <div class="flex flex-column gap-3">
   <!-- Error (global stats) -->
   @if (error()) {
-    <div class="surface-card border-round-lg shadow-2 p-4 flex align-items-center gap-3">
+    <div [class]="styleCardService.cardStyles()" class="flex align-items-center gap-3">
       <i class="pi pi-exclamation-triangle text-red-500 text-2xl"></i>
       <div>
         <p class="font-semibold m-0">{{ 'dev.monitoring.loadError' | translate }}</p>
@@ -27,7 +27,7 @@
   <!-- Top stats row -->
   <div class="flex flex-column md:flex-row gap-3">
     <!-- Users -->
-    <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+    <div [class]="styleCardService.cardStyles()" class="flex-1">
       <div class="flex align-items-center gap-2 mb-2">
         <i class="pi pi-users text-primary text-xl"></i>
         <span class="text-600 text-sm">{{ 'dev.monitoring.totalUsers' | translate }}</span>
@@ -44,7 +44,7 @@
     </div>
 
     <!-- Unique projects -->
-    <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+    <div [class]="styleCardService.cardStyles()" class="flex-1">
       <div class="flex align-items-center gap-2 mb-2">
         <i class="pi pi-folder text-primary text-xl"></i>
         <span class="text-600 text-sm">{{ 'dev.monitoring.totalProjects' | translate }}</span>
@@ -61,7 +61,7 @@
     </div>
 
     <!-- Unique pages -->
-    <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+    <div [class]="styleCardService.cardStyles()" class="flex-1">
       <div class="flex align-items-center gap-2 mb-2">
         <i class="pi pi-link text-primary text-xl"></i>
         <span class="text-600 text-sm">{{ 'dev.monitoring.totalPages' | translate }}</span>
@@ -78,7 +78,7 @@
     </div>
 
     <!-- Total AI calls -->
-    <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+    <div [class]="styleCardService.cardStyles()" class="flex-1">
       <div class="flex align-items-center gap-2 mb-2">
         <i class="pi pi-sparkles text-primary text-xl"></i>
         <span class="text-600 text-sm">{{ 'dev.monitoring.totalGenerations' | translate }}</span>
@@ -95,7 +95,7 @@
     </div>
 
     <!-- GitHub Export Count -->
-    <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+    <div [class]="styleCardService.cardStyles()" class="flex-1">
       <div class="flex align-items-center gap-2 mb-2">
         <i class="pi pi-file-export text-primary text-xl"></i>
         <span class="text-600 text-sm">{{ 'dev.monitoring.totalExportsGit' | translate }}</span>
@@ -112,7 +112,7 @@
     </div>
 
     <!-- GitHub Repo Count -->
-    <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+    <div [class]="styleCardService.cardStyles()" class="flex-1">
       <div class="flex align-items-center gap-2 mb-2">
         <i class="pi pi-github text-primary text-xl"></i>
         <span class="text-600 text-sm">{{ 'dev.monitoring.totalReposGit' | translate }}</span>
@@ -129,7 +129,7 @@
     </div>
 
     <!-- Local Export Count -->
-    <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+    <div [class]="styleCardService.cardStyles()" class="flex-1">
       <div class="flex align-items-center gap-2 mb-2">
         <i class="pi pi-file-export text-primary text-xl"></i>
         <span class="text-600 text-sm">{{ 'dev.monitoring.totalExportsLocal' | translate }}</span>
@@ -146,7 +146,7 @@
     </div>
 
     <!-- Local Repo Count -->
-    <div class="surface-card border-round-lg shadow-2 p-4 flex-1">
+    <div [class]="styleCardService.cardStyles()" class="flex-1">
       <div class="flex align-items-center gap-2 mb-2">
         <i class="pi pi-folder-plus text-primary text-xl"></i>
         <span class="text-600 text-sm">{{ 'dev.monitoring.totalReposLocal' | translate }}</span>
@@ -164,7 +164,7 @@
   </div>
 
   <!-- Feature stats section -->
-  <div class="surface-card border-round-lg shadow-2 p-4 min-w-min">
+  <div [class]="styleCardService.cardStyles()">
     <!-- Feature header & buttons -->
     <div class="flex flex-column md:flex-row justify-content-between align-items-start md:align-items-center gap-3 mb-4">
       <div class="flex align-items-center gap-2">
@@ -189,7 +189,7 @@
 
     <!-- Feature load error -->
     @if (featureItemsError()) {
-      <div class="bg-red-50 border-round-lg shadow-2 p-4 flex align-items-center gap-3 mb-3">
+      <div class="bg-red-50 border-round shadow-2 p-4 flex align-items-center gap-3 mb-3">
         <i class="pi pi-exclamation-triangle text-red-500 text-2xl"></i>
         <div>
           <p class="font-semibold m-0">{{ 'dev.monitoring.loadError' | translate }}</p>

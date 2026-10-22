@@ -14,7 +14,7 @@ import { MenuModule } from 'primeng/menu';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { ProjectMenuComponent } from '../../components/project-menu/project-menu.component';
+import { MenuProjectComponent } from '../../components/menu-project/menu-project.component';
 
 import { CollaboratorService } from '../../services/github/collaborator.service';
 import { ProjectStateService } from '../../services/project-state.service';
@@ -36,7 +36,7 @@ const BREADCRUMB_ANCESTORS: Record<string, MenuItem[]> = {
 
 @Component({
   selector: 'aida-breadcrumb',
-  imports: [CommonModule, RouterLink, TranslatePipe, BreadcrumbModule, ButtonModule, MenuModule, TagModule, TooltipModule, ProjectMenuComponent],
+  imports: [CommonModule, RouterLink, TranslatePipe, BreadcrumbModule, ButtonModule, MenuModule, TagModule, TooltipModule, MenuProjectComponent],
   templateUrl: './breadcrumb.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -22,7 +22,7 @@ import { AddUrlsService } from '../../../components/add-pages/by-url/add-urls.se
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
-import { TreeNodeStyleService } from '../../../services/treenode-style.service';
+import { StyleTreeNodeService } from '../../../services/style-treenode.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
 import { IaDiagramService } from './ia-diagram.service';
 
@@ -55,7 +55,7 @@ export class IaDiagramComponent {
   protected readonly projectCache = inject(ProjectCacheService);
   private readonly translate = inject(TranslateService);
   protected readonly iaDiagram = inject(IaDiagramService);
-  private readonly treeNodeStyleService = inject(TreeNodeStyleService);
+  private readonly styleTreeNodeService = inject(StyleTreeNodeService);
   protected readonly addUrlsService = inject(AddUrlsService);
   private readonly fetchService = inject(FetchService);
   private readonly settingsService = inject(UserSettingsService);
@@ -69,7 +69,7 @@ export class IaDiagramComponent {
   constructor() {
     effect(() => {
       const applyStatusColors = this.projectCache.selectedViewIA() === 'changes';
-      this.treeNodeStyleService.updateNodeStyles(this.projectTree(), 0, applyStatusColors);
+      this.styleTreeNodeService.updateNodeStyles(this.projectTree(), 0, applyStatusColors);
     });
     effect(() => {
       this.projectCache.selectedDisplayIA();
@@ -99,7 +99,7 @@ export class IaDiagramComponent {
     if (this.iaDiagram.collapsedNodes().size > 0 || this.iaDiagram.hiddenNodes().size > 0 || this.iaDiagram.navNodes().size > 0) {
       tree = this.projectState.getDisplayTree(tree, this.iaDiagram.collapsedNodes(), this.iaDiagram.hiddenNodes(), this.iaDiagram.navNodes());
     }
-    this.treeNodeStyleService.updateNodeStyles(tree);
+    this.styleTreeNodeService.updateNodeStyles(tree);
     return tree;
   });
 
@@ -523,8 +523,8 @@ export class IaDiagramComponent {
     const tree = this.projectTree();
     if (tree.length === 0) return items;
 
-    const mainColours = this.treeNodeStyleService.bgColors;
-    const allColours = this.treeNodeStyleService.contextStyles;
+    const mainColours = this.styleTreeNodeService.bgColors;
+    const allColours = this.styleTreeNodeService.contextStyles;
 
     const depth = this.projectState.getInScopeMaxDepth(tree[0]);
     if (depth) {

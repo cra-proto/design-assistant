@@ -12,7 +12,7 @@
 }
 
 <!-- All Projects -->
-<div class="surface-card border-round-lg shadow-2 p-4 mb-3 min-w-min">
+<div [class]="styleCardService.cardStyles()">
   <div class="flex flex-column-reverse xl:flex-row justify-content-between align-items-start gap-2 mb-3">
     <div class="flex flex-column lg:flex-row gap-2 w-full">
       <!--Filter presets-->
@@ -39,7 +39,7 @@
 
     <div class="flex flex-row xl:flex-column gap-2">
       <!--New-->
-      <p-button (onClick)="newProject()" icon="pi pi-plus" label="New project" outlined size="small" styleClass="white-space-nowrap secondary-outline w-full" />
+      <p-button [label]="'project._nav.new' | translate" (onClick)="newProject()" icon="pi pi-plus" outlined size="small" styleClass="white-space-nowrap secondary-outline w-full" />
       <!--Import-->
       <p-button disabled icon="pi pi-upload" label="Import project" outlined size="small" styleClass="white-space-nowrap secondary-outline w-full" />
       <!--RECYCLE BIN-->
@@ -64,10 +64,10 @@
       @for (project of projects; track project.key + project.storageType) {
         <div class="col-12 md:col-6 lg:col-4">
           <div
-            [ngClass]="getCardClasses(project)"
+            [class]="styleCardService.cardStyles(true, isActiveProject(project), true, undefined, this.currentMode() === 'deleted' ? 'border-red-500' : undefined)"
             (click)="loadProject(project.key, project.id, project.storageType)"
             (keydown.enter)="loadProject(project.key, project.id, project.storageType)"
-            class="border-round-lg shadow-1 w-full h-full min-w-min cursor-pointer"
+            class="h-full"
             tabindex="0"
           >
             <div class="flex h-full">
@@ -160,7 +160,7 @@
                   }
                 </div>
               </div>
-              <div class="border-left-1 surface-border surface-50 p-2 w-4rem">
+              <div class="border-left-1 surface-border surface-50 border-round-right p-2 w-4rem">
                 <!--RIGHT SIDE: Actions-->
                 <div class="flex flex-column gap-1">
                   @if (project.key === 'autosave') {

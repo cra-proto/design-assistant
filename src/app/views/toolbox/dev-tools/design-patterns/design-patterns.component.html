@@ -102,7 +102,7 @@
   <p-tabpanel value="2">
     <div class="flex flex-column gap-4">
       @for (example of cardExamples; track example.label; let i = $index) {
-        <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+        <div [class]="styleCardService.cardStyles()">
           <h3 class="mt-0">{{ example.label }}</h3>
           @if (example.description) {
             <p class="text-color-secondary mt-0">{{ example.description | translate }}</p>
@@ -112,12 +112,22 @@
           <div class="mb-3">
             @if (example.previewConfig) {
               @if (example.previewConfig.type === 'standard') {
-                <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+                <div [class]="styleCardService.cardStyles()">
                   {{ example.previewConfig.content }}
                 </div>
               }
               @if (example.previewConfig.type === 'hover') {
-                <div class="surface-card border-round-lg shadow-1 hover:shadow-3 p-4 w-full min-w-min">
+                <div [class]="styleCardService.cardStyles(true)">
+                  {{ example.previewConfig.content }}
+                </div>
+              }
+              @if (example.previewConfig.type === 'active') {
+                <div [class]="styleCardService.cardStyles(true, true)">
+                  {{ example.previewConfig.content }}
+                </div>
+              }
+              @if (example.previewConfig.type === 'deleted') {
+                <div [class]="styleCardService.cardStyles(true, false, false, undefined, 'border-red-500')">
                   {{ example.previewConfig.content }}
                 </div>
               }

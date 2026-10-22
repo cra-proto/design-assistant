@@ -56,26 +56,7 @@ export class CompareAiService {
 
     // Call OpenRouter
     try {
-      let response: string;
-      let fallbackCount = 0;
-      if (promptKey === 'AlertRewrite') {
-        if (this.alertService.getCachedIssues(initialAfter.html) === null) {
-          await this.alertService.analyze(initialAfter.html, this.compareService.selectedModel());
-        }
-        const selectedAlertIssues = this.alertService.getSelectedIssues(initialAfter.html);
-        const rewriteResult = await this.alertRewriteOrchestrator.generateRecommendations({
-          html: initialAfter.html,
-          issues: selectedAlertIssues,
-          preferredModel: this.compareService.selectedModel(),
-          includeExamples: true,
-          useCompactAlertsPageContext: true,
-          forceLocalRepairForTesting: false,
-        });
-        response = rewriteResult.formattedHtml;
-        fallbackCount = rewriteResult.fallbackNotices.length;
-      } else {
-        response = await this.openRouterService.getTextFromAI(prompt, JSON.stringify(initialAfter.html)); // note: this can take up to 5 min
-      }
+      const response = await this.openRouterService.getTextFromAI(prompt, JSON.stringify(initialAfter.html), this.compareService.selectedModel()); // note: this can take up to 5 min
 
       // Cached versions (or snapshot if no cached version available)
       const cached = this.projectCache.getPageEdit(pagePath);

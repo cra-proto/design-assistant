@@ -4,11 +4,11 @@
 <!--Content-->
 <div class="flex flex-column gap-3 mb-2">
   <!--Row 1: Add pages-->
-  <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+  <div [class]="styleCardService.cardStyles()">
     <aida-add-pages />
   </div>
   <!--Row 2: View pages-->
-  <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+  <div [class]="styleCardService.cardStyles()">
     <aida-view-pages />
   </div>
 </div>

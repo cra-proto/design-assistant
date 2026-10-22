@@ -13,7 +13,7 @@
   </div>
 
   <div class="flex flex-column gap-3">
-    <div class="surface-card border-round-lg shadow-2 p-4 w-full min-w-min">
+    <div [class]="styleCardService.cardStyles()">
       <!-- Top toolbar -->
       <div class="flex justify-content-between sticky-toolbar sticky-top-toolbar surface-card">
         <!-- Top toolbar - Header -->
@@ -494,10 +494,10 @@
     <!--Add & Find pages-->
     @defer (on idle) {
       <div class="sticky-horizontal flex flex-column gap-3">
-        <div class="surface-card border-round-lg shadow-2 p-4 min-w-min">
+        <div [class]="styleCardService.cardStyles()">
           <aida-add-pages />
         </div>
-        <div class="surface-card border-round-lg shadow-2 p-4 min-w-min">
+        <div [class]="styleCardService.cardStyles()">
           <aida-view-pages [showInventory]="false" />
         </div>
       </div>

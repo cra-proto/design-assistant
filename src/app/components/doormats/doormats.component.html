@@ -21,7 +21,7 @@
           <div class="col-12 lg:col-6">
             @if (!isExternal(key)) {
               <a [routerLink]="getOnClick(key) ? null : item.path ? item.path : null" (click)="getOnClick(key)?.($event)" (keydown.enter)="getOnClick(key)?.($event)" class="no-underline h-full flex">
-                <div [ngClass]="item.path ? 'hover:shadow-3 hover:surface-ground cursor-pointer' : ''" class="surface-card border-round-lg shadow-1 p-3 w-full min-w-min flex-1">
+                <div [class]="styleCardService.cardStyles(!!item.path, false, true)" class="p-3 flex-1">
                   <div class="flex flex-row gap-3">
                     <div class="flex align-items-center">
                       <span [class]="iconClasses(item.notOutlined)">{{ item.icon }}</span>
@@ -78,4 +78,4 @@
   }
 </ng-template>
 
-<aida-project-menu />
+<aida-menu-project />
