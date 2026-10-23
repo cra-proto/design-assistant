@@ -138,7 +138,7 @@ export class MenuProjectComponent {
         },
       });
     } else {
-      dropdownOptions[1].items!.unshift({
+      dropdownOptions[0].items!.unshift({
         label: this.translate.instant('common.signout'),
         icon: 'logout',
         command: () => {
@@ -153,7 +153,7 @@ export class MenuProjectComponent {
       if (!isLocked && this.projectState.getProject().storageType === 'cloud') {
         dropdownOptions[1].items.push({
           label: this.translate.instant('project.global.lockProject'),
-          icon: 'pi pi-lock',
+          icon: 'lock',
           command: () => {
             this.projectState.setLockedBy();
           },
@@ -161,7 +161,7 @@ export class MenuProjectComponent {
       } else if (isLocked) {
         dropdownOptions[1].items.push({
           label: this.translate.instant('project.global.unlockProject'),
-          icon: 'pi pi-unlock',
+          icon: 'lock_open',
           command: () => {
             this.unlockProject(isLocked);
           },

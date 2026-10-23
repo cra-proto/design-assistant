@@ -252,9 +252,7 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
             bodyText = Buffer.from(bodyText, 'base64').toString('utf-8');
         }
 
-        console.log('Request body:', bodyText);
         const projectData = JSON.parse(bodyText || '{}');
-        console.log('Parsed project data:', JSON.stringify(projectData, null, 2));
 
         // Validate required fields for DynamoDB GSI
         const name = projectData.projectName || projectData.key || '';
@@ -302,11 +300,12 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
             lockedBy: projectData.lockedBy ?? undefined
         };
 
-        console.log('Project to save:', JSON.stringify(project, null, 2));
         console.log('Project to save:', {
             id: project.id,
             key: project.key,
-            projectName: project.projectName,
+            projectName: project.projectName,            
+            version: projectData.version,
+            org: validateOrg(projectData.org),
             inScopePages: project.inScopePages,
             collaborators: project.collaborators,
             github: project.github

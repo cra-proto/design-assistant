@@ -35,6 +35,8 @@ export interface AiRequestState {
   respondingModel: string | null; // Surfaces which fallback model answered
 }
 
+type KeyType = 'paid' | 'free' | 'devp';
+
 @Injectable({ providedIn: 'root' })
 export class OpenRouterService {
   private http = inject(HttpClient);
@@ -50,7 +52,7 @@ export class OpenRouterService {
   });
 
   // Returns full OpenRouter response
-  async sendToAI(config: PromptConfig, content: string, preferredModel?: string, temperature = 0): Promise<OpenRouterResponse> {
+  async sendToAI(config: PromptConfig, content: string, preferredModel?: string, temperature = 0, keyType: KeyType = 'paid'): Promise<OpenRouterResponse> {
     this.state.set({ loading: true, error: null, respondingModel: null });
 
     const MAX_FALLBACK_MODELS = 3;
@@ -67,6 +69,7 @@ export class OpenRouterService {
           systemPrompt,
           content,
           temperature,
+          keyType,
         }),
       );
 
@@ -85,8 +88,8 @@ export class OpenRouterService {
   }
 
   // Returns just the text from the OpenRouter response
-  async getTextFromAI(config: PromptConfig, content: string, preferredModel?: string, temperature = 0): Promise<string> {
-    const response = await this.sendToAI(config, content, preferredModel, temperature);
+  async getTextFromAI(config: PromptConfig, content: string, preferredModel?: string, temperature = 0, keyType: KeyType = 'paid'): Promise<string> {
+    const response = await this.sendToAI(config, content, preferredModel, temperature, keyType);
     const responseContent = response.choices?.[0]?.message?.content ?? '';
     if (config.output === OutputKey.Html) {
       this.htmlNormalizationService.aiCleanup(responseContent);
