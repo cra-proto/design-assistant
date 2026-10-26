@@ -79,7 +79,7 @@ export class SwitchProjectComponent implements OnInit {
   protected readonly signInService = inject(SignInService);
 
   private readonly router = inject(Router);
-  private readonly message = inject(MessageService);
+  private readonly messageService = inject(MessageService);
 
   // Project list signal
   private readonly allProjects = signal<ProjectMetadata[]>([]);
@@ -121,10 +121,10 @@ export class SwitchProjectComponent implements OnInit {
     // Delete deleted projects after a period of time
     const deletedCount = this.projectStorageService.cleanupDeletedProjects();
     if (deletedCount > 0) {
-      this.message.add({
+      this.messageService.add({
         severity: 'info',
-        summary: 'Cleanup completed',
-        detail: `${deletedCount} expired project${deletedCount > 1 ? 's' : ''} automatically deleted`,
+        summary: this.translate.instant('switch.toast.cleanUp.summary'),
+        detail: this.translate.instant('switch.toast.cleanUp.detail', { count: deletedCount }),
       });
     }
 
@@ -374,16 +374,16 @@ export class SwitchProjectComponent implements OnInit {
       // Refresh project list
       await this.loadProjects();
 
-      this.message.add({
+      this.messageService.add({
         severity: 'success',
-        summary: 'Project saved',
-        detail: 'Your project has been saved successfully',
+        summary: this.translate.instant('switch.toast.saveSuccess.summary'),
+        detail: this.translate.instant('switch.toast.saveSuccess.detail'),
       });
     } else {
-      this.message.add({
+      this.messageService.add({
         severity: 'error',
-        summary: 'Save failed',
-        detail: 'Could not save the project',
+        summary: this.translate.instant('switch.toast.saveFail.summary'),
+        detail: this.translate.instant('switch.toast.saveFail.detail'),
       });
     }
   }
@@ -394,7 +394,7 @@ export class SwitchProjectComponent implements OnInit {
     if (project.storageType === 'cloud') {
       this.confirmationService.confirm({
         key: 'delete',
-        icon: 'pi pi-exclamation-triangle text-red-500',
+        icon: 'pi pi-exclamation-triangle text-red',
         header: this.translate.instant('switch.confirmDelete.header'),
         message: this.translate.instant('switch.confirmDelete.message'),
         acceptButtonProps: {
@@ -440,16 +440,16 @@ export class SwitchProjectComponent implements OnInit {
         this.newProject();
       }
 
-      this.message.add({
+      this.messageService.add({
         severity: 'success',
-        summary: 'Project deleted',
-        detail: 'The project has been removed',
+        summary: this.translate.instant('switch.toast.deleteSuccess.summary'),
+        detail: this.translate.instant('switch.toast.deleteSuccess.detail'),
       });
     } else {
-      this.message.add({
+      this.messageService.add({
         severity: 'error',
-        summary: 'Delete failed',
-        detail: 'Could not delete the project',
+        summary: this.translate.instant('switch.toast.deleteFail.summary'),
+        detail: this.translate.instant('switch.toast.deleteFail.detail'),
       });
     }
   }
@@ -465,10 +465,10 @@ export class SwitchProjectComponent implements OnInit {
     // Load the full project from local storage
     const fullProject = await this.projectStorageService.loadProject(project.key, 'local');
     if (!fullProject) {
-      this.message.add({
+      this.messageService.add({
         severity: 'error',
-        summary: 'Upload failed',
-        detail: 'Could not load project data',
+        summary: this.translate.instant('switch.toast.uploadFail.summary'),
+        detail: this.translate.instant('switch.toast.uploadFail.detail1'),
       });
       return;
     }
@@ -491,16 +491,16 @@ export class SwitchProjectComponent implements OnInit {
       // Refresh project list
       await this.loadProjects();
 
-      this.message.add({
+      this.messageService.add({
         severity: 'success',
-        summary: 'Uploaded to cloud',
-        detail: 'Your project is now available in the cloud',
+        summary: this.translate.instant('switch.toast.uploadSuccess.summary'),
+        detail: this.translate.instant('switch.toast.uploadSuccess.detail'),
       });
     } else {
-      this.message.add({
+      this.messageService.add({
         severity: 'error',
-        summary: 'Upload failed',
-        detail: 'Could not upload project to cloud',
+        summary: this.translate.instant('switch.toast.uploadFail.summary'),
+        detail: this.translate.instant('switch.toast.uploadFail.detail2'),
       });
     }
   }

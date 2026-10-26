@@ -206,6 +206,7 @@ resource "aws_lambda_function" "projects" {
   source_code_hash = filebase64sha256("${path.module}/../functions/projects/lambda.zip")
   runtime         = "nodejs22.x"
   timeout         = 30
+  memory_size     = 512
 
   environment {
     variables = {

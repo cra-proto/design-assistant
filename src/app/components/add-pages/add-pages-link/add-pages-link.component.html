@@ -2,7 +2,7 @@
   @if (!buttonOnly()) {
     <p>{{ 'inventory.emptyMessage' | translate }}</p>
   }
-  <p-button [routerLink]="AidaLinks.ProjectAdd" [size]="buttonOnly() ? 'small' : undefined" fluid styleClass="white-space-nowrap">
+  <p-button [routerLink]="AidaLinks.ProjectAdd" fluid styleClass="white-space-nowrap">
     @if (!noIcon()) {
       <span class="material-icons-outlined text-lg">note_add</span>
     }

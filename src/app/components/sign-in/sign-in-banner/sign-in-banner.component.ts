@@ -109,10 +109,10 @@ export class SignInBannerComponent implements OnInit {
     const isDark = this.settingsService.darkMode();
 
     const colorMap: Record<ConnectionStatus, string> = {
-      connected: isDark ? 'text-green-400' : 'text-green-500',
+      connected: 'text-green',
       warning: isDark ? 'text-yellow-400' : 'text-yellow-500',
-      error: isDark ? 'text-red-400' : 'text-red-500',
-      missing: isDark ? 'text-red-400' : 'text-red-500',
+      error: 'text-red',
+      missing: 'text-red',
       checking: isDark ? 'text-blue-400' : 'text-blue-500',
     };
 

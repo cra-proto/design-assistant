@@ -20,7 +20,7 @@
           }
           @if (hasIaOrphan) {
             <div class="flex align-items-center gap-1">
-              <i class="pi pi-times text-red-500"></i>
+              <i class="pi pi-times text-red"></i>
               <span class="legend-text">{{ 'editNode.isOrphan' | translate }}</span>
             </div>
           }
@@ -43,11 +43,11 @@
             <!--ORPHAN STATUS-->
             @if (projectCache.selectedLang() === 'en' ? node.data.live.en.isOrphan : node.data.live.fr.isOrphan) {
               <div class="-mt-6 mb-6">
-                <i [pTooltip]="'iaDiagram.tooltip.orphan' | translate" class="pi pi-times text-red-500" tooltipPosition="top" tooltipStyleClass="z-200"></i>
+                <i [pTooltip]="'iaDiagram.tooltip.orphan' | translate" class="pi pi-times text-red" tooltipPosition="top" tooltipStyleClass="z-200"></i>
               </div>
             }
             <!--PAGE-->
-            <p-button (click)="onMenuClick($event, node)" class="absolute top-0 right-0 -mt-1 -mr-1" icon="pi pi-ellipsis-h" size="small" text />
+            <p-button (click)="onMenuClick($event, node)" class="absolute top-0 right-0 -mt-1 -mr-1" icon="pi pi-ellipsis-h" text />
             <div (dragleave)="onDragLeave(node)" (dragover)="onDragOver($event, node)" (dragstart)="onDragStart(node)" (drop)="onDrop()" class="h-full">
               <p class="pb-2">
                 <a
@@ -76,7 +76,6 @@
                   class="absolute left-50 -translate-x-50 bottom-0 -mb-1"
                   icon="pi pi-plus-circle"
                   rounded
-                  size="small"
                   text
                   tooltipPosition="top"
                   tooltipStyleClass="z-200"

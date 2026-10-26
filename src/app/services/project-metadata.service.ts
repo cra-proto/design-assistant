@@ -91,8 +91,7 @@ export class ProjectMetadataService {
         const allColours = this.styleTreeNodeService.contextStyles;
         if (!data) continue;
         const style = data.status.isNew ? allColours.new : data.status.isROT ? allColours.rot : data.status.isMoved ? allColours.move : undefined;
-        const storedApproval = data.approved?.metadata;
-        const approved = !!storedApproval && storedApproval === this.hashMetadata(data);
+        const approved = this.approvalStatus(data);
         if (data.status?.inScope !== false) {
           flatNodes.push({
             label: {
@@ -115,26 +114,21 @@ export class ProjectMetadataService {
               version: baseline,
               content: data.baseline?.en.title ?? '',
             },
-            titleEnLive: {
-              group: titleEN,
-              version: live,
-              content: data.live?.en.title === data.baseline?.en.title ? noChange : (data.live?.en.title ?? ''),
-            },
             titleEnProto: {
               group: titleEN,
               version: prototype,
               content: data.prototype?.en.title === data.live?.en.title ? noChange : (data.prototype?.en.title ?? ''),
+            },
+            titleEnLive: {
+              group: titleEN,
+              version: live,
+              content: data.live?.en.title === data.baseline?.en.title ? noChange : (data.live?.en.title ?? ''),
             },
             // English description
             descriptionEnBase: {
               group: descriptionEN,
               version: baseline,
               content: data.baseline?.en.description ?? '',
-            },
-            descriptionEnLive: {
-              group: descriptionEN,
-              version: live,
-              content: data.live?.en.description === data.baseline?.en.description ? noChange : (data.live?.en.description ?? ''),
             },
             descriptionEnAi: {
               group: descriptionEN,
@@ -149,16 +143,16 @@ export class ProjectMetadataService {
               version: prototype,
               content: data.prototype?.en.description === data.live?.en.description ? noChange : (data.prototype?.en.description ?? ''),
             },
+            descriptionEnLive: {
+              group: descriptionEN,
+              version: live,
+              content: data.live?.en.description === data.baseline?.en.description ? noChange : (data.live?.en.description ?? ''),
+            },
             // English keywords
             keywordsEnBase: {
               group: keywordsEN,
               version: baseline,
               content: data.baseline?.en.keywords ?? '',
-            },
-            keywordsEnLive: {
-              group: keywordsEN,
-              version: live,
-              content: data.live?.en.keywords === data.baseline?.en.keywords ? noChange : (data.live?.en.keywords ?? ''),
             },
             keywordsEnAi: {
               group: keywordsEN,
@@ -173,32 +167,32 @@ export class ProjectMetadataService {
               version: prototype,
               content: data.prototype?.en.keywords === data.live?.en.keywords ? noChange : (data.prototype?.en.keywords ?? ''),
             },
+            keywordsEnLive: {
+              group: keywordsEN,
+              version: live,
+              content: data.live?.en.keywords === data.baseline?.en.keywords ? noChange : (data.live?.en.keywords ?? ''),
+            },
             // French title
             titleFrBase: {
               group: titleFR,
               version: baseline,
               content: data.baseline?.fr.title ?? '',
             },
-            titleFrLive: {
-              group: titleFR,
-              version: live,
-              content: data.live?.fr.title === data.baseline?.fr.title ? noChange : (data.live?.fr.title ?? ''),
-            },
             titleFrProto: {
               group: titleFR,
               version: prototype,
               content: data.prototype?.fr.title === data.live?.fr.title ? noChange : (data.prototype?.fr.title ?? ''),
+            },
+            titleFrLive: {
+              group: titleFR,
+              version: live,
+              content: data.live?.fr.title === data.baseline?.fr.title ? noChange : (data.live?.fr.title ?? ''),
             },
             // French description
             descriptionFrBase: {
               group: descriptionFR,
               version: baseline,
               content: data.baseline?.fr.description ?? '',
-            },
-            descriptionFrLive: {
-              group: descriptionFR,
-              version: live,
-              content: data.live?.fr.description === data.baseline?.fr.description ? noChange : (data.live?.fr.description ?? ''),
             },
             descriptionFrAi: {
               group: descriptionFR,
@@ -213,16 +207,16 @@ export class ProjectMetadataService {
               version: prototype,
               content: data.prototype?.fr.description === data.live?.fr.description ? noChange : (data.prototype?.fr.description ?? ''),
             },
+            descriptionFrLive: {
+              group: descriptionFR,
+              version: live,
+              content: data.live?.fr.description === data.baseline?.fr.description ? noChange : (data.live?.fr.description ?? ''),
+            },
             // French keywords
             keywordsFrBase: {
               group: keywordsFR,
               version: baseline,
               content: data.baseline?.fr.keywords ?? '',
-            },
-            keywordsFrLive: {
-              group: keywordsFR,
-              version: live,
-              content: data.live?.fr.keywords === data.baseline?.fr.keywords ? noChange : (data.live?.fr.keywords ?? ''),
             },
             keywordsFrAi: {
               group: keywordsFR,
@@ -237,6 +231,11 @@ export class ProjectMetadataService {
               version: prototype,
               content: data.prototype?.fr.keywords === data.live?.fr.keywords ? noChange : (data.prototype?.fr.keywords ?? ''),
             },
+            keywordsFrLive: {
+              group: keywordsFR,
+              version: live,
+              content: data.live?.fr.keywords === data.baseline?.fr.keywords ? noChange : (data.live?.fr.keywords ?? ''),
+            },
           });
         }
 
@@ -248,6 +247,11 @@ export class ProjectMetadataService {
 
     walk(tree);
     return flatNodes;
+  }
+
+  public approvalStatus(nodeData: TreeNodeData): boolean {
+    const storedApproval = nodeData.approved?.metadata;
+    return !!storedApproval && storedApproval === this.hashMetadata(nodeData);
   }
 
   public hashMetadata(nodeData: TreeNodeData) {

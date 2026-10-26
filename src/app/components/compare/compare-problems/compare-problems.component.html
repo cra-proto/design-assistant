@@ -5,7 +5,7 @@
         <p-accordion-header>
           <div class="flex align-items-center gap-2">
             <span class="material-icons-outlined text-primary text-3xl">{{ tool.icon }}</span>
-            <span [class.text-red-500]="!tool.visible">{{ tool.header }}</span>
+            <span [class.text-red]="!tool.visible">{{ tool.header }}</span>
           </div>
         </p-accordion-header>
         @if (!isPanelOpen(tool.key)) {

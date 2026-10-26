@@ -130,7 +130,7 @@
             context: {
               path: AidaLinks.PhaseApprove,
               phase: ProjectPhase.Approve,
-              icon: (selectedItems.length / checklist.length) * 100 === 100 ? 'pi pi-check-circle text-green-500' : 'pi pi-check-circle text-red-500',
+              icon: (selectedItems.length / checklist.length) * 100 === 100 ? 'pi pi-check-circle text-green' : 'pi pi-check-circle text-red',
               stats: approve,
               content: approveChecklist,
               ready: false,
@@ -217,7 +217,7 @@
     <div class="flex-1">
       <div class="flex align-items-center mb-3">
         <i [class]="icon + ' text-xl'"></i>
-        <h3 [class]="!ready && !production ? 'text-red-500' : 'text-900'" class="text-lg font-semibold ml-2 m-0">{{ phase | translate }}</h3>
+        <h3 [class]="!ready && !production ? 'text-red' : 'text-900'" class="text-lg font-semibold ml-2 m-0">{{ phase | translate }}</h3>
       </div>
       <p class="text-600 text-sm mb-3 min-h-2rem">{{ phase + '.description' | translate }}</p>
       <div class="border-top-1 surface-border pt-3">

@@ -303,7 +303,7 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
         console.log('Project to save:', {
             id: project.id,
             key: project.key,
-            projectName: project.projectName,            
+            projectName: project.projectName,
             version: projectData.version,
             org: validateOrg(projectData.org),
             inScopePages: project.inScopePages,

@@ -67,13 +67,14 @@ export class MetadataComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   protected readonly styleCardService = inject(StyleCardService);
   private readonly projectState = inject(ProjectStateService);
-  private readonly projectMetadata = inject(ProjectMetadataService);
+  protected readonly projectMetadata = inject(ProjectMetadataService);
   protected readonly projectCache = inject(ProjectCacheService);
   private readonly compareService = inject(CompareService);
   private readonly fetchService = inject(FetchService);
   private readonly settingsService = inject(UserSettingsService);
 
   protected readonly selectedNode = signal<TreeNode<TreeNodeData> | null>(null);
+  protected readonly selectedRow = signal<FlattenedMetadata | null>(null);
   protected readonly selectedNodes: FlattenedMetadata[] = [];
   protected readonly uiLang = computed<'en' | 'fr'>(() => (this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en'));
   protected readonly searchTerm = signal<string>('');
@@ -83,6 +84,10 @@ export class MetadataComponent implements OnInit {
     effect(() => {
       const path = this.compareService.selectedPage();
       this.selectedNode.set(this.projectState.findNodeByPath(this.projectState.getProject().projectData, path, 'en'));
+      const row = this.rows().find((row) => row.label[this.uiLang()].path === path);
+      if (row) {
+        this.selectedRow.set(row);
+      }
     });
   }
 
@@ -154,6 +159,10 @@ export class MetadataComponent implements OnInit {
     return [25, 50, 100].filter((n) => n < total).concat(total);
   }
 
+  protected updateNodeApproval(node: TreeNode<TreeNodeData>) {
+    if (!node.data) return;
+    this.projectMetadata.approvalStatus(node.data);
+  }
   protected updateApproval(value: boolean, path: string) {
     const nodeData = this.projectState.findNodeByPath(this.projectState.getProject().projectData, path, this.uiLang())?.data;
     if (!nodeData) return;
@@ -164,19 +173,6 @@ export class MetadataComponent implements OnInit {
       nodeData.approved.metadata = undefined;
       this.projectState.setModifiedDate();
     }
-  }
-
-  protected approvalClasses(approved: boolean): string {
-    const isDark = this.settingsService.darkMode();
-    const classes =
-      isDark && approved
-        ? 'hover:bg-green-600 hover:border-green-400 text-green-400'
-        : isDark
-          ? 'hover:bg-red-600 hover:border-red-400 text-red-400'
-          : approved
-            ? 'hover:bg-green-50 hover:border-green-500 text-green-500'
-            : 'hover:bg-red-50 hover:border-red-500 text-red-500';
-    return classes;
   }
 
   protected readonly noPreviewPath = signal<string | null>(null);
@@ -208,6 +204,13 @@ export class MetadataComponent implements OnInit {
     } else {
       return this.isTooLong(content);
     }
+  }
+
+  protected countClasses(content: string, key: string): string {
+    const max = key.startsWith('title') ? 60 : 160;
+    const tooLong = content.length > max;
+    const classes = tooLong ? 'bg-red text-red' : 'bg-green text-green';
+    return classes;
   }
 
   /** Checks if title matches H1 - Double H1 */

@@ -4,19 +4,47 @@
     <div class="flex gap-2 align-items-end">
       <aida-compare-select [compareMode]="'page only'" />
       <aida-project-settings [allowBoth]="true" [showLang]="true" />
+
+      <div class="h-3rem w-full text-red">Test</div>
+      <div class="h-3rem w-full text-green hover:bg-green bg-green">Test</div>
+      <div class="h-3rem w-full text-red bg-red">Test</div>
     </div>
-    @if (selectedNode()) {
-      <h2 class="mb-0">Edit prototype metadata</h2>
+    @if (selectedNode()?.data; as nodeData) {
+      <div class="flex align-items-center gap-3">
+        <div>
+          @if (nodeData.prototype?.[uiLang()]?.doubleH1; as doubleH1) {
+            <p class="m-0">{{ doubleH1 }}</p>
+          }
+          <h2 class="m-0">{{ nodeData.prototype?.[uiLang()]?.h1 }}</h2>
+        </div>
+        @if (selectedRow(); as row) {
+          <div
+            [class.no-preview]="noPreviewPath() === row.label[uiLang()].path"
+            [class]="row.approved ? 'hover:bg-green hover:border-green text-green' : 'hover:bg-red hover:border-red text-red'"
+            (click)="$event.stopPropagation(); noPreviewPath.set(row.label[uiLang()].path); updateApproval(!row.approved, row.label[uiLang()].path)"
+            (keydown.enter)="$event.stopPropagation(); updateApproval(!row.approved, row.label[uiLang()].path)"
+            (mouseenter)="onToggleEnter(row.label[uiLang()].path)"
+            (mouseleave)="noPreviewPath.set(null)"
+            class="flex align-items-center gap-2 p-1 border-round border-1 border-transparent cursor-pointer icon-toggle"
+            tabindex="0"
+          >
+            <i [class]="row.approved ? 'pi-check-circle text-green' : 'pi-circle text-red'" class="icon-current pi text-5xl mt-1"></i>
+            <i [class]="row.approved ? 'pi-circle text-green' : 'pi-check-circle text-red'" class="icon-preview pi text-5xl mt-1"></i>
+            {{ 'metadata.status.' + approvalStatus(row) | translate }}
+          </div>
+        }
+      </div>
+      <h3 class="m-0">Edit prototype metadata</h3>
       <div class="flex gap-2 h-full">
         @if (projectCache.selectedLang() !== 'fr') {
-          @if (selectedNode()?.data?.prototype?.en; as meta) {
+          @if (nodeData.prototype?.en; as meta) {
             <p-fieldset [legend]="'common.language.english' | translate" class="flex-1 flex flex-column" styleClass="flex-1">
               <aida-edit-metadata [meta]="meta" (changed)="onMetaChanged()" />
             </p-fieldset>
           }
         }
         @if (projectCache.selectedLang() !== 'en') {
-          @if (selectedNode()?.data?.prototype?.fr; as meta) {
+          @if (nodeData.prototype?.fr; as meta) {
             <p-fieldset [legend]="'common.language.french' | translate" class="flex-1 flex flex-column" styleClass="flex-1">
               <aida-edit-metadata [meta]="meta" (changed)="onMetaChanged()" />
             </p-fieldset>
@@ -95,7 +123,7 @@
           <td class="border-left-3">
             <div
               [class.no-preview]="noPreviewPath() === row.label[uiLang()].path"
-              [ngClass]="approvalClasses(row.approved)"
+              [class]="row.approved ? 'hover:bg-green hover:border-green text-green' : 'hover:bg-red hover:border-red text-red'"
               (click)="$event.stopPropagation(); noPreviewPath.set(row.label[uiLang()].path); updateApproval(!row.approved, row.label[uiLang()].path)"
               (keydown.enter)="$event.stopPropagation(); updateApproval(!row.approved, row.label[uiLang()].path)"
               (mouseenter)="onToggleEnter(row.label[uiLang()].path)"
@@ -103,19 +131,27 @@
               class="flex align-items-center gap-3 p-1 border-round border-1 border-transparent icon-toggle"
               tabindex="0"
             >
-              <i [class]="row.approved ? 'pi-check-circle text-green-500' : 'pi-circle text-red-500'" class="icon-current pi text-5xl mt-1"></i>
-              <i [class]="row.approved ? 'pi-circle text-green-500' : 'pi-check-circle text-red-500'" class="icon-preview pi text-5xl mt-1"></i>
+              <i [class]="row.approved ? 'pi-check-circle text-green' : 'pi-circle text-red'" class="icon-current pi text-5xl mt-1"></i>
+              <i [class]="row.approved ? 'pi-circle text-green' : 'pi-check-circle text-red'" class="icon-preview pi text-5xl mt-1"></i>
               {{ 'metadata.status.' + approvalStatus(row) | translate }}
             </div>
           </td>
           @for (column of columns(); track column.key) {
-            <td [class.border-left-1]="!column.isGroupStart" [class.border-left-3]="column.isGroupStart">
+            <td [class.border-left-1]="!column.isGroupStart" [class.border-left-3]="column.isGroupStart" class="p-0 min-w-min">
               @if (row[column.key].content === 'noChange') {
-                <span [aidaTooltip]="'common.noChange' | translate" class="flex justify-content-center"><i class="pi pi-minus text-xl text-color-secondary"></i></span>
+                <div class="px-3 py-1 h-2rem border-bottom-1 border-300 white-space-nowrap min-w-max text-center">
+                  {{ 'common.noChange' | translate }}
+                </div>
+                <div [aidaTooltip]="'common.noChange' | translate" class="flex justify-content-center p-3">
+                  <i class="pi pi-minus text-xl text-color-secondary"></i>
+                </div>
               } @else {
-                <span [aidaTooltip]="tooltip(row[column.key].content, row.label, column.key) | translate" [class.text-red-500]="isRed(row[column.key].content, row.label, column.key)">
+                <div [class]="countClasses(row[column.key].content, column.key)" class="px-3 py-1 h-2rem border-bottom-1 border-300 white-space-nowrap min-w-max text-center">
+                  {{ row[column.key].content.length }}/{{ column.key.startsWith('title') ? '60' : '160' }} {{ 'common.characters' | translate }}
+                </div>
+                <div [aidaTooltip]="tooltip(row[column.key].content, row.label, column.key) | translate" [class.text-red]="isRed(row[column.key].content, row.label, column.key)" class="px-3 py-1">
                   {{ row[column.key].content }}
-                </span>
+                </div>
               }
             </td>
           }

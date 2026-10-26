@@ -51,30 +51,30 @@ export class CollaboratorService {
   }
 
   // Add current user to all local projects without collaborators
-  async addCurrentUserToLocalProjects(user: GitHubUser): Promise<void> {
-    //console.log('Adding current user to local projects as collaborator:', user.login);
-
+  async addCurrentUserToLocalProjects(user: GitHubUser): Promise<string[]> {
+    const updatedKeys: string[] = [];
     // Get list of all local projects
     const savedProjects = this.projectStorageService.getLocalProjectList('saved');
     for (const metadata of savedProjects) {
       // Only process projects with empty collaborators
       if (!metadata.collaborators || metadata.collaborators.length === 0) {
-        await this.addUserToProject(metadata.key, user);
+        if (await this.addUserToProject(metadata.key, user)) {
+          updatedKeys.push(metadata.key);
+        }
       }
     }
-
-    //console.log('Finished adding user to local projects');
+    return updatedKeys;
   }
 
   // Add current user to specific project
-  private async addUserToProject(projectKey: string, user: GitHubUser): Promise<void> {
+  private async addUserToProject(projectKey: string, user: GitHubUser): Promise<boolean> {
     try {
       // Load the full project
       const project = await this.projectStorageService.loadProjectData(projectKey, 'local');
 
       if (!project) {
         console.warn(`Could not load project ${projectKey}`);
-        return;
+        return false;
       }
 
       // Add user to collaborators
@@ -86,10 +86,11 @@ export class CollaboratorService {
       localStorage.setItem(projectKey, JSON.stringify(projectToSave)); // Save
       this.projectStorageService.updateLocalProjectList(projectKey, project); // Update local storage list
       this.projectStorageService.projectListVersion.update((v) => v + 1); // Update signal
-
+      return true;
       //console.log(`Added ${user.login} as collaborator to project ${projectKey}`);
     } catch (error) {
       console.error(`Failed to add user to project ${projectKey}:`, error);
+      return false;
     }
   }
 
@@ -172,7 +173,7 @@ export class CollaboratorService {
     const colors = [
       'bg-primary text-white',
       'bg-blue-500 text-white',
-      'bg-green-500 text-white',
+      'bg-green text-white',
       'bg-yellow-500 text-black-alpha-90',
       'bg-cyan-500 text-black-alpha-90',
       'bg-pink-500 text-white',

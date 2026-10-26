@@ -242,7 +242,7 @@ export class IaDiagramComponent {
       this.items[0].items!.push(
         {
           label: this.translate.instant(`iaDiagram.menu.createChild`),
-          icon: 'pi pi-file-plus text-green-500',
+          icon: 'pi pi-file-plus text-green',
           command: () => {
             this.selectedNode = this.projectState.createNode(projectNode);
             this.showNotes = false;
@@ -251,7 +251,7 @@ export class IaDiagramComponent {
         },
         {
           label: this.translate.instant(`iaDiagram.menu.deleteNode`),
-          icon: 'pi pi-trash text-red-500',
+          icon: 'pi pi-trash text-red',
           command: () => {
             this.projectState.deleteNode(projectNode);
           },

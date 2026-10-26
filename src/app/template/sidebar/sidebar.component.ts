@@ -94,7 +94,7 @@ export class SidebarComponent {
       this.confirmationService.confirm({
         target: event?.target as EventTarget,
         message: this.translate.instant('project.new.confirmMessage'),
-        icon: 'pi pi-exclamation-circle text-red-500',
+        icon: 'pi pi-exclamation-circle text-red',
         acceptButtonProps: {
           acceptLabel: this.translate.instant('common.overwrite'),
           severity: 'danger',

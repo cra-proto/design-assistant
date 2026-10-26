@@ -181,7 +181,7 @@ export class MenuProjectComponent {
         key: 'unlock',
         message: this.translate.instant('project.global.unlockMessage', { user: user }),
         header: this.translate.instant('project.global.unlockHeader'),
-        icon: 'pi pi-exclamation-circle text-red-500',
+        icon: 'pi pi-exclamation-circle text-red',
         rejectButtonProps: {
           label: this.translate.instant('common.cancel'),
           severity: 'secondary',

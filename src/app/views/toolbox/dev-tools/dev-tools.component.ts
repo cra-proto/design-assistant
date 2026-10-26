@@ -67,5 +67,6 @@ export class DevToolsComponent {
     marker('common.pending');
     marker('common.new');
     marker('common.problems');
+    marker('common.selected');
   }
 }

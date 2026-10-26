@@ -7,7 +7,7 @@
     </div>
     <!-- Secondary task buttons -->
     <div class="mt-0 lg:mt-3 mb-2 flex lg:flex-column gap-2">
-      <p-button [label]="'iaDiagram.button' | translate" [routerLink]="AidaLinks.ProjectDiagram" outlined size="small" styleClass="secondary-outline w-full min-w-max" />
+      <p-button [label]="'iaDiagram.button' | translate" [routerLink]="AidaLinks.ProjectDiagram" outlined styleClass="secondary-outline w-full min-w-max" />
       <aida-export-project />
     </div>
   </div>
@@ -72,8 +72,8 @@
             </p-iftalabel>
             <!-- Top toolbar - Column settings - Preset buttons -->
             <div class="flex flex-column h-full gap-1">
-              <p-button [label]="'inventory.columnVis.defaultView' | translate" (onClick)="viewDefault()" class="h-full" outlined size="small" styleClass="h-full w-full secondary-outline p-1" />
-              <p-button [label]="'inventory.columnVis.metadataView' | translate" (onClick)="viewMetadata()" class="h-full" outlined size="small" styleClass="h-full w-full secondary-outline p-1" />
+              <p-button [label]="'inventory.columnVis.defaultView' | translate" (onClick)="viewDefault()" class="h-full" outlined styleClass="h-full w-full secondary-outline p-1" />
+              <p-button [label]="'inventory.columnVis.metadataView' | translate" (onClick)="viewMetadata()" class="h-full" outlined styleClass="h-full w-full secondary-outline p-1" />
             </div>
           </div>
         </div>
@@ -130,7 +130,6 @@
         #dt
         dataKey="enPath"
         selectionMode="multiple"
-        size="small"
         stripedRows
       >
         <ng-template pTemplate="header">
@@ -260,7 +259,7 @@
                     <span [aidaTooltip]="expandAll[col.field] ? null : node[col.field]">
                       <ul [class.line-clamp-1]="!isCellExpanded(col.field, rowIndex, col.field)" class="m-0 pl-0 min-w-max" style="list-style-position: inside">
                         @for (item of node[col.field]; track item) {
-                          <li [class.text-red-500]="col.field === 'phoneNumbers' && !isKnownNumber(item)">{{ item }}</li>
+                          <li [class.text-red]="col.field === 'phoneNumbers' && !isKnownNumber(item)">{{ item }}</li>
                         }
                       </ul>
                     </span>
@@ -270,7 +269,6 @@
                         [icon]="isCellExpanded(col.field, rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                         (click)="toggleCell(col.field, rowIndex, col.field)"
                         rounded
-                        size="small"
                         styleClass="-mt-1"
                         text
                       />
@@ -303,7 +301,6 @@
                         [icon]="isCellExpanded('metadata', rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                         (click)="toggleCell('metadata', rowIndex, col.field)"
                         rounded
-                        size="small"
                         styleClass="-mt-1"
                         text
                       />
@@ -328,7 +325,6 @@
                           [icon]="isCellExpanded('notes', rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                           (click)="toggleCell('notes', rowIndex, col.field)"
                           rounded
-                          size="small"
                           styleClass="-mt-1"
                           text
                         />
@@ -406,7 +402,6 @@
                                 [icon]="isCellExpanded('metadata', rowIndex, col.field) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                                 (click)="toggleCell('metadata', rowIndex, col.field)"
                                 rounded
-                                size="small"
                                 text
                               />
                             }
@@ -435,7 +430,6 @@
                       icon="pi pi-external-link"
                       outlined
                       rounded
-                      size="small"
                       styleClass="secondary-outline"
                     />
                   </div>
@@ -466,7 +460,6 @@
                       outlined
                       rounded
                       severity="info"
-                      size="small"
                       styleClass="secondary-outline"
                     >
                       <ng-template pTemplate="icon">
@@ -519,8 +512,8 @@
           <span>{{ item.label }}</span>
         </a>
         <div class="flex flex-row gap-1 mr-2">
-          <p-button [disabled]="item.disabled" (onClick)="handleBoolToggle(item.onYes)" icon="pi pi-check" severity="success" size="small" text />
-          <p-button [disabled]="item.disabled" (onClick)="handleBoolToggle(item.onNo)" icon="pi pi-times" severity="danger" size="small" text />
+          <p-button [disabled]="item.disabled" (onClick)="handleBoolToggle(item.onYes)" icon="pi pi-check" severity="success" text />
+          <p-button [disabled]="item.disabled" (onClick)="handleBoolToggle(item.onNo)" icon="pi pi-times" severity="danger" text />
         </div>
       </div>
     } @else {

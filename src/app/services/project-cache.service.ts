@@ -252,34 +252,58 @@ export class ProjectCacheService {
   private readonly pageEdits = signal<Map<string, PageEditState>>(new Map());
 
   /**
-   * Uses a path to retrieve a PageEditState from the cache
+   * Uses a path to retrieve a PageEditState from the cache or sessionStorage
    */
   public getPageEdit(path: string): PageEditState | undefined {
-    return this.pageEdits().get(path);
+    let editState = this.pageEdits().get(path);
+    if (!editState) {
+      const htmlString = sessionStorage.getItem(path);
+      if (htmlString) {
+        editState = JSON.parse(htmlString) as PageEditState;
+      }
+    }
+    return editState;
   }
 
+  /** Uses a path to save page edits to the undo stack, signal, and session storage */
   public updatePageEdit(path: string, previousBefore: htmlProcessingResult, previousAfter: htmlProcessingResult, newBefore: htmlProcessingResult, newAfter: htmlProcessingResult): void {
     const map = new Map(this.pageEdits());
     const existing = map.get(path);
     const undoStack = existing?.undoStack ?? new DiffUndoStack();
     undoStack.push({ beforeContent: previousBefore, afterContent: previousAfter });
-    map.set(path, { originalHtml: newBefore, modifiedHtml: newAfter, undoStack });
+    const pageEditState = { originalHtml: newBefore, modifiedHtml: newAfter, undoStack };
+    map.set(path, pageEditState);
     this.pageEdits.set(map);
+    //Save to session storage
+    this.setPageEditSession(path, pageEditState);
   }
 
+  /** Undo page edits for a specific path */
   public undoPageEdit(path: string): PageEditState | undefined {
     const map = new Map(this.pageEdits());
     const existing = map.get(path);
     const snapshot = existing?.undoStack.pop();
     if (!existing || !snapshot) return undefined;
-    const updated = { ...existing, originalHtml: snapshot.beforeContent, modifiedHtml: snapshot.afterContent };
-    map.set(path, updated);
+    const pageEditState = { ...existing, originalHtml: snapshot.beforeContent, modifiedHtml: snapshot.afterContent };
+    map.set(path, pageEditState);
     this.pageEdits.set(map);
-    return updated;
+    //Save to session storage
+    this.setPageEditSession(path, pageEditState);
+    return pageEditState;
   }
 
+  /** Get undo stack for a specific path */
   public getPageUndoStack(path: string): DiffUndoStack | undefined {
     return this.pageEdits().get(path)?.undoStack;
+  }
+
+  /** Save PageEditState to session storage */
+  private setPageEditSession(path: string, state: PageEditState): void {
+    try {
+      sessionStorage.setItem(path, JSON.stringify(state));
+    } catch (error) {
+      console.error('Failed to store page edit in sessionStorage.', error);
+    }
   }
 
   // Track AI jobs

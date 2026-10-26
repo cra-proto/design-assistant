@@ -341,19 +341,19 @@ export class InventoryComponent implements OnInit {
     if (!value) return 'pi pi-minus text-gray-400';
 
     const trueIcons: Record<string, string> = {
-      inScope: 'pi pi-check text-green-500',
+      inScope: 'pi pi-check text-green',
       isNew: 'pi pi-plus text-blue-500',
       isMoved: 'pi pi-arrow-right text-orange-500',
-      isROT: 'pi pi-trash text-red-500',
+      isROT: 'pi pi-trash text-red',
       isArchived: 'pi pi-book text-orange-500',
       noindex: 'pi pi-android text-orange-500',
-      isOrphan: 'pi pi-exclamation-circle text-red-500',
+      isOrphan: 'pi pi-exclamation-circle text-red',
       linksToPortal: 'pi pi-external-link text-blue-500',
-      linksToSignIn: 'pi pi-sign-in text-green-500',
+      linksToSignIn: 'pi pi-sign-in text-green',
       hasChatbot: 'pi pi-comments text-blue-500',
     };
 
-    return trueIcons[field] ?? 'pi pi-check text-green-500';
+    return trueIcons[field] ?? 'pi pi-check text-green';
   }
 
   protected getBooleanTooltip(value: boolean, field: string): string {
@@ -922,11 +922,11 @@ export class InventoryComponent implements OnInit {
           },
           {
             label: this.translate.instant('inventory.menu.delete'),
-            styleClass: 'text-red-500',
+            styleClass: 'text-red',
             items: [
               {
                 label: this.translate.instant('inventory.menu.delete.selected', { pageCount: numPages, childCount: numChildPages }),
-                icon: 'pi pi-trash text-red-500',
+                icon: 'pi pi-trash text-red',
                 disabled: numPages === 0,
                 command: () => {
                   this.onDeleteSelected();
@@ -1199,12 +1199,12 @@ export class InventoryComponent implements OnInit {
         if (status !== 'noChange') {
           this.itemsContext.push({
             label: this.translate.instant(`common.accept`),
-            icon: 'pi pi-check text-green-500',
+            icon: 'pi pi-check text-green',
             command: () => (status === 'edited' ? this.saveMetadata(node, col, 'approvedEdits') : this.saveMetadata(node, col, 'approvedAI')),
           });
           this.itemsContext.push({
             label: this.translate.instant(`common.reject`),
-            icon: 'pi pi-trash text-red-500',
+            icon: 'pi pi-trash text-red',
             command: () => this.saveMetadata(node, col, 'rejected'),
           });
         }

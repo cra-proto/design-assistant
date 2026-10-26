@@ -2,14 +2,7 @@
   <h2 class="text-2xl my-1">{{ 'common.viewPages' | translate }}</h2>
 
   <div class="flex flex-row gap-1">
-    <p-button
-      [label]="('common.view' | translate) + ' ' + ('project.urls' | translate)"
-      (click)="showUrls = true"
-      icon="pi pi-list"
-      outlined
-      size="small"
-      styleClass="secondary-outline w-full min-w-max"
-    />
+    <p-button [label]="('common.view' | translate) + ' ' + ('project.urls' | translate)" (click)="showUrls = true" icon="pi pi-list" outlined styleClass="secondary-outline w-full min-w-max" />
     <p-drawer [(visible)]="showUrls" [header]="'common.urls' | translate" appendTo="body" position="right" styleClass="w-6">
       <aida-project-settings [allowBoth]="true" [allowPreview]="true" [showDisplay]="true" [showLang]="true" [showScope]="true" [showSource]="true">
         <p-button
@@ -17,8 +10,7 @@
           (onClick)="copyToClipboard(projectCache.selectedLang())"
           icon="pi pi-copy"
           outlined
-          size="small"
-          styleClass="secondary-outline white-space-nowrap"
+          styleClass="secondary-outline white-space-nowrap h-3rem"
         />
       </aida-project-settings>
       @if (projectCache.selectedLang() === 'both') {
@@ -69,9 +61,9 @@
         </ul>
       }
     </p-drawer>
-    <p-button [label]="'iaDiagram.button' | translate" [routerLink]="AidaLinks.ProjectDiagram" icon="pi pi-sitemap" outlined size="small" styleClass="secondary-outline w-full min-w-max" />
+    <p-button [label]="'iaDiagram.button' | translate" [routerLink]="AidaLinks.ProjectDiagram" icon="pi pi-sitemap" outlined styleClass="secondary-outline w-full min-w-max" />
     @if (showInventory()) {
-      <p-button [label]="'inventory._title' | translate" [routerLink]="AidaLinks.ProjectInventory" icon="pi pi-list-check" outlined size="small" styleClass="secondary-outline w-full min-w-max" />
+      <p-button [label]="'inventory._title' | translate" [routerLink]="AidaLinks.ProjectInventory" icon="pi pi-list-check" outlined styleClass="secondary-outline w-full min-w-max" />
     }
   </div>
 

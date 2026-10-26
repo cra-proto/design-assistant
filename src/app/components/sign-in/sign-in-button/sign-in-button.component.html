@@ -12,7 +12,7 @@
       </ng-template>
     </p-menu>
 
-    <p-button [outlined]="true" (onClick)="menu.toggle($event)" outlined rounded size="small" styleClass="secondary-outline p-1">
+    <p-button [outlined]="true" (onClick)="menu.toggle($event)" outlined rounded styleClass="secondary-outline p-1">
       @if (signInService.user(); as user) {
         <p-avatar [image]="user.avatar_url" shape="circle" />
         <div class="font-semibold pr-2">{{ user.name || user.login }}</div>

@@ -246,7 +246,7 @@ export class CompareSelectComponent implements OnInit {
         },
         {
           label: this.translate.instant('compare.tools.cache.reset'),
-          icon: 'pi pi-trash text-red-500',
+          icon: 'pi pi-trash text-red',
           disabled: this.compareService.loadingAll(),
           command: () => {
             this.projectCache.clearHtmlAndStatusCache();

@@ -4,7 +4,7 @@
       @if (!isHiddenInProd(key) || !prod) {
         @if (style() === 'topic') {
           <div class="col-12 md:col-6 lg:col-4">
-            <div [class.text-red-500]="isHiddenInProd(key)">
+            <div [class.text-red]="isHiddenInProd(key)">
               @if (isExternal(key)) {
                 <a [href]="item.path | translate" target="_blank">
                   <ng-container *ngTemplateOutlet="doormatHeader; context: { $implicit: item.titleKey, external: isExternal(key) }" />
@@ -26,7 +26,7 @@
                     <div class="flex align-items-center">
                       <span [class]="iconClasses(item.notOutlined)">{{ item.icon }}</span>
                     </div>
-                    <div [class.text-red-500]="isHiddenInProd(key)">
+                    <div [class.text-red]="isHiddenInProd(key)">
                       <ng-container *ngTemplateOutlet="doormatHeader; context: { $implicit: item.titleKey, hidden: item.hideInProd }" />
                       <p class="text-color-secondary mt-2">{{ item.descriptionKey | translate }}</p>
                     </div>

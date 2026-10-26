@@ -39,9 +39,9 @@
 
     <div class="flex flex-row xl:flex-column gap-2">
       <!--New-->
-      <p-button [label]="'project._nav.new' | translate" (onClick)="newProject()" icon="pi pi-plus" outlined size="small" styleClass="white-space-nowrap secondary-outline w-full" />
+      <p-button [label]="'project._nav.new' | translate" (onClick)="newProject()" icon="pi pi-plus" outlined styleClass="white-space-nowrap secondary-outline w-full" />
       <!--Import-->
-      <p-button disabled icon="pi pi-upload" label="Import project" outlined size="small" styleClass="white-space-nowrap secondary-outline w-full" />
+      <p-button disabled icon="pi pi-upload" label="Import project" outlined styleClass="white-space-nowrap secondary-outline w-full" />
       <!--RECYCLE BIN-->
       @if (projectStorageService.getLocalProjectList('deleted').length > 0) {
         <p-button
@@ -49,7 +49,6 @@
           [label]="currentMode() === 'deleted' ? ('switch.viewSaved' | translate) : ('switch.viewDeleted' | translate)"
           (onClick)="toggleProjectView()"
           outlined
-          size="small"
           styleClass="white-space-nowrap secondary-outline w-full"
         />
       }

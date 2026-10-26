@@ -24,7 +24,7 @@
         <p-tab value="1"><i class="pi pi-code mr-1"></i>{{ 'compare.tab.source' | translate }}</p-tab>
         <p-tab value="2" (click)="editNode = true" (keydown.enter)="editNode = true"><i class="pi pi-pen-to-square mr-1"></i>{{ 'compare.tab.editNode' | translate }}</p-tab>
         @if (!production) {
-          <p-tab value="3" class="text-red-500"><i class="pi pi-exclamation-triangle mr-1"></i>{{ 'compare.tab.problems' | translate }}</p-tab>
+          <p-tab value="3" class="text-red"><i class="pi pi-exclamation-triangle mr-1"></i>{{ 'compare.tab.problems' | translate }}</p-tab>
         }
       </p-tablist>
       <p-tabpanels class="shadow-1">

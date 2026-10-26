@@ -15,12 +15,12 @@
   <!-- Error (global stats) -->
   @if (error()) {
     <div [class]="styleCardService.cardStyles()" class="flex align-items-center gap-3">
-      <i class="pi pi-exclamation-triangle text-red-500 text-2xl"></i>
+      <i class="pi pi-exclamation-triangle text-red text-2xl"></i>
       <div>
         <p class="font-semibold m-0">{{ 'dev.monitoring.loadError' | translate }}</p>
         <p class="text-600 text-sm m-0">{{ error() }}</p>
       </div>
-      <p-button [label]="'common.retry' | translate" (onClick)="load()" class="ml-auto" icon="pi pi-refresh" outlined size="small" />
+      <p-button [label]="'common.retry' | translate" (onClick)="load()" class="ml-auto" icon="pi pi-refresh" outlined />
     </div>
   }
 
@@ -190,12 +190,12 @@
     <!-- Feature load error -->
     @if (featureItemsError()) {
       <div class="bg-red-50 border-round shadow-2 p-4 flex align-items-center gap-3 mb-3">
-        <i class="pi pi-exclamation-triangle text-red-500 text-2xl"></i>
+        <i class="pi pi-exclamation-triangle text-red text-2xl"></i>
         <div>
           <p class="font-semibold m-0">{{ 'dev.monitoring.loadError' | translate }}</p>
           <p class="text-600 text-sm m-0">{{ featureItemsError() }}</p>
         </div>
-        <p-button [label]="'common.retry' | translate" (onClick)="loadFeature(selectedFeature())" class="ml-auto" icon="pi pi-refresh" outlined size="small" />
+        <p-button [label]="'common.retry' | translate" (onClick)="loadFeature(selectedFeature())" class="ml-auto" icon="pi pi-refresh" outlined />
       </div>
     }
 
@@ -399,7 +399,7 @@
 
     <!-- Refresh -->
     <div class="flex justify-content-end mt-3">
-      <p-button [label]="'common.refresh' | translate" [loading]="loading()" (onClick)="load()" icon="pi pi-refresh" outlined size="small" />
+      <p-button [label]="'common.refresh' | translate" [loading]="loading()" (onClick)="load()" icon="pi pi-refresh" outlined />
     </div>
   </div>
 </div>

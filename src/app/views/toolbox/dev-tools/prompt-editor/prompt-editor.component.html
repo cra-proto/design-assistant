@@ -109,7 +109,7 @@
                       <p-multiselect
                         [(ngModel)]="prompt.promptText.rubric"
                         [id]="prompt.enumKey + '_rubric'"
-                        [options]="rubricOptions"
+                        [options]="rubricOptions()"
                         [placeholder]="'common.none' | translate"
                         (onChange)="updateDiff()"
                         class="h-full"
@@ -117,20 +117,7 @@
                         fluid
                         optionLabel="label"
                         optionValue="value"
-                      >
-                        <ng-template #item let-option>
-                          {{ option.label | translate }}
-                        </ng-template>
-                        <ng-template #selectedItems let-options>
-                          @if (options?.length <= 2) {
-                            @for (option of options; track option.value; let last = $last) {
-                              {{ option.label | translate }}{{ last ? '' : ', ' }}
-                            }
-                          } @else {
-                            {{ options?.length }} {{ 'common.selected' | translate }}
-                          }
-                        </ng-template>
-                      </p-multiselect>
+                      />
                       <label [for]="prompt.enumKey + '_rubric'">{{ 'aiPrompt.component.rubric' | translate }}</label>
                     </p-iftalabel>
                   </div>
@@ -158,7 +145,22 @@
 </p-tabs>
 
 <h2>Test prompt</h2>
-<pre>{{ aiPrompt }}</pre>
+<p-select
+  [group]="true"
+  [ngModel]="selectedPrompt()"
+  [options]="promptGroups"
+  (ngModelChange)="selectedPrompt.set($event)"
+  inputId="promptSelect"
+  optionGroupChildren="items"
+  optionGroupLabel="label"
+  optionLabel="translationKey"
+  styleClass="w-20rem"
+>
+  <ng-template #group let-group>{{ group.label | translate }}</ng-template>
+  <ng-template #selectedItem let-selected>{{ selected.translationKey | translate }}</ng-template>
+  <ng-template #item let-prompt>{{ prompt.translationKey | translate }}</ng-template>
+</p-select>
+<pre>{{ aiPrompt() }}</pre>
 <h2>Test description</h2>
 <p>{{ description }}</p>
 <p-button (click)="testResult()">Test result</p-button>

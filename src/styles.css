@@ -9,8 +9,7 @@
   --z-fixed: 100;
   --aida-border-width: 1.5px;
   --aida-border-width-checked: 2px;
-  --surface-ground: var(--p-zinc-50);
-  --surface-ground-dark: var(--p-zinc-950);
+  --surface-ground: light-dark(var(--p-zinc-50), var(--p-zinc-950));
   --surface-border: light-dark(var(--p-surface-400), var(--p-surface-500)) !important;
   --border-radius: 0.375rem;
 }
@@ -28,10 +27,6 @@ body {
   font-family: var(--body-font);
   font-size: var(--font-size);
   transition: 0.3s;
-}
-
-html.dark-mode body {
-  background-color: var(--surface-ground-dark);
 }
 
 /* ========== Layout ========== */
@@ -223,12 +218,6 @@ font-family: 'Noto Sans';
   -webkit-font-smoothing: antialiased;
 }
 
-/*
-html.dark-mode .p-button.p-button-primary {
-  color: #ffffff;
-}
-*/
-
 /*override accordion style*/
 .p-accordion > .p-accordionpanel {
   box-shadow: none !important;
@@ -241,14 +230,76 @@ html.dark-mode .p-button.p-button-primary {
 .secondary-outline.p-button,
 .secondary-outline .p-inputtext,
 .secondary-outline {
-  border-color: var(--p-zinc-200) !important;
+  border-color: var(--surface-border) !important;
 }
 
-html.dark-mode .secondary-outline .p-splitbutton-button,
-html.dark-mode .secondary-outline .p-splitbutton-dropdown,
-html.dark-mode .secondary-outline.p-button,
-html.dark-mode .secondary-outline {
-  border-color: var(--p-zinc-600) !important;
+/*Theme responsive text colours*/
+.text-red {
+  color: light-dark(var(--p-red-500), var(--p-red-400)) !important;
+}
+
+.text-green {
+  color: light-dark(var(--p-green-500), var(--p-green-400)) !important;
+}
+
+.bg-red {
+  background-color: light-dark(var(--p-red-50), var(--p-red-900)) !important;
+}
+
+.bg-green {
+  background-color: light-dark(var(--p-green-50), var(--p-green-900)) !important;
+}
+
+.bg-red.hover\:bg-red:hover {
+  background-color: light-dark(var(--p-red-100), var(--p-red-800)) !important;
+}
+
+.bg-red.hover\:bg-green:hover {
+  background-color: light-dark(var(--p-green-100), var(--p-green-800)) !important;
+}
+
+.hover\:bg-red:hover {
+  background-color: light-dark(var(--p-red-50), var(--p-red-900)) !important;
+}
+
+.hover\:bg-green:hover {
+  background-color: light-dark(var(--p-green-50), var(--p-green-900)) !important;
+}
+
+.border-red {
+  border-color: light-dark(var(--p-red-500), var(--p-red-400)) !important;
+}
+
+.border-green {
+  border-color: light-dark(var(--p-green-500), var(--p-green-400)) !important;
+}
+
+.hover\:border-red:hover {
+  border-color: light-dark(var(--p-red-500), var(--p-red-400)) !important;
+}
+
+.hover\:border-green:hover {
+  border-color: light-dark(var(--p-green-500), var(--p-green-400)) !important;
+}
+
+.bg-red.text-red,
+.bg-red .text-red {
+  color: light-dark(var(--p-red-800), var(--p-red-100)) !important;
+}
+
+.bg-green.text-green,
+.bg-green .text-green {
+  color: light-dark(var(--p-green-800), var(--p-green-100)) !important;
+}
+
+.hover\:bg-red:hover.text-red,
+.hover\:bg-red:hover .text-red {
+  color: light-dark(var(--p-red-900), var(--p-red-50)) !important;
+}
+
+.hover\:bg-green:hover.text-green,
+.hover\:bg-green:hover .text-green {
+  color: light-dark(var(--p-green-900), var(--p-green-50)) !important;
 }
 
 .border-primary-50 {
@@ -393,20 +444,20 @@ html.dark-mode .secondary-outline {
 }
 
 /*Override message text color in dark mode (not enough contrast)*/
-.dark-mode .p-message-error {
-  color: var(--p-red-400);
+.p-message-error {
+  color: light-dark(var(--p-red-500), var(--p-red-400));
 }
 
-.dark-mode .p-message-success {
-  color: var(--p-green-400);
+.p-message-success {
+  color: light-dark(var(--p-green-500), var(--p-green-400));
 }
 
-.dark-mode .p-message-warn {
-  color: var(--p-yellow-400);
+.p-message-warn {
+  color: light-dark(var(--p-yellow-500), var(--p-yellow-400));
 }
 
-.dark-mode .p-message-info {
-  color: var(--p-blue-400);
+.p-message-info {
+  color: light-dark(var(--p-blue-500), var(--p-blue-400));
 }
 
 .list-unstyled {
@@ -484,7 +535,7 @@ code.custom {
 .p-togglebutton.p-togglebutton-checked {
   border-width: var(--aida-border-width-checked) !important;
   border-color: var(--p-primary-color) !important;
-  background: var(--p-primary-50) !important;
+  background: light-dark(var(--p-primary-50), var(--p-primary-800)) !important;
 }
 
 .p-togglebutton.p-togglebutton-checked:first-child {
@@ -501,24 +552,12 @@ code.custom {
 }
 
 .p-togglebutton:not(.p-togglebutton-checked):not(.p-disabled) .p-togglebutton-content {
-  color: var(--p-zinc-500) !important;
+  border-color: var(--surface-border) !important;
+  color: light-dark(var(--p-surface-600), var(--p-surface-400)) !important;
 }
 
 .p-togglebutton:not(.p-togglebutton-checked):not(.p-disabled) {
-  background: var(--p-zinc-50) !important;
-}
-
-html.dark-mode .p-togglebutton.p-togglebutton-checked {
-  border-color: var(--p-primary-color) !important;
-  background: var(--p-primary-800) !important;
-}
-
-html.dark-mode .p-togglebutton:not(.p-togglebutton-checked):not(.p-disabled) .p-togglebutton-content {
-  color: var(--p-zinc-300) !important;
-}
-
-html.dark-mode .p-togglebutton:not(.p-togglebutton-checked):not(.p-disabled) {
-  background: var(--p-zinc-800) !important;
+  background: var(--p-content-background) !important;
 }
 
 /*Increase other borders so togglebutton doesn't look out of place*/
@@ -683,5 +722,5 @@ p:has(+ h1) {
 }
 
 .surface-border {
-  border-color: light-dark(var(--surface-border), var(--surface-border)) !important;
+  border-color: var(--surface-border) !important;
 }

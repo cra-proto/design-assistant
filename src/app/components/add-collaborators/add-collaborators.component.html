@@ -32,15 +32,7 @@
         <div class="flex flex-row justify-content-between align-items-center">
           {{ 'collaborators.message.notCollab' | translate }}
           @if (getRequestAccessMailto()) {
-            <p-button
-              [label]="'collaborators.button.requestAccess' | translate"
-              (onClick)="openMailto(getRequestAccessMailto())"
-              icon="pi pi-envelope"
-              link
-              severity="secondary"
-              size="small"
-              styleClass="mt-2"
-            />
+            <p-button [label]="'collaborators.button.requestAccess' | translate" (onClick)="openMailto(getRequestAccessMailto())" icon="pi pi-envelope" link severity="secondary" styleClass="mt-2" />
           }
         </div>
       </p-message>
@@ -100,7 +92,7 @@
       </p-avatar-group>
       @if (mode() === 'dashboard') {
         @if (collaboratorService.canEditProject(projectData())) {
-          <p-button [pTooltip]="'collaborators.addCollab' | translate" (onClick)="openShareDialog()" icon="pi pi-share-alt" rounded size="small" text />
+          <p-button [pTooltip]="'collaborators.addCollab' | translate" (onClick)="openShareDialog()" class="-mt-1 mb-1" icon="pi pi-share-alt" rounded text />
         }
         <p-dialog [(visible)]="showShareDialog" [header]="'collaborators.addCollab' | translate" [modal]="true" styleClass="w-12 md:w-8 lg:w-6">
           <ng-container *ngTemplateOutlet="collabAutocomplete; context: { $implicit: addAndCloseShareDialog, onCancel: closeShareDialog }" />
@@ -134,7 +126,6 @@
       (onSelect)="onCollabSelect($event)"
       fluid
       optionLabel="login"
-      size="small"
     >
       <ng-template #item let-collab>
         <div class="flex flex-row gap-2 align-items-center">

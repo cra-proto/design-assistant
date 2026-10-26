@@ -51,8 +51,11 @@ export class AppComponent implements OnInit {
         if (tempUserId.startsWith('user_')) {
           this.usageService.updateUserId(tempUserId, user.id.toString());
         }
-        this.collaboratorService.addCurrentUserToLocalProjects(user).then(() => {
-          this.loadProject();
+        this.collaboratorService.addCurrentUserToLocalProjects(user).then((updatedKeys) => {
+          const active = this.projectStorageService.getActiveProject('session');
+          if (!active || !updatedKeys.includes(active.key)) return;
+          const updated = this.collaboratorService.addCollaborators(this.projectState.getProject(), [user]);
+          this.projectState.setProject(updated, 'update');
         });
       }
     });

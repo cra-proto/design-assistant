@@ -44,14 +44,7 @@
       </div>
       <div class="mt-3 lg:mt-0 flex flex-row lg:flex-column gap-2">
         @if (hasRepoConfig()) {
-          <p-button
-            [label]="'exportPages.settings.changeButton' | translate"
-            (click)="settingsOverlay()?.toggle($event)"
-            icon="pi pi-cog"
-            outlined
-            size="small"
-            styleClass="secondary-outline w-full"
-          />
+          <p-button [label]="'exportPages.settings.changeButton' | translate" (click)="settingsOverlay()?.toggle($event)" icon="pi pi-cog" outlined styleClass="secondary-outline w-full" />
           <p-popover #settingsPopover styleClass="w-full lg:w-30rem">
             <aida-setup-repo mode="baseline" />
             @if (projectData().github.hasBaselineRepo) {
@@ -60,7 +53,7 @@
           </p-popover>
         }
         @if (repoType() === 'github') {
-          <p-button [label]="'exportPages.github.openRepo' | translate" (onClick)="openRepo()" icon="pi pi-external-link" outlined size="small" styleClass="secondary-outline w-full" />
+          <p-button [label]="'exportPages.github.openRepo' | translate" (onClick)="openRepo()" icon="pi pi-external-link" outlined styleClass="secondary-outline w-full" />
         }
       </div>
     </div>
@@ -163,22 +156,13 @@
           <th class="text-xl">
             <span class="flex flex-row align-items-center gap-2">
               {{ 'common.status' | translate }}
-              <p-button
-                [pTooltip]="'exportPages.toggle.default' | translate"
-                (onClick)="compareFiles()"
-                icon="pi pi-file-check"
-                outlined
-                size="small"
-                styleClass="secondary-outline"
-                tooltipPosition="top"
-              />
+              <p-button [pTooltip]="'exportPages.toggle.default' | translate" (onClick)="compareFiles()" icon="pi pi-file-check" outlined styleClass="secondary-outline" tooltipPosition="top" />
               <p-button
                 [pTooltip]="'exportPages.toggle.skipAll' | translate"
                 (onClick)="setAll('skip', 'project')"
                 icon="pi pi-angle-double-right"
                 outlined
                 severity="secondary"
-                size="small"
                 styleClass="secondary-outline"
                 tooltipPosition="top"
               />
@@ -187,7 +171,6 @@
                 (onClick)="setAll('export', 'project')"
                 icon="pi pi-sync"
                 outlined
-                size="small"
                 styleClass="secondary-outline"
                 tooltipPosition="top"
               />
@@ -237,7 +220,6 @@
                   icon="pi pi-angle-double-right"
                   outlined
                   severity="secondary"
-                  size="small"
                   styleClass="secondary-outline"
                   tooltipPosition="top"
                 />
@@ -246,7 +228,6 @@
                   (onClick)="setAll('export', 'template')"
                   icon="pi pi-sync"
                   outlined
-                  size="small"
                   styleClass="secondary-outline"
                   tooltipPosition="top"
                 />

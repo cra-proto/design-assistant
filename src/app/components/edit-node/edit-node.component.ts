@@ -18,8 +18,10 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 
+import { ProjectSettingsComponent } from '../project-settings/project-settings.component';
 import { EditMetadataComponent } from './edit-metadata/edit-metadata.component';
 
+import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
 
 import { DataVersion, SourceVersion, TreeNodeData } from '../../common/data.model';
@@ -43,6 +45,7 @@ import { DataVersion, SourceVersion, TreeNodeData } from '../../common/data.mode
     TagModule,
     TextareaModule,
     EditMetadataComponent,
+    ProjectSettingsComponent,
   ],
   templateUrl: './edit-node.component.html',
   styleUrl: './edit-node.component.css',
@@ -50,6 +53,7 @@ import { DataVersion, SourceVersion, TreeNodeData } from '../../common/data.mode
 })
 export class EditNodeComponent {
   protected readonly projectState = inject(ProjectStateService);
+  protected readonly projectCache = inject(ProjectCacheService);
   private readonly translate = inject(TranslateService);
 
   public readonly node = input.required<TreeNode>();
@@ -87,7 +91,7 @@ export class EditNodeComponent {
       };
       if (open && node?.data) {
         this.originalData.set(structuredClone(node.data));
-        this.selectedVersion.set('prototype');
+        this.projectCache.selectedVersion.set('prototype');
         this.pathEN.set(node.data.path.en.split('/').pop());
         this.pathFR.set(node.data.path.fr.split('/').pop());
         this.autoPath.set({ en: isAuto('en'), fr: isAuto('fr') });
@@ -121,7 +125,7 @@ export class EditNodeComponent {
     this.urlEditsEnabled.set(true);
   }
   protected async refresh() {
-    const version = this.selectedVersion();
+    const version = this.projectCache.selectedVersion();
     const repoType = this.projectState.getProject().repoType === 'github' ? 'GH' : 'UT';
     const urlVersion: SourceVersion = version === 'live' ? 'live' : version === 'prototype' ? `proto${repoType}` : `base${repoType}`;
     this.projectState.refreshing.update((r) => ({ ...r, [version]: true }));
@@ -131,10 +135,10 @@ export class EditNodeComponent {
   }
   protected syncData(node: TreeNode, field: 'template' | 'owner' | 'email' | 'isArchived' | 'noindex', direction: 'ENtoFR' | 'FRtoEN') {
     if (direction === 'ENtoFR') {
-      node.data[this.selectedVersion()].fr[field] = node.data[this.selectedVersion()].en[field];
+      node.data[this.projectCache.selectedVersion()].fr[field] = node.data[this.projectCache.selectedVersion()].en[field];
     }
     if (direction === 'FRtoEN') {
-      node.data[this.selectedVersion()].en[field] = node.data[this.selectedVersion()].fr[field];
+      node.data[this.projectCache.selectedVersion()].en[field] = node.data[this.projectCache.selectedVersion()].fr[field];
     }
   }
 
@@ -251,7 +255,7 @@ export class EditNodeComponent {
 
   //Version-specific warning messages
   protected readonly versionConfig = computed(() => {
-    switch (this.selectedVersion()) {
+    switch (this.projectCache.selectedVersion()) {
       case 'baseline':
         return { severity: 'error', icon: 'pi pi-times-circle font-bold', text: this.translate.instant('editNode.baselineWarning') } as const;
       case 'live':
@@ -263,14 +267,14 @@ export class EditNodeComponent {
 
   //Reset editsEnabled whenever selectedVersion changes
   protected readonly versionWatcher = effect(() => {
-    this.selectedVersion();
+    this.projectCache.selectedVersion();
     this.editsEnabled.set(false);
     this.urlEditsEnabled.set(false);
   });
 
   //Days since refresh
   protected readonly daysSinceRefresh = computed(() => {
-    const data = this.node().data?.[this.selectedVersion()];
+    const data = this.node().data?.[this.projectCache.selectedVersion()];
     if (!data) return null;
 
     const getDays = (lastChecked: string) => {
@@ -279,7 +283,7 @@ export class EditNodeComponent {
       return Math.floor(diff / (1000 * 60 * 60 * 24));
     };
 
-    const lang = this.selectedLanguage();
+    const lang = this.projectCache.selectedLang();
     if (lang === 'en') return getDays(data.en.lastChecked);
     if (lang === 'fr') return getDays(data.fr.lastChecked);
 

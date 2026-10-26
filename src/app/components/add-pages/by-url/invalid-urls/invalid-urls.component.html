@@ -97,7 +97,7 @@
               <span>{{ url.href }}</span>
             </div>
           </div>
-          <p-button [label]="'common.copyNewUrl' | translate" (onClick)="copyToClipboard(url.href)" icon="pi pi-copy" outlined size="small" styleClass="secondary-outline white-space-nowrap h-full" />
+          <p-button [label]="'common.copyNewUrl' | translate" (onClick)="copyToClipboard(url.href)" icon="pi pi-copy" outlined styleClass="secondary-outline white-space-nowrap h-full" />
         </div>
       </div>
     }
@@ -110,7 +110,7 @@
   <p class="text-sm text-color-secondary my-1">{{ 'invalidUrls.blocked.description' | translate }}</p>
   <ul class="my-0 list-none">
     @for (url of urlsBlocked(); track url.href) {
-      <li class="flex align-items-center"><i class="pi pi-ban text-red-500 mr-2"></i>{{ url.href }}</li>
+      <li class="flex align-items-center"><i class="pi pi-ban text-red mr-2"></i>{{ url.href }}</li>
     }
   </ul>
 </ng-template>

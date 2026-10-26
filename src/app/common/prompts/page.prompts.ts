@@ -24,8 +24,7 @@ When thinking of the hierarchy of the headings, apply the following concepts of 
 · If there are multiple tasks on the page, consider which tasks the user needs to complete or understand before they begin another task, and order the headings accordingly.
 · Do not duplicate sections.
 Tone: use an informative tone while addressing the user directly. Phrase headings where possible as tasks the user of the page can complete or learn about in that section.
-Return only updated HTML code with no other commentary. 
-  `,
+Return only updated HTML code with no other commentary.`,
     rubric: [RubricKey.NoCommentary, RubricKey.PreserveHtmlStructure],
     output: OutputKey.Html,
   },
@@ -55,8 +54,7 @@ Doormat examples:
 1. Title: Tax-free savings accounts Description: Tax-free savings accounts, registered savings plans, pooled pension plans, plan administrators.
 2. Title: Apply for a clearance certificate Description: Required for final tax returns, legal representatives, estate executors, outstanding balances.
 3. Title: Renewable energy grants Description: Government grants, solar panel incentives, wind energy funding, green energy initiatives.
-Return only updated HTML code with no other commentary. 
-`,
+Return only updated HTML code with no other commentary.`,
     rubric: [RubricKey.NoCommentary, RubricKey.PreserveHtmlStructure],
     output: OutputKey.Html,
   },
@@ -82,20 +80,21 @@ Make sure to use the inverted pyramid concept when organizing information.
 Examples of using action verbs, preferably at the beginning of your sentences:
 · "Report your business income on line x of the form"
 · "Refer to the guide for more instructions on claiming a deduction"
-Return only updated HTML code with no other commentary. 
-`,
+Return only updated HTML code with no other commentary.`,
     rubric: [RubricKey.NoCommentary, RubricKey.PreserveHtmlStructure],
     output: OutputKey.Html,
   },
   [PagePromptKey.Tense]: {
     role: RoleKey.HTMLeditor,
     task: `Your only task is to rewrite the tense of all human-readable sentences in the HTML content below to {{TARGET_TENSE}} tense.
-#PRESERVE EXACTLY (character-for-character, unchanged):
+
+# PRESERVE EXACTLY (character-for-character, unchanged):
 - All HTML tags, attributes, attribute values, classes, ids, and inline styles
 - All whitespace, line breaks, and indentation
 - URLs, href/src values, code samples, <script>/<style> contents, HTML entities, numbers, dates, proper nouns
 - Direct quotations attributed to a speaker (leave their original tense intact)
-#CONTENT RULES:
+
+# CONTENT RULES:
 - Change verb tense only. Do not reword, rephrase, correct grammar, fix typos, summarize, or expand any sentence beyond what the tense change itself requires.
 - Do not add, remove, or reorder any content, tags, or attributes.
 - If text has no verb or unclear tense (headings, labels, button text, standalone nouns), leave it unchanged.
