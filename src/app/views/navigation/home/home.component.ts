@@ -73,6 +73,7 @@ export class HomeComponent {
 
   constructor() {
     effect(() => {
+      void this.translate.currentLang();
       void this.settingsService.userId();
       void this.settingsService.org();
       this.getTitle();
@@ -82,8 +83,9 @@ export class HomeComponent {
   protected async getTitle() {
     const user = await this.collaboratorService.getLogin(this.settingsService.userId());
     const org = this.settingsService.org();
+    const orgTranslation = org ? this.translate.instant('org.' + org.toLowerCase()) : undefined;
     if (Number.isNaN(Number(user)) && !user.startsWith('user_')) {
       this.title.set(this.translate.instant('home._title.user', { user: user }));
-    } else this.title.set(this.translate.instant('home._title', { org: org }));
+    } else this.title.set(this.translate.instant('home._title', { org: orgTranslation }));
   }
 }
