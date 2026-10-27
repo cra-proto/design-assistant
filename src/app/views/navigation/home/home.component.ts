@@ -83,7 +83,7 @@ export class HomeComponent {
   protected async getTitle() {
     const user = await this.collaboratorService.getLogin(this.settingsService.userId());
     const org = this.settingsService.org();
-    const orgTranslation = org ? this.translate.instant('org.' + org.toLowerCase()) : undefined;
+    const orgTranslation = org ? this.translate.instant('org.' + org.toLowerCase()) : '';
     if (Number.isNaN(Number(user)) && !user.startsWith('user_')) {
       this.title.set(this.translate.instant('home._title.user', { user: user }));
     } else this.title.set(this.translate.instant('home._title', { org: orgTranslation }));
