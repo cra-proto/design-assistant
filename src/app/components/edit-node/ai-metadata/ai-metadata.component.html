@@ -67,7 +67,7 @@
     </p-inputgroup-addon>
     <p-inputgroup-addon>
       <div class="flex flex-column h-full">
-        @if (isActive(meta().description.status)) {
+        @if (isActive(meta().keywords.status)) {
           <p-button
             [disabled]="!isActive(meta().keywords.status)"
             [pTooltip]="'common.accept' | translate"
