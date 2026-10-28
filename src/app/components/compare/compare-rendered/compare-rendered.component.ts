@@ -464,8 +464,9 @@ export class CompareRenderedComponent implements AfterViewInit, OnDestroy {
         //console.log(`Highlighted link: `,link);
         //diff-group
         if (el) {
+          highlighted.querySelectorAll(removeTag).forEach((node) => node.remove());
           unwrap(el);
-          highlighted.remove();
+          unwrap(highlighted);
         }
         //updated-link
         else if (link) {

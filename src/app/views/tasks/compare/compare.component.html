@@ -9,7 +9,7 @@
 <div class="flex flex-column gap-3">
   <div class="flex flex-column xl:flex-row gap-3 min-w-min">
     <div [class.xl:w-6]="showAiTools()" [class]="styleCardService.cardStyles()">
-      <aida-compare-select [compareMode]="mode() === 'compare' ? '2 versions' : '1 version'" />
+      <aida-compare-select [versionsToShow]="mode() === 'compare' ? 2 : 1" />
     </div>
     @if (showAiTools()) {
       <div [class]="styleCardService.cardStyles()" class="xl:w-6">

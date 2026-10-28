@@ -4,7 +4,7 @@
   <div class="flex flex-row gap-1">
     <p-button [label]="('common.view' | translate) + ' ' + ('project.urls' | translate)" (click)="showUrls = true" icon="pi pi-list" outlined styleClass="secondary-outline w-full min-w-max" />
     <p-drawer [(visible)]="showUrls" [header]="'common.urls' | translate" appendTo="body" position="right" styleClass="w-6">
-      <aida-project-settings [allowBoth]="true" [allowPreview]="true" [showDisplay]="true" [showLang]="true" [showScope]="true" [showSource]="true">
+      <aida-project-settings [allowBoth]="true" [allowLive]="true" [allowPreview]="true" [showDisplay]="true" [showLang]="true" [showScope]="true" [showSource]="true">
         <p-button
           [label]="'common.copyUrls' | translate"
           (onClick)="copyToClipboard(projectCache.selectedLang())"

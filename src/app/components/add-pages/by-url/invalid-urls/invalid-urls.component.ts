@@ -8,7 +8,6 @@ import { TreeNode } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
-import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
@@ -23,21 +22,7 @@ import { AddUrlsService } from '../add-urls.service';
 
 @Component({
   selector: 'aida-invalid-urls',
-  imports: [
-    CommonModule,
-    FormsModule,
-    TranslatePipe,
-    BadgeModule,
-    ButtonModule,
-    CheckboxModule,
-    DialogModule,
-    IftaLabelModule,
-    MessageModule,
-    SelectModule,
-    TabsModule,
-    TooltipModule,
-    EditNodeComponent,
-  ],
+  imports: [CommonModule, FormsModule, TranslatePipe, BadgeModule, ButtonModule, CheckboxModule, IftaLabelModule, MessageModule, SelectModule, TabsModule, TooltipModule, EditNodeComponent],
   templateUrl: './invalid-urls.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

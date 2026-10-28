@@ -116,8 +116,6 @@
 </ng-template>
 
 <!-- Edit node popup-->
-<p-dialog [(visible)]="editNode" [header]="selectedNode.data?.prototype?.[currentLang].h1" [maximizable]="true" [modal]="true" [style]="{ height: '90vh' }" styleClass="w-10">
-  @if (selectedNode) {
-    <aida-edit-node [isOpen]="editNode" [node]="selectedNode" (dialogClose)="editNode = false" />
-  }
-</p-dialog>
+@if (selectedNode) {
+  <aida-edit-node [dialogMode]="true" [isOpen]="editNode" [node]="selectedNode" (dialogClose)="editNode = false" />
+}

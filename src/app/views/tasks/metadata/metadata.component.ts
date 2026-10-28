@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, OnInit, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
@@ -10,17 +10,21 @@ import { FieldsetModule } from 'primeng/fieldset';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { Table, TableModule } from 'primeng/table';
 
 import { CompareSelectComponent } from '../../../components/compare/compare-select/compare-select.component';
+import { AiMetadataComponent } from '../../../components/edit-node/ai-metadata/ai-metadata.component';
 import { EditMetadataComponent } from '../../../components/edit-node/edit-metadata/edit-metadata.component';
+import { MenuBulkPageActionsComponent } from '../../../components/menu-bulk-page-actions/menu-bulk-page-actions.component';
 import { ProjectSettingsComponent } from '../../../components/project-settings/project-settings.component';
 
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { FlattenedMetadata, LabelItem, ProjectMetadataService, TableItem } from '../../../services/project-metadata.service';
-import { ProjectStateService } from '../../../services/project-state.service';
+import { LoadingTypes, ProjectStateService } from '../../../services/project-state.service';
 import { StyleCardService } from '../../../services/style-card.service';
+import { StyleTreeNodeService } from '../../../services/style-treenode.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
 import { CompareService } from '../compare/compare.service';
 
@@ -35,12 +39,11 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
  * Used to track if changes are planned in prototype and updates automatically when those changes go live
  *
  * TODO:
- ** add multi-page action menu and link checkboxes to refreshing data, generating metadata, adjusted status, and deletions,
- ** add single-page action menu to select a page section for refreshing data and generating metadata,
- ** add single-page action menu to table for editing node data, AI suggestions, and opening in new tab
- ** add legend for color-coding
- ** add a "confirm no changes" option and a count of how many metadatas [need to be reviewed / total] & [updated on Canada.ca / total planned updates]
- ** add a tag for the approval status
+ ** add single-page action menu to: refresh prototype/live, generate metadata, update status, edit node data, open in AI suggestions, open in new tab
+ ** put single-page action menu next to table checkbox AND in single page editor (have 2 button styles)
+ ** reorganize controls into more logical groups
+ ** add export changed fields for translation
+ ** add import translations???
  *
  */
 @Component({
@@ -53,9 +56,12 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
     IconFieldModule,
     InputIconModule,
     InputTextModule,
+    ProgressBarModule,
     TableModule,
+    AiMetadataComponent,
     CompareSelectComponent,
     EditMetadataComponent,
+    MenuBulkPageActionsComponent,
     ProjectSettingsComponent,
     TooltipDirective,
   ],
@@ -66,18 +72,39 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
 export class MetadataComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   protected readonly styleCardService = inject(StyleCardService);
-  private readonly projectState = inject(ProjectStateService);
+  private readonly styleTreeNodeService = inject(StyleTreeNodeService);
+  protected readonly projectState = inject(ProjectStateService);
   protected readonly projectMetadata = inject(ProjectMetadataService);
   protected readonly projectCache = inject(ProjectCacheService);
   private readonly compareService = inject(CompareService);
   private readonly fetchService = inject(FetchService);
   private readonly settingsService = inject(UserSettingsService);
 
+  private readonly host = inject(ElementRef<HTMLElement>);
+  protected readonly stuckX = signal(false);
+  protected readonly stuckY = signal(false);
+
+  /* TreeNode selected in page dropdown */
   protected readonly selectedNode = signal<TreeNode<TreeNodeData> | null>(null);
+  /* Row associated with selected TreeNode */
   protected readonly selectedRow = signal<FlattenedMetadata | null>(null);
-  protected readonly selectedNodes: FlattenedMetadata[] = [];
+
+  /* Rows selected in table */
+  protected readonly selectedRows = signal<FlattenedMetadata[]>([]);
+  /* TreeNodes associated to selected table rows (for bulk action dropdown) */
+  protected readonly selectedNodes = computed(() => {
+    return this.projectState.findNodesByPaths(
+      this.projectState.getProject().projectData,
+      this.selectedRows().map((r) => r.label[this.uiLang()].path),
+      this.uiLang(),
+    );
+  });
+
+  /* Current UI language */
   protected readonly uiLang = computed<'en' | 'fr'>(() => (this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en'));
+  /* Search term for filtering table rows */
   protected readonly searchTerm = signal<string>('');
+  /* Reference to data table */
   protected readonly dt = viewChild.required<Table>('dt');
 
   constructor() {
@@ -89,6 +116,33 @@ export class MetadataComponent implements OnInit {
         this.selectedRow.set(row);
       }
     });
+    effect(() => {
+      const byPath = new Map(this.rows().map((row) => [row.label.en.path, row]));
+      untracked(() => {
+        this.selectedRows.set(
+          this.selectedRows()
+            .map((row) => byPath.get(row.label.en.path))
+            .filter((row): row is FlattenedMetadata => !!row),
+        );
+      });
+    });
+    const update = () => {
+      const el = this.host.nativeElement as HTMLElement;
+      const th = el.querySelector<HTMLElement>('th.sticky-table-column');
+      if (!th) return;
+      const rect = th.getBoundingClientRect();
+      const style = getComputedStyle(th);
+      this.stuckX.set(rect.left <= (parseFloat(style.left) || 0) + 0.5);
+      this.stuckY.set(rect.top <= (parseFloat(style.top) || 0) + 0.5);
+    };
+
+    // capture: scroll events from ancestor containers don't bubble to window
+    document.addEventListener('scroll', update, { capture: true, passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    inject(DestroyRef).onDestroy(() => {
+      document.removeEventListener('scroll', update, { capture: true });
+      window.removeEventListener('resize', update);
+    });
   }
 
   ngOnInit() {
@@ -96,6 +150,19 @@ export class MetadataComponent implements OnInit {
   }
 
   protected onMetaChanged() {
+    this.projectState.setModifiedDate();
+  }
+
+  protected onMetaAccepted(lang: 'en' | 'fr', emitted: { field: 'description' | 'keywords'; value: string }) {
+    const nodeData = this.selectedNode()?.data;
+    const proto = nodeData?.prototype;
+    if (!proto) return;
+
+    nodeData.prototype = {
+      ...proto,
+      [lang]: { ...proto[lang], [emitted.field]: emitted.value },
+    };
+
     this.projectState.setModifiedDate();
   }
 
@@ -110,14 +177,21 @@ export class MetadataComponent implements OnInit {
     if (this.projectCache.selectedFilter() === 'all') return rows;
 
     const keys = this.columns()
-      .map((c) => c.key)
-      .filter((k) => k.endsWith('Live') || k.endsWith('Proto'));
+      .map((col) => col.key)
+      .filter((key) => key.endsWith('Live') || key.endsWith('Proto'));
 
     return rows.filter((row) => {
       const r = row as unknown as Record<string, TableItem>;
       return keys.some((key) => r[key].content !== 'noChange');
     });
   });
+
+  /** Approved rows */
+  protected readonly approvedRows = computed(() => this.rows().filter((row) => row.approved === true).length);
+  /** Pending updates rows */
+  protected readonly liveChangesRows = computed(() => this.rows().filter((row) => this.approvalStatus(row) === 'changeLive').length);
+  /** Total updated rows */
+  protected readonly changedRows = computed(() => this.rows().filter((row) => this.approvalStatus(row).startsWith('change')).length);
 
   /** Column keys, groups, version, & an indicator for first column in group */
   protected readonly columns = computed(() => {
@@ -134,10 +208,14 @@ export class MetadataComponent implements OnInit {
 
     const columns = Object.entries(first).filter(([key]) => prefixes.some((p) => key.startsWith(p)));
 
+    const versionType = (key: string): LoadingTypes | null =>
+      key.endsWith('Base') ? 'baseline' : key.endsWith('Proto') ? 'prototype' : key.endsWith('Live') ? 'live' : key.endsWith('Ai') ? 'aiMetadata' : null;
+
     return columns.map(([key, cell], i) => ({
       key,
       group: cell.group,
       version: cell.version,
+      type: versionType(key),
       isGroupStart: i === 0 || columns[i - 1][1].group !== cell.group,
     }));
   });
@@ -234,6 +312,32 @@ export class MetadataComponent implements OnInit {
 
   // Filter on currently visible columns plus h1, double h1, and path
   protected readonly filterFields = computed(() => [`label.${this.uiLang()}.h1`, `label.${this.uiLang()}.doubleH1`, `label.${this.uiLang()}.path`, ...this.columns().map((c) => `${c.key}.content`)]);
+
+  /** Legend for table colour-coding: new page, page move, & unpublish */
+  protected get legendItems() {
+    const items: { context: string[]; text: string }[] = [];
+    const tree = this.projectState.getProject().projectData;
+    if (tree.length === 0) return items;
+
+    const allColours = this.styleTreeNodeService.contextStyles;
+
+    const hasNew = this.projectState.findNodeWhere(tree, (node) => node.data?.status?.isNew === true) !== null;
+    const hasMoves = this.projectState.findNodeWhere(tree, (node) => node.data?.status?.isMoved === true) !== null;
+    const hasROT = this.projectState.findNodeWhere(tree, (node) => node.data?.status?.isROT === true) !== null;
+
+    if (this.projectCache.selectedViewIA() === 'changes') {
+      if (hasNew) {
+        items.push({ context: [allColours['new'].replace('border-dashed', '')], text: this.translate.instant('editNode.isNew') });
+      }
+      if (hasMoves) {
+        items.push({ context: [allColours['move'].replace('border-dashed', '')], text: this.translate.instant('editNode.isMoved') });
+      }
+      if (hasROT) {
+        items.push({ context: [allColours['rot'].replace('border-dashed', '')], text: this.translate.instant('editNode.isROT') });
+      }
+    }
+    return items;
+  }
 
   markForTranslation() {
     marker('metadata.status.changePendingReview');

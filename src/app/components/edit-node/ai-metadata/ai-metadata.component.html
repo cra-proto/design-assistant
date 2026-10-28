@@ -1,0 +1,96 @@
+<div class="flex flex-column gap-1">
+  <p-inputgroup>
+    <p-iftalabel>
+      <textarea
+        [disabled]="disabled()"
+        [id]="'description-' + lang()"
+        [ngModel]="description()"
+        (ngModelChange)="onEdit('description', $event)"
+        class="secondary-outline block"
+        autoResize="true"
+        fluid
+        pTextarea
+        rows="1"
+        variant="outlined"
+      ></textarea>
+      <label [for]="'description-' + lang()">{{ 'editNode.description.ai' | translate }}</label>
+    </p-iftalabel>
+    <p-inputgroup-addon [styleClass]="statusClasses(this.meta().description.status)">
+      {{ 'editNode.status.' + this.meta().description.status | translate }}
+    </p-inputgroup-addon>
+    <p-inputgroup-addon>
+      <div class="flex flex-column h-full">
+        @if (isActive(meta().description.status)) {
+          <p-button
+            [disabled]="!isActive(meta().description.status)"
+            [pTooltip]="'common.accept' | translate"
+            (onClick)="onAccept('description')"
+            class="h-full"
+            icon="pi pi-check"
+            severity="success"
+            styleClass="py-1"
+          />
+          <p-button
+            [disabled]="!isActive(meta().description.status)"
+            [pTooltip]="'common.reject' | translate"
+            (onClick)="onReject('description')"
+            class="h-full"
+            icon="pi pi-times"
+            severity="danger"
+            styleClass="py-1"
+          />
+        } @else {
+          <p-button [pTooltip]="'common.reset' | translate" (onClick)="onReset('description')" class="h-full" icon="pi pi-undo" severity="secondary" styleClass="py-1" />
+        }
+      </div>
+    </p-inputgroup-addon>
+    <p-inputgroup-addon [styleClass]="addonClasses(descriptionLength() > 160)">{{ descriptionLength() }}/160</p-inputgroup-addon>
+  </p-inputgroup>
+  <p-inputgroup>
+    <p-iftalabel>
+      <textarea
+        [disabled]="disabled()"
+        [id]="'keywords-' + lang()"
+        [ngModel]="keywords()"
+        (ngModelChange)="onEdit('keywords', $event)"
+        class="secondary-outline block"
+        autoResize="true"
+        fluid
+        pTextarea
+        rows="1"
+        variant="outlined"
+      ></textarea>
+      <label [for]="'keywords-' + lang()">{{ 'editNode.keywords.ai' | translate }}</label>
+    </p-iftalabel>
+    <p-inputgroup-addon [styleClass]="statusClasses(this.meta().keywords.status)">
+      {{ 'editNode.status.' + this.meta().keywords.status | translate }}
+    </p-inputgroup-addon>
+    <p-inputgroup-addon>
+      <div class="flex flex-column h-full">
+        @if (isActive(meta().description.status)) {
+          <p-button
+            [disabled]="!isActive(meta().keywords.status)"
+            [pTooltip]="'common.accept' | translate"
+            (onClick)="onAccept('keywords')"
+            class="h-full"
+            icon="pi pi-check"
+            severity="success"
+            styleClass="py-1"
+          />
+          <p-button
+            [disabled]="!isActive(meta().keywords.status)"
+            [pTooltip]="'common.reject' | translate"
+            (onClick)="onReject('keywords')"
+            class="h-full"
+            icon="pi pi-times"
+            severity="danger"
+            styleClass="py-1"
+          />
+        } @else {
+          <p-button [pTooltip]="'common.reset' | translate" (onClick)="onReset('keywords')" class="h-full" icon="pi pi-undo" severity="secondary" styleClass="py-1" />
+        }
+      </div>
+    </p-inputgroup-addon>
+    <p-inputgroup-addon [styleClass]="addonClasses(keywordsLength() > 160)">{{ keywordsLength() }}/160</p-inputgroup-addon>
+  </p-inputgroup>
+</div>

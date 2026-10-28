@@ -7,6 +7,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TreeNode } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
 import { FieldsetModule } from 'primeng/fieldset';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputGroupModule } from 'primeng/inputgroup';
@@ -14,7 +15,6 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
-import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 
@@ -26,6 +26,7 @@ import { ProjectStateService } from '../../services/project-state.service';
 
 import { DataVersion, SourceVersion, TreeNodeData } from '../../common/data.model';
 
+//TODO: FIX VERSION CONTEXT SINCE SOME CALLING COMPONENTS DO NOT ALLOW PROTOTYPE
 @Component({
   selector: 'aida-edit-node',
   imports: [
@@ -34,13 +35,13 @@ import { DataVersion, SourceVersion, TreeNodeData } from '../../common/data.mode
     TranslatePipe,
     ButtonModule,
     CheckboxModule,
+    DialogModule,
     FieldsetModule,
     IftaLabelModule,
     InputGroupAddonModule,
     InputGroupModule,
     InputTextModule,
     MessageModule,
-    SelectButtonModule,
     SelectModule,
     TagModule,
     TextareaModule,
@@ -56,6 +57,7 @@ export class EditNodeComponent {
   protected readonly projectCache = inject(ProjectCacheService);
   private readonly translate = inject(TranslateService);
 
+  public readonly dialogMode = input<boolean>(false);
   public readonly node = input.required<TreeNode>();
   public readonly isOpen = input<boolean>(false);
   public readonly initialShowNotes = input<boolean>(false);
@@ -73,6 +75,8 @@ export class EditNodeComponent {
   protected readonly editsEnabled = signal<boolean>(false);
   protected readonly urlEditsEnabled = signal<boolean>(false);
   protected readonly toggleNotes = signal<boolean>(this.initialShowNotes());
+  /* Current UI language */
+  protected readonly uiLang = computed<'en' | 'fr'>(() => (this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en'));
 
   private readonly DEFAULT_H1 = { en: 'New page', fr: 'Nouvelle page' };
 

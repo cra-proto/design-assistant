@@ -569,7 +569,7 @@ export class IaDiagramComponent {
   get hasIaOrphan() {
     const tree = this.projectTree();
     if (tree.length === 0 || this.projectCache.selectedDisplayIA() === 'list') return false;
-    const lang = this.projectCache.selectedLang() ?? 'en';
+    const lang = this.projectCache.selectedLang() === 'both' ? this.projectState.detectPrimaryLanguage() : (this.projectCache.selectedLang() ?? 'en');
     return this.projectState.findNodeWhere(tree, (node) => node.data?.live?.[lang].isOrphan === true) !== null;
   }
 }

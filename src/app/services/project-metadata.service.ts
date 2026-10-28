@@ -11,7 +11,7 @@ import { DataVersion, TreeNodeData } from '../common/data.model';
 
 export interface TableItem {
   group: string;
-  version: DataVersion | 'ai';
+  version: DataVersion | 'aiMetadata';
   content: string;
 }
 

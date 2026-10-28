@@ -17,6 +17,7 @@
     @if (webSelectedView() === WebViewType.Diff) {
       <div class="flex flex-row align-items-center gap-2">
         <div class="flex flex-nowrap align-items-center">
+          <p class="white-space-nowrap m-0 font-semibold">{{ 'common.forReview' | translate }}</p>
           <p-button
             [ariaLabel]="'compare.rendered.prev' | translate"
             [pTooltip]="'compare.rendered.prev' | translate"

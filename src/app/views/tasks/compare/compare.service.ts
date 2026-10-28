@@ -18,7 +18,7 @@ export class CompareService {
   public readonly modifiedHtml = signal<htmlProcessingResult | undefined>(undefined);
 
   // User selections & defaults: version selection
-  public readonly selectedPage = signal('');
+  public readonly selectedPage = signal<string>('');
   public readonly selectedBefore = signal<SourceVersion>('live');
   public readonly selectedAfter = signal<SourceVersion>('protoGH');
   public readonly selectedSource = signal<SourceVersion>('live');

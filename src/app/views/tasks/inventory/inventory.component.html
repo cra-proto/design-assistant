@@ -85,7 +85,14 @@
         <!-- Bulk actions toolbar - # selected pages -->
         <p>{{ selectedNodes.length }} pages selected</p>
         <!-- Bulk actions toolbar - Actions -->
-        <p-button [label]="'common.actions' | translate" (onClick)="updateDropdown('actions'); menu.toggle($event)" icon="pi pi-chevron-down" iconPos="right" outlined styleClass="secondary-outline" />
+        <p-button
+          [label]="'common.bulkActions' | translate"
+          (onClick)="updateDropdown('actions'); menu.toggle($event)"
+          icon="pi pi-chevron-down"
+          iconPos="right"
+          outlined
+          styleClass="secondary-outline"
+        />
         <!-- Bulk actions toolbar - View -->
         <p-button
           [label]="'common.view' | translate"
@@ -527,10 +534,8 @@
 <!--Context Menus-->
 <p-contextmenu [model]="itemsContext" #menuContext />
 <!-- Edit node popup-->
-<p-dialog [(visible)]="editNode" [header]="selectedNode?.data?.prototype?.[currentLang]?.h1" [maximizable]="true" [modal]="true" [style]="{ height: '90vh' }" styleClass="w-10">
-  @if (selectedNode) {
-    <aida-edit-node [isOpen]="editNode" [node]="selectedNode" (dialogClose)="editNode = false" />
-  }
-</p-dialog>
+@if (selectedNode) {
+  <aida-edit-node [dialogMode]="true" [isOpen]="editNode" [node]="selectedNode" (dialogClose)="editNode = false" />
+}
 <!--Confirm deletion-->
 <p-confirmdialog key="inventory" />

@@ -19,6 +19,9 @@ export class ProjectSettingsComponent {
   private readonly projectState = inject(ProjectStateService);
   private readonly translate = inject(TranslateService);
 
+  /** Set to false on parent component if a dialog is open */
+  public readonly active = input<boolean>(true);
+
   public readonly showLang = input(false);
   public readonly allowBoth = input(false);
 
@@ -43,27 +46,34 @@ export class ProjectSettingsComponent {
 
   constructor() {
     effect(() => {
+      console.log('lang effect', this.active(), this.allowBoth(), this.projectCache.selectedLang());
+
+      if (!this.active()) return;
       if (!this.allowBoth() && this.projectCache.selectedLang() === 'both') {
         this.projectCache.selectedLang.set(this.projectState.detectPrimaryLanguage()); // fallback to project default
       }
     });
     effect(() => {
+      if (!this.active()) return;
       if (!this.allowLive() && this.projectCache.selectedVersion() === 'live') {
         this.projectCache.selectedVersion.set('prototype'); // fallback to prototype if live was selected and not available
       }
     });
     effect(() => {
+      if (!this.active()) return;
       const isPrototype = this.isPrototype();
       if (isPrototype) {
         this.projectCache.selectedVersion.set('prototype'); // fallback to prototype when it's the only option
       }
     });
     effect(() => {
+      if (!this.active()) return;
       if (!this.allowPreview() && this.projectCache.selectedSource() === 'preview') {
         this.projectCache.selectedSource.set('live'); // fallback to live if preview was selected and not available
       }
     });
     effect(() => {
+      if (!this.active()) return;
       const validValues = this.sourceOptions.map((opt) => opt.value);
       if (!validValues.includes(this.projectCache.selectedSource())) {
         this.projectCache.selectedSource.set('live');

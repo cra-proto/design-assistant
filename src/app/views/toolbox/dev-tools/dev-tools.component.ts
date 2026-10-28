@@ -68,5 +68,10 @@ export class DevToolsComponent {
     marker('common.new');
     marker('common.problems');
     marker('common.selected');
+    //Orgs
+    marker('org._');
+    marker('org.cra');
+    marker('org.test');
+    marker('org.admin');
   }
 }

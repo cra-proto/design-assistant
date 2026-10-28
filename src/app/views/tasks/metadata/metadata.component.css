@@ -88,3 +88,47 @@ th {
 .icon-toggle:not(.no-preview):hover .icon-preview {
   display: inline-block;
 }
+
+/* Shadow when sticky content is stuck */
+.sticky-table::before,
+.sticky-table::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+/* Right edge of the sticky column */
+.sticky-table-column::after {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 8px;
+  transform: translateX(100%);
+  background: linear-gradient(to right, rgb(0 0 0 / 0.16), transparent);
+}
+
+/* Bottom edge of the sticky headers */
+.sticky-table-header::before,
+.sticky-table-group-header[rowspan='2']::before {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 8px;
+  transform: translateY(100%);
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0.16), transparent);
+}
+
+.stuck-x .sticky-table-column::after,
+.stuck-y .sticky-table-header::before,
+.stuck-y .sticky-table-group-header[rowspan='2']::before {
+  opacity: 1;
+}
+
+.legend-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}

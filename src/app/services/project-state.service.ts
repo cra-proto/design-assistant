@@ -35,6 +35,7 @@ import {
 import { STOP_WORDS } from '../common/url-word-exclusions.config';
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
+export type LoadingTypes = 'baseline' | 'prototype' | 'live' | 'aiMetadata' | 'aiEdit';
 
 /*
 Should contain:
@@ -109,6 +110,53 @@ export class ProjectStateService {
     live: false,
     baseline: false,
   });
+
+  /* Stores loading state for data refresh & ai content generation */
+  private readonly loadingKeys = signal<ReadonlySet<string>>(new Set());
+
+  /* Get loading state for a path and type (prototype, live, baseline, aiMetadata, aiEdits) */
+  isLoading(path: string, type: LoadingTypes): boolean {
+    return this.loadingKeys().has(`${path}|${type}`);
+  }
+
+  /* Get loading state for a type, any path (prototype, live, baseline, aiMetadata, aiEdits) */
+  isAnyLoading(type: LoadingTypes): boolean {
+    const suffix = `|${type}`;
+    for (const key of this.loadingKeys()) {
+      if (key.endsWith(suffix)) return true;
+    }
+    return false;
+  }
+
+  /** Set separate loading states for a set of paths
+   *
+   * Refresh state: prototype, live, or baseline
+   *
+   * AI generation state: aiMetadata, aiEdits
+   */
+  setLoading(paths: string[], type: LoadingTypes, on: boolean): void {
+    this.loadingKeys.update((prev) => {
+      const next = new Set(prev);
+      for (const p of paths) {
+        if (on) next.add(`${p}|${type}`);
+        else next.delete(`${p}|${type}`);
+      }
+      return next;
+    });
+  }
+
+  /** Manages loading state for a set of paths (sets to true at start of fxn and finally false)
+   *
+   * Use like this: await this.projectState.withLoading([data.path.en], version, async () => { //existing function body });
+   */
+  async withLoading<T>(paths: string[], type: LoadingTypes, fn: () => Promise<T>): Promise<T> {
+    this.setLoading(paths, type, true);
+    try {
+      return await fn();
+    } finally {
+      this.setLoading(paths, type, false);
+    }
+  }
 
   constructor() {
     // Autosave after a delay if there are changes
@@ -527,6 +575,38 @@ export class ProjectStateService {
       }
     }
     return null;
+  }
+
+  /*Retrieve both English and French paths for a given path*/
+  public getBothPaths(path: string): { en: string; fr: string } | null {
+    const lang = this.fetchService.getLang(path);
+    if (!lang) return null;
+    for (const node of this.project().projectData) {
+      const found = node.data.path[lang] === path ? node : node.children ? this.findNodeByPath(node.children, path, lang) : null;
+      if (found) return { en: found.data.path.en, fr: found.data.path.fr };
+    }
+    return null;
+  }
+
+  //TreeNode lookup for multiple nodes
+  public findNodesByPaths(nodes: TreeNode[], paths: string[], lang: 'en' | 'fr' = 'en'): TreeNode<TreeNodeData>[] {
+    const remaining = new Set(paths);
+    const result: TreeNode[] = [];
+
+    const walk = (list: TreeNode[]) => {
+      for (const node of list) {
+        if (remaining.size === 0) return;
+        const p = node.data.path[lang];
+        if (remaining.has(p)) {
+          result.push(node);
+          remaining.delete(p);
+        }
+        if (node.children) walk(node.children);
+      }
+    };
+
+    walk(nodes);
+    return result;
   }
 
   // Get project state for saving (with circular references removed)
@@ -1152,7 +1232,7 @@ export class ProjectStateService {
       .replace(/\.{2,}/g, '.'); // collapse repeated periods
   }
 
-  public deleteNodes(selectedPages: FlattenedTreeNode[], canDeleteRoot = false) {
+  public deleteFlatNodes(selectedPages: FlattenedTreeNode[], canDeleteRoot = false) {
     const projectTree = this.getProjectTree();
     const lang = this.detectPrimaryLanguage();
 
@@ -1229,6 +1309,31 @@ export class ProjectStateService {
     return additionalPages;
   }
 
+  /** Checks node deletion impact */
+  public checkNodeDeletionImpact(selectedNodes: TreeNode<TreeNodeData>[]): { url: string; h1: string; inScope: boolean }[] {
+    const lang = this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en';
+    const selectedUrls = new Set(selectedNodes.map((node) => node.data?.path[lang]));
+    const additionalPages: { url: string; h1: string; inScope: boolean }[] = [];
+
+    for (const node of selectedNodes) {
+      if (!node) continue;
+
+      const descendants = this.collectAllDescendants(node);
+      for (const desc of descendants) {
+        const url = desc.data?.path[lang];
+        if (url && !selectedUrls.has(url)) {
+          additionalPages.push({
+            url,
+            h1: desc.data?.prototype?.[lang].h1 ?? '',
+            inScope: desc.data?.status.inScope ?? false,
+          });
+          selectedUrls.add(url);
+        }
+      }
+    }
+    return additionalPages;
+  }
+
   /** Return all nodes under the specified parent node (used to check if child pages will be deleted during a delete operation) */
   private collectAllDescendants(node: TreeNode<TreeNodeData>): TreeNode<TreeNodeData>[] {
     const descendants: TreeNode<TreeNodeData>[] = [];
@@ -1253,7 +1358,13 @@ export class ProjectStateService {
     return node.children.flatMap((child) => this.getNodesAtRelativeDepth(child, depth - 1));
   }
 
-  deleteNode(nodeToDelete: TreeNode) {
+  public deleteNodes(nodesToDelete: TreeNode<TreeNodeData>[]) {
+    for (const node of nodesToDelete) {
+      this.deleteNode(node);
+    }
+  }
+
+  public deleteNode(nodeToDelete: TreeNode) {
     const projectTree = this.getProjectTree();
 
     // Root-level
@@ -1324,179 +1435,182 @@ export class ProjectStateService {
     const sourceType = source.endsWith('UT') ? 'local' : source.endsWith('GH') ? 'github' : 'live';
     const data = node.data as TreeNodeData;
     const { owner, repo, branch } = this.project().github;
-    // URLs to fetch content from
-    const enUrl = this.fetchService.generateUrl(data.path.en, source, owner, repo);
-    const frUrl = this.fetchService.generateUrl(data.path.fr, source, owner, repo);
-    console.log(`Refreshing ${enUrl}`);
-    // Live URLs for json, airtable & UPD lookups
-    const liveEnUrl = this.fetchService.generateUrl(data.path.en, 'live');
-    const liveFrUrl = this.fetchService.generateUrl(data.path.fr, 'live');
-    // Load UPD, Airtable, & vanity data
-    await this.updService.fetchData();
-    await this.airtableService.fetchTasks();
-    await this.vanityService.fetchData();
 
-    // Fetch EN
-    if (enUrl) {
-      try {
-        const doc = sourceType !== 'local' ? await this.fetchService.fetchContent(enUrl, 'both', 2, 'none') : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(enUrl));
-        const pageData = await this.fetchService.extractPageMetadata(doc, enUrl);
+    await this.withLoading([data.path.en], version, async () => {
+      // URLs to fetch content from
+      const enUrl = this.fetchService.generateUrl(data.path.en, source, owner, repo);
+      const frUrl = this.fetchService.generateUrl(data.path.fr, source, owner, repo);
+      console.log(`Refreshing ${enUrl}`);
+      // Live URLs for json, airtable & UPD lookups
+      const liveEnUrl = this.fetchService.generateUrl(data.path.en, 'live');
+      const liveFrUrl = this.fetchService.generateUrl(data.path.fr, 'live');
+      // Load UPD, Airtable, & vanity data
+      await this.updService.fetchData();
+      await this.airtableService.fetchTasks();
+      await this.vanityService.fetchData();
 
-        const jsonData = await (async () => {
-          try {
-            return liveEnUrl ? await this.fetchService.fetchPageJSON(liveEnUrl) : undefined;
-          } catch {
-            return undefined;
-          }
-        })();
+      // Fetch EN
+      if (enUrl) {
+        try {
+          const doc = sourceType !== 'local' ? await this.fetchService.fetchContent(enUrl, 'both', 2, 'none') : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(enUrl));
+          const pageData = await this.fetchService.extractPageMetadata(doc, enUrl);
 
-        const parentUrl = pageData.parentPath ? this.fetchService.generateUrl(pageData.parentPath, source, owner, repo) : undefined;
-        const parentDoc = await (async () => {
-          try {
-            return parentUrl && sourceType !== 'local'
-              ? await this.fetchService.fetchContent(parentUrl, 'both', 2, 'none')
-              : parentUrl && sourceType !== 'local'
-                ? this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(parentUrl))
-                : undefined;
-          } catch {
-            return undefined;
-          }
-        })();
-        const parentLinks = parentDoc && liveEnUrl ? this.fetchService.getLinks(parentDoc, liveEnUrl) : undefined;
+          const jsonData = await (async () => {
+            try {
+              return liveEnUrl ? await this.fetchService.fetchPageJSON(liveEnUrl) : undefined;
+            } catch {
+              return undefined;
+            }
+          })();
 
-        const lastModified = source !== 'live' ? await this.exportGitHubService.getLastModified(enUrl, owner, repo, branch, this.signInService.token() ?? undefined) : undefined;
+          const parentUrl = pageData.parentPath ? this.fetchService.generateUrl(pageData.parentPath, source, owner, repo) : undefined;
+          const parentDoc = await (async () => {
+            try {
+              return parentUrl && sourceType !== 'local'
+                ? await this.fetchService.fetchContent(parentUrl, 'both', 2, 'none')
+                : parentUrl && sourceType !== 'local'
+                  ? this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(parentUrl))
+                  : undefined;
+            } catch {
+              return undefined;
+            }
+          })();
+          const parentLinks = parentDoc && liveEnUrl ? this.fetchService.getLinks(parentDoc, liveEnUrl) : undefined;
 
-        const updated: Partial<LangData> = {
-          h1: pageData.h1,
-          doubleH1: pageData.doubleH1,
-          //Content
-          contentHash: pageData.contentHash,
-          lastChecked: pageData.lastChecked,
-          //Metadata
-          title: pageData.title,
-          description: pageData.description,
-          keywords: pageData.keywords,
-          //Status
-          is404: false,
-          ...(parentLinks ? { isOrphan: !parentLinks.some((link) => this.fetchService.generatePath(link) === this.fetchService.generatePath(liveEnUrl ?? '')) } : {}),
-          noindex: pageData.noindex ?? false,
-          isArchived: pageData.isArchived ?? false,
-          linksToPortal: pageData.linksToPortal ?? false,
-          linksToSignIn: pageData?.linksToSignIn ?? false,
-          hasChatbot: pageData.hasChatbot ?? false,
-          //Data
-          parentPath: pageData.parentPath,
-          wordCount: pageData.wordCount,
-          linkCount: pageData.linkCount,
-          template: jsonData?.isFreestyle ? PageTemplate.Freestyle : pageData.template,
-          fleschKincaid: pageData.fleschKincaid,
-          gunningFog: pageData.gunningFog,
-          ...(source === 'live' && jsonData
-            ? {
-                //jrc:content.json
-                owner: jsonData?.owner,
-                email: jsonData?.email,
-                lastPublished: jsonData?.lastPublished,
-                lastModified: jsonData?.lastModified,
-              }
-            : {
-                lastModified: lastModified,
-              }),
-        };
+          const lastModified = source !== 'live' ? await this.exportGitHubService.getLastModified(enUrl, owner, repo, branch, this.signInService.token() ?? undefined) : undefined;
 
-        data[version]!.en = missingOnly ? this.mergeMissingOnly(data[version]!.en, updated) : { ...data[version]!.en, ...updated };
-      } catch {
-        data[version]!.en = { ...data[version]!.en, lastChecked: new Date().toISOString(), is404: true };
+          const updated: Partial<LangData> = {
+            h1: pageData.h1,
+            doubleH1: pageData.doubleH1,
+            //Content
+            contentHash: pageData.contentHash,
+            lastChecked: pageData.lastChecked,
+            //Metadata
+            title: pageData.title,
+            description: pageData.description,
+            keywords: pageData.keywords,
+            //Status
+            is404: false,
+            ...(parentLinks ? { isOrphan: !parentLinks.some((link) => this.fetchService.generatePath(link) === this.fetchService.generatePath(liveEnUrl ?? '')) } : {}),
+            noindex: pageData.noindex ?? false,
+            isArchived: pageData.isArchived ?? false,
+            linksToPortal: pageData.linksToPortal ?? false,
+            linksToSignIn: pageData?.linksToSignIn ?? false,
+            hasChatbot: pageData.hasChatbot ?? false,
+            //Data
+            parentPath: pageData.parentPath,
+            wordCount: pageData.wordCount,
+            linkCount: pageData.linkCount,
+            template: jsonData?.isFreestyle ? PageTemplate.Freestyle : pageData.template,
+            fleschKincaid: pageData.fleschKincaid,
+            gunningFog: pageData.gunningFog,
+            ...(source === 'live' && jsonData
+              ? {
+                  //jrc:content.json
+                  owner: jsonData?.owner,
+                  email: jsonData?.email,
+                  lastPublished: jsonData?.lastPublished,
+                  lastModified: jsonData?.lastModified,
+                }
+              : {
+                  lastModified: lastModified,
+                }),
+          };
+
+          data[version]!.en = missingOnly ? this.mergeMissingOnly(data[version]!.en, updated) : { ...data[version]!.en, ...updated };
+        } catch {
+          data[version]!.en = { ...data[version]!.en, lastChecked: new Date().toISOString(), is404: true };
+        }
       }
-    }
 
-    // Fetch FR
-    if (frUrl) {
-      try {
-        const doc = sourceType !== 'local' ? await this.fetchService.fetchContent(frUrl, 'both', 2, 'none') : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(frUrl));
-        const pageData = await this.fetchService.extractPageMetadata(doc, frUrl);
+      // Fetch FR
+      if (frUrl) {
+        try {
+          const doc = sourceType !== 'local' ? await this.fetchService.fetchContent(frUrl, 'both', 2, 'none') : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(frUrl));
+          const pageData = await this.fetchService.extractPageMetadata(doc, frUrl);
 
-        const jsonData = await (async () => {
-          try {
-            return liveFrUrl ? await this.fetchService.fetchPageJSON(liveFrUrl) : undefined;
-          } catch {
-            return undefined;
-          }
-        })();
+          const jsonData = await (async () => {
+            try {
+              return liveFrUrl ? await this.fetchService.fetchPageJSON(liveFrUrl) : undefined;
+            } catch {
+              return undefined;
+            }
+          })();
 
-        const parentUrl = pageData.parentPath ? this.fetchService.generateUrl(pageData.parentPath, source, owner, repo) : undefined;
-        const parentDoc = await (async () => {
-          try {
-            return parentUrl && sourceType !== 'local'
-              ? await this.fetchService.fetchContent(parentUrl, 'both', 2, 'none')
-              : parentUrl && sourceType !== 'local'
-                ? this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(parentUrl))
-                : undefined;
-          } catch {
-            return undefined;
-          }
-        })();
-        const parentLinks = parentDoc && liveFrUrl ? this.fetchService.getLinks(parentDoc, liveFrUrl) : undefined;
+          const parentUrl = pageData.parentPath ? this.fetchService.generateUrl(pageData.parentPath, source, owner, repo) : undefined;
+          const parentDoc = await (async () => {
+            try {
+              return parentUrl && sourceType !== 'local'
+                ? await this.fetchService.fetchContent(parentUrl, 'both', 2, 'none')
+                : parentUrl && sourceType !== 'local'
+                  ? this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(parentUrl))
+                  : undefined;
+            } catch {
+              return undefined;
+            }
+          })();
+          const parentLinks = parentDoc && liveFrUrl ? this.fetchService.getLinks(parentDoc, liveFrUrl) : undefined;
 
-        const lastModified = source !== 'live' ? await this.exportGitHubService.getLastModified(frUrl, owner, repo, branch, this.signInService.token() ?? undefined) : undefined;
+          const lastModified = source !== 'live' ? await this.exportGitHubService.getLastModified(frUrl, owner, repo, branch, this.signInService.token() ?? undefined) : undefined;
 
-        const updated: Partial<LangData> = {
-          h1: pageData.h1,
-          doubleH1: pageData.doubleH1,
-          //Content
-          contentHash: pageData.contentHash,
-          lastChecked: pageData.lastChecked,
-          //Metadata
-          title: pageData.title,
-          description: pageData.description,
-          keywords: pageData.keywords,
-          //Status
-          is404: false,
-          ...(parentLinks ? { isOrphan: !parentLinks.some((link) => this.fetchService.generatePath(link) === this.fetchService.generatePath(liveFrUrl ?? '')) } : {}),
-          noindex: pageData.noindex ?? false,
-          isArchived: pageData.isArchived ?? false,
-          linksToPortal: pageData.linksToPortal ?? false,
-          linksToSignIn: pageData?.linksToSignIn ?? false,
-          hasChatbot: pageData.hasChatbot ?? false,
-          //Data
-          parentPath: pageData.parentPath,
-          wordCount: pageData.wordCount,
-          linkCount: pageData.linkCount,
-          template: jsonData?.isFreestyle ? PageTemplate.Freestyle : pageData.template,
-          fleschKincaid: pageData.fleschKincaid,
-          gunningFog: pageData.gunningFog,
-          ...(source === 'live' && jsonData
-            ? {
-                //jrc:content.json
-                owner: jsonData?.owner,
-                email: jsonData?.email,
-                lastPublished: jsonData?.lastPublished,
-                lastModified: jsonData?.lastModified,
-              }
-            : {
-                lastModified: lastModified,
-              }),
-        };
+          const updated: Partial<LangData> = {
+            h1: pageData.h1,
+            doubleH1: pageData.doubleH1,
+            //Content
+            contentHash: pageData.contentHash,
+            lastChecked: pageData.lastChecked,
+            //Metadata
+            title: pageData.title,
+            description: pageData.description,
+            keywords: pageData.keywords,
+            //Status
+            is404: false,
+            ...(parentLinks ? { isOrphan: !parentLinks.some((link) => this.fetchService.generatePath(link) === this.fetchService.generatePath(liveFrUrl ?? '')) } : {}),
+            noindex: pageData.noindex ?? false,
+            isArchived: pageData.isArchived ?? false,
+            linksToPortal: pageData.linksToPortal ?? false,
+            linksToSignIn: pageData?.linksToSignIn ?? false,
+            hasChatbot: pageData.hasChatbot ?? false,
+            //Data
+            parentPath: pageData.parentPath,
+            wordCount: pageData.wordCount,
+            linkCount: pageData.linkCount,
+            template: jsonData?.isFreestyle ? PageTemplate.Freestyle : pageData.template,
+            fleschKincaid: pageData.fleschKincaid,
+            gunningFog: pageData.gunningFog,
+            ...(source === 'live' && jsonData
+              ? {
+                  //jrc:content.json
+                  owner: jsonData?.owner,
+                  email: jsonData?.email,
+                  lastPublished: jsonData?.lastPublished,
+                  lastModified: jsonData?.lastModified,
+                }
+              : {
+                  lastModified: lastModified,
+                }),
+          };
 
-        data[version]!.fr = missingOnly ? this.mergeMissingOnly(data[version]!.fr, updated) : { ...data[version]!.fr, ...updated };
-      } catch {
-        data[version]!.fr = { ...data[version]!.fr, lastChecked: new Date().toISOString(), is404: true };
+          data[version]!.fr = missingOnly ? this.mergeMissingOnly(data[version]!.fr, updated) : { ...data[version]!.fr, ...updated };
+        } catch {
+          data[version]!.fr = { ...data[version]!.fr, lastChecked: new Date().toISOString(), is404: true };
+        }
       }
-    }
-    // Other data sources
-    data.visits = {
-      en: this.updService.findVisitsByUrl(liveEnUrl.replace('https://', '')) ?? -1,
-      fr: this.updService.findVisitsByUrl(liveFrUrl.replace('https://', '')) ?? -1,
-    };
-    data.task = {
-      en: this.airtableService.findTaskNamesByUrl(liveEnUrl, 'en'),
-      fr: this.airtableService.findTaskNamesByUrl(liveFrUrl, 'fr'),
-    };
-    data.vanity = {
-      en: this.vanityService.findVanitiesByDestination(liveEnUrl ?? ''),
-      fr: this.vanityService.findVanitiesByDestination(liveFrUrl ?? ''),
-    };
-    this.setModifiedDate();
+      // Other data sources
+      data.visits = {
+        en: this.updService.findVisitsByUrl(liveEnUrl.replace('https://', '')) ?? -1,
+        fr: this.updService.findVisitsByUrl(liveFrUrl.replace('https://', '')) ?? -1,
+      };
+      data.task = {
+        en: this.airtableService.findTaskNamesByUrl(liveEnUrl, 'en'),
+        fr: this.airtableService.findTaskNamesByUrl(liveFrUrl, 'fr'),
+      };
+      data.vanity = {
+        en: this.vanityService.findVanitiesByDestination(liveEnUrl ?? ''),
+        fr: this.vanityService.findVanitiesByDestination(liveFrUrl ?? ''),
+      };
+      this.setModifiedDate();
+    });
   }
 
   private mergeMissingOnly<T extends object>(existing: T | undefined, updates: Partial<T>): T {
@@ -1509,15 +1623,23 @@ export class ProjectStateService {
 
   public async refreshAll(nodes: TreeNode[], urlVersion: SourceVersion, onlyNeverChecked = false, fetchLive = false, onlyMissing = false) {
     const version = urlVersion.startsWith('proto') ? 'prototype' : urlVersion.startsWith('base') ? 'baseline' : 'live';
-    for (const node of nodes) {
-      const needsRefresh = onlyNeverChecked ? !node.data?.[version]?.en?.lastChecked || !node.data?.[version]?.fr?.lastChecked : true;
-      if (needsRefresh) {
+
+    const needsRefresh = (node: TreeNode) => (onlyNeverChecked ? !node.data?.[version]?.en?.lastChecked || !node.data?.[version]?.fr?.lastChecked : true);
+    const nodesToRefresh: TreeNode[] = [];
+    const collect = (list: TreeNode[]) => {
+      for (const node of list) {
+        if (needsRefresh(node)) nodesToRefresh.push(node);
+        if (node.children?.length) collect(node.children);
+      }
+    };
+    collect(nodes);
+    const paths = nodesToRefresh.map((node) => (node.data as TreeNodeData).path.en);
+
+    await this.withLoading(paths, version, async () => {
+      for (const node of nodesToRefresh) {
         await this.refreshNode(node, urlVersion, fetchLive, onlyMissing);
       }
-      if (node.children?.length) {
-        await this.refreshAll(node.children, urlVersion, onlyNeverChecked, fetchLive, onlyMissing);
-      }
-    }
+    });
   }
 
   //TODO: automate whatever we can!

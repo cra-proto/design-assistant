@@ -5,7 +5,6 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { MenuItem, TreeDragDropService, TreeNode } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
 import { Menu, MenuModule } from 'primeng/menu';
 import { TreeModule, TreeNodeDropEvent } from 'primeng/tree';
 
@@ -20,7 +19,7 @@ import { AddUrlsService } from '../add-pages/by-url/add-urls.service';
 
 @Component({
   selector: 'aida-ia-table',
-  imports: [FormsModule, ButtonModule, DialogModule, MenuModule, TreeModule, EditNodeComponent],
+  imports: [FormsModule, ButtonModule, MenuModule, TreeModule, EditNodeComponent],
   providers: [TreeDragDropService],
   templateUrl: './ia-table.component.html',
   styleUrl: './ia-table.component.css',

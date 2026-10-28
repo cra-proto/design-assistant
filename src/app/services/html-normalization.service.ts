@@ -122,9 +122,6 @@ export class HtmlNormalizationService {
       if (href) {
         if (href.startsWith('/')) {
           anchor.setAttribute('href', `${baseUrl}${href}`);
-          anchor.setAttribute('target', '_blank');
-        } else if (/^(http|https):\/\//.test(href)) {
-          anchor.setAttribute('target', '_blank');
         }
       }
     });

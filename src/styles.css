@@ -254,7 +254,7 @@ font-family: 'Noto Sans';
   background-color: light-dark(var(--p-red-100), var(--p-red-800)) !important;
 }
 
-.bg-red.hover\:bg-green:hover {
+.bg-green.hover\:bg-green:hover {
   background-color: light-dark(var(--p-green-100), var(--p-green-800)) !important;
 }
 
@@ -410,8 +410,10 @@ font-family: 'Noto Sans';
   width: auto !important;
   z-index: 1 !important;
   text-shadow:
-    0 0 3px rgba(0, 0, 0, 1),
-    0 0 6px rgba(0, 0, 0, 0.7) !important;
+    0 0 2px rgba(0, 0, 0, 1),
+    0 0 4px rgba(0, 0, 0, 0.7) !important;
+  -webkit-text-stroke: 1px var(--p-surface-900) !important;
+  paint-order: stroke fill;
 }
 
 .transparent .p-toolbar {
@@ -602,7 +604,9 @@ h1:not(.noline) {
 }
 
 /*After H1*/
-h1 + p {
+h1 + p,
+h2 + p,
+h3 + p {
   margin-top: 0.5rem;
   max-width: 130ch;
 }

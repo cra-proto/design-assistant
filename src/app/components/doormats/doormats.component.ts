@@ -36,7 +36,7 @@ export const DOORMATS = {
   problems: { path: undefined, titleKey: 'problems._nav', descriptionKey: 'problems.project.description', icon: 'troubleshoot', hideInProd: true },
   iaDiagram: { path: AidaLinks.ProjectDiagram, titleKey: 'iaDiagram._title', descriptionKey: 'iaDiagram.description', icon: 'lan' },
   inventory: { path: AidaLinks.ProjectInventory, titleKey: 'inventory._title', descriptionKey: 'inventory.description', icon: 'checklist_rtl' },
-  metadata: { path: AidaLinks.ProjectMetadata, titleKey: 'metadata._nav', descriptionKey: 'metadata.description', icon: 'source', hideInProd: true },
+  metadata: { path: AidaLinks.ProjectMetadata, titleKey: 'metadata._nav', descriptionKey: 'metadata.description', icon: 'source' },
   exportPages: { path: AidaLinks.ProjectExport, titleKey: 'exportPages._title', descriptionKey: 'exportPages.description', icon: 'drive_folder_upload' },
   editPages: { path: AidaLinks.ProjectEdit, titleKey: 'editPages._title', descriptionKey: 'editPages.description', icon: 'auto_fix_high' },
   compare: { path: AidaLinks.ProjectCompare, titleKey: 'compare._title', descriptionKey: 'compare.description', icon: 'library_books' },

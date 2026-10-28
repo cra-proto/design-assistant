@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, effect, inject, input, OnInit, sign
 import { FormsModule } from '@angular/forms';
 import { Params, Router } from '@angular/router';
 
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { MenuItem, MessageService } from 'primeng/api';
@@ -44,7 +45,8 @@ export class CompareSelectComponent implements OnInit {
   private readonly fetchService = inject(FetchService);
   private readonly htmlNormalizationService = inject(HtmlNormalizationService);
 
-  public readonly compareMode = input<'2 versions' | '1 version' | 'page only'>('2 versions');
+  public readonly versionsToShow = input.required<0 | 1 | 2>();
+  public readonly description = input<string | undefined>(undefined);
 
   async ngOnInit(): Promise<void> {
     // Initialize to 1st page in project if none selected
@@ -100,7 +102,7 @@ export class CompareSelectComponent implements OnInit {
     this.compareService.loading.set(true);
     try {
       this.compareService.selectedPage.set(path);
-      if (!this.compareService.selectedPage() || this.compareMode() === 'page only') return;
+      if (!this.compareService.selectedPage() || this.versionsToShow() === 0) return;
       // Clear current HTML (but not cache)
       this.compareService.originalHtml.set(undefined);
       this.compareService.modifiedHtml.set(undefined);
@@ -121,7 +123,7 @@ export class CompareSelectComponent implements OnInit {
         this.compareService.modifiedHtml.set(cached.modifiedHtml);
       } else {
         //Load the comparison with unedited content from cache or source
-        if (this.compareMode()) {
+        if (this.versionsToShow() === 2) {
           await this.onVersionSelectionChange(this.compareService.selectedBefore(), 'before');
           await this.onVersionSelectionChange(this.compareService.selectedAfter(), 'after');
         } else {
@@ -219,7 +221,7 @@ export class CompareSelectComponent implements OnInit {
   /** Dropdown options */
   protected get items(): MenuItem[] {
     const dropdownOptions: MenuItem[] = [];
-    if (this.compareMode()) {
+    if (this.versionsToShow() === 2) {
       dropdownOptions.push({
         label: this.translate.instant('compare.tools.other'),
         items: [
@@ -324,5 +326,11 @@ export class CompareSelectComponent implements OnInit {
     } finally {
       this.compareService.loadingAll.set(false);
     }
+  }
+
+  markForTranslation() {
+    marker('pageOptions.description.0');
+    marker('pageOptions.description.1');
+    marker('pageOptions.description.2');
   }
 }
