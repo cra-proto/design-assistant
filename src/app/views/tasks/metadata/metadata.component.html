@@ -32,7 +32,7 @@
       }
     </div>
     @if (selectedNode()?.data; as nodeData) {
-      <div class="flex align-items-center gap-3">
+      <div id="edit-metadata" class="flex align-items-center gap-3">
         <div>
           @if (nodeData.prototype?.[uiLang()]?.doubleH1; as doubleH1) {
             <p class="mb-0">{{ doubleH1 }}</p>
@@ -52,7 +52,7 @@
               }
               <h3 class="mb-0">{{ 'metadata.editProto.header' | translate }}</h3>
               <p class="my-0">{{ 'metadata.editProto.description' | translate }}</p>
-              <aida-edit-metadata [meta]="protoMeta" (changed)="onMetaChanged()" />
+              <aida-edit-metadata [isProto]="true" [meta]="protoMeta" (changed)="onMetaChanged()" />
             </p-fieldset>
           }
         }
@@ -66,7 +66,7 @@
               }
               <h3 class="mb-0">{{ 'metadata.editProto.header' | translate }}</h3>
               <p class="my-0">{{ 'metadata.editProto.description' | translate }}</p>
-              <aida-edit-metadata [meta]="protoMeta" (changed)="onMetaChanged()" />
+              <aida-edit-metadata [isProto]="true" [meta]="protoMeta" (changed)="onMetaChanged()" />
             </p-fieldset>
           }
         }
@@ -120,16 +120,6 @@
             {{ 'common.showingRows' | translate: { shown: dt.filteredValue.length, total: dt.value.length } }}
           </span>
         }
-        <div class="flex flex-wrap gap-3 min-w-min">
-          @for (item of legendItems; track item.text) {
-            <div class="flex align-items-center gap-1">
-              @for (colour of item.context; track $index) {
-                <div [ngClass]="colour" class="legend-box border-2 surface-border border-round shadow-2"></div>
-              }
-              <span class="legend-text">{{ item.text | translate }}</span>
-            </div>
-          }
-        </div>
       </aida-project-settings>
     </div>
 
@@ -150,7 +140,21 @@
         <ng-template pTemplate="header">
           <tr>
             <th class="sticky-table sticky-table-group-header sticky-table-checkbox" rowspan="2"><p-tableHeaderCheckbox /></th>
-            <th class="text-xl sticky-table sticky-table-group-header sticky-table-column" rowspan="2">{{ 'pageOptions.page' | translate }}</th>
+            <th class="text-xl sticky-table sticky-table-group-header sticky-table-column" rowspan="2">
+              <div class="flex justify-content-between gap-4">
+                {{ 'pageOptions.page' | translate }}
+                <div class="flex gap-3 min-w-min font-normal">
+                  @for (item of legendItems; track item.text) {
+                    <div class="flex align-items-center gap-1">
+                      @for (colour of item.context; track $index) {
+                        <div [ngClass]="colour" class="legend-box border-2 surface-border border-round shadow-2"></div>
+                      }
+                      <span class="text-base">{{ item.text | translate }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </th>
             <th class="text-xl sticky-table sticky-table-group-header border-left-3" rowspan="2">{{ 'common.reviewed' | translate }}</th>
             @for (group of groups(); track group.name) {
               <th [attr.colspan]="group.span" class="text-lg border-left-3 sticky-table sticky-table-group-header">{{ group.name }}</th>
@@ -197,20 +201,25 @@
                   >
                     <i class="pi pi-spinner pi-spin text-xl text-primary"></i>
                   </div>
-                } @else if (row[column.key].content === 'noChange') {
-                  <div class="px-3 py-1 h-2rem border-bottom-1 border-300 white-space-nowrap min-w-max text-center">
-                    {{ 'common.noChange' | translate }}
-                  </div>
-                  <div [aidaTooltip]="'common.noChange' | translate" class="flex justify-content-center p-3">
-                    <i class="pi pi-minus text-xl text-color-secondary"></i>
-                  </div>
                 } @else {
-                  <div [class]="countClasses(row[column.key].content, column.key)" class="px-3 py-1 h-2rem border-bottom-1 border-300 white-space-nowrap min-w-max text-center">
-                    {{ row[column.key].content.length }}/{{ column.key.startsWith('title') ? '60' : '160' }} {{ 'common.characters' | translate }}
-                  </div>
-                  <div [aidaTooltip]="tooltip(row[column.key].content, row.label, column.key) | translate" [class.text-red]="isRed(row[column.key].content, row.label, column.key)" class="px-3 py-1">
-                    {{ row[column.key].content }}
-                  </div>
+                  @if (row[column.key].content === 'noChange') {
+                    <div class="px-3 py-1 h-2rem border-bottom-1 border-300 white-space-nowrap min-w-max text-center">
+                      {{ 'common.noChange' | translate }}
+                    </div>
+                    <div [aidaTooltip]="'common.noChange' | translate" class="flex justify-content-center p-3">
+                      <i class="pi pi-minus text-xl text-color-secondary"></i>
+                    </div>
+                  } @else {
+                    <div [class]="countClasses(row[column.key].content, column.key)" class="px-3 py-1 h-2rem border-bottom-1 border-300 white-space-nowrap min-w-max text-center">
+                      {{ row[column.key].content.length }}/{{ column.key.startsWith('title') ? '60' : '160' }} {{ 'common.characters' | translate }}
+                    </div>
+                    <div [aidaTooltip]="tooltip(row[column.key].content, row.label, column.key) | translate" [class.text-red]="isRed(row[column.key].content, row.label, column.key)" class="px-3 py-1">
+                      {{ row[column.key].content }}
+                    </div>
+                  }
+                  @if (column.type === 'prototype') {
+                    <p-button [label]="'common.edit' | translate" (onClick)="editMeta(row.label[uiLang()].path)" class="flex justify-content-center px-5 py-2" fluid />
+                  }
                 }
               </td>
             }

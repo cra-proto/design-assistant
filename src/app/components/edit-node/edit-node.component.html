@@ -216,7 +216,7 @@
 
                   @if (node().data[projectCache.selectedVersion()].en; as meta) {
                     <h3 class="my-0">{{ 'editNode.metadata' | translate }}</h3>
-                    <aida-edit-metadata [disabled]="!!versionConfig() && !editsEnabled()" [meta]="meta" (changed)="markChanges()" />
+                    <aida-edit-metadata [disabled]="!!versionConfig() && !editsEnabled()" [isProto]="projectCache.selectedVersion() === 'prototype'" [meta]="meta" (changed)="markChanges()" />
                   }
 
                   <h3 class="my-0">{{ 'editNode.pageOwner' | translate }}</h3>
@@ -532,7 +532,7 @@
 
                   @if (node().data[projectCache.selectedVersion()].fr; as meta) {
                     <h3 class="my-0">{{ 'editNode.metadata' | translate }}</h3>
-                    <aida-edit-metadata [disabled]="!!versionConfig() && !editsEnabled()" [meta]="meta" (changed)="markChanges()" />
+                    <aida-edit-metadata [disabled]="!!versionConfig() && !editsEnabled()" [isProto]="projectCache.selectedVersion() === 'prototype'" [meta]="meta" (changed)="markChanges()" />
                   }
 
                   <h3 class="my-0">{{ 'editNode.pageOwner' | translate }}</h3>

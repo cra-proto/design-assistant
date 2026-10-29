@@ -14,6 +14,11 @@
       />
       <label [for]="'title-' + lang()">{{ 'editNode.title' | translate }}</label>
     </p-iftalabel>
+    @if (isProto()) {
+      <p-inputgroup-addon>
+        <p-button [pTooltip]="'metadata.tooltip.generateTitle' | translate" (onClick)="generateTitleFromH1()" class="h-full" icon="pi pi-sparkles" severity="secondary" />
+      </p-inputgroup-addon>
+    }
     <p-inputgroup-addon [styleClass]="addonClasses(meta().title.length > 60)">{{ meta().title.length }}/60</p-inputgroup-addon>
   </p-inputgroup>
   <p-inputgroup>

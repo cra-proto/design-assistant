@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, OnInit, signal, untracked, viewChild } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, Injector, OnInit, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { TreeNode } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
 import { FieldsetModule } from 'primeng/fieldset';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -55,6 +56,7 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
     FieldsetModule,
     IconFieldModule,
     InputIconModule,
+    ButtonModule,
     InputTextModule,
     ProgressBarModule,
     TableModule,
@@ -70,6 +72,7 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MetadataComponent implements OnInit {
+  private readonly injector = inject(Injector);
   private readonly translate = inject(TranslateService);
   protected readonly styleCardService = inject(StyleCardService);
   private readonly styleTreeNodeService = inject(StyleTreeNodeService);
@@ -337,6 +340,18 @@ export class MetadataComponent implements OnInit {
       }
     }
     return items;
+  }
+
+  editMeta(path: string) {
+    this.compareService.selectedPage.set(path);
+    afterNextRender(
+      () => {
+        const el = document.getElementById('edit-metadata');
+        if (!el) return;
+        window.scrollTo({ left: 0, top: el.getBoundingClientRect().top + window.scrollY, behavior: 'smooth' });
+      },
+      { injector: this.injector },
+    );
   }
 
   markForTranslation() {

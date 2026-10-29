@@ -15,13 +15,13 @@
               @for (colour of item.context; track $index) {
                 <div [ngClass]="colour" class="legend-box border-2 border-primary border-round shadow-2"></div>
               }
-              <span class="legend-text">{{ item.text | translate }}</span>
+              <span>{{ item.text | translate }}</span>
             </div>
           }
           @if (hasIaOrphan) {
             <div class="flex align-items-center gap-1">
               <i class="pi pi-times text-red"></i>
-              <span class="legend-text">{{ 'editNode.isOrphan' | translate }}</span>
+              <span>{{ 'editNode.isOrphan' | translate }}</span>
             </div>
           }
         </div>
