@@ -26,7 +26,6 @@ import { FlattenedMetadata, LabelItem, ProjectMetadataService, TableItem } from 
 import { LoadingTypes, ProjectStateService } from '../../../services/project-state.service';
 import { StyleCardService } from '../../../services/style-card.service';
 import { StyleTreeNodeService } from '../../../services/style-treenode.service';
-import { UserSettingsService } from '../../../services/user-settings.service';
 import { CompareService } from '../compare/compare.service';
 
 import { TreeNodeData } from '../../../common/data.model';
@@ -78,7 +77,6 @@ export class MetadataComponent implements OnInit {
   protected readonly projectCache = inject(ProjectCacheService);
   private readonly compareService = inject(CompareService);
   private readonly fetchService = inject(FetchService);
-  private readonly settingsService = inject(UserSettingsService);
 
   private readonly host = inject(ElementRef<HTMLElement>);
   protected readonly stuckX = signal(false);
@@ -207,7 +205,7 @@ export class MetadataComponent implements OnInit {
     const selectedMeta = this.projectCache.selectedMeta();
     const selectedLang = this.projectCache.selectedLang();
 
-    const metas = selectedMeta.length ? selectedMeta : ['title', 'description', 'keywords'];
+    const metas = selectedMeta?.length ? [selectedMeta] : ['title', 'description', 'keywords'];
     const langs = selectedLang === 'both' ? ['En', 'Fr'] : [selectedLang === 'en' ? 'En' : 'Fr'];
 
     const prefixes = metas.flatMap((meta) => langs.map((lang) => `${meta}${lang}`));

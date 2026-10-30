@@ -143,10 +143,12 @@
         <ng-template pTemplate="header">
           <tr>
             <th class="sticky-table sticky-table-group-header sticky-table-checkbox" rowspan="2">
-              <p-tableHeaderCheckbox />
+              <div class="w-3rem">
+                <p-tableHeaderCheckbox />
+              </div>
             </th>
-            <th class="text-xl sticky-table sticky-table-group-header sticky-table-column" rowspan="2">
-              <div class="flex justify-content-between gap-4">
+            <th class="text-xl sticky-table sticky-table-group-header sticky-table-column px-3" rowspan="2">
+              <div class="flex justify-content-between gap-4 w-23rem">
                 {{ 'pageOptions.page' | translate }}
                 <div class="flex gap-3 min-w-min font-normal">
                   @for (item of legendItems; track item.text) {
@@ -174,7 +176,7 @@
         <ng-template #body let-row let-rowIndex="rowIndex">
           <tr [class]="row.style" [pSelectableRow]="row" [pSelectableRowIndex]="rowIndex">
             <td class="sticky-table sticky-table-checkbox border-bottom-1 border-300">
-              <div class="flex align-items-center">
+              <div class="flex align-items-center w-3rem">
                 <p-tableCheckbox [value]="row" />
                 @if (getNode(row); as node) {
                   <aida-menu-page-actions [iconOnly]="true" [selectedNodes]="node" />
@@ -182,10 +184,10 @@
               </div>
             </td>
             <th class="sticky-table sticky-table-column border-bottom-1 border-300 py-2 px-3">
-              <div class="flex flex-column text-left">
+              <div class="flex flex-column text-left w-23rem">
                 <span class="text-lg font-medium text-color-secondary">{{ row.label[uiLang()].doubleH1 }}</span>
                 <span class="text-xl">{{ row.label[uiLang()].h1 }}</span>
-                <span [aidaTooltip]="row.label[uiLang()].path" class="text-sm font-medium text-color-secondary white-space-nowrap">{{ '/' + row.label[uiLang()].path.split('/').pop() }}</span>
+                <span [aidaTooltip]="row.label[uiLang()].path" class="text-sm font-medium text-color-secondary">{{ '/' + row.label[uiLang()].path.split('/').pop() }}</span>
               </div>
             </th>
             <td class="border-left-3">
@@ -224,7 +226,15 @@
                         <aida-menu-page-actions [metadataOnly]="true" [selectedNodes]="node" />
                       </div>
                     } @else if (column.type === 'prototype') {
-                      <p-button [label]="'metadata.editButton' | translate" (onClick)="editMeta(row.label[uiLang()].path)" class="flex justify-content-center p-5" fluid icon="pi pi-pen-to-square" />
+                      <p-button
+                        [label]="'metadata.editButton' | translate"
+                        (onClick)="editMeta(row.label[uiLang()].path)"
+                        class="flex justify-content-center p-5"
+                        fluid
+                        icon="pi pi-pen-to-square"
+                        outlined
+                        styleClass="secondary-outline"
+                      />
                     } @else {
                       <div [aidaTooltip]="'common.noChange' | translate" class="flex justify-content-center p-3">
                         <i class="pi pi-minus text-xl text-color-secondary"></i>
@@ -238,7 +248,15 @@
                       {{ row[column.key].content }}
                     </div>
                     @if (column.type === 'prototype') {
-                      <p-button [label]="'metadata.editButton' | translate" (onClick)="editMeta(row.label[uiLang()].path)" class="flex justify-content-center px-5 py-2" fluid />
+                      <p-button
+                        [label]="'metadata.editButton' | translate"
+                        (onClick)="editMeta(row.label[uiLang()].path)"
+                        class="flex justify-content-center px-5 py-2"
+                        fluid
+                        icon="pi pi-pen-to-square"
+                        outlined
+                        styleClass="secondary-outline"
+                      />
                     }
                   }
                 }

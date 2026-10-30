@@ -341,6 +341,11 @@ font-family: 'Noto Sans';
   background: var(--p-content-background);
 }
 
+/*Hover colour for outlined buttons*/
+.p-button.p-button-outlined:not(:disabled):hover {
+  background: color-mix(in srgb, var(--p-primary-color) 16%, var(--p-content-background));
+}
+
 /*Add option to center text in chips and inherit text color*/
 .center-chip {
   display: flex;

@@ -421,7 +421,7 @@ export class MenuPageActionsComponent {
         ],
       },
       {
-        label: this.translate.instant('inventory.menu.updateStatus'),
+        label: this.translate.instant('inventory.menu.updateStatus', { pageCount: numPages }),
         styleClass: 'text-primary-500',
         items: this.bulkEditableBooleans.map(
           (boolean) =>

@@ -1,9 +1,26 @@
 @if (iconOnly()) {
-  <p-button [aidaTooltip]="'common.moreOptions' | translate" (onClick)="updateDropdown(); menu.toggle($event)" icon="pi pi-ellipsis-h" size="large" styleClass="p-2" text />
+  <p-button
+    [aidaTooltip]="'common.moreOptions' | translate"
+    [disabled]="selectedNodes().length === 0"
+    (onClick)="updateDropdown(); menu.toggle($event)"
+    icon="pi pi-ellipsis-h"
+    size="large"
+    styleClass="p-2"
+    text
+  />
 } @else if (metadataOnly()) {
-  <p-button [label]="'metadata.generateButton' | translate" (onClick)="generateMetadata()" fluid icon="pi pi-sparkles" />
+  <p-button
+    [disabled]="selectedNodes().length === 0"
+    [label]="'metadata.generateButton' | translate"
+    (onClick)="generateMetadata()"
+    fluid
+    icon="pi pi-sparkles"
+    outlined
+    styleClass="secondary-outline"
+  />
 } @else {
   <p-button
+    [disabled]="selectedNodes().length === 0"
     [label]="'common.bulkActions' | translate"
     (onClick)="updateDropdown(); menu.toggle($event)"
     icon="pi pi-chevron-down"
@@ -26,8 +43,16 @@
           <span>{{ item.label }}</span>
         </a>
         <div class="flex flex-row gap-1 mr-2">
-          <p-button [disabled]="item.disabled" [label]="'common.yes' | translate" (onClick)="handleBoolToggle(item.onYes)" icon="pi pi-check" severity="success" text />
-          <p-button [disabled]="item.disabled" [label]="'common.no' | translate" (onClick)="handleBoolToggle(item.onNo)" icon="pi pi-times" severity="danger" text />
+          <p-button
+            [disabled]="item.disabled"
+            [label]="'common.yes' | translate"
+            (onClick)="handleBoolToggle(item.onYes)"
+            icon="pi pi-check"
+            outlined
+            severity="success"
+            styleClass="secondary-outline"
+          />
+          <p-button [disabled]="item.disabled" [label]="'common.no' | translate" (onClick)="handleBoolToggle(item.onNo)" icon="pi pi-times" outlined severity="danger" styleClass="secondary-outline" />
         </div>
       </div>
     } @else {

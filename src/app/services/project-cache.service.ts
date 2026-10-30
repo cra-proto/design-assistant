@@ -67,7 +67,7 @@ export class ProjectCacheService {
   public readonly selectedDisplayIA = signal<'tree' | 'list'>('tree');
 
   /** Signal for the metadata view. Defaults to undefined. */
-  public readonly selectedMeta = signal<MetaType[]>([]);
+  public readonly selectedMeta = signal<MetaType | undefined>(undefined);
 
   /** Signal for the view URLs drawer. Defaults to url. */
   public readonly selectedDisplay = signal<'url' | 'title'>('url');
