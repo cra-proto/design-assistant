@@ -278,7 +278,7 @@ export class SignInService {
   private checkApiGatewayAccess() {
     // Skip check on localhost (gateway isn't blocked but OAuth will be blocked by CORS)
     const host = window.location.hostname;
-    if (host === 'localhost' || host.endsWith('github.io')) {
+    if (host !== environment.aida) {
       return of(false);
     }
     return this.http.get(`${environment.apiGateway}/auth/github/url`, { observe: 'response' }).pipe(
