@@ -716,6 +716,13 @@ export class FetchService {
     return { fleschKincaid, gunningFog };
   }
 
+  public getTextReadability(text: string): { fleschKincaid: number; gunningFog: number } {
+    const cleanText = text.trim();
+    const fleschKincaid = rs.fleschKincaidGrade(cleanText);
+    const gunningFog = rs.gunningFog(cleanText);
+    return { fleschKincaid, gunningFog };
+  }
+
   //Get relative path
   generatePath(url: string): string {
     try {

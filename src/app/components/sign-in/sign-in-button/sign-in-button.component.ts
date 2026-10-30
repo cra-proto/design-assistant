@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal, untracked } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -31,10 +31,19 @@ export class SignInButtonComponent {
 
   public readonly customText = input<string | undefined>(undefined);
   public readonly customContent = input<boolean>(false);
+  public readonly handleSignInRequests = input<boolean>(false);
 
   // Variables
   protected readonly showPatSignIn = signal(false);
   protected readonly showSettings = signal(false);
+
+  constructor() {
+    effect(() => {
+      if (this.signInService.signInRequest() > 0 && this.handleSignInRequests()) {
+        untracked(() => this.connectGitHub());
+      }
+    });
+  }
 
   public connectGitHub() {
     if (this.signInService.isApiGatewayAccessible()) {
@@ -44,9 +53,15 @@ export class SignInButtonComponent {
     }
   }
 
+  protected onPatVisibleChange(visible: boolean) {
+    this.showPatSignIn.set(visible);
+    if (!visible) this.signInService.completeSignIn();
+  }
+
   protected async validatePAT() {
     this.showPatSignIn.set(false);
     await this.signInService.validatePAT();
+    this.signInService.completeSignIn();
   }
 
   protected get items(): MenuItem[] {

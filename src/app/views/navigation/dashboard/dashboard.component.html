@@ -41,6 +41,14 @@
               <aida-add-collaborators mode="dashboard" />
             </div>
           </div>
+          <!--Storage type-->
+          <div class="flex flex-row gap-2 flex-1">
+            <i [class]="storageInfo.icon" class="text-primary text-3xl align-self-center"></i>
+            <div class="flex flex-column align-self-start">
+              <p class="text-sm text-600 my-1">{{ 'common.storageType' | translate }}</p>
+              <p class="text-md my-0 white-space-nowrap">{{ storageInfo.type | translate }}</p>
+            </div>
+          </div>
         </div>
       </div>
       <div class="flex flex-row lg:flex-column lg:mt-0 gap-2">

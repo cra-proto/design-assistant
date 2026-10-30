@@ -1,6 +1,6 @@
 :host {
   --group-header-height: 3rem;
-  --checkbox-width: 2.8rem;
+  --checkbox-width: 5rem;
   --padding-left: 1.5rem;
   --margin-left: -1.5rem;
 }
@@ -131,4 +131,9 @@ th {
   height: 20px;
   border-radius: 4px;
   flex-shrink: 0;
+}
+
+td:has([data-tooltip]:hover),
+th:has([data-tooltip]:hover) {
+  z-index: 20;
 }

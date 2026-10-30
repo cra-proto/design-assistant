@@ -271,6 +271,25 @@
 
   <section [class]="styleCardService.cardStyles()">
     <h2 id="release">Release notes</h2>
+    <h3 id="0-8-2">Release 0.8.2 (Oct 30, 2026)</h3>
+    <h4>Backend updates</h4>
+    <ul>
+      <li>Update lamdba dependencies to latest versions</li>
+      <li>Update deployment workflow to latest versions</li>
+      <li>Adjust caching for static and hashed files so updates are seamless for users (no more ctrl + F5 to see latest translations!)</li>
+    </ul>
+    <h4>Sign in updates</h4>
+    <ul>
+      <li>Pop up the sign-in dialog before converting cloud projects to local if the user is a collaborator</li>
+      <li>Offer PAT sign-in from forked repos (OAuth is only available on dev and prod)</li>
+    </ul>
+    <h4>Other changes</h4>
+    <ul>
+      <li>New standalone scratch pad view for quickly getting a character count, word count, and grade level for one or more snippets of text</li>
+      <li>On metadata view, add single page actions for both the editor and each table row</li>
+      <li>On metadata view, add button to generate AI metadata to cells that haven't had metadata generated for them yet</li>
+      <li>Add storage type to dashboard (4 states: cloud, not a collab of a cloud, browser copy of a cloud, browser)</li>
+    </ul>
     <h3 id="0-8-1">Release 0.8.1 (Oct 29, 2026)</h3>
     <h4>Minor updates</h4>
     <ul>

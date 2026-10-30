@@ -1,0 +1,57 @@
+<h1 id="wb-cont">{{ 'scratchPad._title' | translate }}</h1>
+<p>{{ 'scratchPad.description' | translate }}{{ 'scratchPad.description2' | translate }}</p>
+
+<div class="flex flex-column gap-2">
+  @for (input of inputs(); track input.id; let i = $index) {
+    <p-inputgroup>
+      <p-iftalabel>
+        <textarea
+          [id]="'text-' + input.id"
+          [ngModel]="input.text"
+          (ngModelChange)="updateText(input.id, $event)"
+          class="secondary-outline block text-2xl"
+          autoResize="true"
+          fluid
+          pTextarea
+          rows="4"
+          variant="outlined"
+        ></textarea>
+        <label [for]="'text-' + input.id">{{ 'scratchPad.label' | translate }}</label>
+      </p-iftalabel>
+      <p-inputgroup-addon class="w-10rem">
+        <div class="flex flex-column gap-2">
+          <div class="text-center">
+            <div class="text-2xl">{{ stats()[i].characters }}</div>
+            <div class="capitalize">{{ 'common.characters' | translate }}</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl">{{ stats()[i].words }}</div>
+            <div class="capitalize">{{ 'common.words' | translate }}</div>
+          </div>
+        </div>
+      </p-inputgroup-addon>
+      @if (stats()[i].grade; as grade) {
+        <p-inputgroup-addon class="w-10rem">
+          <div class="flex flex-column gap-2">
+            <div class="text-center">
+              <div [class]="gradeClasses(grade.fleschKincaid)" class="text-2xl">{{ grade.fleschKincaid }}</div>
+              <div class="capitalize">{{ 'common.readability.fleschKincaid' | translate }}</div>
+            </div>
+            <div class="text-center">
+              <div [class]="gradeClasses(grade.gunningFog)" class="text-2xl">{{ grade.gunningFog }}</div>
+              <div class="capitalize">{{ 'common.readability.gunningFog' | translate }}</div>
+            </div>
+          </div>
+        </p-inputgroup-addon>
+      }
+      @if (inputs().length > 1) {
+        <p-inputgroup-addon>
+          <div [aidaTooltip]="'common.delete' | translate" class="h-full">
+            <p-button (onClick)="removeInput(input.id)" class="h-full" icon="pi pi-trash" severity="danger" styleClass="hover:border-red" text />
+          </div>
+        </p-inputgroup-addon>
+      }
+    </p-inputgroup>
+  }
+  <p-button [label]="'scratchPad.addInput' | translate" (onClick)="addInput()" class="align-self-end" icon="pi pi-plus" />
+</div>

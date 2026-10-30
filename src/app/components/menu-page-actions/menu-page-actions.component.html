@@ -1,0 +1,69 @@
+@if (iconOnly()) {
+  <p-button
+    [aidaTooltip]="'common.moreOptions' | translate"
+    [disabled]="selectedNodes().length === 0"
+    (onClick)="updateDropdown(); menu.toggle($event)"
+    icon="pi pi-ellipsis-h"
+    size="large"
+    styleClass="p-2"
+    text
+  />
+} @else if (metadataOnly()) {
+  <p-button
+    [disabled]="selectedNodes().length === 0"
+    [label]="'metadata.generateButton' | translate"
+    (onClick)="generateMetadata()"
+    fluid
+    icon="pi pi-sparkles"
+    outlined
+    styleClass="secondary-outline"
+  />
+} @else {
+  <p-button
+    [disabled]="selectedNodes().length === 0"
+    [label]="'common.bulkActions' | translate"
+    (onClick)="updateDropdown(); menu.toggle($event)"
+    icon="pi pi-chevron-down"
+    iconPos="right"
+    outlined
+    styleClass="secondary-outline h-3rem min-w-max"
+  />
+}
+
+<p-menu [model]="itemsDropdown" [popup]="true" #menu appendTo="body">
+  <ng-template #submenuheader let-item>
+    <span [class]="item.styleClass">{{ item.label | translate }}</span>
+  </ng-template>
+  <ng-template #item let-item>
+    @if (item.type === 'booleanToggle') {
+      <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+      <div (click)="$event.stopPropagation()" class="flex flex-row align-items-center justify-content-between gap-2">
+        <a class="p-menu-item-link">
+          <i [class]="item.icon"></i>
+          <span>{{ item.label }}</span>
+        </a>
+        <div class="flex flex-row gap-1 mr-2">
+          <p-button
+            [disabled]="item.disabled"
+            [label]="'common.yes' | translate"
+            (onClick)="handleBoolToggle(item.onYes)"
+            icon="pi pi-check"
+            outlined
+            severity="success"
+            styleClass="secondary-outline"
+          />
+          <p-button [disabled]="item.disabled" [label]="'common.no' | translate" (onClick)="handleBoolToggle(item.onNo)" icon="pi pi-times" outlined severity="danger" styleClass="secondary-outline" />
+        </div>
+      </div>
+    } @else {
+      <a class="p-menu-item-link">
+        <i [class]="item.icon"></i>
+        <span>{{ item.label | translate }}</span>
+      </a>
+    }
+  </ng-template>
+</p-menu>
+
+@if (selectedNode()) {
+  <aida-edit-node [dialogMode]="true" [isOpen]="editingNode" [node]="selectedNode()!" (dialogClose)="editingNode = false" />
+}

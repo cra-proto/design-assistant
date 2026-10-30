@@ -1,4 +1,4 @@
-name: Terraform Import Shared Resources
+name: Import Shared Terraform Resources
 
 on:
   workflow_dispatch:
@@ -13,23 +13,23 @@ on:
 
 jobs:
   import:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       id-token: write
       contents: read
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Backend-design-assistant
           aws-region: ca-central-1
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.13.5
 
@@ -58,7 +58,7 @@ jobs:
           terraform import $VF aws_iam_role_policy_attachment.lambda_basic_execution design-assistant-lambda-role/arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole || echo "skip: basic execution attachment"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
 

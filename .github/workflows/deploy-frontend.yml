@@ -1,4 +1,4 @@
-name: Deploy Angular Frontend to AWS
+name: Deploy AIDA Frontend to AWS
 
 on:
   push:
@@ -19,118 +19,185 @@ on:
         options:
           - dev
           - production
+      cleanup_old_bundles:
+        description: 'Remove old hashed bundles from S3 after deploying'
+        required: false
+        type: choice
+        default: 'no'
+        options:
+          - 'no'
+          - preview
+          - delete
 
 permissions:
   contents: read
   id-token: write
 
+env:
+  DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'production' || 'dev') }}
+
+concurrency:
+  group: frontend-deploy-${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'production' || 'dev') }}
+  cancel-in-progress: false
+
 jobs:
   deploy-infrastructure:
-    runs-on: ubuntu-latest
+    name: Terraform deploy
+    runs-on: ubuntu-24.04
+    env:
+      TF_IN_AUTOMATION: 'true'
+      TF_INPUT: 'false'
+    defaults:
+      run:
+        working-directory: frontend/terraform
     outputs:
       s3_bucket: ${{ steps.tf-outputs.outputs.s3_bucket }}
       cloudfront_id: ${{ steps.tf-outputs.outputs.cloudfront_id }}
       cloudfront_url: ${{ steps.tf-outputs.outputs.cloudfront_url }}
-      environment: ${{ steps.env.outputs.environment }}
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Determine environment
-      id: env
-      run: |
-        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
-        elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
-          echo "environment=production" >> $GITHUB_OUTPUT
-        elif [ "${{ github.ref }}" == "refs/heads/dev" ] || [ "${{ github.ref }}" == "refs/heads/sandbox" ]; then
-          echo "environment=dev" >> $GITHUB_OUTPUT
-        fi
-    
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Frontend-design-assistant
-        aws-region: ca-central-1
-    
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.13.5
-        terraform_wrapper: false
-    
-    - name: Terraform Init
-      working-directory: frontend/terraform
-      run: terraform init
-    
-    - name: Select Terraform Workspace
-      working-directory: frontend/terraform
-      run: |
-        terraform workspace select ${{ steps.env.outputs.environment }} || terraform workspace new ${{ steps.env.outputs.environment }}
-    
-    - name: Terraform Plan
-      working-directory: frontend/terraform
-      run: terraform plan -var-file="${{ steps.env.outputs.environment }}.tfvars"
-    
-    - name: Terraform Apply
-      working-directory: frontend/terraform
-      run: terraform apply -var-file="${{ steps.env.outputs.environment }}.tfvars" -auto-approve
-    
-    - name: Get Terraform Outputs
-      id: tf-outputs
-      working-directory: frontend/terraform
-      run: |
-        echo "s3_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
-        echo "cloudfront_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT
-        echo "cloudfront_url=$(terraform output -raw cloudfront_url)" >> $GITHUB_OUTPUT
-
+      - name: Checkout code
+        uses: actions/checkout@v7
+ 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Frontend-design-assistant
+          aws-region: ca-central-1
+ 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.13.5
+          terraform_wrapper: false
+ 
+      - name: Terraform Init
+        run: terraform init
+ 
+      - name: Terraform Validate
+        run: terraform validate
+ 
+      - name: Select Terraform Workspace
+        run: terraform workspace select -or-create "$DEPLOY_ENV"
+ 
+      - name: Terraform Plan
+        run: terraform plan -var-file="$DEPLOY_ENV.tfvars" -lock-timeout=5m -out=tfplan
+ 
+      - name: Publish plan summary
+        run: |
+          terraform show -no-color tfplan > plan.txt
+          {
+            echo "### Terraform plan: \`$DEPLOY_ENV\`"
+            echo
+            grep -E '^(Plan:|No changes)' plan.txt || true
+            echo
+            echo '<details><summary>Full plan</summary>'
+            echo
+            echo '```'
+            cat plan.txt
+            echo '```'
+            echo '</details>'
+          } >> "$GITHUB_STEP_SUMMARY"
+ 
+      - name: Terraform Apply
+        run: terraform apply -lock-timeout=5m tfplan
+ 
+      - name: Get Terraform Outputs
+        id: tf-outputs
+        run: |
+          echo "s3_bucket=$(terraform output -raw s3_bucket_name)" >> "$GITHUB_OUTPUT"
+          echo "cloudfront_id=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
+          echo "cloudfront_url=$(terraform output -raw cloudfront_url)" >> "$GITHUB_OUTPUT"
+ 
   deploy-application:
+    name: Build and deploy app
     needs: deploy-infrastructure
-    runs-on: ubuntu-latest
-    
+    runs-on: ubuntu-24.04
+ 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Build Angular app
-      run: |
-        if [ "${{ needs.deploy-infrastructure.outputs.environment }}" == "production" ]; then
-          npm run build:prod
-        elif [ "${{ github.ref }}" == "refs/heads/sandbox" ]; then
-          npm run build -- --configuration=sandbox
-        else
-          npm run build:dev
-        fi
-    
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Frontend-design-assistant
-        aws-region: ca-central-1
-    
-    - name: Deploy to S3
-      run: |
-        aws s3 sync dist/design-assistant/browser s3://${{ needs.deploy-infrastructure.outputs.s3_bucket }} --delete
-    
-    - name: Invalidate CloudFront cache
-      run: |
-        aws cloudfront create-invalidation \
-          --distribution-id ${{ needs.deploy-infrastructure.outputs.cloudfront_id }} \
-          --paths "/*"
-    
-    - name: Output deployment info
-      run: |
-        echo "Deployed to ${{ needs.deploy-infrastructure.outputs.environment }} environment"
-        echo "S3 Bucket: ${{ needs.deploy-infrastructure.outputs.s3_bucket }}"
-        echo "CloudFront ID: ${{ needs.deploy-infrastructure.outputs.cloudfront_id }}"
-        echo "CloudFront URL: ${{ needs.deploy-infrastructure.outputs.cloudfront_url }}"
+      - name: Checkout code
+        uses: actions/checkout@v7
+ 
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+ 
+      - name: Install dependencies
+        run: npm ci
+ 
+      # Reports known vulnerabilities in production dependencies without blocking the deploy.
+      # Change "continue-on-error" to false if we want high-severity findings to cause the build to fail.
+      - name: Audit production dependencies
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+ 
+      - name: Build Angular app
+        run: |
+          if [ "$DEPLOY_ENV" == "production" ]; then
+            npm run build:prod
+          elif [ "${{ github.ref }}" == "refs/heads/sandbox" ]; then
+            npm run build -- --configuration=sandbox
+          else
+            npm run build:dev
+          fi
+ 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Frontend-design-assistant
+          aws-region: ca-central-1
+ 
+      - name: Deploy to S3
+        run: |
+          BUCKET=${{ needs.deploy-infrastructure.outputs.s3_bucket }}
+          SRC=dist/design-assistant/browser
+ 
+          # 1) Hashed bundles: the filename changes whenever the content does, so a long cache is safe.
+          #    Do not add --delete here, it will cause problems for users that have AIDA open already with the old lazy chunks
+          #    Manually run the cleanup function periodically during quiet hours to clean up these files without impacting users
+          aws s3 sync $SRC s3://$BUCKET \
+            --exclude "*" \
+            --include "main-*.js" --include "polyfills-*.js" --include "chunk-*.js" \
+            --include "scripts-*.js" --include "styles-*.css" --include "media/*" \
+            --cache-control "public, max-age=31536000, immutable"
+ 
+          # 2) Everything else: do not cache files with static names so users don't need to manually clear cache to see updates (index.html, i18n files, public assets)
+          #    --delete is safe here since it only removes stale unhashed files.
+          aws s3 sync $SRC s3://$BUCKET --delete \
+            --exclude "main-*.js" --exclude "polyfills-*.js" --exclude "chunk-*.js" \
+            --exclude "scripts-*.js" --exclude "styles-*.css" --exclude "media/*" \
+            --cache-control "no-cache"
+
+      - name: Clean up old bundles
+        if: github.event_name == 'workflow_dispatch' && inputs.cleanup_old_bundles != 'no'
+        run: |
+          BUCKET=${{ needs.deploy-infrastructure.outputs.s3_bucket }}
+          SRC=dist/design-assistant/browser
+          DRY=""
+          if [ "${{ inputs.cleanup_old_bundles }}" == "preview" ]; then DRY="--dryrun"; fi
+
+          aws s3 sync $SRC s3://$BUCKET --delete $DRY \
+            --exclude "*" \
+            --include "main-*.js" --include "polyfills-*.js" --include "chunk-*.js" \
+            --include "scripts-*.js" --include "styles-*.css" --include "media/*" \
+            --cache-control "public, max-age=31536000, immutable"
+ 
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ needs.deploy-infrastructure.outputs.cloudfront_id }} \
+            --paths "/*"
+ 
+      - name: Publish deployment info
+        run: |
+          {
+            echo "### Deployed \`$DEPLOY_ENV\`"
+            echo
+            echo '| | |'
+            echo '|---|---|'
+            echo "| S3 bucket | ${{ needs.deploy-infrastructure.outputs.s3_bucket }} |"
+            echo "| CloudFront ID | ${{ needs.deploy-infrastructure.outputs.cloudfront_id }} |"
+            echo "| CloudFront URL | ${{ needs.deploy-infrastructure.outputs.cloudfront_url }} |"
+          } >> "$GITHUB_STEP_SUMMARY"

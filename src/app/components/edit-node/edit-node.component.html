@@ -6,6 +6,7 @@
     [style]="{ height: '90vh' }"
     [visible]="isOpen()"
     (visibleChange)="!$event && dialogClose.emit()"
+    appendTo="body"
     styleClass="w-10"
   >
     <ng-container *ngTemplateOutlet="editNode" />

@@ -17,7 +17,7 @@ import { Table, TableModule } from 'primeng/table';
 import { CompareSelectComponent } from '../../../components/compare/compare-select/compare-select.component';
 import { AiMetadataComponent } from '../../../components/edit-node/ai-metadata/ai-metadata.component';
 import { EditMetadataComponent } from '../../../components/edit-node/edit-metadata/edit-metadata.component';
-import { MenuBulkPageActionsComponent } from '../../../components/menu-bulk-page-actions/menu-bulk-page-actions.component';
+import { MenuPageActionsComponent } from '../../../components/menu-page-actions/menu-page-actions.component';
 import { ProjectSettingsComponent } from '../../../components/project-settings/project-settings.component';
 
 import { FetchService } from '../../../services/fetch.service';
@@ -26,7 +26,6 @@ import { FlattenedMetadata, LabelItem, ProjectMetadataService, TableItem } from 
 import { LoadingTypes, ProjectStateService } from '../../../services/project-state.service';
 import { StyleCardService } from '../../../services/style-card.service';
 import { StyleTreeNodeService } from '../../../services/style-treenode.service';
-import { UserSettingsService } from '../../../services/user-settings.service';
 import { CompareService } from '../compare/compare.service';
 
 import { TreeNodeData } from '../../../common/data.model';
@@ -40,11 +39,8 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
  * Used to track if changes are planned in prototype and updates automatically when those changes go live
  *
  * TODO:
- ** add single-page action menu to: refresh prototype/live, generate metadata, update status, edit node data, open in AI suggestions, open in new tab
- ** put single-page action menu next to table checkbox AND in single page editor (have 2 button styles)
  ** reorganize controls into more logical groups
  ** add export changed fields for translation
- ** add import translations???
  *
  */
 @Component({
@@ -53,17 +49,17 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
     CommonModule,
     FormsModule,
     TranslatePipe,
+    ButtonModule,
     FieldsetModule,
     IconFieldModule,
     InputIconModule,
-    ButtonModule,
     InputTextModule,
     ProgressBarModule,
     TableModule,
     AiMetadataComponent,
     CompareSelectComponent,
     EditMetadataComponent,
-    MenuBulkPageActionsComponent,
+    MenuPageActionsComponent,
     ProjectSettingsComponent,
     TooltipDirective,
   ],
@@ -81,7 +77,6 @@ export class MetadataComponent implements OnInit {
   protected readonly projectCache = inject(ProjectCacheService);
   private readonly compareService = inject(CompareService);
   private readonly fetchService = inject(FetchService);
-  private readonly settingsService = inject(UserSettingsService);
 
   private readonly host = inject(ElementRef<HTMLElement>);
   protected readonly stuckX = signal(false);
@@ -102,6 +97,12 @@ export class MetadataComponent implements OnInit {
       this.uiLang(),
     );
   });
+
+  /** Lookup node for a given row */
+  protected getNode(row: FlattenedMetadata): TreeNode<TreeNodeData>[] | undefined {
+    const node = this.projectState.findNodeByPath(this.projectState.getProject().projectData, row.label[this.uiLang()].path, this.uiLang());
+    return node ? [node] : undefined;
+  }
 
   /* Current UI language */
   protected readonly uiLang = computed<'en' | 'fr'>(() => (this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en'));
@@ -204,7 +205,7 @@ export class MetadataComponent implements OnInit {
     const selectedMeta = this.projectCache.selectedMeta();
     const selectedLang = this.projectCache.selectedLang();
 
-    const metas = selectedMeta.length ? selectedMeta : ['title', 'description', 'keywords'];
+    const metas = selectedMeta?.length ? [selectedMeta] : ['title', 'description', 'keywords'];
     const langs = selectedLang === 'both' ? ['En', 'Fr'] : [selectedLang === 'en' ? 'En' : 'Fr'];
 
     const prefixes = metas.flatMap((meta) => langs.map((lang) => `${meta}${lang}`));

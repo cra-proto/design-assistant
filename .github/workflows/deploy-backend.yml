@@ -18,154 +18,140 @@ on:
           - dev
           - production
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+permissions:
+  contents: read
 
+env:
+  DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'production' || 'dev') }}
+
+concurrency:
+  group: backend-deploy-${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'production' || 'dev') }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build ${{ matrix.function }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        function: [github-oauth, projects, airtable, openrouter, usage] # Add any new function folders here
+    defaults:
+      run:
+        working-directory: backend/functions/${{ matrix.function }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+ 
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/functions/${{ matrix.function }}/package-lock.json
+ 
+      - name: Install dependencies
+        run: npm ci
+ 
+      # Reports known vulnerabilities in production dependencies without blocking the deploy.
+      # Change "continue-on-error" to false if we want high-severity findings to cause the build to fail.
+      - name: Audit production dependencies
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+ 
+      - name: Compile TypeScript
+        run: npm run build
+ 
+      - name: Package Lambda
+        run: |
+          cp package*.json dist/
+          cd dist
+          npm ci --omit=dev
+          zip -r -q ../lambda.zip .
+          ls -lh ../lambda.zip
+ 
+      - name: Upload package
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.function }}
+          path: backend/functions/${{ matrix.function }}/lambda.zip
+          retention-days: 1
+          if-no-files-found: error
+
+  deploy:
+    name: Terraform deploy
+    needs: build
+    runs-on: ubuntu-24.04
     permissions:
       id-token: write
       contents: read
-    
+    env:
+      TF_IN_AUTOMATION: 'true'
+      TF_INPUT: 'false'
+    defaults:
+      run:
+        working-directory: backend/terraform
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Determine environment
-        id: env
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "environment=production" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" == "refs/heads/dev" ] || [ "${{ github.ref }}" == "refs/heads/sandbox" ]; then
-            echo "environment=dev" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/checkout@v7
+ 
+      - name: Download Lambda packages
+        uses: actions/download-artifact@v8
         with:
-          node-version: '22'
-      
+          path: backend/functions
+ 
+      - name: Show package sizes
+        run: ls -lh ../functions/*/lambda.zip
+ 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           role-to-assume: arn:aws:iam::013957137556:role/GitHubActionsRole-Backend-design-assistant
           aws-region: ca-central-1
-
-      - name: Build Lambda OAuth function
-        working-directory: backend/functions/github-oauth
-        run: |
-          npm ci
-          npm run build
-          cp package*.json dist/
-          cd dist
-          npm ci --production
-          zip -r -q lambda.zip .
-          mv lambda.zip ..
-      
-      - name: Upload OAuth Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: github-oauth-lambda
-          path: backend/functions/github-oauth/lambda.zip
-          retention-days: 1
-
-      - name: Build Lambda Projects function
-        working-directory: backend/functions/projects
-        run: |
-          npm ci
-          npm run build
-          cp package*.json dist/
-          cd dist
-          npm ci --production
-          zip -r -q lambda.zip .
-          mv lambda.zip ..
-       
-      - name: Upload Projects Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: projects-lambda
-          path: backend/functions/projects/lambda.zip
-          retention-days: 1
-
-      - name: Build Lambda Airtable function
-        working-directory: backend/functions/airtable
-        run: |
-          npm ci
-          npm run build
-          cp package*.json dist/
-          cd dist
-          npm ci --production
-          zip -r -q lambda.zip .
-          mv lambda.zip ..
-       
-      - name: Upload Airtable Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: airtable-lambda
-          path: backend/functions/airtable/lambda.zip
-          retention-days: 1
-
-      - name: Build Lambda OpenRouter function
-        working-directory: backend/functions/openrouter
-        run: |
-          npm ci
-          npm run build
-          cp package*.json dist/
-          cd dist
-          npm ci --production
-          zip -r -q lambda.zip .
-          mv lambda.zip ..
-       
-      - name: Upload OpenRouter Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: openrouter-lambda
-          path: backend/functions/openrouter/lambda.zip
-          retention-days: 1
-              
+ 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.13.5
-
-      - name: Build Lambda Usage function
-        working-directory: backend/functions/usage
-        run: |
-          npm ci
-          npm run build
-          cp package*.json dist/
-          cd dist
-          npm ci --production
-          zip -r -q lambda.zip .
-          mv lambda.zip ..
-       
-      - name: Upload Usage Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: usage-lambda
-          path: backend/functions/usage/lambda.zip
-          retention-days: 1
-
+          terraform_wrapper: false
+ 
       - name: Terraform Init
-        working-directory: backend/terraform
         run: terraform init
-      
+ 
+      - name: Terraform Validate
+        run: terraform validate
+ 
       - name: Select Terraform Workspace
-        working-directory: backend/terraform
-        run: |
-          terraform workspace select ${{ steps.env.outputs.environment }} || terraform workspace new ${{ steps.env.outputs.environment }}
-      
+        run: terraform workspace select -or-create "$DEPLOY_ENV"
+ 
       - name: Terraform Plan
-        working-directory: backend/terraform
-        run: terraform plan -var-file="${{ steps.env.outputs.environment }}.tfvars"
-      
-      - name: Terraform Apply
-        working-directory: backend/terraform
-        run: terraform apply -var-file="${{ steps.env.outputs.environment }}.tfvars" -auto-approve
-      
-      - name: Output deployment info
-        working-directory: backend/terraform
+        run: terraform plan -var-file="$DEPLOY_ENV.tfvars" -lock-timeout=5m -out=tfplan
+ 
+      - name: Publish plan summary
         run: |
-          echo "Deployed backend for ${{ steps.env.outputs.environment }} environment"
-          echo "API Endpoint: $(terraform output -raw api_invoke_url)"
+          terraform show -no-color tfplan > plan.txt
+          {
+            echo "### Terraform plan: \`$DEPLOY_ENV\`"
+            echo
+            grep -E '^(Plan:|No changes)' plan.txt || true
+            echo
+            echo '<details><summary>Full plan</summary>'
+            echo
+            echo '```'
+            cat plan.txt
+            echo '```'
+            echo '</details>'
+          } >> "$GITHUB_STEP_SUMMARY"
+ 
+      - name: Terraform Apply
+        run: terraform apply -lock-timeout=5m tfplan
+ 
+      - name: Publish deployment outputs
+        run: |
+          {
+            echo "### Deployed \`$DEPLOY_ENV\`"
+            echo
+            echo '| Output | Value |'
+            echo '|---|---|'
+            terraform output -json | jq -r 'to_entries[] | select(.value.sensitive | not) | select(.value.type == "string") | "| \(.key) | \(.value.value) |"'
+          } >> "$GITHUB_STEP_SUMMARY"

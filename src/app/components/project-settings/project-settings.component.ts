@@ -46,8 +46,6 @@ export class ProjectSettingsComponent {
 
   constructor() {
     effect(() => {
-      console.log('lang effect', this.active(), this.allowBoth(), this.projectCache.selectedLang());
-
       if (!this.active()) return;
       if (!this.allowBoth() && this.projectCache.selectedLang() === 'both') {
         this.projectCache.selectedLang.set(this.projectState.detectPrimaryLanguage()); // fallback to project default

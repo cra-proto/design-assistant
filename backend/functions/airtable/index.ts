@@ -1,5 +1,5 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { LambdaFunctionURLResult } from 'aws-lambda';
 import axios from 'axios';
 import { gzipSync } from 'zlib';
 
@@ -190,7 +190,7 @@ function transformRecords(records: AirtableRecord[]): TransformedTask[] {
     return tasks;
 }
 
-export const getRecords = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const getRecords = async (): Promise<LambdaFunctionURLResult> => {
     console.log('=== getRecords STARTED ===');
 
     try {
@@ -228,7 +228,6 @@ export const getRecords = async (event: APIGatewayProxyEvent): Promise<APIGatewa
         };
     } catch (error) {
         console.error('=== ERROR in getRecords ===');
-        console.error('Error:', error);
 
         // Enhanced error logging for Airtable-specific errors
         if (axios.isAxiosError(error)) {
@@ -236,7 +235,10 @@ export const getRecords = async (event: APIGatewayProxyEvent): Promise<APIGatewa
                 status: error.response?.status,
                 statusText: error.response?.statusText,
                 data: error.response?.data
-            });
+            });        
+        }
+        else {
+            console.error('Error:', error instanceof Error ? error.message : error);
         }
 
         return {

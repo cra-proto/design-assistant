@@ -30,7 +30,7 @@
   <ng-content />
 }
 
-<p-dialog [header]="'github.connect.pat.header' | translate" [modal]="true" [visible]="showPatSignIn()" (visibleChange)="showPatSignIn.set($event)" class="w-12 lg:w-8" appendTo="body">
+<p-dialog [header]="'github.connect.pat.header' | translate" [modal]="true" [visible]="showPatSignIn()" (visibleChange)="onPatVisibleChange($event)" class="w-12 lg:w-8" appendTo="body">
   <div class="flex flex-row align-items-center gap-3 -mt-2">
     <i class="pi pi-key text-6xl text-900"></i>
     <div class="w-full">

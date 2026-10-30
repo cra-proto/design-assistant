@@ -53,6 +53,7 @@ export const DOORMATS = {
   contact: { path: AidaLinks.Contact, titleKey: 'feedback._title', descriptionKey: 'feedback.description', icon: 'feedback', function: 'mailTo' },
   //Standalone
   standaloneCompare: { path: AidaLinks.StandaloneCompare, titleKey: 'compare._title', descriptionKey: 'compare.description' },
+  scratchPad: { path: AidaLinks.StandaloneScratchPad, titleKey: 'scratchPad._title', descriptionKey: 'scratchPad.description' },
   //Dev
   monitoring: { path: AidaLinks.DevMonitoring, titleKey: 'dev.monitoring._title', descriptionKey: 'dev.monitoring.description' },
   colors: { path: AidaLinks.DevColours, titleKey: 'dev.colors._title', descriptionKey: 'dev.colors.description' },

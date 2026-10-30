@@ -63,8 +63,10 @@ export class CompareAiService {
       const newAfter = { ...latestAfter, html: response, edited: true };
       this.projectCache.updatePageEdit(pagePath, latestBefore, latestAfter, latestBefore, newAfter);
 
+      const isEditActive = isActive(AidaLinks.ProjectEdit, this.router);
+
       // Update the diff if the user is still on the same page AND on the AI edit version
-      if (this.compareService.selectedPage() === pagePath && isActive(AidaLinks.ProjectEdit, this.router)) {
+      if (this.compareService.selectedPage() === pagePath && isEditActive()) {
         const updated = this.projectCache.getPageEdit(pagePath);
         if (updated) {
           this.compareService.originalHtml.set(updated.originalHtml);

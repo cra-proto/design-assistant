@@ -2,7 +2,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand, ScanCommandOutput, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 const VALID_ORGS = [
     "DEFAULT",  // Default & Fallback, visible to everyone
@@ -269,7 +269,7 @@ export const saveProject = async (event: APIGatewayProxyEvent): Promise<APIGatew
         }
 
         const now = Date.now();
-        const projectId = projectData.id || uuidv4();
+        const projectId = projectData.id || randomUUID();
         const contentKey = `projects/${projectId}.json`;
 
         // Create project object

@@ -277,7 +277,9 @@ export class SignInService {
   /** Checks if API gateway is available so we can surface the preferred sign-in method */
   private checkApiGatewayAccess() {
     // Skip check on localhost (gateway isn't blocked but OAuth will be blocked by CORS)
-    if (window.location.hostname === 'localhost') {
+    const host = window.location.hostname;
+    const envHost = new URL(environment.aida).hostname;
+    if (host !== envHost) {
       return of(false);
     }
     return this.http.get(`${environment.apiGateway}/auth/github/url`, { observe: 'response' }).pipe(
@@ -285,5 +287,36 @@ export class SignInService {
       map(() => true),
       catchError(() => of(false)), // Any error (timeout, network, CORS, blocked) means it's inaccessible
     );
+  }
+
+  /** Signal increments each time sign in is requested from the save fxn. Each increment will trigger the effect for the sign-in popup */
+  readonly signInRequest = signal(0);
+
+  /** Resolves the promise returned by the pending requestSignIn() call */
+  private resolver?: () => void;
+
+  /**
+   * Use with any service that requires a sign-in side-effect
+   *
+   * It will trigger the sign-in dialog from the header and not resolve until sign-in is complete or dialog is dismissed
+   *
+   * After it resolves, the function that called it will continue (and should recheck credentials to see if sign-in succeeded)
+   */
+  public requestSignIn(): Promise<void> {
+    this.resolver?.(); // settle any pending sign in requests
+    return new Promise<void>((resolve) => {
+      this.resolver = resolve;
+      this.signInRequest.update((n) => n + 1);
+    });
+  }
+
+  /**
+   * Resolves the pending requestSignIn() promise, if there is one
+   *
+   * Called by the sign-in button after PAT validation, GitHub OAuth validation or when the dialog is closed
+   */
+  public completeSignIn() {
+    this.resolver?.();
+    this.resolver = undefined;
   }
 }

@@ -121,6 +121,7 @@ export class ProjectStorageService {
           return false;
         } else {
           this.deleteLocalProject(newKey);
+          this.settingsService.hasCloudToo.set(false);
         }
         this.setActiveProject(project.id, storageType);
       } else {
@@ -324,8 +325,8 @@ export class ProjectStorageService {
       if (storageType === 'local') {
         project = await this.loadFromLocal(key);
         const hasCloudVersionToo = project?.id ? await this.loadFromCloud(project?.id) : null;
+        this.settingsService.hasCloudToo.set(!!hasCloudVersionToo);
         if (project && hasCloudVersionToo) {
-          console.log(hasCloudVersionToo);
           const localIsNewer = new Date(project.lastModified) >= new Date(hasCloudVersionToo.lastModified);
           const detail = localIsNewer ? this.translate.instant('switch.usingLocalVersion.localIsNewer') : this.translate.instant('switch.usingLocalVersion.cloudIsNewer');
           this.messageService.add({

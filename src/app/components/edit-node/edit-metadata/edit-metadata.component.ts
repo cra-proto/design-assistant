@@ -9,13 +9,13 @@ import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
-import { Tooltip } from 'primeng/tooltip';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { ProjectCacheService } from '../../../services/project-cache.service';
 
 @Component({
   selector: 'aida-edit-metadata',
-  imports: [FormsModule, TranslatePipe, ButtonModule, IftaLabelModule, InputGroupAddonModule, InputGroupModule, InputTextModule, TextareaModule, Tooltip],
+  imports: [FormsModule, TranslatePipe, ButtonModule, IftaLabelModule, InputGroupAddonModule, InputGroupModule, InputTextModule, TextareaModule, TooltipModule],
   templateUrl: './edit-metadata.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

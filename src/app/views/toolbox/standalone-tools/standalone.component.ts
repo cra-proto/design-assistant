@@ -17,7 +17,7 @@ import { UserSettingsService } from '../../../services/user-settings.service';
 export class StandaloneComponent {
   private settingsService = inject(UserSettingsService);
 
-  protected readonly standaloneDoormats: DoormatKey[] = ['standaloneCompare'];
+  protected readonly standaloneDoormats: DoormatKey[] = ['standaloneCompare', 'scratchPad'];
   protected readonly standaloneBookmarklets: BookmarkletKey[] = ['aida', 'githubToggle', 'githubNewTab', 'linkChecker', 'nightMode'];
 
   // For group-specific tools

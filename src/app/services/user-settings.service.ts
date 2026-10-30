@@ -50,6 +50,9 @@ export class UserSettingsService {
   //Auto-add preference
   public readonly autoAddChildren = signal<boolean>(localStorage.getItem('autoAddChildren') === 'true');
 
+  //Tracks if duplicate cloud version exists (updated on project load)
+  public readonly hasCloudToo = signal<boolean>(false);
+
   constructor() {
     // Language
     const supportedLangs = ['en', 'fr'];

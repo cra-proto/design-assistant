@@ -8,12 +8,12 @@
         "clean": "rm -rf dist"
     },
     "dependencies": {
-        "@aws-sdk/client-secrets-manager": "^3.0.0",
-        "axios": "^1.6.0"
+        "@aws-sdk/client-secrets-manager": "^3.1159.0",
+        "axios": "^1.21.0"
     },
     "devDependencies": {
-        "@types/aws-lambda": "^8.10.0",
-        "@types/node": "^22.0.0",
-        "typescript": "^5.0.0"
+        "@types/aws-lambda": "^8.10.164",
+        "@types/node": "^22.20.5",
+        "typescript": "~5.9.0"
     }
 }

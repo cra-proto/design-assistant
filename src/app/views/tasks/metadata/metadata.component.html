@@ -6,6 +6,9 @@
       <div class="flex gap-3 align-items-end">
         <aida-compare-select [description]="'metadata.pageOptions.description' | translate" [versionsToShow]="0" />
         <aida-project-settings [allowBoth]="true" [allowLive]="true" [allowPreview]="true" [showLang]="true" />
+        @if (selectedNode(); as node) {
+          <aida-menu-page-actions [selectedNodes]="[node]" />
+        }
         @if (selectedRow(); as row) {
           <div
             [class.no-preview]="noPreviewPath() === row.label[uiLang()].path"
@@ -98,7 +101,7 @@
     <p class="my-0">{{ 'metadata.allPages.description' | translate }}</p>
     <div class="flex flex-column gap-2">
       <div class="flex gap-2 align-items-center">
-        <aida-menu-bulk-page-actions [selectedNodes]="selectedNodes()" />
+        <aida-menu-page-actions [selectedNodes]="selectedNodes()" />
         <span>{{ 'common.pagesSelected' | translate: { count: selectedNodes().length } }}</span>
       </div>
       <aida-project-settings [allowBoth]="true" [allowLive]="true" [allowPreview]="true" [showLang]="true" [showMeta]="true" />
@@ -139,9 +142,13 @@
       >
         <ng-template pTemplate="header">
           <tr>
-            <th class="sticky-table sticky-table-group-header sticky-table-checkbox" rowspan="2"><p-tableHeaderCheckbox /></th>
-            <th class="text-xl sticky-table sticky-table-group-header sticky-table-column" rowspan="2">
-              <div class="flex justify-content-between gap-4">
+            <th class="sticky-table sticky-table-group-header sticky-table-checkbox" rowspan="2">
+              <div class="w-3rem">
+                <p-tableHeaderCheckbox />
+              </div>
+            </th>
+            <th class="text-xl sticky-table sticky-table-group-header sticky-table-column px-3" rowspan="2">
+              <div class="flex justify-content-between gap-4 w-23rem">
                 {{ 'pageOptions.page' | translate }}
                 <div class="flex gap-3 min-w-min font-normal">
                   @for (item of legendItems; track item.text) {
@@ -168,12 +175,19 @@
         </ng-template>
         <ng-template #body let-row let-rowIndex="rowIndex">
           <tr [class]="row.style" [pSelectableRow]="row" [pSelectableRowIndex]="rowIndex">
-            <td class="sticky-table sticky-table-checkbox border-bottom-1 border-300"><p-tableCheckbox [value]="row" /></td>
+            <td class="sticky-table sticky-table-checkbox border-bottom-1 border-300">
+              <div class="flex align-items-center w-3rem">
+                <p-tableCheckbox [value]="row" />
+                @if (getNode(row); as node) {
+                  <aida-menu-page-actions [iconOnly]="true" [selectedNodes]="node" />
+                }
+              </div>
+            </td>
             <th class="sticky-table sticky-table-column border-bottom-1 border-300 py-2 px-3">
-              <div class="flex flex-column text-left">
+              <div class="flex flex-column text-left w-23rem">
                 <span class="text-lg font-medium text-color-secondary">{{ row.label[uiLang()].doubleH1 }}</span>
                 <span class="text-xl">{{ row.label[uiLang()].h1 }}</span>
-                <span [aidaTooltip]="row.label[uiLang()].path" class="text-sm font-medium text-color-secondary white-space-nowrap">{{ '/' + row.label[uiLang()].path.split('/').pop() }}</span>
+                <span [aidaTooltip]="row.label[uiLang()].path" class="text-sm font-medium text-color-secondary">{{ '/' + row.label[uiLang()].path.split('/').pop() }}</span>
               </div>
             </th>
             <td class="border-left-3">
@@ -206,9 +220,26 @@
                     <div class="px-3 py-1 h-2rem border-bottom-1 border-300 white-space-nowrap min-w-max text-center">
                       {{ 'common.noChange' | translate }}
                     </div>
-                    <div [aidaTooltip]="'common.noChange' | translate" class="flex justify-content-center p-3">
-                      <i class="pi pi-minus text-xl text-color-secondary"></i>
-                    </div>
+
+                    @if (column.type === 'aiMetadata' && getNode(row); as node) {
+                      <div class="flex justify-content-center p-5">
+                        <aida-menu-page-actions [metadataOnly]="true" [selectedNodes]="node" />
+                      </div>
+                    } @else if (column.type === 'prototype') {
+                      <p-button
+                        [label]="'metadata.editButton' | translate"
+                        (onClick)="editMeta(row.label[uiLang()].path)"
+                        class="flex justify-content-center p-5"
+                        fluid
+                        icon="pi pi-pen-to-square"
+                        outlined
+                        styleClass="secondary-outline"
+                      />
+                    } @else {
+                      <div [aidaTooltip]="'common.noChange' | translate" class="flex justify-content-center p-3">
+                        <i class="pi pi-minus text-xl text-color-secondary"></i>
+                      </div>
+                    }
                   } @else {
                     <div [class]="countClasses(row[column.key].content, column.key)" class="px-3 py-1 h-2rem border-bottom-1 border-300 white-space-nowrap min-w-max text-center">
                       {{ row[column.key].content.length }}/{{ column.key.startsWith('title') ? '60' : '160' }} {{ 'common.characters' | translate }}
@@ -216,9 +247,17 @@
                     <div [aidaTooltip]="tooltip(row[column.key].content, row.label, column.key) | translate" [class.text-red]="isRed(row[column.key].content, row.label, column.key)" class="px-3 py-1">
                       {{ row[column.key].content }}
                     </div>
-                  }
-                  @if (column.type === 'prototype') {
-                    <p-button [label]="'common.edit' | translate" (onClick)="editMeta(row.label[uiLang()].path)" class="flex justify-content-center px-5 py-2" fluid />
+                    @if (column.type === 'prototype') {
+                      <p-button
+                        [label]="'metadata.editButton' | translate"
+                        (onClick)="editMeta(row.label[uiLang()].path)"
+                        class="flex justify-content-center px-5 py-2"
+                        fluid
+                        icon="pi pi-pen-to-square"
+                        outlined
+                        styleClass="secondary-outline"
+                      />
+                    }
                   }
                 }
               </td>

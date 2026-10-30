@@ -114,7 +114,15 @@ export const handleCallback = async (event: APIGatewayProxyEvent): Promise<APIGa
         };
     } catch (error) {
         console.error('=== ERROR in handleCallback ===');
-        console.error('Error:', error);
+        if (axios.isAxiosError(error)) {
+            console.error('GitHub token exchange failed:', {
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+            });
+        } else {
+            console.error('Error:', error instanceof Error ? error.message : 'Unknown error');
+        }
         return {
             statusCode: 500,
             headers: {

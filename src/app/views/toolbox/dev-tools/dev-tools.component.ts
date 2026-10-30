@@ -53,6 +53,7 @@ export class DevToolsComponent {
     marker('project.repo._');
     marker('project.setup._');
     marker('save._');
+    marker('scratchPad._');
     marker('search._');
     marker('settings._');
     marker('standalone._');

@@ -18,6 +18,7 @@ import { AidaLinks } from '../../common/aidaLinks.config';
 import { TreeNodeData } from '../../common/data.model';
 import { InventoryPrompts } from '../../common/prompts/inventory.prompts';
 import { InventoryPromptKey } from '../../common/prompts/prompt.model';
+import { TooltipDirective } from '../../common/tooltip.directive';
 
 export interface BooleanToggleItem extends MenuItem {
   type: 'booleanToggle';
@@ -26,12 +27,12 @@ export interface BooleanToggleItem extends MenuItem {
 }
 
 @Component({
-  selector: 'aida-menu-bulk-page-actions',
-  imports: [TranslatePipe, ButtonModule, MenuModule, EditNodeComponent],
-  templateUrl: './menu-bulk-page-actions.component.html',
+  selector: 'aida-menu-page-actions',
+  imports: [TranslatePipe, ButtonModule, MenuModule, EditNodeComponent, TooltipDirective],
+  templateUrl: './menu-page-actions.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MenuBulkPageActionsComponent {
+export class MenuPageActionsComponent {
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
   private readonly confirmationService = inject(ConfirmationService);
@@ -41,6 +42,8 @@ export class MenuBulkPageActionsComponent {
   private readonly compareService = inject(CompareService);
 
   /** Selected pages in TreeNode format. Calling component should do the conversion from flat data to TreeNode */
+  public readonly iconOnly = input<boolean>(false);
+  public readonly metadataOnly = input<boolean>(false);
   public readonly selectedNodes = input.required<TreeNode<TreeNodeData>[]>();
   public readonly deleted = output<void>();
 
@@ -64,7 +67,7 @@ export class MenuBulkPageActionsComponent {
   }
 
   /** METADATA: Generate metadata via AI for all selected pages */
-  private async generateMetadata(mode: 'live' | 'prototype' = 'live') {
+  protected async generateMetadata(mode: 'live' | 'prototype' = 'live') {
     const nodes = this.selectedNodes();
     if (!nodes.length) return;
 
@@ -291,6 +294,7 @@ export class MenuBulkPageActionsComponent {
   // 1. Dropdown menus (p-menu)
   protected updateDropdown() {
     const numPages = this.selectedNodes().length;
+    const node = this.selectedNodes()[0]; // For single node mode
     const numChildPages = this.projectState.checkNodeDeletionImpact(this.selectedNodes()).length;
     const refreshingProto = this.projectState.isAnyLoading('prototype');
     const refreshingLive = this.projectState.isAnyLoading('live');
@@ -306,17 +310,74 @@ export class MenuBulkPageActionsComponent {
                 {
                   label: this.translate.instant('editPages._title'),
                   icon: 'pi pi-sparkles',
-                  command: () => this.openInEditPages(this.selectedNodes()[0]),
+                  command: () => this.openInEditPages(node),
                 },
                 {
                   label: this.translate.instant('common.editNode'),
                   icon: 'pi pi-pen-to-square',
-                  command: () => this.editNode(this.selectedNodes()[0]),
+                  command: () => this.editNode(node),
                 },
               ],
             },
           ]
         : [];
+
+    //Only add new tab group if a single page is selected
+    const project = this.projectState.getProject();
+    const protoVersion = project.repoType === 'github' ? 'protoGH' : 'protoUT';
+    const baseVersion = project.repoType === 'github' ? 'baseGH' : 'baseUT';
+    const hasBaseline = project.github.hasBaselineRepo;
+    const path = this.translate.getCurrentLang()?.startsWith('fr') ? node.data?.path.fr : node.data?.path.en;
+    const newTabGroup: MenuItem[] =
+      numPages === 1 && path
+        ? [
+            {
+              label: this.translate.instant('common.openNewTab'),
+              styleClass: 'text-primary-500',
+              items: [
+                {
+                  label: this.translate.instant('inventory.menu.newTab.liveUrl'),
+                  icon: 'pi pi-external-link',
+                  command: () => {
+                    window.open(this.fetchService.generateUrl(path, 'live'), '_blank');
+                  },
+                },
+                {
+                  label: this.translate.instant('inventory.menu.newTab.previewUrl'),
+                  icon: 'pi pi-external-link',
+                  command: () => {
+                    window.open(this.fetchService.generateUrl(path, 'preview'), '_blank');
+                  },
+                },
+                {
+                  label: this.translate.instant('inventory.menu.newTab.prototypeUrl'),
+                  icon: 'pi pi-external-link',
+                  command: () => {
+                    window.open(this.fetchService.generateUrl(path, protoVersion, project.github.owner, project.github.repo), '_blank');
+                  },
+                },
+              ],
+            },
+          ]
+        : [];
+    if (hasBaseline && numPages === 1 && path) {
+      newTabGroup[0].items!.push({
+        label: this.translate.instant('inventory.menu.newTab.baselineUrl'),
+        icon: 'pi pi-external-link',
+        command: () => {
+          window.open(this.fetchService.generateUrl(path, baseVersion, project.github.owner, project.github.repo), '_blank');
+        },
+      });
+    }
+    if (!node.data?.status.isNew && numPages === 1 && path) {
+      newTabGroup[0].items!.push({
+        label: this.translate.instant('inventory.menu.newTab.UPD'),
+        icon: 'pi pi-external-link',
+        command: () => {
+          window.open(this.fetchService.generateUrl(path, 'upd'), '_blank');
+        },
+      });
+    }
 
     this.itemsDropdown = [
       {
@@ -360,7 +421,7 @@ export class MenuBulkPageActionsComponent {
         ],
       },
       {
-        label: this.translate.instant('inventory.menu.updateStatus'),
+        label: this.translate.instant('inventory.menu.updateStatus', { pageCount: numPages }),
         styleClass: 'text-primary-500',
         items: this.bulkEditableBooleans.map(
           (boolean) =>
@@ -375,6 +436,7 @@ export class MenuBulkPageActionsComponent {
         ),
       },
       ...editGroup,
+      ...newTabGroup,
       {
         label: this.translate.instant('inventory.menu.delete'),
         styleClass: 'text-red',

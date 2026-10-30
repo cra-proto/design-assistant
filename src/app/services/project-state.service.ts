@@ -14,6 +14,7 @@ import { CollaboratorService } from './github/collaborator.service';
 import { ExportGitHubService } from './github/export-github.service';
 import { SignInService } from './github/sign-in.service';
 import { UsageService } from './usage.service';
+import { UserSettingsService } from './user-settings.service';
 
 import { version as appVersion } from '../../../package.json';
 import { environment } from '../../environments/environment';
@@ -62,6 +63,7 @@ export class ProjectStateService {
   private readonly usageService = inject(UsageService);
   private readonly exportGitHubService = inject(ExportGitHubService);
   private readonly signInService = inject(SignInService);
+  private readonly settingsService = inject(UserSettingsService);
 
   private readonly currentLang = signal<string>(this.translate.currentLang() ?? 'en');
 
@@ -639,7 +641,14 @@ export class ProjectStateService {
 
     // Convert to local if user does NOT have permission for cloud save
     if (project.storageType === 'cloud') {
-      const { isSignedIn, isCollaborator, isLocked } = this.collaboratorService.getUploadAccessInfo(project);
+      // Offer PAT sign-in for collaborators before converting to local copy
+      let access = this.collaboratorService.getUploadAccessInfo(project);
+      if (access.isCollaborator && !access.isSignedIn && !this.signInService.isApiGatewayAccessible()) {
+        await this.signInService.requestSignIn(); // resolves to true or false
+        access = this.collaboratorService.getUploadAccessInfo(project); // re-check access
+      }
+
+      const { isSignedIn, isCollaborator, isLocked } = access;
       const isLockedByOther = !!(isLocked && isLocked !== 'byMe');
       if (!this.collaboratorService.canEditProject(project) || isLockedByOther) {
         const message =
@@ -655,6 +664,7 @@ export class ProjectStateService {
           sticky: true,
         });
         this.setStorageType('local');
+        this.settingsService.hasCloudToo.set(true);
       }
     }
 

@@ -18,6 +18,7 @@ import { AddPagesLinkComponent } from '../../../components/add-pages/add-pages-l
 import { ExportProjectComponent } from '../../../components/export-project/export-project.component';
 import { SetupProjectComponent } from '../../../components/setup-project/setup-project.component';
 
+import { CollaboratorService } from '../../../services/github/collaborator.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { StyleCardService } from '../../../services/style-card.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
@@ -49,14 +50,31 @@ import { CurrentPhase, GitHubRepo, PhaseStatus, ProjectPhase } from '../../../co
 })
 export class DashboardComponent {
   private readonly projectState = inject(ProjectStateService);
-  private readonly settingsService = inject(UserSettingsService);
   protected readonly styleCardService = inject(StyleCardService);
+  private readonly collaboratorService = inject(CollaboratorService);
+  private readonly settingsService = inject(UserSettingsService);
   protected readonly production = environment.production;
   protected readonly sandbox = environment.production;
   protected readonly AidaLinks = AidaLinks;
 
   get projectData() {
     return this.projectState.getProject();
+  }
+
+  /** Get project storage location information */
+  protected get storageInfo(): { icon: string; type: string } {
+    const project = this.projectState.getProject();
+    const { isSignedIn, isCollaborator } = this.collaboratorService.getUploadAccessInfo(project);
+    const canEditCloud = project.storageType === 'cloud' && isSignedIn && isCollaborator;
+    const icon = canEditCloud ? 'pi pi-cloud' : project.storageType === 'cloud' ? 'pi pi-cloud-download' : this.settingsService.hasCloudToo() ? 'pi pi-copy' : 'pi pi-desktop';
+    const type = canEditCloud
+      ? 'project.setup.storage.cloud'
+      : project.storageType === 'cloud'
+        ? 'project.global.cantUpload'
+        : this.settingsService.hasCloudToo()
+          ? 'project.global.signInToUpload'
+          : 'project.setup.storage.local';
+    return { icon, type };
   }
 
   //Project phase
@@ -111,19 +129,6 @@ export class DashboardComponent {
       }
       return;
     }
-  }
-
-  protected getCardClasses(phase: ProjectPhase, ready: boolean): string {
-    const isDark = this.settingsService.darkMode();
-
-    const activeBorder = this.projectData.phase === phase ? 'border-2 border-primary' : '';
-    const activeHover = this.projectData.phase === phase && ready ? `${isDark ? 'hover:bg-primary-800' : 'hover:bg-primary-50'}` : '';
-
-    const interactive = ready || !this.production ? 'shadow-1 hover:shadow-3 hover:surface-50 cursor-pointer' : '';
-
-    const notReady = !ready && this.production ? 'shadow-2' : '';
-
-    return `${activeBorder} ${activeHover} ${interactive} ${notReady}`.trim();
   }
 
   //Open GitHub repo in new tab

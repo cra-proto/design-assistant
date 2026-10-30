@@ -1,4 +1,5 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import { LambdaFunctionURLEvent, LambdaFunctionURLResult } from 'aws-lambda';
 import axios, { AxiosError } from 'axios';
 
 interface APIKeySecrets {
@@ -64,7 +65,7 @@ async function getOpenRouterKey(type: KeyType = 'paid'): Promise<string> {
     return cachedApiKey[type];
 }
 
-export const handler = async (event: any): Promise<any> => {
+export const handler = async (event: LambdaFunctionURLEvent): Promise<LambdaFunctionURLResult> => {
 
     // Parse & validate request body
     let body: OpenRouterRequest;
@@ -75,6 +76,10 @@ export const handler = async (event: any): Promise<any> => {
             statusCode: 400,
             body: JSON.stringify({ error: 'Invalid JSON in request body' })
         };
+    }
+
+    if (!body || typeof body !== 'object') {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Request body must be a JSON object' }) };
     }
 
     const { models, systemPrompt, content, temperature = 0, keyType = 'paid' } = body;

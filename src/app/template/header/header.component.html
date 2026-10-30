@@ -3,7 +3,7 @@
     <img [alt]="'common.goc' | translate" [src]="logoSrc" class="opacity-70 h-1rem md:h-2rem flex mr-auto" />
     <div class="flex flex-row align-items-center gap-2 lg:gap-3">
       <aida-save-button />
-      <aida-sign-in-button />
+      <aida-sign-in-button [handleSignInRequests]="true" />
       <p-button
         [icon]="settingsService.icon()"
         (onClick)="settingsService.toggle()"

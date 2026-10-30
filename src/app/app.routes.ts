@@ -220,6 +220,11 @@ export const routes: Routes = [
         loadComponent: () => import('./views/toolbox/standalone-tools/standalone-compare-versions/standalone-compare-versions.component').then((m) => m.StandaloneCompareComponent),
         title: 'compare._title',
       },
+      {
+        path: 'scratch-pad',
+        loadComponent: () => import('./views/toolbox/standalone-tools/scratch-pad/scratch-pad.component').then((m) => m.ScratchPadComponent),
+        title: 'scratchPad._title',
+      },
     ],
   },
   //DEV PAGES
