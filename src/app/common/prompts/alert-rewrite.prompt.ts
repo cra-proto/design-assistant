@@ -4,6 +4,10 @@ export interface AlertRewritePromptRules {
     styleRulesWithExamples: string[];
     systemPromptWithExamplesLines: string[];
     systemPromptWithoutExamplesLines: string[];
+    conditionalInstructions: {
+      preserveFinalStandaloneLink: string;
+      enforceLinkManifest: string;
+    };
     retryInstructions: {
       invalidWrapperHtml: string;
       noLinksAllowed: string;
@@ -61,6 +65,12 @@ export const AlertRewriteRules: AlertRewritePromptRules = {
       'Output schema:',
       '{"rewrittenAlertHtml":"string","rewrittenHeading":"string","rewrittenAlert":"string","appliedDirectives":["..."],"exampleIdsUsed":[]}',
     ],
+    conditionalInstructions: {
+      preserveFinalStandaloneLink:
+        'The original alert already ends with an acceptable standalone final link sentence or paragraph. Preserve that wording and placement unless a selected issue clearly requires a change. Do not rewrite a valid existing lead-in such as "For details:" to "Refer to:" when it already reads naturally.',
+      enforceLinkManifest:
+        'Use linkManifest as the source of truth for original links. If linkManifest.mustPreserveAtLeastOne is true, rewrittenAlertHtml must include at least one real <a> element whose href exactly matches one of linkManifest.items[].href values. If linkManifest.allowRemoval is true, you may remove extra links, but you must still keep at least one original link.',
+    },
     retryInstructions: {
       invalidWrapperHtml: 'Return valid rewrittenAlertHtml as a full .alert wrapper element.',
       noLinksAllowed: 'The original alert has no links. Do not add hyperlinks. Return rewrittenAlertHtml without any <a> tags.',

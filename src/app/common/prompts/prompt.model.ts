@@ -2,6 +2,7 @@ import { marker } from '@colsen1991/ngx-translate-extract-marker';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function markForTranslation() {
+  marker('aiPrompt.alerts._title');
   marker('aiPrompt.role.none');
   marker('aiPrompt.role.contentDesigner');
   marker('aiPrompt.role.seoExpert');
@@ -30,6 +31,7 @@ function markForTranslation() {
   marker('aiPrompt.page.plainLanguage');
   marker('aiPrompt.page.tense');
   marker('aiPrompt.page.alertRewrite');
+  marker('aiPrompt.page.alertExamples');
 
   marker('aiPrompt.problem.alertsRewrite');
   marker('aiPrompt.problem.alertsProblems');

@@ -201,14 +201,10 @@ export class AlertRewriteService {
     });
     const styleRules = [...rules.alertRewrite.styleRulesBase, ...canadaCaStyleRules, ...linkRules, ...(params.examples.length ? rules.alertRewrite.styleRulesWithExamples : [])];
     if (this.hasAcceptableFinalStandaloneLinkSentence(params.originalAlertHtml)) {
-      styleRules.push(
-        'The original alert already ends with an acceptable standalone final link sentence or paragraph. Preserve that wording and placement unless a selected issue clearly requires a change. Do not rewrite a valid existing lead-in such as "For details:" to "Refer to:" when it already reads naturally.',
-      );
+      styleRules.push(rules.alertRewrite.conditionalInstructions.preserveFinalStandaloneLink);
     }
     if (linkManifest.hasLinks) {
-      styleRules.push(
-        'Use linkManifest as the source of truth for original links. If linkManifest.mustPreserveAtLeastOne is true, rewrittenAlertHtml must include at least one real <a> element whose href exactly matches one of linkManifest.items[].href values. If linkManifest.allowRemoval is true, you may remove extra links, but you must still keep at least one original link.',
-      );
+      styleRules.push(rules.alertRewrite.conditionalInstructions.enforceLinkManifest);
     }
     const retryInstructions = Array.from(new Set((params.retryInstructions || []).map((instruction) => (instruction || '').trim()).filter((instruction) => !!instruction)));
     if (retryInstructions.length) {
