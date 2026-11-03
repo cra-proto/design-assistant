@@ -53,6 +53,14 @@ interface TabConfig {
 interface PromptPipelineSection {
   key: string;
   label: string;
+  content?: string;
+  collapsed?: boolean;
+  options?: PromptPipelineOption[];
+}
+
+interface PromptPipelineOption {
+  key: string;
+  label: string;
   content: string;
   collapsed: boolean;
 }
@@ -212,7 +220,7 @@ export class PromptEditorComponent {
   protected readonly alertRewritePipelineSections: PromptPipelineSection[] = this.buildAlertRewritePipelineSections();
   protected readonly alertRewriteExamples = AlertRewriteExamples;
 
-  selectedPrompts = new Set<string>([this.inventoryPrompts[0]?.enumKey, this.pagePrompts[0]?.enumKey, this.problemPrompts[0]?.enumKey].filter(Boolean));
+  selectedPrompts = new Set<string>([this.pagePrompts[0]?.enumKey, this.problemPrompts[0]?.enumKey].filter(Boolean));
 
   togglePrompt(enumKey: string) {
     if (this.selectedPrompts.has(enumKey)) {
@@ -274,16 +282,52 @@ export class PromptEditorComponent {
     const rules = AlertRewriteRules.alertRewrite;
     return [
       {
-        key: 'systemWithExamples',
-        label: 'dev.prompts.alertRewrite.systemWithExamples',
-        content: this.formatPromptJson(rules.systemPromptWithExamplesLines),
+        key: 'role',
+        label: 'dev.prompts.alertRewrite.role',
+        content: this.formatPromptJson(rules.role),
         collapsed: false,
       },
       {
-        key: 'systemWithoutExamples',
-        label: 'dev.prompts.alertRewrite.systemWithoutExamples',
-        content: this.formatPromptJson(rules.systemPromptWithoutExamplesLines),
-        collapsed: true,
+        key: 'aiInstructions',
+        label: 'dev.prompts.alertRewrite.aiInstructions',
+        options: [
+          {
+            key: 'systemWithExamples',
+            label: 'dev.prompts.alertRewrite.examplesIncluded',
+            content: this.formatPromptJson(rules.systemPromptWithExamplesLines),
+            collapsed: false,
+          },
+          {
+            key: 'systemWithoutExamples',
+            label: 'dev.prompts.alertRewrite.examplesNotIncluded',
+            content: this.formatPromptJson(rules.systemPromptWithoutExamplesLines),
+            collapsed: false,
+          },
+        ],
+      },
+      {
+        key: 'outputRequirement',
+        label: 'dev.prompts.alertRewrite.outputRequirement',
+        content: this.formatPromptJson(rules.outputRequirement),
+        collapsed: false,
+      },
+      {
+        key: 'outputSchemas',
+        label: 'dev.prompts.alertRewrite.outputSchemas',
+        options: [
+          {
+            key: 'outputSchemaWithExamples',
+            label: 'dev.prompts.alertRewrite.examplesIncluded',
+            content: this.formatPromptJson(rules.outputSchemas.withExamples),
+            collapsed: false,
+          },
+          {
+            key: 'outputSchemaWithoutExamples',
+            label: 'dev.prompts.alertRewrite.examplesNotIncluded',
+            content: this.formatPromptJson(rules.outputSchemas.withoutExamples),
+            collapsed: false,
+          },
+        ],
       },
       {
         key: 'baseRules',
@@ -307,12 +351,6 @@ export class PromptEditorComponent {
         key: 'linkRulesTooMany',
         label: 'dev.prompts.alertRewrite.linkRulesTooMany',
         content: this.formatPromptJson(getLinkWritingPromptRules({ hasTooManyLinksIssue: true })),
-        collapsed: false,
-      },
-      {
-        key: 'exampleRules',
-        label: 'dev.prompts.alertRewrite.exampleRules',
-        content: this.formatPromptJson(rules.styleRulesWithExamples),
         collapsed: false,
       },
       {
@@ -354,12 +392,15 @@ export class PromptEditorComponent {
     marker('dev.prompts.alertRewrite.baseRules');
     marker('dev.prompts.alertRewrite.canadaCaStyle');
     marker('dev.prompts.alertRewrite.conditionalInstructions');
-    marker('dev.prompts.alertRewrite.exampleRules');
     marker('dev.prompts.alertRewrite.linkRulesDefault');
     marker('dev.prompts.alertRewrite.linkRulesTooMany');
+    marker('dev.prompts.alertRewrite.outputRequirement');
+    marker('dev.prompts.alertRewrite.outputSchemas');
     marker('dev.prompts.alertRewrite.retryInstructions');
-    marker('dev.prompts.alertRewrite.systemWithExamples');
-    marker('dev.prompts.alertRewrite.systemWithoutExamples');
+    marker('dev.prompts.alertRewrite.role');
+    marker('dev.prompts.alertRewrite.aiInstructions');
+    marker('dev.prompts.alertRewrite.examplesIncluded');
+    marker('dev.prompts.alertRewrite.examplesNotIncluded');
     marker('dev.prompts.alertRewrite.testUnavailable');
     marker('dev.prompts.alertRewrite.example.alertType');
     marker('dev.prompts.alertRewrite.example.criteria');

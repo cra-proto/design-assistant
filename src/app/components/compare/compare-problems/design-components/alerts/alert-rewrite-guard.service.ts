@@ -82,6 +82,25 @@ export class AlertRewriteGuardService {
     }
   }
 
+  // Keeps the source alert type unless a selected issue authorizes changing it.
+  preserveOriginalAlertType(rewrittenHtml: string, originalHtml: string): string {
+    try {
+      const typeClasses = ['alert-info', 'alert-warning', 'alert-danger', 'alert-error', 'alert-success'];
+      const originalDoc = new DOMParser().parseFromString(originalHtml || '', 'text/html');
+      const rewrittenDoc = new DOMParser().parseFromString(rewrittenHtml || '', 'text/html');
+      const originalAlert = originalDoc.body.querySelector<HTMLElement>('.alert');
+      const rewrittenAlert = rewrittenDoc.body.querySelector<HTMLElement>('.alert');
+      if (!originalAlert || !rewrittenAlert) return rewrittenHtml;
+
+      const originalTypeClasses = typeClasses.filter((className) => originalAlert.classList.contains(className));
+      typeClasses.forEach((className) => rewrittenAlert.classList.remove(className));
+      originalTypeClasses.forEach((className) => rewrittenAlert.classList.add(className));
+      return rewrittenAlert.outerHTML.trim();
+    } catch {
+      return rewrittenHtml;
+    }
+  }
+
   // Rejects outputs where link-direction text is malformed:
   // link-only sentences, embedded lead-ins, or lead-ins in the wrong paragraph shape.
   hasFullSentenceLinkWithoutAllowedLeadIn(alertHtml: string): boolean {

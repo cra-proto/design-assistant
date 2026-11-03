@@ -148,6 +148,7 @@ export class AlertRewriteOrchestratorService {
       const alertIndex = i + 1;
       const relevantIssues = this.alertRewriteGuard.getIssuesForAlertIndex(params.issues, alertIndex);
       const needsPlacementReview = relevantIssues.some((issue) => (issue.category || '').trim().toLowerCase() === 'wrong placement');
+      const mayChangeAlertType = relevantIssues.some((issue) => /^(?:wrong|incorrect) (?:alert )?type$/.test((issue.category || '').trim().toLowerCase()));
       if (!params.includeExamples && !relevantIssues.length) {
         console.info('Alert rewrite skipped for alert without selected issues', {
           alertIndex,
@@ -440,6 +441,9 @@ export class AlertRewriteOrchestratorService {
       rewriteResult.rewrittenAlertHtml = this.alertRewriteGuard.removeRedundantLeadInsBeforeActionLinks(rewriteResult.rewrittenAlertHtml);
       rewriteResult.rewrittenAlertHtml = this.alertRewriteGuard.preserveOriginalStandaloneLinkLeadIns(rewriteResult.rewrittenAlertHtml, alertHtml);
       rewriteResult.rewrittenAlertHtml = this.alertRewriteGuard.removeStandaloneLinkTerminalPunctuation(rewriteResult.rewrittenAlertHtml);
+      if (!mayChangeAlertType) {
+        rewriteResult.rewrittenAlertHtml = this.alertRewriteGuard.preserveOriginalAlertType(rewriteResult.rewrittenAlertHtml, alertHtml);
+      }
       if (needsPlacementReview) {
         rewriteResult.rewrittenAlertHtml = `${this.buildPlacementReviewNoticeHtml()}\n${rewriteResult.rewrittenAlertHtml}`;
       }
@@ -468,6 +472,10 @@ export class AlertRewriteOrchestratorService {
 
       console.info('Alert rewrite examples', {
         alertIndex,
+        originalAlertType: initialPlan.alertType,
+        finalAlertType: this.alertRewrite.inferAlertType(rewriteResult.rewrittenAlertHtml),
+        mayChangeAlertType,
+        selectedIssueCategories: relevantIssues.map((issue) => issue.category || '').filter((category) => !!category),
         suppliedExampleIds,
         exampleIdsUsed: rewriteResult.exampleIdsUsed,
       });

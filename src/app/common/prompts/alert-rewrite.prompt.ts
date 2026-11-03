@@ -1,9 +1,17 @@
+import { OutputKey } from './prompt.model';
+import { OutputFragment } from './shared.prompts';
+
 export interface AlertRewritePromptRules {
   alertRewrite: {
+    role: string;
     styleRulesBase: string[];
-    styleRulesWithExamples: string[];
     systemPromptWithExamplesLines: string[];
     systemPromptWithoutExamplesLines: string[];
+    outputRequirement: string;
+    outputSchemas: {
+      withExamples: string;
+      withoutExamples: string;
+    };
     conditionalInstructions: {
       preserveFinalStandaloneLink: string;
       enforceLinkManifest: string;
@@ -21,6 +29,7 @@ export interface AlertRewritePromptRules {
 
 export const AlertRewriteRules: AlertRewritePromptRules = {
   alertRewrite: {
+    role: 'You are an expert in Canada.ca alerts, accessibility, content design, and alert HTML rewriting.',
     styleRulesBase: [
       "Keep edits proportionate. Resolve selected issues and use selected examples only as style guidance. Preserve the alert's supported meaning, facts, and purpose.",
       'Preserve the original alert type, such as info, warning, danger, or success, unless a selected issue explicitly identifies the alert type as incorrect.',
@@ -40,31 +49,22 @@ export const AlertRewriteRules: AlertRewritePromptRules = {
       'Do not add new links. If the original alert has one or more <a> links, rewrittenAlertHtml must include at least one real <a> element with an original href. Do not convert every link to plain text, omit all links, or replace links with placeholder text. You may rewrite anchor text only if it improves clarity and still describes the same destination. If the original alert has multiple links, only remove extra links when the selected issues or plan identify too many links or link removal.',
       'Set rewrittenAlertHtml to full .alert wrapper HTML (for example: <div class="alert alert-info">...</div>).',
     ],
-    styleRulesWithExamples: [
+    systemPromptWithExamplesLines: [
       'Use examples as pattern guidance only.',
       "When examples include egHtml, use that field as the example's final HTML pattern.",
-      'Do not copy example wording.',
       "Keep wording specific to the input alert's own facts and wording.",
-    ],
-    systemPromptWithExamplesLines: [
-      'You are an expert in Canada.ca alerts, accessibility, content design, and alert HTML rewriting.',
-      'Use examples as pattern guidance, not copy/paste text.',
+      'Do not introduce wording from an example unless it is supported by the input alert. Valid wording already present in the input alert may be preserved.',
       'Only include exampleIdsUsed values that match the provided example ids.',
-      'Keep the alert wrapper and classes valid.',
-      'Do not return any sentence copied from the examples.',
-      'Return JSON only. No extra text.',
-      'Output schema:',
-      '{"rewrittenAlertHtml":"string","rewrittenHeading":"string","rewrittenAlert":"string","appliedDirectives":["..."],"exampleIdsUsed":["ex-001"]}',
     ],
     systemPromptWithoutExamplesLines: [
-      'You are an expert in Canada.ca alerts, accessibility, content design, and alert HTML rewriting.',
       'No examples are provided for this request.',
       'Return exampleIdsUsed as an empty array: [].',
-      'Keep the alert wrapper and classes valid.',
-      'Return JSON only. No extra text.',
-      'Output schema:',
-      '{"rewrittenAlertHtml":"string","rewrittenHeading":"string","rewrittenAlert":"string","appliedDirectives":["..."],"exampleIdsUsed":[]}',
     ],
+    outputRequirement: OutputFragment[OutputKey.Json],
+    outputSchemas: {
+      withExamples: '{"rewrittenAlertHtml":"string","rewrittenHeading":"string","rewrittenAlert":"string","exampleIdsUsed":["ex-XXX"]}',
+      withoutExamples: '{"rewrittenAlertHtml":"string","rewrittenHeading":"string","rewrittenAlert":"string","exampleIdsUsed":[]}',
+    },
     conditionalInstructions: {
       preserveFinalStandaloneLink:
         'The original alert already ends with an acceptable standalone final link sentence or paragraph. Preserve that wording and placement unless a selected issue clearly requires a change. Do not rewrite a valid existing lead-in such as "For details:" to "Refer to:" when it already reads naturally.',

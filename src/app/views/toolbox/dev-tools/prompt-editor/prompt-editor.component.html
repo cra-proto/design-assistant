@@ -59,9 +59,24 @@
                 @if (isPromptConfig(prompt) && isPromptVisible(prompt.enumKey) && isAlertRewritePipeline(prompt)) {
                   <h2 class="my-0">{{ prompt.translationKey | translate }}</h2>
                   @for (section of alertRewritePipelineSections; track section.key) {
-                    <p-fieldset [collapsed]="section.collapsed" [legend]="section.label | translate" [toggleable]="true">
-                      <pre class="prompt-preview">{{ section.content }}</pre>
-                    </p-fieldset>
+                    @if (section.options?.length) {
+                      <section>
+                        <h3>{{ section.label | translate }}</h3>
+                        <div class="grid">
+                          @for (option of section.options; track option.key) {
+                            <div class="col-12 lg:col-6">
+                              <p-fieldset [collapsed]="option.collapsed" [legend]="option.label | translate" [toggleable]="true" styleClass="h-full">
+                                <pre class="prompt-preview">{{ option.content }}</pre>
+                              </p-fieldset>
+                            </div>
+                          }
+                        </div>
+                      </section>
+                    } @else {
+                      <p-fieldset [collapsed]="section.collapsed" [legend]="section.label | translate" [toggleable]="true">
+                        <pre class="prompt-preview">{{ section.content }}</pre>
+                      </p-fieldset>
+                    }
                   }
                 }
                 @if (isPromptConfig(prompt) && isPromptVisible(prompt.enumKey) && !isAlertRewritePipeline(prompt)) {
@@ -171,9 +186,24 @@
 @if (selectedPromptIsAlertRewritePipeline()) {
   <p>{{ 'dev.prompts.alertRewrite.testUnavailable' | translate }}</p>
   @for (section of alertRewritePipelineSections; track section.key) {
-    <p-fieldset [collapsed]="section.collapsed" [legend]="section.label | translate" [toggleable]="true">
-      <pre class="prompt-preview">{{ section.content }}</pre>
-    </p-fieldset>
+    @if (section.options?.length) {
+      <section>
+        <h3>{{ section.label | translate }}</h3>
+        <div class="grid">
+          @for (option of section.options; track option.key) {
+            <div class="col-12 lg:col-6">
+              <p-fieldset [collapsed]="option.collapsed" [legend]="option.label | translate" [toggleable]="true" styleClass="h-full">
+                <pre class="prompt-preview">{{ option.content }}</pre>
+              </p-fieldset>
+            </div>
+          }
+        </div>
+      </section>
+    } @else {
+      <p-fieldset [collapsed]="section.collapsed" [legend]="section.label | translate" [toggleable]="true">
+        <pre class="prompt-preview">{{ section.content }}</pre>
+      </p-fieldset>
+    }
   }
 } @else if (selectedPromptIsAlertRewriteExamples()) {
   <div class="flex flex-column gap-3 mt-3">
