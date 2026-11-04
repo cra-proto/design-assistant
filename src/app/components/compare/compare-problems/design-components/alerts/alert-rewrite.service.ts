@@ -174,6 +174,7 @@ export class AlertRewriteService {
     plan: AlertRewritePlan;
     issues: AlertRewriteIssueInput[];
     examples: AlertRewriteExample[];
+    terminologyRules?: string[];
     retryInstructions?: string[];
   }): Promise<ChatMessage[]> {
     const hasTooManyLinksIssue =
@@ -199,7 +200,7 @@ export class AlertRewriteService {
       linkRulesIncluded: originalHasLink,
       linkRuleCount: linkRules.length,
     });
-    const styleRules = [...rules.alertRewrite.styleRulesBase, ...canadaCaStyleRules, ...linkRules];
+    const styleRules = [...rules.alertRewrite.styleRulesBase, ...(params.terminologyRules || []), ...canadaCaStyleRules, ...linkRules];
     if (this.hasAcceptableFinalStandaloneLinkSentence(params.originalAlertHtml)) {
       styleRules.push(rules.alertRewrite.conditionalInstructions.preserveFinalStandaloneLink);
     }
