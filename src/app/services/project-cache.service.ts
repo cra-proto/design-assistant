@@ -1,4 +1,6 @@
-import { effect, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
+
+import { TranslateService } from '@ngx-translate/core';
 
 import { FetchService } from './fetch.service';
 import { htmlProcessingResult } from './html-normalization.service';
@@ -22,6 +24,7 @@ export type MetaType = 'title' | 'description' | 'keywords';
  */
 @Injectable({ providedIn: 'root' })
 export class ProjectCacheService {
+  private readonly translate = inject(TranslateService);
   private readonly projectState = inject(ProjectStateService);
   private readonly fetchService = inject(FetchService);
   private readonly settingsService = inject(UserSettingsService);
@@ -71,6 +74,11 @@ export class ProjectCacheService {
 
   /** Signal for the view URLs drawer. Defaults to url. */
   public readonly selectedDisplay = signal<'url' | 'title'>('url');
+
+  /* Current UI language */
+  public readonly uiLang = computed<'en' | 'fr'>(() => (this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en'));
+  /* Current UI locale for numbers */
+  public readonly numberLocale = computed(() => (this.translate.currentLang() === 'en' ? 'en-CA' : 'fr-CA'));
 
   constructor() {
     effect(() => {

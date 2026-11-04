@@ -13,6 +13,7 @@ import { MenuModule } from 'primeng/menu';
 import { SelectModule } from 'primeng/select';
 
 import { AddPagesLinkComponent } from '../../add-pages/add-pages-link/add-pages-link.component';
+import { ProjectSettingsComponent } from '../../project-settings/project-settings.component';
 import { UserSettingsComponent } from '../../user-settings/user-settings.component';
 
 import { FetchService } from '../../../services/fetch.service';
@@ -31,7 +32,7 @@ import { ALL_SOURCES, SourceVersion } from '../../../common/data.model';
  */
 @Component({
   selector: 'aida-compare-select',
-  imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, IftaLabelModule, MenuModule, SelectModule, AddPagesLinkComponent, UserSettingsComponent],
+  imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, IftaLabelModule, MenuModule, SelectModule, AddPagesLinkComponent, ProjectSettingsComponent, UserSettingsComponent],
   templateUrl: './compare-select.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -47,6 +48,8 @@ export class CompareSelectComponent implements OnInit {
 
   public readonly versionsToShow = input.required<0 | 1 | 2>();
   public readonly description = input<string | undefined>(undefined);
+  public readonly showLang = input<boolean>(false);
+  public readonly allowBoth = input<boolean>(false);
 
   async ngOnInit(): Promise<void> {
     // Initialize to 1st page in project if none selected
@@ -72,11 +75,24 @@ export class CompareSelectComponent implements OnInit {
       if (!hasVersion(this.compareService.selectedAfter())) this.compareService.selectedAfter.set(firstOption);
       if (!hasVersion(this.compareService.selectedSource())) this.compareService.selectedSource.set(firstOption);
     });
+    effect(() => {
+      void this.projectCache.selectedLang();
+      const bothPaths = this.projectState.getBothPaths(this.compareService.selectedPage());
+      if (!bothPaths) return;
+      const newPath = this.projectCache.selectedLang() === 'fr' ? bothPaths.fr : bothPaths.en;
+      this.compareService.selectedPage.set(newPath);
+      this.onPageSelectionChange(newPath);
+    });
   }
 
   /** Page dropdown options */
   get pageOptions() {
-    return this.projectState.getAllPages('en', 'live', 'inScope');
+    const selectedLang = this.projectCache.selectedLang() === 'fr' ? 'fr' : 'en';
+    return this.projectState.getPairedPages('live', 'inScope').map((pair) => ({
+      label: pair[this.projectCache.uiLang()].label,
+      path: pair[this.projectCache.uiLang()].path,
+      value: pair[selectedLang].path,
+    }));
   }
 
   /** All potential "Versions" for the {@link versionOptions} dropdowns

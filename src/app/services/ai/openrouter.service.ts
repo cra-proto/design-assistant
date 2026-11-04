@@ -37,6 +37,7 @@ export interface AiRequestState {
 
 type KeyType = 'paid' | 'free' | 'devp';
 
+/** TODO: see if we can merge sendMessages with getTextFromAI or choose better names for each (getTextFromAI cleans and formats an HTML response, sendMessages skips the cleanup and also returns the model) */
 @Injectable({ providedIn: 'root' })
 export class OpenRouterService {
   private http = inject(HttpClient);
@@ -54,9 +55,9 @@ export class OpenRouterService {
   // Returns full OpenRouter response
   async sendToAI(config: PromptConfig, content: string, preferredModel?: string, temperature = 0, keyType: KeyType = 'paid'): Promise<OpenRouterResponse> {
     // Compose the configured system prompt before sending the request.
-    const systemPrompt = await this.aiPromptService.composePrompt(config);
+    const systemPrompt = this.aiPromptService.composePrompt(config);
     console.log(systemPrompt);
-    return this.sendRawPrompt(systemPrompt, content, preferredModel, temperature, keyType);
+    return await this.sendRawPrompt(systemPrompt, content, preferredModel, temperature, keyType);
   }
 
   // Sends the first precomposed system/user pair, as used by alert rewriting.
@@ -88,6 +89,7 @@ export class OpenRouterService {
     this.state.set({ loading: true, error: null, respondingModel: null });
 
     const MAX_FALLBACK_MODELS = 3;
+
     const models = (preferredModel ? [preferredModel, ...AI_FREE_MODELS.filter((model) => model !== preferredModel)] : AI_FREE_MODELS).slice(0, MAX_FALLBACK_MODELS);
 
     try {

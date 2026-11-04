@@ -50,6 +50,7 @@ export class MenuPageActionsComponent {
   /** Signal for node editor */
   protected readonly selectedNode = signal<TreeNode<TreeNodeData> | undefined>(undefined);
   protected editingNode = false;
+  protected showNotes = false;
 
   /** REFRESH: Refresh prototype or live data for all selected nodes */
   private async refreshData(version: 'live' | 'prototype') {
@@ -167,8 +168,9 @@ export class MenuPageActionsComponent {
   }
 
   /** EDIT: open selected page in node editor popup (only available if 1 page selected) */
-  protected editNode(node: TreeNode<TreeNodeData>) {
+  protected editNode(node: TreeNode<TreeNodeData>, showNotes = false) {
     this.selectedNode.set(node);
+    this.showNotes = showNotes;
     this.editingNode = true;
   }
 
@@ -321,6 +323,15 @@ export class MenuPageActionsComponent {
             },
           ]
         : [];
+
+    // Add edit notes option if node has notes
+    if (numPages === 1 && (node.data?.notes?.issue?.length ?? 0) + (node.data?.notes?.solution?.length ?? 0) > 0) {
+      editGroup[0].items!.push({
+        label: this.translate.instant(`common.viewNotes`),
+        icon: 'pi pi-list',
+        command: () => this.editNode(node, true),
+      });
+    }
 
     //Only add new tab group if a single page is selected
     const project = this.projectState.getProject();

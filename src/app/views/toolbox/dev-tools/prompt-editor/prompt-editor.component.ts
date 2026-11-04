@@ -237,6 +237,7 @@ export class PromptEditorComponent {
     marker('aiPrompt.component.rubric');
     marker('aiPrompt.component.task');
     marker('aiPrompt.component.jsonSchema');
+
     marker('dev.prompts.button.openPR');
   }
 
@@ -306,6 +307,13 @@ export class PromptEditorComponent {
 
   private toTemplateLiteral(value: string): string {
     return `\`${value.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')}\``;
+  }
+
+  // Rebuild prompt file (older version)
+  rebuildPromptFileOld(tool: string, prompts: PromptEntry[]) {
+    const updatedPrompts = prompts.map((p) => ` [${tool}PromptKey.${p.enumKey}]: \`${p.promptText}\`,`).join('\n');
+
+    return `import { ${tool}PromptKey } from './prompt.model'\nexport const ${tool}Prompts: Record<${tool}PromptKey, string> = {\n${updatedPrompts}\n};`;
   }
 
   rebuildSharedFile(): string {

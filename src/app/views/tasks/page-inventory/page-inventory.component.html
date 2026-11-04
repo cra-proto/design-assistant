@@ -1,0 +1,263 @@
+<div class="min-w-min">
+  <div class="sticky-content">
+    <h1 id="wb-cont">{{ 'inventory._title' | translate }}</h1>
+    <p>{{ 'inventory.description' | translate }}{{ 'inventory.description2' | translate }}</p>
+  </div>
+
+  <div [class]="styleCardService.cardStyles()">
+    <div class="sticky-content mb-1">
+      <h2 class="text-2xl my-1">{{ `inventory.table.header.${projectCache.selectedScope()}` | translate }}</h2>
+      <div class="flex gap-2 align-items-center">
+        <p-button
+          [badge]="filterCount()"
+          [label]="'common.filter' | translate"
+          (click)="showDrawer = true"
+          badgeSeverity="primary"
+          icon="pi pi-sliders-h"
+          outlined
+          size="large"
+          styleClass="secondary-outline"
+        />
+        <aida-menu-page-actions [selectedNodes]="selection.selectedNodes()" />
+        <span>{{ 'common.pagesSelected' | translate: { count: selection.selectedNodes().length } }}</span>
+      </div>
+    </div>
+
+    <div [class.stuck-x]="stuck.stuckX()" [class.stuck-y]="stuck.stuckY()">
+      <p-table
+        [(selection)]="selection.selectedRows"
+        [customSort]="true"
+        [globalFilterFields]="filterFields()"
+        [paginator]="visibleRows().length > 25"
+        [rows]="50"
+        [rowsPerPageOptions]="rowsPerPageOptions"
+        [scrollable]="false"
+        [value]="visibleRows()"
+        (sortFunction)="customSort($event)"
+        #dt
+        dataKey="label.en.path"
+        selectionMode="multiple"
+        stripedRows
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="sticky-table sticky-table-group-header sticky-table-checkbox" rowspan="2">
+              <div class="w-3rem">
+                <p-tableHeaderCheckbox />
+              </div>
+            </th>
+            <th class="text-xl sticky-table sticky-table-group-header sticky-table-column px-3" rowspan="2">
+              <div class="flex justify-content-between gap-4 w-23rem">
+                {{ 'pageOptions.page' | translate }}
+                <div class="flex gap-3 min-w-min font-normal">
+                  @for (item of tableService.legendItems(); track item.text) {
+                    <div class="flex align-items-center gap-1">
+                      @for (colour of item.context; track $index) {
+                        <div [ngClass]="colour" class="legend-box border-2 surface-border border-round shadow-2"></div>
+                      }
+                      <span class="text-base">{{ item.text | translate }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </th>
+            @for (group of groups(); track group.name) {
+              <th [attr.colspan]="group.span" class="text-lg border-left-3 sticky-table sticky-table-group-header">{{ group.name }}</th>
+            }
+          </tr>
+          <tr>
+            @for (column of visibleColumns(); track column.key) {
+              <th [class.border-left-1]="!column.isGroupStart" [class.border-left-3]="column.isGroupStart" [pSortableColumn]="column.key" class="sticky-table sticky-table-header">
+                <div class="flex justify-content-between gap-2">
+                  <div>
+                    {{ column.column }}
+                    @if (column.key.endsWith('En') || column.key.endsWith('Fr')) {
+                      ({{ column.key.endsWith('En') ? ('common.language.english' | translate) : ('common.language.french' | translate) }})
+                    }
+                  </div>
+                  <p-sortIcon [field]="column.key" />
+                </div>
+              </th>
+            }
+          </tr>
+        </ng-template>
+        <ng-template #body let-row let-rowIndex="rowIndex">
+          <tr [class]="row.style" [pSelectableRow]="row" [pSelectableRowIndex]="rowIndex">
+            <td class="sticky-table sticky-table-checkbox border-bottom-1 border-300">
+              <div class="flex align-items-center w-3rem">
+                <p-tableCheckbox [value]="row" />
+                @if (tableService.getNode(row.label); as node) {
+                  <aida-menu-page-actions [iconOnly]="true" [selectedNodes]="node" />
+                }
+              </div>
+            </td>
+            <th class="sticky-table sticky-table-column border-bottom-1 border-300 py-2 px-3">
+              <div class="flex flex-column text-left w-23rem">
+                <span class="text-lg font-medium text-color-secondary">{{ row.label[projectCache.uiLang()].doubleH1 }}</span>
+                <span class="text-xl">{{ row.label[projectCache.uiLang()].h1 }}</span>
+                <span [aidaTooltip]="row.label[projectCache.uiLang()].path" class="text-sm font-medium text-color-secondary">{{ '/' + row.label[projectCache.uiLang()].path.split('/').pop() }}</span>
+              </div>
+            </th>
+            @for (column of visibleColumns(); track column.key) {
+              @let cell = row[column.key];
+              <td [class.border-left-1]="!column.isGroupStart" [class.border-left-3]="column.isGroupStart" class="p-0 min-w-min">
+                @switch (cell.type) {
+                  @case ('boolean') {
+                    <div [aidaTooltip]="projectInventory.getBooleanTooltip(cell.content, column.key) | translate" class="flex justify-content-center my-5 px-1">
+                      <i [class]="projectInventory.getBooleanIcon(cell.content, column.key)" class="text-2xl"></i>
+                    </div>
+                  }
+                  @case ('number') {
+                    <div class="flex justify-content-center my-5 px-1">
+                      @if (cell.content === -1) {
+                        <i class="pi pi-minus text-gray-400 text-2xl"></i>
+                      } @else {
+                        <span class="w-4rem text-right tabular-nums">{{ cell.content | number: '1.0-0' : projectCache.numberLocale() }}</span>
+                      }
+                    </div>
+                  }
+                  @case ('date') {
+                    <div class="flex justify-content-center my-5 px-1">
+                      @if (cell.content) {
+                        <span class="w-4rem text-right tabular-nums white-space-nowrap">{{ cell.content | date: 'yyyy-MM-dd' }}</span>
+                      } @else {
+                        <i class="pi pi-minus text-gray-400 text-2xl"></i>
+                      }
+                    </div>
+                  }
+                  @case ('array') {
+                    @if (cell.content.length === 0) {
+                      <div class="flex justify-content-center my-5 px-1">
+                        <i class="pi pi-minus text-gray-400 text-2xl"></i>
+                      </div>
+                    } @else {
+                      <div class="p-2">
+                        <ul class="m-0">
+                          @for (item of cell.content; track item) {
+                            <li>{{ item | translate }}</li>
+                          }
+                        </ul>
+                      </div>
+                    }
+                  }
+                  @case ('string') {
+                    @if (cell.content.length === 0) {
+                      <div class="flex justify-content-center my-5 px-1">
+                        <i class="pi pi-minus text-gray-400 text-2xl"></i>
+                      </div>
+                    } @else {
+                      <div class="p-2">
+                        {{ cell.content }}
+                      </div>
+                    }
+                  }
+                }
+              </td>
+            }
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="visibleColumns().length + 2" class="text-center p-4">
+              {{ 'inventory.emptyMessage' | translate }}
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+  <div class="sticky-content mt-2">
+    <div class="sticky-container flex flex-column gap-2">
+      <div [class]="styleCardService.cardStyles()">
+        <aida-add-pages />
+      </div>
+      <div [class]="styleCardService.cardStyles()">
+        <aida-view-pages />
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-drawer [(visible)]="showDrawer" [closable]="false" position="right" styleClass="min-w-max">
+  <ng-template #header>
+    <div class="flex flex-column gap-2">
+      <div class="flex justify-content-between gap-2">
+        <div class="flex align-items-end gap-4">
+          <h2 class="m-0">{{ 'common.rowFilters' | translate }}</h2>
+          @if (dt.filteredValue) {
+            <span>
+              {{ 'common.showingRows' | translate: { shown: dt.filteredValue.length, total: dt.value.length } }}
+            </span>
+          }
+        </div>
+        <p-button (onClick)="showDrawer = false" class="-mr-3" icon="pi pi-times" rounded severity="secondary" text />
+      </div>
+      <div class="flex gap-2">
+        <aida-project-settings [allowBoth]="true" [allowLive]="true" [allowPreview]="true" [showScope]="true">
+          <p-iconfield>
+            <input
+              id="search"
+              [(ngModel)]="searchTerm"
+              [placeholder]="'common.search' | translate"
+              (input)="dt.filterGlobal(fetchService.generatePath($event.target.value), 'contains')"
+              class="min-w-min md:min-w-max w-full"
+              pInputText
+              type="text"
+            />
+            <p-inputicon class="pi pi-search" />
+          </p-iconfield>
+        </aida-project-settings>
+      </div>
+      <div class="flex align-items-end gap-4">
+        <h2 class="mb-0">{{ 'common.columnFilters' | translate }}</h2>
+        @if (visibleColumns().length !== columns().length) {
+          <span>
+            {{ 'common.showingColumns' | translate: { shown: visibleColumns().length, total: columns().length } }}
+          </span>
+        }
+      </div>
+      <aida-project-settings [allowBoth]="true" [allowLive]="true" [allowPreview]="true" [showLang]="true" />
+      <p class="mb-0">{{ 'common.chooseColumns' | translate }}</p>
+    </div>
+  </ng-template>
+
+  @for (group of columnGroups(); track group.group) {
+    @let state = visible.groupState(group.cols);
+    <ul class="list-none pl-0 mt-0">
+      <li>
+        <div class="flex align-items-center gap-2 font-bold text-lg">
+          <p-checkbox
+            [binary]="true"
+            [indeterminate]="state === 'some'"
+            [inputId]="'g-' + group.group"
+            [ngModel]="state === 'all'"
+            (ngModelChange)="visible.setGroup(group.cols, $event)"
+            size="large"
+          />
+          <label [for]="'g-' + group.group">{{ group.group }}</label>
+        </div>
+        <ul class="list-none pl-2">
+          @for (col of group.cols; track col.key) {
+            <li class="mt-1">
+              <div class="flex align-items-center gap-2 pl-4">
+                <p-checkbox [binary]="true" [inputId]="col.key" [ngModel]="visible.isVisible(col.key)" (ngModelChange)="visible.setColumn(col.key, $event)" size="large" />
+                <label [for]="col.key">
+                  {{ col.column }}
+                  @if (col.key.endsWith('En') || col.key.endsWith('Fr')) {
+                    ({{ col.key.endsWith('En') ? ('common.language.english' | translate) : ('common.language.french' | translate) }})
+                  }
+                </label>
+              </div>
+            </li>
+          }
+        </ul>
+      </li>
+    </ul>
+  }
+  <ng-template #footer>
+    <div class="flex justify-content-end gap-2">
+      <p-button [label]="'common.restoreDefault' | translate" (onClick)="visible.restore()" icon="pi pi-undo" outlined styleClass="secondary-outline" />
+      <p-button [label]="'common.saveDefault' | translate" (onClick)="visible.save(); showDrawer = false" icon="pi pi-save" />
+    </div>
+  </ng-template>
+</p-drawer>

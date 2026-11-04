@@ -3,7 +3,6 @@ import { inject, Injectable } from '@angular/core';
 //import * as parserHtml from 'prettier/parser-html';
 import { FetchService } from './fetch.service';
 
-import { removeAlertRewritePlacementReviewNotices } from '../common/alert-rewrite-status.utils';
 import { SourceVersion } from '../common/data.model';
 
 export interface htmlProcessingResult {
@@ -521,8 +520,6 @@ export class HtmlNormalizationService {
 
   // Clean up HTML for export with CDTS template
   public async cleanContentForCdts(doc: Document, doubleH1?: string): Promise<{ content: string; styles: string; scripts: string }> {
-    removeAlertRewritePlacementReviewNotices(doc);
-
     const mainEl = doc.querySelector('main');
     if (!mainEl) return { content: '', styles: '', scripts: '' };
 

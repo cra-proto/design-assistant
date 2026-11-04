@@ -17,15 +17,7 @@ export interface AlertRewriteFallbackNotice {
 }
 
 type AlertRewriteTimingKey =
-  | 'parseAlertsMs'
-  | 'loadExamplesMs'
-  | 'buildCompactContextMs'
-  | 'rewritePromptMs'
-  | 'rewriteAiMs'
-  | 'parseAndGuardMs'
-  | 'localRepairMs'
-  | 'applyRewritesMs'
-  | 'formatHtmlMs';
+  'parseAlertsMs' | 'loadExamplesMs' | 'buildCompactContextMs' | 'rewritePromptMs' | 'rewriteAiMs' | 'parseAndGuardMs' | 'localRepairMs' | 'applyRewritesMs' | 'formatHtmlMs';
 
 type AlertRewriteTimings = Record<AlertRewriteTimingKey, number>;
 
