@@ -54,6 +54,7 @@ interface PromptPipelineSection {
   key: string;
   label: string;
   content?: string;
+  collapsed?: boolean;
   options?: PromptPipelineOption[];
 }
 
@@ -61,6 +62,7 @@ interface PromptPipelineOption {
   key: string;
   label: string;
   content: string;
+  collapsed: boolean;
 }
 
 @Component({
@@ -216,9 +218,10 @@ export class PromptEditorComponent {
   }));
 
   protected readonly alertRewritePipelineSections: PromptPipelineSection[] = this.buildAlertRewritePipelineSections();
+  protected readonly alertProblemsSections: PromptPipelineSection[] = this.buildAlertProblemsSections();
   protected readonly alertRewriteExamples = AlertRewriteExamples;
 
-  selectedPrompts = new Set<string>([this.inventoryPrompts[0]?.enumKey, this.pagePrompts[0]?.enumKey, this.problemPrompts[0]?.enumKey].filter(Boolean));
+  selectedPrompts = new Set<string>([this.pagePrompts[0]?.enumKey, this.problemPrompts[0]?.enumKey].filter(Boolean));
 
   togglePrompt(enumKey: string) {
     if (this.selectedPrompts.has(enumKey)) {
@@ -261,7 +264,7 @@ export class PromptEditorComponent {
       items: this.pagePrompts.filter((prompt) => prompt.enumKey !== 'AlertRewrite'),
     },
   ];
-  protected readonly selectedPrompt = signal<PromptEntry | undefined>(this.problemPrompts.find((prompt) => prompt.enumKey === 'Alerts'));
+  protected readonly selectedPrompt = signal<PromptEntry | undefined>(this.pagePrompts.find((prompt) => prompt.enumKey === 'AlertRewrite'));
   protected readonly selectedPromptIsAlertRewritePipeline = computed(() => {
     const selected = this.selectedPrompt();
     return !!selected && this.isAlertRewritePipeline(selected);
@@ -270,6 +273,7 @@ export class PromptEditorComponent {
     const selected = this.selectedPrompt();
     return !!selected && this.isAlertRewriteExamples(selected);
   });
+  protected readonly selectedPromptIsAlertProblems = computed(() => this.selectedPrompt()?.enumKey === 'AlertsProblems');
   protected readonly aiPrompt = computed(() => {
     const selected = this.selectedPrompt();
     if (!selected || !this.isPromptConfig(selected)) return '';
@@ -283,6 +287,7 @@ export class PromptEditorComponent {
         key: 'role',
         label: 'dev.prompts.alertRewrite.role',
         content: this.formatPromptJson(rules.role),
+        collapsed: false,
       },
       {
         key: 'aiInstructions',
@@ -292,11 +297,13 @@ export class PromptEditorComponent {
             key: 'systemWithExamples',
             label: 'dev.prompts.alertRewrite.examplesIncluded',
             content: this.formatPromptJson(rules.systemPromptWithExamplesLines),
+            collapsed: false,
           },
           {
             key: 'systemWithoutExamples',
             label: 'dev.prompts.alertRewrite.examplesNotIncluded',
             content: this.formatPromptJson(rules.systemPromptWithoutExamplesLines),
+            collapsed: false,
           },
         ],
       },
@@ -304,6 +311,7 @@ export class PromptEditorComponent {
         key: 'outputRequirement',
         label: 'dev.prompts.alertRewrite.outputRequirement',
         content: this.formatPromptJson(rules.outputRequirement),
+        collapsed: false,
       },
       {
         key: 'outputSchemas',
@@ -313,11 +321,13 @@ export class PromptEditorComponent {
             key: 'outputSchemaWithExamples',
             label: 'dev.prompts.alertRewrite.examplesIncluded',
             content: this.formatPromptJson(rules.outputSchemas.withExamples),
+            collapsed: false,
           },
           {
             key: 'outputSchemaWithoutExamples',
             label: 'dev.prompts.alertRewrite.examplesNotIncluded',
             content: this.formatPromptJson(rules.outputSchemas.withoutExamples),
+            collapsed: false,
           },
         ],
       },
@@ -325,32 +335,84 @@ export class PromptEditorComponent {
         key: 'baseRules',
         label: 'dev.prompts.alertRewrite.baseRules',
         content: this.formatPromptJson(rules.styleRulesBase),
+        collapsed: false,
       },
       {
         key: 'canadaCaStyle',
         label: 'dev.prompts.alertRewrite.canadaCaStyle',
         content: this.formatPromptJson(getCanadaCaStylePromptRules({ includeExamples: true })),
+        collapsed: false,
       },
       {
         key: 'linkRulesDefault',
         label: 'dev.prompts.alertRewrite.linkRulesDefault',
         content: this.formatPromptJson(getLinkWritingPromptRules({ hasTooManyLinksIssue: false })),
+        collapsed: false,
       },
       {
         key: 'linkRulesTooMany',
         label: 'dev.prompts.alertRewrite.linkRulesTooMany',
         content: this.formatPromptJson(getLinkWritingPromptRules({ hasTooManyLinksIssue: true })),
+        collapsed: false,
       },
       {
         key: 'conditionalInstructions',
         label: 'dev.prompts.alertRewrite.conditionalInstructions',
         content: this.formatPromptJson(rules.conditionalInstructions),
+        collapsed: false,
       },
       {
         key: 'retryInstructions',
         label: 'dev.prompts.alertRewrite.retryInstructions',
         content: this.formatPromptJson(rules.retryInstructions),
+        collapsed: false,
       },
+    ];
+  }
+
+  private buildAlertProblemsSections(): PromptPipelineSection[] {
+    const prompt = ProblemPrompts[ProblemPromptKey.AlertsProblems];
+    const rubric = prompt.rubric.flatMap((key) => RubricFragment[key]);
+
+    return [
+      {
+        key: 'role',
+        label: 'aiPrompt.component.role',
+        content: RoleFragment[prompt.role],
+        collapsed: false,
+      },
+      {
+        key: 'task',
+        label: 'aiPrompt.component.task',
+        content: prompt.task,
+        collapsed: false,
+      },
+      ...(rubric.length
+        ? [
+            {
+              key: 'rubric',
+              label: 'aiPrompt.component.rubric',
+              content: rubric.map((criterion, index) => `${index + 1}. ${criterion}`).join('\n'),
+              collapsed: false,
+            },
+          ]
+        : []),
+      {
+        key: 'outputRequirement',
+        label: 'dev.prompts.alertRewrite.outputRequirement',
+        content: OutputFragment[prompt.output],
+        collapsed: false,
+      },
+      ...(prompt.jsonSchema
+        ? [
+            {
+              key: 'jsonSchema',
+              label: 'aiPrompt.component.jsonSchema',
+              content: prompt.jsonSchema,
+              collapsed: false,
+            },
+          ]
+        : []),
     ];
   }
 
