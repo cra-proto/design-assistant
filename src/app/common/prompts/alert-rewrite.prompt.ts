@@ -46,7 +46,7 @@ export const AlertRewriteRules: AlertRewritePromptRules = {
       'Include a next step when possible.',
       'Keep alert content concise for UI.',
       'Ensure each applicable selected issue that can be fixed within the alert results in a meaningful change. Do not claim an issue is fixed when the alert is unchanged, or alter valid content merely to show a change. Issues outside the alert, including placement, do not by themselves require a content change.',
-      'Do not add new links. If the original alert has one or more <a> links, rewrittenAlertHtml must include at least one real <a> element with an original href. Do not convert every link to plain text, omit all links, or replace links with placeholder text. You may rewrite anchor text only if it improves clarity and still describes the same destination. If the original alert has multiple links, only remove extra links when the selected issues or plan identify too many links or link removal.',
+      'Do not add new links.',
       'Set rewrittenAlertHtml to full .alert wrapper HTML (for example: <div class="alert alert-info">...</div>).',
     ],
     systemPromptWithExamplesLines: [
@@ -75,7 +75,7 @@ export const AlertRewriteRules: AlertRewritePromptRules = {
       invalidWrapperHtml: 'Return valid rewrittenAlertHtml as a full .alert wrapper element.',
       noLinksAllowed: 'The original alert has no links. Do not add hyperlinks. Return rewrittenAlertHtml without any <a> tags.',
       mustKeepLink:
-        'The original alert has one or more required <a> links. Your previous rewrittenAlertHtml removed every link. Return rewrittenAlertHtml with at least one real <a> element using an original href. If the issue is too many links, remove only extra links and keep the most useful original link.',
+        'An earlier rewrite attempt removed every original link. In this rewrite, retain the appropriate original link or links using the link-selection rule. Use only original href values and do not introduce new links.',
       mustHaveHeading:
         'Alerts must include a semantic heading element in rewrittenAlertHtml. Add a short, descriptive heading using <h2 class="h3"> or <h3> to <h6> as needed, and place it before the body text.',
       avoidExampleCopy: 'Your previous output matched example wording. Rewrite using alert-specific wording and facts only.',

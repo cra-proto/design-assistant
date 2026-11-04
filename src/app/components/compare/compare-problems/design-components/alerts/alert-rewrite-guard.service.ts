@@ -150,7 +150,7 @@ export class AlertRewriteGuardService {
           const nonLinkText = sentenceWithoutLinks.replace(/[:;,.!?()\-\u2013\u2014]/g, '').trim();
           const linkSentenceOnly = !nonLinkText;
 
-          if (hasAllowedLeadIn && sentences.length > 1) {
+          if ((hasAllowedLeadIn || hasDirectionalLeadIn) && sentences.length > 1) {
             return 'linkLeadInNotStandalone';
           }
 
@@ -181,42 +181,65 @@ export class AlertRewriteGuardService {
       if (!root) return alertHtml;
 
       Array.from(root.querySelectorAll('p')).forEach((paragraph) => {
-        const anchors = Array.from(paragraph.querySelectorAll('a'));
-        if (anchors.length !== 1) return;
+        const anchors = Array.from(paragraph.querySelectorAll('a')).filter((anchor) => anchor.parentElement === paragraph);
+        if (!anchors.length) return;
 
-        const anchor = anchors[0];
-        if (anchor.parentElement !== paragraph) return;
+        const anchor = anchors[anchors.length - 1];
 
         const childNodes = Array.from(paragraph.childNodes);
         const anchorIndex = childNodes.indexOf(anchor);
-        if (anchorIndex !== 1) return;
+        if (anchorIndex < 1) return;
 
-        const beforeNode = childNodes[0];
+        const beforeNode = childNodes[anchorIndex - 1];
         if (beforeNode.nodeType !== Node.TEXT_NODE) return;
         const afterNodes = childNodes.slice(anchorIndex + 1);
         if (afterNodes.some((node) => node.nodeType !== Node.TEXT_NODE)) return;
 
         const beforeText = beforeNode.textContent || '';
         const afterText = afterNodes.map((node) => node.textContent || '').join('');
-        if (afterText.replace(/[.!?\s]/g, '')) return;
+        if (afterText.replace(/[:;,.!?\s]/g, '')) return;
 
         const split = beforeText.match(/^([\s\S]*[.!?])\s+([^.!?]+)$/);
-        if (!split) return;
+        if (split) {
+          const explanatoryText = (split[1] || '').trim();
+          const leadInText = (split[2] || '').trim();
+          const repairedLeadInText = this.getRepairedStandaloneLinkLeadIn(leadInText);
+          if (!explanatoryText || !repairedLeadInText) {
+            return;
+          }
 
-        const explanatoryText = (split[1] || '').trim();
-        const leadInText = (split[2] || '').trim();
-        if (!explanatoryText || !this.isValidStandaloneLinkLeadIn(leadInText)) {
+          beforeNode.textContent = explanatoryText;
+          const repairedAnchor = anchor.cloneNode(true);
+          anchor.remove();
+          afterNodes.forEach((node) => node.remove());
+
+          const linkParagraph = doc.createElement('p');
+          linkParagraph.appendChild(doc.createTextNode(`${repairedLeadInText} `));
+          linkParagraph.appendChild(repairedAnchor);
+
+          paragraph.insertAdjacentElement('afterend', linkParagraph);
           return;
         }
 
-        const explanatoryParagraph = doc.createElement('p');
-        explanatoryParagraph.textContent = explanatoryText;
+        const repairedLeadInText = this.getRepairedStandaloneLinkLeadIn(beforeText.trim());
+        if (!repairedLeadInText) return;
 
-        const linkParagraph = doc.createElement('p');
-        linkParagraph.appendChild(doc.createTextNode(`${leadInText} `));
-        linkParagraph.appendChild(anchor.cloneNode(true));
+        const hasEarlierContent = childNodes.slice(0, anchorIndex - 1).some((node) => node.nodeType === Node.ELEMENT_NODE || !!(node.textContent || '').trim());
+        if (hasEarlierContent) {
+          const repairedAnchor = anchor.cloneNode(true);
+          beforeNode.remove();
+          anchor.remove();
+          afterNodes.forEach((node) => node.remove());
 
-        paragraph.replaceWith(explanatoryParagraph, linkParagraph);
+          const linkParagraph = doc.createElement('p');
+          linkParagraph.appendChild(doc.createTextNode(`${repairedLeadInText} `));
+          linkParagraph.appendChild(repairedAnchor);
+          paragraph.insertAdjacentElement('afterend', linkParagraph);
+          return;
+        }
+
+        beforeNode.textContent = `${repairedLeadInText} `;
+        afterNodes.forEach((node) => node.remove());
       });
 
       return root.outerHTML.trim();
@@ -474,7 +497,15 @@ export class AlertRewriteGuardService {
     const normalized = this.normalizeLeadInText(leadInText.replace(/[.!?]\s*$/g, ''));
     if (!normalized) return false;
 
-    return /\b(?:for details|learn more)\b/.test(normalized);
+    return /\b(?:refer to|for details|learn more)\b/.test(normalized);
+  }
+
+  private getRepairedStandaloneLinkLeadIn(leadInText: string): string | null {
+    const normalized = this.normalizeLeadInText(leadInText.replace(/[.!?]\s*$/g, ''));
+    if (normalized === 'refer to' || normalized === 'refer to:' || /^(?:for details|for more information),?\s+refer to:?$/.test(normalized)) {
+      return 'Refer to:';
+    }
+    return this.isValidStandaloneLinkLeadIn(leadInText) ? leadInText.trim() : null;
   }
 
   private hasStandaloneActionVerbLinkText(sentence: string, markerPrefix: string, markerSuffix: string): boolean {

@@ -346,7 +346,9 @@ export class AlertRewriteOrchestratorService {
           });
         }
 
-        if (!params.forceLocalRepairForTesting && retryReasons.length === 1 && retryReasons[0] === 'linkLeadInNotStandalone') {
+        const hasOnlyLocallyRepairableLinkLeadInIssue =
+          retryReasons.length === 1 && (retryReasons[0] === 'linkLeadInNotStandalone' || retryReasons[0] === 'fullSentenceLinksNeedLeadIn');
+        if (!params.forceLocalRepairForTesting && hasOnlyLocallyRepairableLinkLeadInIssue) {
           const repairedHtml = this.alertRewriteGuard.repairEmbeddedStandaloneLeadInParagraphs(parsedResult.rewrittenAlertHtml);
           if (repairedHtml !== parsedResult.rewrittenAlertHtml) {
             const repairedResult = this.alertRewrite.parseAlertRewriteResponse(
