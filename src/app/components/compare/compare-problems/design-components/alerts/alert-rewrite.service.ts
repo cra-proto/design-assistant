@@ -256,7 +256,6 @@ export class AlertRewriteService {
         domainTags: params.plan.domainTags,
         purposeTags: params.plan.purposeTags,
         criteriaMatched: params.plan.criteriaMatched,
-        directives: [],
       },
       issues: rawIssues,
       originalHeading: (params.originalHeading || '').trim(),
