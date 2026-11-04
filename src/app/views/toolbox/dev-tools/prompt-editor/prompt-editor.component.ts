@@ -28,10 +28,6 @@ import { UserSettingsService } from '../../../../services/user-settings.service'
 import { InventoryPrompts } from '../../../../common/prompts/inventory.prompts';
 import { PagePrompts } from '../../../../common/prompts/page.prompts';
 import { ProblemPrompts } from '../../../../common/prompts/problems.prompts';
-import { AlertRewriteExamples, type AlertRewriteExample } from '../../../../common/prompts/alert-rewrite.examples';
-import { AlertRewriteRules } from '../../../../common/prompts/alert-rewrite.prompt';
-import { getCanadaCaStylePromptRules } from '../../../../common/prompts/canada-ca-style.prompt';
-import { getLinkWritingPromptRules } from '../../../../common/prompts/link-writing.prompt';
 import { InventoryPromptKey, OutputKey, PagePromptKey, ProblemPromptKey, PromptConfig, RoleKey, RubricKey } from '../../../../common/prompts/prompt.model';
 import { OutputFragment, RoleFragment, RubricFragment } from '../../../../common/prompts/shared.prompts';
 
@@ -48,21 +44,6 @@ interface TabConfig {
   fragments?: { key: string; label: string; data: PromptEntry[] }[];
   tool: string;
   original: string;
-}
-
-interface PromptPipelineSection {
-  key: string;
-  label: string;
-  content?: string;
-  collapsed?: boolean;
-  options?: PromptPipelineOption[];
-}
-
-interface PromptPipelineOption {
-  key: string;
-  label: string;
-  content: string;
-  collapsed: boolean;
 }
 
 @Component({
@@ -128,14 +109,6 @@ export class PromptEditorComponent {
 
   protected isPromptString(entry: PromptEntry): entry is PromptEntry & { promptText: string } {
     return typeof entry.promptText === 'string';
-  }
-
-  protected isAlertRewritePipeline(entry: PromptEntry): boolean {
-    return entry.enumKey === 'AlertRewrite';
-  }
-
-  protected isAlertRewriteExamples(entry: PromptEntry): boolean {
-    return entry.enumKey === 'AlertExamples';
   }
 
   protected isFragmentsTab(tab: TabConfig): boolean {
@@ -217,10 +190,7 @@ export class PromptEditorComponent {
     promptText: ProblemPrompts[ProblemPromptKey[enumKey as keyof typeof ProblemPromptKey]],
   }));
 
-  protected readonly alertRewritePipelineSections: PromptPipelineSection[] = this.buildAlertRewritePipelineSections();
-  protected readonly alertRewriteExamples = AlertRewriteExamples;
-
-  selectedPrompts = new Set<string>([this.pagePrompts[0]?.enumKey, this.problemPrompts[0]?.enumKey].filter(Boolean));
+  selectedPrompts = new Set<string>([this.inventoryPrompts[0]?.enumKey, this.pagePrompts[0]?.enumKey, this.problemPrompts[0]?.enumKey].filter(Boolean));
 
   togglePrompt(enumKey: string) {
     if (this.selectedPrompts.has(enumKey)) {
@@ -245,140 +215,19 @@ export class PromptEditorComponent {
 
   // Dropdown
   protected readonly promptGroups = [
-    {
-      label: 'aiPrompt.alerts._title',
-      items: [
-        ...this.problemPrompts.filter((prompt) => prompt.enumKey === 'AlertsProblems' || prompt.enumKey === 'TranslateIssueDetails'),
-        ...this.pagePrompts.filter((prompt) => prompt.enumKey === 'AlertRewrite'),
-        {
-          enumKey: 'AlertExamples',
-          translationKey: 'aiPrompt.page.alertExamples',
-          promptText: '',
-        },
-      ],
-    },
     { label: 'aiPrompt.inventory._title', items: this.inventoryPrompts },
-    {
-      label: 'aiPrompt.pages._title',
-      items: this.pagePrompts.filter((prompt) => prompt.enumKey !== 'AlertRewrite'),
-    },
+    { label: 'aiPrompt.pages._title', items: this.pagePrompts },
+    { label: 'aiPrompt.problems._title', items: this.problemPrompts },
   ];
-  protected readonly selectedPrompt = signal<PromptEntry | undefined>(this.pagePrompts.find((prompt) => prompt.enumKey === 'AlertRewrite'));
-  protected readonly selectedPromptIsAlertRewritePipeline = computed(() => {
-    const selected = this.selectedPrompt();
-    return !!selected && this.isAlertRewritePipeline(selected);
-  });
-  protected readonly selectedPromptIsAlertRewriteExamples = computed(() => {
-    const selected = this.selectedPrompt();
-    return !!selected && this.isAlertRewriteExamples(selected);
-  });
+  protected readonly selectedPrompt = signal<PromptEntry | undefined>(this.problemPrompts.find((p) => p.enumKey === 'Alerts'));
   protected readonly aiPrompt = computed(() => {
     const selected = this.selectedPrompt();
     if (!selected || !this.isPromptConfig(selected)) return '';
     return this.aiPromptService.composePrompt(selected.promptText);
   });
 
-  private buildAlertRewritePipelineSections(): PromptPipelineSection[] {
-    const rules = AlertRewriteRules.alertRewrite;
-    return [
-      {
-        key: 'role',
-        label: 'dev.prompts.alertRewrite.role',
-        content: this.formatPromptJson(rules.role),
-        collapsed: false,
-      },
-      {
-        key: 'aiInstructions',
-        label: 'dev.prompts.alertRewrite.aiInstructions',
-        options: [
-          {
-            key: 'systemWithExamples',
-            label: 'dev.prompts.alertRewrite.examplesIncluded',
-            content: this.formatPromptJson(rules.systemPromptWithExamplesLines),
-            collapsed: false,
-          },
-          {
-            key: 'systemWithoutExamples',
-            label: 'dev.prompts.alertRewrite.examplesNotIncluded',
-            content: this.formatPromptJson(rules.systemPromptWithoutExamplesLines),
-            collapsed: false,
-          },
-        ],
-      },
-      {
-        key: 'outputRequirement',
-        label: 'dev.prompts.alertRewrite.outputRequirement',
-        content: this.formatPromptJson(rules.outputRequirement),
-        collapsed: false,
-      },
-      {
-        key: 'outputSchemas',
-        label: 'dev.prompts.alertRewrite.outputSchemas',
-        options: [
-          {
-            key: 'outputSchemaWithExamples',
-            label: 'dev.prompts.alertRewrite.examplesIncluded',
-            content: this.formatPromptJson(rules.outputSchemas.withExamples),
-            collapsed: false,
-          },
-          {
-            key: 'outputSchemaWithoutExamples',
-            label: 'dev.prompts.alertRewrite.examplesNotIncluded',
-            content: this.formatPromptJson(rules.outputSchemas.withoutExamples),
-            collapsed: false,
-          },
-        ],
-      },
-      {
-        key: 'baseRules',
-        label: 'dev.prompts.alertRewrite.baseRules',
-        content: this.formatPromptJson(rules.styleRulesBase),
-        collapsed: false,
-      },
-      {
-        key: 'canadaCaStyle',
-        label: 'dev.prompts.alertRewrite.canadaCaStyle',
-        content: this.formatPromptJson(getCanadaCaStylePromptRules({ includeExamples: true })),
-        collapsed: false,
-      },
-      {
-        key: 'linkRulesDefault',
-        label: 'dev.prompts.alertRewrite.linkRulesDefault',
-        content: this.formatPromptJson(getLinkWritingPromptRules({ hasTooManyLinksIssue: false })),
-        collapsed: false,
-      },
-      {
-        key: 'linkRulesTooMany',
-        label: 'dev.prompts.alertRewrite.linkRulesTooMany',
-        content: this.formatPromptJson(getLinkWritingPromptRules({ hasTooManyLinksIssue: true })),
-        collapsed: false,
-      },
-      {
-        key: 'conditionalInstructions',
-        label: 'dev.prompts.alertRewrite.conditionalInstructions',
-        content: this.formatPromptJson(rules.conditionalInstructions),
-        collapsed: false,
-      },
-      {
-        key: 'retryInstructions',
-        label: 'dev.prompts.alertRewrite.retryInstructions',
-        content: this.formatPromptJson(rules.retryInstructions),
-        collapsed: false,
-      },
-    ];
-  }
-
-  protected getAlertRewriteExampleLegend(example: AlertRewriteExample): string {
-    return `${example.id} — ${example.egHeading || example.egText}`;
-  }
-
-  private formatPromptJson(value: unknown): string {
-    return JSON.stringify(value, null, 2);
-  }
-
   markForTranslation() {
     marker('aiPrompt.shared._title');
-    marker('aiPrompt.alerts._title');
     marker('aiPrompt.inventory._title');
     marker('aiPrompt.pages._title');
     marker('aiPrompt.problems._title');
@@ -389,29 +238,6 @@ export class PromptEditorComponent {
     marker('aiPrompt.component.task');
     marker('aiPrompt.component.jsonSchema');
     marker('dev.prompts.button.openPR');
-    marker('dev.prompts.alertRewrite.baseRules');
-    marker('dev.prompts.alertRewrite.canadaCaStyle');
-    marker('dev.prompts.alertRewrite.conditionalInstructions');
-    marker('dev.prompts.alertRewrite.linkRulesDefault');
-    marker('dev.prompts.alertRewrite.linkRulesTooMany');
-    marker('dev.prompts.alertRewrite.outputRequirement');
-    marker('dev.prompts.alertRewrite.outputSchemas');
-    marker('dev.prompts.alertRewrite.retryInstructions');
-    marker('dev.prompts.alertRewrite.role');
-    marker('dev.prompts.alertRewrite.aiInstructions');
-    marker('dev.prompts.alertRewrite.examplesIncluded');
-    marker('dev.prompts.alertRewrite.examplesNotIncluded');
-    marker('dev.prompts.alertRewrite.testUnavailable');
-    marker('dev.prompts.alertRewrite.example.alertType');
-    marker('dev.prompts.alertRewrite.example.criteria');
-    marker('dev.prompts.alertRewrite.example.heading');
-    marker('dev.prompts.alertRewrite.example.html');
-    marker('dev.prompts.alertRewrite.example.links');
-    marker('dev.prompts.alertRewrite.example.notes');
-    marker('dev.prompts.alertRewrite.example.purposeTags');
-    marker('dev.prompts.alertRewrite.example.tags');
-    marker('dev.prompts.alertRewrite.example.text');
-    marker('aiPrompt.page.alertExamples');
   }
 
   // Test prompts

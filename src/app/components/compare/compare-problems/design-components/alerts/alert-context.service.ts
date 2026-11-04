@@ -75,7 +75,7 @@ export class AlertContextService {
 
     // H2s act as section landmarks; their text and DOM position let us describe
     // alert placement in useful page terms.
-    const h2Elements = Array.from(main.querySelectorAll<HTMLElement>('h2')).filter((h2) => !h2.closest('.alert'));
+    const h2Elements = Array.from(main.querySelectorAll('h2'));
     const h2Headings = h2Elements
       .map((h2) => this.truncateContextText(h2.textContent || '', 120))
       .filter((value) => !!value)
@@ -374,6 +374,8 @@ export class AlertContextService {
     return {
       alertIndex,
       alertType: this.getAlertTypeClass(alertElement),
+      originalHeading: alertSignals.heading_text,
+      originalAlertText: this.truncateContextText(alertElement.textContent || '', 400),
       pageContext: `Title: ${context.title || 'N/A'}\nH1: ${context.h1 || 'N/A'}\nPage type signal: ${context.pageTypeSignal}\nMain intro: ${context.introSnippet || 'N/A'}\nH2 headings (${context.h2Headings.length}): ${context.h2Headings.join(' | ') || 'N/A'}`,
       pageSignals: {
         title: context.title,

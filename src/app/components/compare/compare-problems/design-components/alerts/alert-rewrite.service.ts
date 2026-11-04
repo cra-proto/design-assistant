@@ -174,7 +174,6 @@ export class AlertRewriteService {
     plan: AlertRewritePlan;
     issues: AlertRewriteIssueInput[];
     examples: AlertRewriteExample[];
-    terminologyRules?: string[];
     retryInstructions?: string[];
   }): Promise<ChatMessage[]> {
     const hasTooManyLinksIssue =
@@ -200,12 +199,16 @@ export class AlertRewriteService {
       linkRulesIncluded: originalHasLink,
       linkRuleCount: linkRules.length,
     });
-    const styleRules = [...rules.alertRewrite.styleRulesBase, ...(params.terminologyRules || []), ...canadaCaStyleRules, ...linkRules];
+    const styleRules = [...rules.alertRewrite.styleRulesBase, ...canadaCaStyleRules, ...linkRules, ...(params.examples.length ? rules.alertRewrite.styleRulesWithExamples : [])];
     if (this.hasAcceptableFinalStandaloneLinkSentence(params.originalAlertHtml)) {
-      styleRules.push(rules.alertRewrite.conditionalInstructions.preserveFinalStandaloneLink);
+      styleRules.push(
+        'The original alert already ends with an acceptable standalone final link sentence or paragraph. Preserve that wording and placement unless a selected issue clearly requires a change. Do not rewrite a valid existing lead-in such as "For details:" to "Refer to:" when it already reads naturally.',
+      );
     }
     if (linkManifest.hasLinks) {
-      styleRules.push(rules.alertRewrite.conditionalInstructions.enforceLinkManifest);
+      styleRules.push(
+        'Use linkManifest as the source of truth for original links. If linkManifest.mustPreserveAtLeastOne is true, rewrittenAlertHtml must include at least one real <a> element whose href exactly matches one of linkManifest.items[].href values. If linkManifest.allowRemoval is true, you may remove extra links, but you must still keep at least one original link.',
+      );
     }
     const retryInstructions = Array.from(new Set((params.retryInstructions || []).map((instruction) => (instruction || '').trim()).filter((instruction) => !!instruction)));
     if (retryInstructions.length) {
@@ -235,9 +238,7 @@ export class AlertRewriteService {
       })
       .filter((issue): issue is NonNullable<typeof issue> => !!issue);
 
-    const systemPromptLines = params.examples.length ? rules.alertRewrite.systemPromptWithExamplesLines : rules.alertRewrite.systemPromptWithoutExamplesLines;
-    const outputSchema = params.examples.length ? rules.alertRewrite.outputSchemas.withExamples : rules.alertRewrite.outputSchemas.withoutExamples;
-    const systemPrompt = [rules.alertRewrite.role, ...systemPromptLines, rules.alertRewrite.outputRequirement, 'Output schema:', outputSchema].join('\n');
+    const systemPrompt = (params.examples.length ? rules.alertRewrite.systemPromptWithExamplesLines : rules.alertRewrite.systemPromptWithoutExamplesLines).join('\n');
 
     const userPayload = {
       styleRules,
@@ -256,6 +257,7 @@ export class AlertRewriteService {
         domainTags: params.plan.domainTags,
         purposeTags: params.plan.purposeTags,
         criteriaMatched: params.plan.criteriaMatched,
+        directives: [],
       },
       issues: rawIssues,
       originalHeading: (params.originalHeading || '').trim(),
@@ -273,6 +275,7 @@ export class AlertRewriteService {
       baseStyleRuleCount: rules.alertRewrite.styleRulesBase.length,
       canadaCaStyleRuleCount: canadaCaStyleRules.length,
       linkRuleCount: linkRules.length,
+      exampleStyleRuleCount: params.examples.length ? rules.alertRewrite.styleRulesWithExamples.length : 0,
       finalStyleRuleCount: styleRules.length,
       systemPromptCharacters: systemPrompt.length,
       userPayloadCharacters: serializedUserPayload.length,
@@ -426,8 +429,8 @@ export class AlertRewriteService {
     const rawAlert = this.cleanStringFromKeys(root, ['rewrittenAlert', 'rewritten_alert', 'alertText', 'alert_text', 'text']);
     const extractedHeading = this.extractHeadingFromAlertHtml(normalizedAlertHtml);
     const extractedBodyText = this.extractBodyTextFromAlertHtml(normalizedAlertHtml);
-    const rewrittenHeading = extractedHeading || parsedHeading || this.buildFallbackHeading();
-    const baseBodyText = extractedBodyText || rawAlert;
+    const rewrittenHeading = parsedHeading || extractedHeading || this.buildFallbackHeading();
+    const baseBodyText = rawAlert || extractedBodyText;
     if (!baseBodyText) return null;
     const rewrittenAlert = baseBodyText.trim();
     const appliedDirectives = this.toStringArray(root['appliedDirectives'] ?? root['applied_directives']);
@@ -468,8 +471,8 @@ export class AlertRewriteService {
     const rawAlert = this.cleanStringFromKeys(root, ['rewrittenAlert', 'rewritten_alert', 'alertText', 'alert_text', 'text']);
     const extractedHeading = normalizedAlertHtml ? this.extractHeadingFromAlertHtml(normalizedAlertHtml) : '';
     const extractedBodyText = normalizedAlertHtml ? this.extractBodyTextFromAlertHtml(normalizedAlertHtml) : this.extractBodyTextFromHtmlFragment(rawAlertHtml);
-    const rewrittenHeading = extractedHeading || parsedHeading || this.buildFallbackHeading();
-    const baseBodyText = extractedBodyText || rawAlert;
+    const rewrittenHeading = parsedHeading || extractedHeading || this.buildFallbackHeading();
+    const baseBodyText = rawAlert || extractedBodyText;
     if (!rawAlertHtml && !baseBodyText) {
       return null;
     }
@@ -618,14 +621,12 @@ export class AlertRewriteService {
     if (criteria.has('C4_missing_heading')) tags.add('missing-heading');
     if (criteria.has('C1_missing_next_step')) tags.add('action-required');
     if (criteria.has('C2_too_wordy')) tags.add('shorten-alert');
-    if (criteria.has('C3_too_many_links')) {
-      tags.add('remove-secondary-link');
-      if (linkCount > 1) {
-        tags.add('multiple-detail-links');
-        tags.add('duplicate-link-cleanup');
-      }
-    }
+    if (criteria.has('C3_too_many_links')) tags.add('remove-secondary-link');
     if (linkCount === 1) tags.add('standalone-action-link');
+    if (linkCount > 1) {
+      tags.add('multiple-detail-links');
+      tags.add('duplicate-link-cleanup');
+    }
 
     maybeAdd('service-delay', /\bdelay|processing time|service standard\b/);
     maybeAdd('service-change', /\bno longer|ending|must register|effective\b/);
