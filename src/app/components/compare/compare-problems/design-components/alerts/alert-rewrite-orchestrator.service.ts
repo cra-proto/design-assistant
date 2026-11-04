@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 
 import { TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 
 import { OpenRouterService } from '../../../../../services/ai/openrouter.service';
 import { HtmlNormalizationService } from '../../../../../services/html-normalization.service';
@@ -9,7 +10,7 @@ import { AlertRewriteGuardService } from './alert-rewrite-guard.service';
 import { AlertRewriteIssueInput, AlertRewriteRepairCandidate, AlertRewriteResult, AlertRewriteService } from './alert-rewrite.service';
 
 import { AlertRewriteRules } from '../../../../../common/prompts/alert-rewrite.prompt';
-import { CraTerminologyInstructions, findCraTerminologyViolations, getMatchedCraTerminology, resolveCraTerminologyEntries,
+import { CraTerminologyEntries, CraTerminologyInstructions, findCraTerminologyViolations, getMatchedCraTerminology, resolveCraTerminologyEntries,
   type CraTerminologyLanguage, type ResolvedCraTerminologyEntry } from '../../../../../common/prompts/cra-terminology.prompt';
 import { coerceInteractiveResultLeadIns, getReportableAlerts } from './alert-reportable.utils';
 
@@ -103,6 +104,7 @@ export class AlertRewriteOrchestratorService {
     includeExamples: boolean;
     useCompactAlertsPageContext: boolean;
     forceLocalRepairForTesting: boolean;
+    contentLanguage?: CraTerminologyLanguage;
   }): Promise<{
     formattedHtml: string;
     fallbackNotices: AlertRewriteFallbackNotice[];
@@ -114,7 +116,8 @@ export class AlertRewriteOrchestratorService {
 
     let timingStart = performance.now();
     const alertDoc = new DOMParser().parseFromString(params.html, 'text/html');
-    const contentLanguage = this.getContentLanguage(alertDoc);
+    const contentLanguage = params.contentLanguage ?? this.getContentLanguage(alertDoc);
+    await this.ensureTerminologyTranslationsLoaded(contentLanguage);
     const terminologyEntries = resolveCraTerminologyEntries(contentLanguage, (key) => String(this.translate.instant(key, undefined, contentLanguage)));
     const alertEls = getReportableAlerts(alertDoc, {
       interactiveResultLeadIns: this.getInteractiveResultLeadIns(),
@@ -341,7 +344,7 @@ export class AlertRewriteOrchestratorService {
         const hasOnlyLocallyRepairableLinkLeadInIssue =
           retryReasons.length === 1 && (retryReasons[0] === 'linkLeadInNotStandalone' || retryReasons[0] === 'fullSentenceLinksNeedLeadIn');
         if (!params.forceLocalRepairForTesting && hasOnlyLocallyRepairableLinkLeadInIssue) {
-          const repairedHtml = this.alertRewriteGuard.repairEmbeddedStandaloneLeadInParagraphs(parsedResult.rewrittenAlertHtml);
+          const repairedHtml = this.alertRewriteGuard.repairEmbeddedStandaloneLeadInParagraphs(parsedResult.rewrittenAlertHtml, contentLanguage);
           if (repairedHtml !== parsedResult.rewrittenAlertHtml) {
             const repairedResult = this.alertRewrite.parseAlertRewriteResponse(
               JSON.stringify({
@@ -420,6 +423,7 @@ export class AlertRewriteOrchestratorService {
           plan: initialPlan,
           selectedExamples,
           allowLinkRemoval,
+          contentLanguage,
         });
         if (rewriteResult) {
           rewriteResultSource = 'local-repair';
@@ -603,6 +607,16 @@ export class AlertRewriteOrchestratorService {
     if (documentLanguage.startsWith('fr')) return 'fr';
     if (documentLanguage.startsWith('en')) return 'en';
     return this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en';
+  }
+
+  private async ensureTerminologyTranslationsLoaded(language: CraTerminologyLanguage): Promise<void> {
+    const probeKey = CraTerminologyEntries.find((entry) => entry.language === language)?.termKey;
+    if (!probeKey) return;
+
+    const translations = this.translate.getTranslations(language) as Record<string, unknown> | undefined;
+    if (translations && Object.prototype.hasOwnProperty.call(translations, probeKey)) return;
+
+    await firstValueFrom(this.translate.reloadLang(language));
   }
 
   private buildTerminologyInstruction(template: string, entries: ResolvedCraTerminologyEntry[]): string {

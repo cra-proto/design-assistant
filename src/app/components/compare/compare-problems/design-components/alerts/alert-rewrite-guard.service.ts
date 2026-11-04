@@ -174,7 +174,7 @@ export class AlertRewriteGuardService {
     }
   }
 
-  repairEmbeddedStandaloneLeadInParagraphs(alertHtml: string): string {
+  repairEmbeddedStandaloneLeadInParagraphs(alertHtml: string, contentLanguage: 'en' | 'fr' = 'en'): string {
     try {
       const doc = new DOMParser().parseFromString(alertHtml || '', 'text/html');
       const root = doc.body.firstElementChild as HTMLElement | null;
@@ -188,6 +188,16 @@ export class AlertRewriteGuardService {
 
         const childNodes = Array.from(paragraph.childNodes);
         const anchorIndex = childNodes.indexOf(anchor);
+        if (anchorIndex === 0) {
+          const afterNodes = childNodes.slice(1);
+          if (anchors.length !== 1 || afterNodes.some((node) => node.nodeType !== Node.TEXT_NODE)) return;
+          const afterText = afterNodes.map((node) => node.textContent || '').join('');
+          if (afterText.replace(/[:;,.!?\s]/g, '')) return;
+
+          paragraph.insertBefore(doc.createTextNode(`${this.getDefaultStandaloneLinkLeadIn(contentLanguage)} `), anchor);
+          afterNodes.forEach((node) => node.remove());
+          return;
+        }
         if (anchorIndex < 1) return;
 
         const beforeNode = childNodes[anchorIndex - 1];
@@ -258,6 +268,7 @@ export class AlertRewriteGuardService {
     plan: AlertRewritePlan;
     selectedExamples: AlertRewriteExample[];
     allowLinkRemoval: boolean;
+    contentLanguage?: 'en' | 'fr';
   }): AlertRewriteResult | null {
     const originalHasAnchor = /<a\b/i.test(params.originalAlertHtml);
 
@@ -301,7 +312,7 @@ export class AlertRewriteGuardService {
     if (!originalHasAnchor) {
       repairedHtml = this.removeAnchorsPreservingText(repairedHtml);
     } else if (!/<a\b/i.test(repairedHtml)) {
-      repairedHtml = this.ensureAtLeastOneOriginalLink(repairedHtml, params.originalAlertHtml);
+      repairedHtml = this.ensureAtLeastOneOriginalLink(repairedHtml, params.originalAlertHtml, params.contentLanguage ?? 'en');
     }
     if (!this.hasSemanticHeading(repairedHtml)) {
       repairedHtml = this.ensureSemanticHeading(repairedHtml, candidate.rewrittenHeading || params.originalHeading || '');
@@ -485,7 +496,16 @@ export class AlertRewriteGuardService {
     const normalized = this.normalizeLeadInText(leadInText.replace(/[.!?]\s*$/g, ''));
     if (!normalized) return false;
 
-    if (normalized === 'refer to:' || normalized === 'for details:' || normalized === 'learn more:' || /^learn about(?: the)?$/.test(normalized)) {
+    if (
+      normalized === 'refer to:' ||
+      normalized === 'for details:' ||
+      normalized === 'learn more:' ||
+      normalized === 'en savoir plus :' ||
+      normalized === 'consultez :' ||
+      /^learn about(?: the)?$/.test(normalized) ||
+      /^(?:consultez la page|renseignez-vous sur)$/.test(normalized) ||
+      /^(?:en savoir plus|renseignez-vous) sur(?: (?:le|la|les|l['’]))?$/.test(normalized)
+    ) {
       return true;
     }
     return normalized.startsWith('find out');
@@ -497,7 +517,10 @@ export class AlertRewriteGuardService {
     const normalized = this.normalizeLeadInText(leadInText.replace(/[.!?]\s*$/g, ''));
     if (!normalized) return false;
 
-    return /\b(?:refer to|for details|learn more)\b/.test(normalized);
+    if (normalized === 'apprenez-en' || normalized.startsWith('apprenez-en ')) return true;
+    return /\b(?:refer to|for details|learn more|en savoir plus|apprenez-en plus|consultez|renseignez-vous sur)\b/.test(normalized) ||
+      /^pour plus d['’](?:informations|information),?\s+consultez la page:?$/.test(normalized) ||
+      /^pour plus de renseignements,?\s+consultez la page:?$/.test(normalized);
   }
 
   private getRepairedStandaloneLinkLeadIn(leadInText: string): string | null {
@@ -505,7 +528,25 @@ export class AlertRewriteGuardService {
     if (normalized === 'refer to' || normalized === 'refer to:' || /^(?:for details|for more information),?\s+refer to:?$/.test(normalized)) {
       return 'Refer to:';
     }
+    if (
+      normalized === 'en savoir plus' ||
+      normalized === 'en savoir plus :' ||
+      /^pour plus d['’](?:informations|information),?\s+consultez la page:?$/.test(normalized) ||
+      /^pour plus de renseignements,?\s+consultez la page:?$/.test(normalized)
+    ) {
+      return 'En savoir plus :';
+    }
+    if (normalized === 'apprenez-en' || normalized.startsWith('apprenez-en ')) {
+      return 'En savoir plus :';
+    }
+    if (normalized === 'consultez' || normalized === 'consultez :') {
+      return 'Consultez :';
+    }
     return this.isValidStandaloneLinkLeadIn(leadInText) ? leadInText.trim() : null;
+  }
+
+  private getDefaultStandaloneLinkLeadIn(contentLanguage: 'en' | 'fr'): string {
+    return contentLanguage === 'fr' ? 'En savoir plus :' : 'Refer to:';
   }
 
   private hasStandaloneActionVerbLinkText(sentence: string, markerPrefix: string, markerSuffix: string): boolean {
@@ -635,7 +676,7 @@ export class AlertRewriteGuardService {
 
   // Restores one original link when the rewrite incorrectly removed a required anchor.
   // Keep it in a standalone final paragraph so link-direction validation can pass.
-  private ensureAtLeastOneOriginalLink(rewrittenHtml: string, originalAlertHtml: string): string {
+  private ensureAtLeastOneOriginalLink(rewrittenHtml: string, originalAlertHtml: string, contentLanguage: 'en' | 'fr'): string {
     try {
       const sourceDoc = new DOMParser().parseFromString(originalAlertHtml, 'text/html');
       const sourceAnchor = sourceDoc.body.querySelector('a');
@@ -646,7 +687,7 @@ export class AlertRewriteGuardService {
       if (!root) return rewrittenHtml;
       if (root.querySelector('a')) return root.outerHTML.trim();
 
-      const leadIn = this.getOriginalStandaloneLinkLeadIn(sourceAnchor) || 'Refer to:';
+      const leadIn = this.getOriginalStandaloneLinkLeadIn(sourceAnchor) || this.getDefaultStandaloneLinkLeadIn(contentLanguage);
       const linkParagraph = rewrittenDoc.createElement('p');
       linkParagraph.insertAdjacentHTML('beforeend', `${leadIn} ${sourceAnchor.outerHTML}`);
       root.appendChild(linkParagraph);
