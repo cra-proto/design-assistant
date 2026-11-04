@@ -59,7 +59,7 @@ export const LinkWritingRules: readonly LinkWritingRule[] = [
   {
     id: 'L8_remove_only_when_too_many',
     condition: 'too_many_links',
-    text: 'Only remove links when the original alert has multiple links and a too-many-links issue is identified; keep one primary <a> link with its original href.',
+    text: "For a too-many-links issue, retain at most two original links. Keep two only when they serve distinct, complementary purposes—for example, one provides information or guidance and the other provides account access or a direct action. Otherwise, keep the single link most relevant to the alert's primary purpose. Prefer information central to the alert unless completing an action is its primary purpose. If more than two seem necessary, the alert's purpose is unclear; keep only the single most relevant link. Base the choice on the alert text, link text, URL, and surrounding context; do not assume unsupported destination details. Preserve original href values.",
   },
   {
     id: 'L9_do_not_remove_without_issue',

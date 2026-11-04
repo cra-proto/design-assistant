@@ -56,7 +56,24 @@
                   </p-iftalabel>
                 }
                 <!-- Config editor -->
-                @if (isPromptConfig(prompt) && isPromptVisible(prompt.enumKey)) {
+                @if (isPromptConfig(prompt) && isPromptVisible(prompt.enumKey) && isAlertRewritePipeline(prompt)) {
+                  <h2 class="my-0">{{ prompt.translationKey | translate }}</h2>
+                  @for (section of alertRewritePipelineSections; track section.key) {
+                    @if (section.options?.length) {
+                      <section>
+                        <h3>{{ section.label | translate }}</h3>
+                        @for (option of section.options; track option.key) {
+                          <h4>{{ option.label | translate }}</h4>
+                          <pre class="prompt-preview">{{ option.content }}</pre>
+                        }
+                      </section>
+                    } @else {
+                      <h3>{{ section.label | translate }}</h3>
+                      <pre class="prompt-preview">{{ section.content }}</pre>
+                    }
+                  }
+                }
+                @if (isPromptConfig(prompt) && isPromptVisible(prompt.enumKey) && !isAlertRewritePipeline(prompt)) {
                   <h2 class="my-0">{{ prompt.translationKey | translate }}</h2>
                   <!--Fragment dropdowns-->
                   <div class="flex flex-column lg:flex-row gap-2">
@@ -160,21 +177,44 @@
   <ng-template #selectedItem let-selected>{{ selected.translationKey | translate }}</ng-template>
   <ng-template #item let-prompt>{{ prompt.translationKey | translate }}</ng-template>
 </p-select>
-<pre class="prompt-preview">{{ aiPrompt() }}</pre>
-<h2>Test description</h2>
-<p>{{ description }}</p>
-<p-button (click)="testResult()">Test result</p-button>
-<p>Result: {{ result }}</p>
-<p-button (click)="testResponse()">Test response</p-button>
-<pre class="prompt-preview">Response: {{ response | json }}</pre>
-@if (aiState().loading) {
-  <p-progressspinner />
-}
-@if (aiState().error) {
-  <p-message [text]="aiState().error!" severity="error" />
-}
-@if (aiState().respondingModel) {
-  <small>Answered by: {{ aiState().respondingModel }}</small>
+@if (selectedPromptIsAlertRewritePipeline()) {
+  <p>{{ 'dev.prompts.alertRewrite.testUnavailable' | translate }}</p>
+  @for (section of alertRewritePipelineSections; track section.key) {
+    @if (section.options?.length) {
+      <section>
+        <h3>{{ section.label | translate }}</h3>
+        @for (option of section.options; track option.key) {
+          <h4>{{ option.label | translate }}</h4>
+          <pre class="prompt-preview">{{ option.content }}</pre>
+        }
+      </section>
+    } @else {
+      <h3>{{ section.label | translate }}</h3>
+      <pre class="prompt-preview">{{ section.content }}</pre>
+    }
+  }
+} @else if (selectedPromptIsAlertRewriteExamples()) {
+  @for (example of alertRewriteExamples; track example.id) {
+    <h3>{{ getAlertRewriteExampleLegend(example) }}</h3>
+    <pre class="prompt-preview">{{ example | json }}</pre>
+  }
+} @else {
+  <pre class="prompt-preview">{{ aiPrompt() }}</pre>
+  <h2>Test description</h2>
+  <p>{{ description }}</p>
+  <p-button (click)="testResult()">Test result</p-button>
+  <p>Result: {{ result }}</p>
+  <p-button (click)="testResponse()">Test response</p-button>
+  <pre class="prompt-preview">Response: {{ response | json }}</pre>
+  @if (aiState().loading) {
+    <p-progressspinner />
+  }
+  @if (aiState().error) {
+    <p-message [text]="aiState().error!" severity="error" />
+  }
+  @if (aiState().respondingModel) {
+    <small>Answered by: {{ aiState().respondingModel }}</small>
+  }
 }
 
 @if (hasChanges()) {

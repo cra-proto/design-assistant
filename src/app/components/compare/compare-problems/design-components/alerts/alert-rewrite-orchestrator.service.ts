@@ -9,6 +9,8 @@ import { AlertRewriteGuardService } from './alert-rewrite-guard.service';
 import { AlertRewriteIssueInput, AlertRewriteRepairCandidate, AlertRewriteResult, AlertRewriteService } from './alert-rewrite.service';
 
 import { AlertRewriteRules } from '../../../../../common/prompts/alert-rewrite.prompt';
+import { CraTerminologyInstructions, findCraTerminologyViolations, getMatchedCraTerminology, resolveCraTerminologyEntries,
+  type CraTerminologyLanguage, type ResolvedCraTerminologyEntry } from '../../../../../common/prompts/cra-terminology.prompt';
 import { coerceInteractiveResultLeadIns, getReportableAlerts } from './alert-reportable.utils';
 
 export interface AlertRewriteFallbackNotice {
@@ -112,6 +114,8 @@ export class AlertRewriteOrchestratorService {
 
     let timingStart = performance.now();
     const alertDoc = new DOMParser().parseFromString(params.html, 'text/html');
+    const contentLanguage = this.getContentLanguage(alertDoc);
+    const terminologyEntries = resolveCraTerminologyEntries(contentLanguage, (key) => String(this.translate.instant(key, undefined, contentLanguage)));
     const alertEls = getReportableAlerts(alertDoc, {
       interactiveResultLeadIns: this.getInteractiveResultLeadIns(),
     });
@@ -140,6 +144,7 @@ export class AlertRewriteOrchestratorService {
       const alertIndex = i + 1;
       const relevantIssues = this.alertRewriteGuard.getIssuesForAlertIndex(params.issues, alertIndex);
       const needsPlacementReview = relevantIssues.some((issue) => (issue.category || '').trim().toLowerCase() === 'wrong placement');
+      const mayChangeAlertType = relevantIssues.some((issue) => /^(?:wrong|incorrect) (?:alert )?type$/.test((issue.category || '').trim().toLowerCase()));
       if (!params.includeExamples && !relevantIssues.length) {
         console.info('Alert rewrite skipped for alert without selected issues', {
           alertIndex,
@@ -159,6 +164,10 @@ export class AlertRewriteOrchestratorService {
         alertType: this.alertRewrite.inferAlertType(alertHtml),
         issues: relevantIssues,
       });
+      const matchedTerminology = getMatchedCraTerminology(alertHtml, terminologyEntries);
+      const terminologyRules = matchedTerminology.length
+        ? [this.buildTerminologyInstruction(CraTerminologyInstructions.preserveAtomic, matchedTerminology)]
+        : [];
 
       const selectedExamples = params.includeExamples
         ? this.alertRewrite.selectExamples(initialPlan, examples, 2, {
@@ -193,6 +202,7 @@ export class AlertRewriteOrchestratorService {
           plan: initialPlan,
           issues: relevantIssues,
           examples: selectedExamples,
+          terminologyRules,
           retryInstructions: retryInstructionsForAttempt,
         });
         this.addElapsed(timings, 'rewritePromptMs', timingStart);
@@ -281,6 +291,24 @@ export class AlertRewriteOrchestratorService {
           addRetryInstruction('mustKeepLink', retryInstructions.mustKeepLink);
         }
 
+        // Guard 4: protected CRA expressions are atomic when retained. Terms
+        // marked source-only must also never be introduced by the rewrite.
+        const terminologyViolations = findCraTerminologyViolations(alertHtml, parsedResult.rewrittenAlertHtml, terminologyEntries);
+        const introducedTerms = terminologyViolations.filter((violation) => violation.type === 'introduced').map((violation) => violation.entry);
+        const shortenedTerms = terminologyViolations.filter((violation) => violation.type === 'shortened').map((violation) => violation.entry);
+        if (introducedTerms.length) {
+          addRetryInstruction(
+            'protectedTerminologyIntroduced',
+            this.buildTerminologyInstruction(CraTerminologyInstructions.retrySourceOnly, introducedTerms),
+          );
+        }
+        if (shortenedTerms.length) {
+          addRetryInstruction(
+            'protectedTerminologyShortened',
+            this.buildTerminologyInstruction(CraTerminologyInstructions.retryAtomic, shortenedTerms),
+          );
+        }
+
         // Guard 5: enforce the paragraph-level link-direction conventions
         // handled by AlertRewriteGuardService. This is where malformed
         // "refer to <link>" or link-only sentence patterns trigger a retry.
@@ -310,7 +338,9 @@ export class AlertRewriteOrchestratorService {
           });
         }
 
-        if (!params.forceLocalRepairForTesting && retryReasons.length === 1 && retryReasons[0] === 'linkLeadInNotStandalone') {
+        const hasOnlyLocallyRepairableLinkLeadInIssue =
+          retryReasons.length === 1 && (retryReasons[0] === 'linkLeadInNotStandalone' || retryReasons[0] === 'fullSentenceLinksNeedLeadIn');
+        if (!params.forceLocalRepairForTesting && hasOnlyLocallyRepairableLinkLeadInIssue) {
           const repairedHtml = this.alertRewriteGuard.repairEmbeddedStandaloneLeadInParagraphs(parsedResult.rewrittenAlertHtml);
           if (repairedHtml !== parsedResult.rewrittenAlertHtml) {
             const repairedResult = this.alertRewrite.parseAlertRewriteResponse(
@@ -428,10 +458,32 @@ export class AlertRewriteOrchestratorService {
           reasons: [...lastRetryReasons],
         });
       }
+      const finalTerminologyViolations = findCraTerminologyViolations(alertHtml, rewriteResult.rewrittenAlertHtml, terminologyEntries);
+      if (finalTerminologyViolations.length) {
+        const terminologyReasons = Array.from(new Set(finalTerminologyViolations.map((violation) => `protectedTerminology${violation.type === 'introduced' ? 'Introduced' : 'Shortened'}`)));
+        console.warn(`Alert rewrite falling back because protected terminology could not be safely validated for alert ${alertIndex}`, {
+          alertIndex,
+          reasons: terminologyReasons,
+          terms: finalTerminologyViolations.map((violation) => violation.entry.term),
+        });
+        rewriteResult = this.alertRewrite.buildPassthroughResult({
+          alertHtml,
+          originalHeading,
+          originalAlertText: alertText,
+        });
+        rewriteResultSource = 'passthrough';
+        fallbackNotices.push({
+          alertIndex,
+          reasons: terminologyReasons,
+        });
+      }
       rewriteResult.rewrittenAlertHtml = this.alertRewriteGuard.ensureSemanticHeading(rewriteResult.rewrittenAlertHtml, rewriteResult.rewrittenHeading);
       rewriteResult.rewrittenAlertHtml = this.alertRewriteGuard.removeRedundantLeadInsBeforeActionLinks(rewriteResult.rewrittenAlertHtml);
       rewriteResult.rewrittenAlertHtml = this.alertRewriteGuard.preserveOriginalStandaloneLinkLeadIns(rewriteResult.rewrittenAlertHtml, alertHtml);
       rewriteResult.rewrittenAlertHtml = this.alertRewriteGuard.removeStandaloneLinkTerminalPunctuation(rewriteResult.rewrittenAlertHtml);
+      if (!mayChangeAlertType) {
+        rewriteResult.rewrittenAlertHtml = this.alertRewriteGuard.preserveOriginalAlertType(rewriteResult.rewrittenAlertHtml, alertHtml);
+      }
       if (needsPlacementReview) {
         rewriteResult.rewrittenAlertHtml = `${this.buildPlacementReviewNoticeHtml()}\n${rewriteResult.rewrittenAlertHtml}`;
       }
@@ -458,8 +510,22 @@ export class AlertRewriteOrchestratorService {
       );
       const suppliedExampleIds = selectedExamples.map((example) => example.id);
 
+      console.info('Alert rewrite terminology', {
+        alertIndex,
+        contentLanguage,
+        matchedTerminology: matchedTerminology.map((entry) => entry.term),
+        violations: finalTerminologyViolations.map((violation) => ({
+          type: violation.type,
+          term: violation.entry.term,
+        })),
+      });
+
       console.info('Alert rewrite examples', {
         alertIndex,
+        originalAlertType: initialPlan.alertType,
+        finalAlertType: this.alertRewrite.inferAlertType(rewriteResult.rewrittenAlertHtml),
+        mayChangeAlertType,
+        selectedIssueCategories: relevantIssues.map((issue) => issue.category || '').filter((category) => !!category),
         suppliedExampleIds,
         exampleIdsUsed: rewriteResult.exampleIdsUsed,
       });
@@ -530,5 +596,17 @@ export class AlertRewriteOrchestratorService {
 
   private getInteractiveResultLeadIns(): string[] {
     return coerceInteractiveResultLeadIns(this.translate.instant('problems.alerts.interactiveResultLeadIns'));
+  }
+
+  private getContentLanguage(doc: Document): CraTerminologyLanguage {
+    const documentLanguage = (doc.documentElement.getAttribute('lang') || '').trim().toLowerCase();
+    if (documentLanguage.startsWith('fr')) return 'fr';
+    if (documentLanguage.startsWith('en')) return 'en';
+    return this.translate.currentLang()?.startsWith('fr') ? 'fr' : 'en';
+  }
+
+  private buildTerminologyInstruction(template: string, entries: ResolvedCraTerminologyEntry[]): string {
+    const terms = Array.from(new Set(entries.map((entry) => `"${entry.term}"`))).join('; ');
+    return template.replace('{{terms}}', terms).trim();
   }
 }
