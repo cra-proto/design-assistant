@@ -25,13 +25,13 @@ import { AiPromptService } from '../../../../services/ai/prompt.service';
 import { ExportGitHubService } from '../../../../services/github/export-github.service';
 import { UserSettingsService } from '../../../../services/user-settings.service';
 
-import { InventoryPrompts } from '../../../../common/prompts/inventory.prompts';
-import { PagePrompts } from '../../../../common/prompts/page.prompts';
-import { ProblemPrompts } from '../../../../common/prompts/problems.prompts';
 import { AlertRewriteExamples, type AlertRewriteExample } from '../../../../common/prompts/alert-rewrite.examples';
 import { AlertRewriteRules } from '../../../../common/prompts/alert-rewrite.prompt';
 import { getCanadaCaStylePromptRules } from '../../../../common/prompts/canada-ca-style.prompt';
+import { InventoryPrompts } from '../../../../common/prompts/inventory.prompts';
 import { getLinkWritingPromptRules } from '../../../../common/prompts/link-writing.prompt';
+import { PagePrompts } from '../../../../common/prompts/page.prompts';
+import { ProblemPrompts } from '../../../../common/prompts/problems.prompts';
 import { InventoryPromptKey, OutputKey, PagePromptKey, ProblemPromptKey, PromptConfig, RoleKey, RubricKey } from '../../../../common/prompts/prompt.model';
 import { OutputFragment, RoleFragment, RubricFragment } from '../../../../common/prompts/shared.prompts';
 

@@ -36,6 +36,11 @@ function markForTranslation() {
   marker('aiPrompt.problem.alertsRewrite');
   marker('aiPrompt.problem.alertsProblems');
   marker('aiPrompt.problem.translateIssueDetails');
+
+  marker('aiPrompt.craTerminology.shortForms.payrollDeductions');
+  marker('aiPrompt.craTerminology.shortForms.royalAssent');
+  marker('aiPrompt.craTerminology.terms.payrollDeductions');
+  marker('aiPrompt.craTerminology.terms.royalAssent');
 }
 
 export interface PromptConfig {

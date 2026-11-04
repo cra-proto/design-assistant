@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 
 import { TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { OpenRouterService } from '../../../../../services/ai/openrouter.service';
@@ -10,8 +11,15 @@ import { AlertRewriteGuardService } from './alert-rewrite-guard.service';
 import { AlertRewriteIssueInput, AlertRewriteRepairCandidate, AlertRewriteResult, AlertRewriteService } from './alert-rewrite.service';
 
 import { AlertRewriteRules } from '../../../../../common/prompts/alert-rewrite.prompt';
-import { CraTerminologyEntries, CraTerminologyInstructions, findCraTerminologyViolations, getMatchedCraTerminology, resolveCraTerminologyEntries,
-  type CraTerminologyLanguage, type ResolvedCraTerminologyEntry } from '../../../../../common/prompts/cra-terminology.prompt';
+import {
+  CraTerminologyEntries,
+  CraTerminologyInstructions,
+  findCraTerminologyViolations,
+  getMatchedCraTerminology,
+  resolveCraTerminologyEntries,
+  type CraTerminologyLanguage,
+  type ResolvedCraTerminologyEntry,
+} from '../../../../../common/prompts/cra-terminology.prompt';
 import { coerceInteractiveResultLeadIns, getReportableAlerts } from './alert-reportable.utils';
 
 export interface AlertRewriteFallbackNotice {
@@ -20,7 +28,15 @@ export interface AlertRewriteFallbackNotice {
 }
 
 type AlertRewriteTimingKey =
-  'parseAlertsMs' | 'loadExamplesMs' | 'buildCompactContextMs' | 'rewritePromptMs' | 'rewriteAiMs' | 'parseAndGuardMs' | 'localRepairMs' | 'applyRewritesMs' | 'formatHtmlMs';
+  | 'parseAlertsMs'
+  | 'loadExamplesMs'
+  | 'buildCompactContextMs'
+  | 'rewritePromptMs'
+  | 'rewriteAiMs'
+  | 'parseAndGuardMs'
+  | 'localRepairMs'
+  | 'applyRewritesMs'
+  | 'formatHtmlMs';
 
 type AlertRewriteTimings = Record<AlertRewriteTimingKey, number>;
 
@@ -168,9 +184,7 @@ export class AlertRewriteOrchestratorService {
         issues: relevantIssues,
       });
       const matchedTerminology = getMatchedCraTerminology(alertHtml, terminologyEntries);
-      const terminologyRules = matchedTerminology.length
-        ? [this.buildTerminologyInstruction(CraTerminologyInstructions.preserveAtomic, matchedTerminology)]
-        : [];
+      const terminologyRules = matchedTerminology.length ? [this.buildTerminologyInstruction(CraTerminologyInstructions.preserveAtomic, matchedTerminology)] : [];
 
       const selectedExamples = params.includeExamples
         ? this.alertRewrite.selectExamples(initialPlan, examples, 2, {
@@ -300,16 +314,10 @@ export class AlertRewriteOrchestratorService {
         const introducedTerms = terminologyViolations.filter((violation) => violation.type === 'introduced').map((violation) => violation.entry);
         const shortenedTerms = terminologyViolations.filter((violation) => violation.type === 'shortened').map((violation) => violation.entry);
         if (introducedTerms.length) {
-          addRetryInstruction(
-            'protectedTerminologyIntroduced',
-            this.buildTerminologyInstruction(CraTerminologyInstructions.retrySourceOnly, introducedTerms),
-          );
+          addRetryInstruction('protectedTerminologyIntroduced', this.buildTerminologyInstruction(CraTerminologyInstructions.retrySourceOnly, introducedTerms));
         }
         if (shortenedTerms.length) {
-          addRetryInstruction(
-            'protectedTerminologyShortened',
-            this.buildTerminologyInstruction(CraTerminologyInstructions.retryAtomic, shortenedTerms),
-          );
+          addRetryInstruction('protectedTerminologyShortened', this.buildTerminologyInstruction(CraTerminologyInstructions.retryAtomic, shortenedTerms));
         }
 
         // Guard 5: enforce the paragraph-level link-direction conventions
@@ -341,8 +349,7 @@ export class AlertRewriteOrchestratorService {
           });
         }
 
-        const hasOnlyLocallyRepairableLinkLeadInIssue =
-          retryReasons.length === 1 && (retryReasons[0] === 'linkLeadInNotStandalone' || retryReasons[0] === 'fullSentenceLinksNeedLeadIn');
+        const hasOnlyLocallyRepairableLinkLeadInIssue = retryReasons.length === 1 && (retryReasons[0] === 'linkLeadInNotStandalone' || retryReasons[0] === 'fullSentenceLinksNeedLeadIn');
         if (!params.forceLocalRepairForTesting && hasOnlyLocallyRepairableLinkLeadInIssue) {
           const repairedHtml = this.alertRewriteGuard.repairEmbeddedStandaloneLeadInParagraphs(parsedResult.rewrittenAlertHtml, contentLanguage);
           if (repairedHtml !== parsedResult.rewrittenAlertHtml) {

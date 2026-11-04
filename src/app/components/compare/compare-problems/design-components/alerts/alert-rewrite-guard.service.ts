@@ -518,9 +518,11 @@ export class AlertRewriteGuardService {
     if (!normalized) return false;
 
     if (normalized === 'apprenez-en' || normalized.startsWith('apprenez-en ')) return true;
-    return /\b(?:refer to|for details|learn more|en savoir plus|apprenez-en plus|consultez|renseignez-vous sur)\b/.test(normalized) ||
+    return (
+      /\b(?:refer to|for details|learn more|en savoir plus|apprenez-en plus|consultez|renseignez-vous sur)\b/.test(normalized) ||
       /^pour plus d['’](?:informations|information),?\s+consultez la page:?$/.test(normalized) ||
-      /^pour plus de renseignements,?\s+consultez la page:?$/.test(normalized);
+      /^pour plus de renseignements,?\s+consultez la page:?$/.test(normalized)
+    );
   }
 
   private getRepairedStandaloneLinkLeadIn(leadInText: string): string | null {

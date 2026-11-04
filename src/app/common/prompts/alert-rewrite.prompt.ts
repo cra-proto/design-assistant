@@ -56,10 +56,7 @@ export const AlertRewriteRules: AlertRewritePromptRules = {
       'Do not introduce wording from an example unless it is supported by the input alert. Valid wording already present in the input alert may be preserved.',
       'Only include exampleIdsUsed values that match the provided example ids.',
     ],
-    systemPromptWithoutExamplesLines: [
-      'No examples are provided for this request.',
-      'Return exampleIdsUsed as an empty array: [].',
-    ],
+    systemPromptWithoutExamplesLines: ['No examples are provided for this request.', 'Return exampleIdsUsed as an empty array: [].'],
     outputRequirement: OutputFragment[OutputKey.Json],
     outputSchemas: {
       withExamples: '{"rewrittenAlertHtml":"string","rewrittenHeading":"string","rewrittenAlert":"string","exampleIdsUsed":["ex-XXX"]}',

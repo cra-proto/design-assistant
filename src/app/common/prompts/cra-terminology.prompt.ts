@@ -20,8 +20,7 @@ export interface CraTerminologyViolation {
 }
 
 export const CraTerminologyInstructions = {
-  preserveAtomic:
-    'If retained, keep these source expressions complete and unchanged; they may be removed with the ideas they name, but do not shorten or replace them: {{terms}}.',
+  preserveAtomic: 'If retained, keep these source expressions complete and unchanged; they may be removed with the ideas they name, but do not shorten or replace them: {{terms}}.',
   retryAtomic: 'If the related idea remains, use the complete source expression instead of a shortened form: {{terms}}.',
   retrySourceOnly: 'Do not introduce these source-only expressions because they do not appear in the source: {{terms}}.',
 } as const;
@@ -50,10 +49,7 @@ export const CraTerminologyEntries: readonly CraTerminologyEntryConfig[] = [
   },
 ];
 
-export function resolveCraTerminologyEntries(
-  language: CraTerminologyLanguage,
-  translate: (key: string) => string,
-): ResolvedCraTerminologyEntry[] {
+export function resolveCraTerminologyEntries(language: CraTerminologyLanguage, translate: (key: string) => string): ResolvedCraTerminologyEntry[] {
   return CraTerminologyEntries.filter((entry) => entry.language === language)
     .map((entry) => ({
       ...entry,
@@ -67,11 +63,7 @@ export function getMatchedCraTerminology(source: string, entries: ResolvedCraTer
   return entries.filter((entry) => containsCraTerm(source, entry.term));
 }
 
-export function findCraTerminologyViolations(
-  source: string,
-  output: string,
-  entries: ResolvedCraTerminologyEntry[],
-): CraTerminologyViolation[] {
+export function findCraTerminologyViolations(source: string, output: string, entries: ResolvedCraTerminologyEntry[]): CraTerminologyViolation[] {
   const violations: CraTerminologyViolation[] = [];
 
   for (const entry of entries) {
