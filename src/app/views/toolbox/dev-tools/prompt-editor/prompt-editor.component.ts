@@ -27,7 +27,7 @@ import { UserSettingsService } from '../../../../services/user-settings.service'
 
 import { AlertRewriteExamples, type AlertRewriteExample } from '../../../../common/prompts/alert-rewrite.examples';
 import { AlertRewriteRules } from '../../../../common/prompts/alert-rewrite.prompt';
-import { getCanadaCaStylePromptRules } from '../../../../common/prompts/canada-ca-style.prompt';
+import { CanadaCaStyleExamples, CanadaCaStyleRules } from '../../../../common/prompts/canada-ca-style.prompt';
 import { InventoryPrompts } from '../../../../common/prompts/inventory.prompts';
 import { getLinkWritingPromptRules } from '../../../../common/prompts/link-writing.prompt';
 import { PagePrompts } from '../../../../common/prompts/page.prompts';
@@ -54,6 +54,7 @@ interface PromptPipelineSection {
   key: string;
   label: string;
   content?: string;
+  bulletItems?: string[];
   collapsed?: boolean;
   options?: PromptPipelineOption[];
 }
@@ -61,7 +62,8 @@ interface PromptPipelineSection {
 interface PromptPipelineOption {
   key: string;
   label: string;
-  content: string;
+  content?: string;
+  bulletItems?: string[];
   collapsed: boolean;
 }
 
@@ -97,6 +99,13 @@ interface PromptPipelineOption {
       overflow-wrap: anywhere;
       word-break: break-word;
       overflow-x: hidden;
+    }
+
+    .prompt-bullet-list {
+      display: grid;
+      gap: 0.4rem;
+      margin: 0;
+      padding-inline-start: 1.5rem;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -286,7 +295,7 @@ export class PromptEditorComponent {
       {
         key: 'role',
         label: 'dev.prompts.alertRewrite.role',
-        content: this.formatPromptJson(rules.role),
+        content: rules.role,
         collapsed: false,
       },
       {
@@ -296,13 +305,13 @@ export class PromptEditorComponent {
           {
             key: 'systemWithExamples',
             label: 'dev.prompts.alertRewrite.examplesIncluded',
-            content: this.formatPromptJson(rules.systemPromptWithExamplesLines),
+            bulletItems: rules.systemPromptWithExamplesLines,
             collapsed: false,
           },
           {
             key: 'systemWithoutExamples',
             label: 'dev.prompts.alertRewrite.examplesNotIncluded',
-            content: this.formatPromptJson(rules.systemPromptWithoutExamplesLines),
+            bulletItems: rules.systemPromptWithoutExamplesLines,
             collapsed: false,
           },
         ],
@@ -310,7 +319,7 @@ export class PromptEditorComponent {
       {
         key: 'outputRequirement',
         label: 'dev.prompts.alertRewrite.outputRequirement',
-        content: this.formatPromptJson(rules.outputRequirement),
+        content: rules.outputRequirement,
         collapsed: false,
       },
       {
@@ -320,13 +329,13 @@ export class PromptEditorComponent {
           {
             key: 'outputSchemaWithExamples',
             label: 'dev.prompts.alertRewrite.examplesIncluded',
-            content: this.formatPromptJson(rules.outputSchemas.withExamples),
+            content: this.formatPromptSchema(rules.outputSchemas.withExamples),
             collapsed: false,
           },
           {
             key: 'outputSchemaWithoutExamples',
             label: 'dev.prompts.alertRewrite.examplesNotIncluded',
-            content: this.formatPromptJson(rules.outputSchemas.withoutExamples),
+            content: this.formatPromptSchema(rules.outputSchemas.withoutExamples),
             collapsed: false,
           },
         ],
@@ -334,13 +343,19 @@ export class PromptEditorComponent {
       {
         key: 'baseRules',
         label: 'dev.prompts.alertRewrite.baseRules',
-        content: this.formatPromptJson(rules.styleRulesBase),
+        bulletItems: rules.styleRulesBase,
         collapsed: false,
       },
       {
-        key: 'canadaCaStyle',
+        key: 'canadaCaStyleRules',
         label: 'dev.prompts.alertRewrite.canadaCaStyle',
-        content: this.formatPromptJson(getCanadaCaStylePromptRules({ includeExamples: true })),
+        content: this.formatCanadaCaStyleRulesJson(),
+        collapsed: false,
+      },
+      {
+        key: 'canadaCaStyleExamples',
+        label: 'dev.prompts.alertRewrite.canadaCaStyleExamples',
+        content: this.formatCanadaCaStyleExamplesJson(),
         collapsed: false,
       },
       {
@@ -424,6 +439,39 @@ export class PromptEditorComponent {
     return JSON.stringify(value, null, 2);
   }
 
+  private formatPromptSchema(schema: string): string {
+    try {
+      const lines = JSON.stringify(JSON.parse(schema), null, 2)
+        .replace(/\[\n\s+("(?:\\.|[^"\\])*")\n\s+\]/g, '[$1]')
+        .split('\n');
+
+      if (lines.length < 3) return lines.join('\n');
+
+      lines[1] = `{ ${lines[1].trimStart()}`;
+      lines[lines.length - 2] = `${lines[lines.length - 2]} }`;
+      return lines.slice(1, -1).join('\n');
+    } catch {
+      return schema;
+    }
+  }
+
+  private formatCanadaCaStyleRulesJson(): string {
+    const rules = CanadaCaStyleRules.map(
+      (rule) => `{\n      "id": ${JSON.stringify(rule.id)},\n      "severity": ${JSON.stringify(rule.severity)},\n      "text": ${JSON.stringify(rule.text)} }`,
+    ).join(',\n    ');
+
+    return `{ "rules": [ ${rules} ]}`;
+  }
+
+  private formatCanadaCaStyleExamplesJson(): string {
+    const examples = CanadaCaStyleExamples.map(
+      (example) =>
+        `{ "ruleId": ${JSON.stringify(example.ruleId)},\n      "avoid": ${JSON.stringify(example.avoid)},\n      "prefer": ${JSON.stringify(example.prefer)} }`,
+    ).join(',\n    ');
+
+    return `{ "examples": [\n    ${examples} ]}`;
+  }
+
   markForTranslation() {
     marker('aiPrompt.shared._title');
     marker('aiPrompt.alerts._title');
@@ -440,6 +488,7 @@ export class PromptEditorComponent {
     marker('dev.prompts.button.openPR');
     marker('dev.prompts.alertRewrite.baseRules');
     marker('dev.prompts.alertRewrite.canadaCaStyle');
+    marker('dev.prompts.alertRewrite.canadaCaStyleExamples');
     marker('dev.prompts.alertRewrite.conditionalInstructions');
     marker('dev.prompts.alertRewrite.linkRulesDefault');
     marker('dev.prompts.alertRewrite.linkRulesTooMany');
