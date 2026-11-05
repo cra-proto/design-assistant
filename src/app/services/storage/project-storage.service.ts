@@ -10,7 +10,8 @@ import { CloudStorageService } from './cloud-storage.service';
 
 import { version as appVersion } from '../../../../package.json';
 import { environment } from '../../../environments/environment';
-import { LangData, PageTemplate, Project, ProjectMetadata, ProjectPhase, ProjectTreeNodeData, TreeNodeData } from '../../common/data.model';
+import { ProjectTreeNodeData } from '../../common/data-patch.model';
+import { LangData, PageTemplate, Project, ProjectMetadata, ProjectPhase, TreeNodeData } from '../../common/data.model';
 
 export interface ActiveProject {
   key: string;

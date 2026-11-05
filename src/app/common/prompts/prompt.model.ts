@@ -29,9 +29,11 @@ function markForTranslation() {
   marker('aiPrompt.page.doormats');
   marker('aiPrompt.page.plainLanguage');
   marker('aiPrompt.page.tense');
+  marker('aiPrompt.page.alertRewrite');
 
   marker('aiPrompt.problem.alertsRewrite');
   marker('aiPrompt.problem.alertsProblems');
+  marker('aiPrompt.problem.translateIssueDetails');
 }
 
 export interface PromptConfig {
@@ -40,9 +42,6 @@ export interface PromptConfig {
   rubric: RubricKey[]; // Shared
   output: OutputKey; // Shared
   jsonSchema?: string; // Unique schema
-  skill?: string; // Unique skill
-  skillReferences?: ReferenceKey[]; // Shared references used by skills
-  skillJsonSchema?: string; // Unique schema (same as jsonSchema but gets a different label when building prompt)
   examples?: string; // reference to example set for additional prompt set-up
   available?: boolean; // Hides prompt in prod if not ready
 }
@@ -76,11 +75,6 @@ export enum RubricKey {
   CraTermTranslations = 'aiPrompt.rubric.craTermTranslations',
 }
 
-//Shared reference fragments
-export enum ReferenceKey {
-  IssueAnalysisInstructions = 'aiPrompt.references.issueAnalysisInstructions',
-}
-
 //Inventory task fragments
 export enum InventoryPromptKey {
   Metadata = 'aiPrompt.inventory.metadata',
@@ -90,6 +84,7 @@ export enum InventoryPromptKey {
 
 //Page task fragments
 export enum PagePromptKey {
+  AlertRewrite = 'aiPrompt.page.alertRewrite',
   Headings = 'aiPrompt.page.headings',
   Doormats = 'aiPrompt.page.doormats',
   PlainLanguage = 'aiPrompt.page.plainLanguage',
@@ -100,4 +95,5 @@ export enum PagePromptKey {
 export enum ProblemPromptKey {
   AlertsRewrite = 'aiPrompt.problem.alertsRewrite',
   AlertsProblems = 'aiPrompt.problem.alertsProblems',
+  TranslateIssueDetails = 'aiPrompt.problem.translateIssueDetails',
 }

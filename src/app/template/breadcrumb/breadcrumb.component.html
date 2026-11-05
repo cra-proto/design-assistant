@@ -1,5 +1,5 @@
 @if (!production) {
-  <div class="sticky top-0 z-50 flex justify-content-center border-round-bottom-lg bg-primary h-1.5">
+  <div (click)="menu.toggle($event)" (keydown.enter)="menu.toggle($event)" class="cursor-pointer sticky top-0 z-50 flex justify-content-center border-round-bottom-lg bg-primary h-1.5" tabindex="0">
     {{ (sandbox ? '_app.env.sandbox' : '_app.env.dev') | translate }}
   </div>
 } @else if (projectDisplay.projectLabel && isProjectRoute()) {

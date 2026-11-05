@@ -11,7 +11,7 @@
 </div>
 
 @if (pageOptions.length > 0) {
-  <div class="flex flex-column lg:flex-row lg:align-items-center gap-2">
+  <div class="flex flex-column lg:flex-row lg:align-items-end gap-2">
     @if (versionsToShow() === 2) {
       <!--Selection-->
       <div class="flex flex-column text-color-secondary hover:text-primary max-w-max">
@@ -34,6 +34,9 @@
     } @else if (versionsToShow() === 0) {
       <ng-container *ngTemplateOutlet="pageSelect" />
     }
+    @if (showLang()) {
+      <aida-project-settings [allowBoth]="allowBoth()" [allowLive]="true" [allowPreview]="true" [showLang]="true" />
+    }
   </div>
 } @else {
   <div class="flex justify-content-start my-2">
@@ -55,7 +58,7 @@
       inputId="page"
       loadingIcon="pi pi pi-spin pi-spinner"
       optionLabel="label"
-      optionValue="path"
+      optionValue="value"
     >
       <ng-template #item let-page>
         <div class="flex flex-column">

@@ -125,8 +125,13 @@ export const routes: Routes = [
         title: 'iaDiagram._title',
       },
       {
+        path: 'old-inventory',
+        loadComponent: () => import('./views/tasks/old-inventory/inventory.component').then((m) => m.InventoryComponent),
+        title: 'inventory._title',
+      },
+      {
         path: 'inventory',
-        loadComponent: () => import('./views/tasks/inventory/inventory.component').then((m) => m.InventoryComponent),
+        loadComponent: () => import('./views/tasks/page-inventory/page-inventory.component').then((m) => m.PageInventoryComponent),
         title: 'inventory._title',
       },
       {

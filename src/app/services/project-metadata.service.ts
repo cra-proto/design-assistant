@@ -5,20 +5,15 @@ import { TranslateService } from '@ngx-translate/core';
 import { TreeNode } from 'primeng/api';
 
 import { FetchService } from './fetch.service';
+import { LabelItem } from './style-table.service';
 import { StyleTreeNodeService } from './style-treenode.service';
 
-import { DataVersion, TreeNodeData } from '../common/data.model';
+import { TreeNodeData } from '../common/data.model';
 
 export interface TableItem {
   group: string;
-  version: DataVersion | 'aiMetadata';
+  version: string;
   content: string;
-}
-
-export interface LabelItem {
-  h1: string;
-  doubleH1: string;
-  path: string;
 }
 
 export interface FlattenedMetadata {

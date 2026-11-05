@@ -67,7 +67,7 @@
       [style]="{ width: '50vw' }"
       header="{{ 'settings.versions.tooltip' | translate }}"
     >
-      @for (paragraph of ('settings.versions.help' | translate).split('|'); track paragraph; let first = $first) {
+      @for (paragraph of ('settings.versions.help' | translate).split('|'); track $index; let first = $first) {
         <p [class.mt-0]="$first">{{ paragraph }}</p>
       }
 
@@ -166,15 +166,15 @@
       [style]="{ width: '50vw' }"
       header="{{ 'settings.childPages.tooltip' | translate }}"
     >
-      @for (paragraph of ('settings.childPages.help.p1' | translate).split('|'); track paragraph; let first = $first) {
+      @for (paragraph of ('settings.childPages.help.p1' | translate).split('|'); track $index; let first = $first) {
         <p [class.mt-0]="$first">{{ paragraph }}</p>
       }
       <ul>
-        @for (listItem of ('settings.childPages.help.l1' | translate).split('|'); track listItem; let first = $first) {
+        @for (listItem of ('settings.childPages.help.l1' | translate).split('|'); track $index; let first = $first) {
           <li [class.mt-0]="$first">{{ listItem }}</li>
         }
       </ul>
-      @for (paragraph of ('settings.childPages.help.p2' | translate).split('|'); track paragraph; let first = $first) {
+      @for (paragraph of ('settings.childPages.help.p2' | translate).split('|'); track $index; let first = $first) {
         <p [class.mt-0]="$first">{{ paragraph }}</p>
       }
       @defer {

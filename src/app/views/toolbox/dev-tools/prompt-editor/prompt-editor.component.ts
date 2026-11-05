@@ -66,6 +66,20 @@ interface TabConfig {
     TextareaModule,
   ],
   templateUrl: './prompt-editor.component.html',
+  styles: `
+    pre.prompt-preview {
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      font-size: 1rem;
+      white-space: pre-wrap !important;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      overflow-x: hidden;
+    }
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PromptEditorComponent {
@@ -227,7 +241,7 @@ export class PromptEditorComponent {
     marker('dev.prompts.button.openPR');
   }
 
-  //For testing
+  // Test prompts
   readonly aiState = this.openRouterService.state;
   //aiPrompt = this.aiPromptService.composePrompt(InventoryPrompts[InventoryPromptKey.Metadata]);
   description = 'Official CRA information on Canadian taxes. File your return, manage payments, and explore credits and deductions for individuals and businesses.';
@@ -235,15 +249,68 @@ export class PromptEditorComponent {
   result = '';
 
   async testResponse() {
-    this.response = await this.openRouterService.sendToAI(InventoryPrompts[InventoryPromptKey.Metadata], this.description);
+    const config = this.getSelectedPromptConfig();
+    if (!config) return;
+    this.response = await this.openRouterService.sendToAI(config, this.description);
   }
   async testResult() {
-    this.result = await this.openRouterService.getTextFromAI(InventoryPrompts[InventoryPromptKey.Metadata], this.description);
+    const config = this.getSelectedPromptConfig();
+    if (!config) return;
+    this.result = await this.openRouterService.getTextFromAI(config, this.description);
   }
 
-  //TODO: test this
   // Rebuild prompt file
   rebuildPromptFile(tool: string, prompts: PromptEntry[]) {
+    const updatedPrompts = prompts
+      .map((prompt) => {
+        let value: string;
+        if (this.isPromptConfig(prompt)) {
+          value = this.serializePromptConfig(prompt.promptText);
+        } else if (this.isPromptString(prompt)) {
+          value = this.toTemplateLiteral(prompt.promptText);
+        } else {
+          throw new Error(`Unsupported prompt value for ${prompt.enumKey}`);
+        }
+        return `  [${tool}PromptKey.${prompt.enumKey}]: ${value},`;
+      })
+      .join('\n');
+
+    return `import { OutputKey, ${tool}PromptKey, PromptConfig, RoleKey, RubricKey } from './prompt.model';\n\nexport const ${tool}Prompts: Record<${tool}PromptKey, PromptConfig> = {\n${updatedPrompts}\n};\n`;
+  }
+
+  private getSelectedPromptConfig(): PromptConfig | null {
+    const selected = this.selectedPrompt();
+    return selected && this.isPromptConfig(selected) ? selected.promptText : null;
+  }
+
+  private serializePromptConfig(config: PromptConfig): string {
+    const lines = [
+      '{',
+      `    role: RoleKey.${this.getEnumKey(RoleKey, config.role)},`,
+      `    task: ${this.toTemplateLiteral(config.task)},`,
+      `    rubric: [${config.rubric.map((rubric) => `RubricKey.${this.getEnumKey(RubricKey, rubric)}`).join(', ')}],`,
+      `    output: OutputKey.${this.getEnumKey(OutputKey, config.output)},`,
+    ];
+
+    if (config.jsonSchema !== undefined) lines.push(`    jsonSchema: ${this.toTemplateLiteral(config.jsonSchema)},`);
+    if (config.examples !== undefined) lines.push(`    examples: ${this.toTemplateLiteral(config.examples)},`);
+    if (config.available !== undefined) lines.push(`    available: ${config.available},`);
+    lines.push('  }');
+    return lines.join('\n');
+  }
+
+  private getEnumKey<T extends Record<string, string>>(enumObject: T, value: T[keyof T]): string {
+    const key = Object.entries(enumObject).find(([, enumValue]) => enumValue === value)?.[0];
+    if (!key) throw new Error(`Unknown prompt enum value: ${value}`);
+    return key;
+  }
+
+  private toTemplateLiteral(value: string): string {
+    return `\`${value.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')}\``;
+  }
+
+  // Rebuild prompt file (older version)
+  rebuildPromptFileOld(tool: string, prompts: PromptEntry[]) {
     const updatedPrompts = prompts.map((p) => ` [${tool}PromptKey.${p.enumKey}]: \`${p.promptText}\`,`).join('\n');
 
     return `import { ${tool}PromptKey } from './prompt.model'\nexport const ${tool}Prompts: Record<${tool}PromptKey, string> = {\n${updatedPrompts}\n};`;

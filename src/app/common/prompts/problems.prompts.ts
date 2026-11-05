@@ -1,32 +1,17 @@
-import { OutputKey, ProblemPromptKey, PromptConfig, ReferenceKey, RoleKey, RubricKey } from './prompt.model';
+import { OutputKey, ProblemPromptKey, PromptConfig, RoleKey, RubricKey } from './prompt.model';
+import { AlertIssuesInstructions } from './reference.prompt';
 
 export const ProblemPrompts: Record<ProblemPromptKey, PromptConfig> = {
   [ProblemPromptKey.AlertsProblems]: {
     role: RoleKey.ContentDesigner,
-    task: 'Analyze the reportable alerts in the supplied page context and identify applicable content design, accessibility, and markup issues.',
-    rubric: [RubricKey.NoCommentary],
+    task: `Analyze the reportable alerts in the supplied page context and identify applicable content design, accessibility, and markup issues.
+Return issue reports only. Do not rewrite alert HTML.
+
+### Analysis instructions
+${AlertIssuesInstructions}`,
+    rubric: [],
     output: OutputKey.Json,
-    skill: `alerts-issues
-# Canada.ca Alerts Issues
-
-Use this skill only for issue analysis. Do not rewrite alert HTML.
-
-## Workflow
-1. Analyze every alert in the input array.
-2. Identify every applicable alert issue and content accessibility issue.
-3. Return JSON only.
-
-## Resources
-- Read \`references/issue-analysis-instructions.json\` for issue taxonomy, analysis procedure, structured context rules, and output rules.
-- Match \`assets/issues-output-schema.json\` exactly.
-- If structured fields such as \`pageSignals\`, \`alertPlacementContext\`, or \`alertSignals\` are present, use them as primary evidence for context-sensitive issues.
-
-## Output Boundary
-- Return issue reports only.
-- Do not return rewritten HTML, replacement payloads, or prose commentary.`,
-    skillReferences: [ReferenceKey.IssueAnalysisInstructions],
-    skillJsonSchema: `issues-output-schema.json
-  {
+    jsonSchema: `{
   "type": "object",
   "required": ["issues"],
   "properties": {
@@ -46,8 +31,7 @@ Use this skill only for issue analysis. Do not rewrite alert HTML.
           "issue_category": { "type": "string" },
           "description": { "type": "string" },
           "recommendation": { "type": "string" },
-          "severity": { "type": "string", "enum": ["High", "Medium", "Low"] },
-          "include": { "type": "boolean" }
+          "severity": { "type": "string", "enum": ["High", "Medium", "Low"] }
         }
       }
     }
@@ -61,5 +45,32 @@ Use this skill only for issue analysis. Do not rewrite alert HTML.
     rubric: [RubricKey.NoCommentary],
     output: OutputKey.Json,
     available: false,
+  },
+  [ProblemPromptKey.TranslateIssueDetails]: {
+    role: RoleKey.Translator,
+    task: `Translate only the description and recommendation values in the supplied JSON from English into Canadian French.
+Return only valid JSON with this exact shape: {"items":[{"translation_id":"1","description":"...","recommendation":"..."}]}.
+Preserve every translation_id exactly. Do not add, remove, combine, split, or reorder items.
+Preserve HTML tags and attributes, URLs, code, placeholders, CSS classes, ARIA attributes, and quoted source text exactly.`,
+    rubric: [],
+    output: OutputKey.Json,
+    jsonSchema: `{
+  "type": "object",
+  "required": ["items"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["translation_id", "description", "recommendation"],
+        "properties": {
+          "translation_id": { "type": "string" },
+          "description": { "type": "string" },
+          "recommendation": { "type": "string" }
+        }
+      }
+    }
+  }
+}`,
   },
 };

@@ -18,8 +18,9 @@ import { UserSettingsService } from './user-settings.service';
 
 import { version as appVersion } from '../../../package.json';
 import { environment } from '../../environments/environment';
+import { FlattenedTreeNode, TableColumn } from '../common/data-patch.model';
 import {
-  FlattenedTreeNode,
+  AlertIssuesReport,
   GitHubRepo,
   GitHubUser,
   LangData,
@@ -28,7 +29,6 @@ import {
   Project,
   ProjectPhase,
   SourceVersion,
-  TableColumn,
   TreeNodeAction,
   TreeNodeData,
   TreeNodeTypes,
@@ -390,6 +390,39 @@ export class ProjectStateService {
     }));
   }
 
+  public getAlertIssuesReport(path: string): AlertIssuesReport | null {
+    const match = this.findNodeAndLanguageByPath(path);
+    const report = match?.node.data?.issueReports?.[match.lang]?.alerts;
+    return report ? structuredClone(report) : null;
+  }
+
+  public setAlertIssuesReport(path: string, report: AlertIssuesReport): boolean {
+    const match = this.findNodeAndLanguageByPath(path);
+    if (!match?.node.data) {
+      console.warn(`Unable to store alert issues report: project page not found for path "${path}".`);
+      return false;
+    }
+
+    match.node.data.issueReports ??= {};
+    const languageReports = (match.node.data.issueReports[match.lang] ??= {});
+    languageReports.alerts = structuredClone(report);
+    this.project.update((project) => ({
+      ...project,
+      projectData: [...project.projectData],
+      lastModified: new Date(),
+    }));
+    return true;
+  }
+
+  private findNodeAndLanguageByPath(path: string): { node: TreeNode<TreeNodeData>; lang: 'en' | 'fr' } | null {
+    const tree = this.getProjectTree();
+    const enNode = this.findNodeByPath(tree, path, 'en') as TreeNode<TreeNodeData> | null;
+    if (enNode) return { node: enNode, lang: 'en' };
+
+    const frNode = this.findNodeByPath(tree, path, 'fr') as TreeNode<TreeNodeData> | null;
+    return frNode ? { node: frNode, lang: 'fr' } : null;
+  }
+
   // Count pages
   private countPages(mode: 'inScope' | 'baseline' = 'inScope'): number {
     let count = 0;
@@ -478,7 +511,6 @@ export class ProjectStateService {
     urlVersion: SourceVersion = 'protoGH',
     scope: 'all' | 'inScope' = 'all',
   ): { en: { label: string; path: string; url: string; group: string }; fr: { label: string; path: string; url: string; group: string }; status: string }[] {
-    console.log('UPDATE', urlVersion);
     const version = urlVersion.startsWith('proto') ? 'prototype' : urlVersion.startsWith('base') ? 'baseline' : 'live';
     const pages: { en: { label: string; path: string; url: string; group: string }; fr: { label: string; path: string; url: string; group: string }; status: string }[] = [];
     const traverse = (nodes: TreeNode<TreeNodeData>[]) => {
@@ -492,24 +524,24 @@ export class ProjectStateService {
         const frSection = node.data?.[version]?.fr?.doubleH1 ?? '';
         const frUrl = this.fetchService.generateUrl(frPath, urlVersion, this.project().github.owner, this.project().github.repo);
         const status = !node.data?.status.inScope ? 'isBaseline' : node.data?.status.isNew ? 'isNew' : node.data?.status.isROT ? 'isROT' : node.data?.status.isMoved ? 'isMoved' : '';
-        if (scope === 'inScope' && node.data?.status?.inScope && enPath && enH1 && enUrl && frPath && frH1 && frUrl) {
-          pages.push({
-            en: { label: enH1, path: enPath, url: enUrl, group: enSection },
-            fr: { label: frH1, path: frPath, url: frUrl, group: frSection },
-            status: status,
-          });
-        } else if (scope === 'all' && enPath && enH1 && enUrl && frPath && frH1 && frUrl) {
-          pages.push({
-            en: { label: enH1, path: enPath, url: enUrl, group: enSection },
-            fr: { label: frH1, path: frPath, url: frUrl, group: frSection },
-            status: status,
-          });
+        const hasAllData = !!(enPath && enH1 && enUrl && frPath && frH1 && frUrl);
+        const inScope = !!node.data?.status?.inScope;
+        if (hasAllData) {
+          if (scope === 'inScope' && inScope) {
+            pages.push({
+              en: { label: enH1, path: enPath, url: enUrl, group: enSection },
+              fr: { label: frH1, path: frPath, url: frUrl, group: frSection },
+              status: status,
+            });
+          } else if (scope === 'all') {
+            pages.push({
+              en: { label: enH1, path: enPath, url: enUrl, group: enSection },
+              fr: { label: frH1, path: frPath, url: frUrl, group: frSection },
+              status: status,
+            });
+          }
         } else {
-          console.log({
-            en: { label: enH1, path: enPath, url: enUrl, group: enSection },
-            fr: { label: frH1, path: frPath, url: frUrl, group: frSection },
-            status: status,
-          });
+          console.log(`Missing data for ${enPath}`);
         }
         if (node.children?.length) traverse(node.children);
       }

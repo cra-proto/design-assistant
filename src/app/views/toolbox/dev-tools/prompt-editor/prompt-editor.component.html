@@ -160,13 +160,13 @@
   <ng-template #selectedItem let-selected>{{ selected.translationKey | translate }}</ng-template>
   <ng-template #item let-prompt>{{ prompt.translationKey | translate }}</ng-template>
 </p-select>
-<pre>{{ aiPrompt() }}</pre>
+<pre class="prompt-preview">{{ aiPrompt() }}</pre>
 <h2>Test description</h2>
 <p>{{ description }}</p>
 <p-button (click)="testResult()">Test result</p-button>
 <p>Result: {{ result }}</p>
 <p-button (click)="testResponse()">Test response</p-button>
-<pre>Response: {{ response | json }}</pre>
+<pre class="prompt-preview">Response: {{ response | json }}</pre>
 @if (aiState().loading) {
   <p-progressspinner />
 }

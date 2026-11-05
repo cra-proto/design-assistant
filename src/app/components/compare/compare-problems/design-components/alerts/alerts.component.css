@@ -1,0 +1,68 @@
+:host ::ng-deep .alert-table .p-datatable-tbody > tr > td,
+:host ::ng-deep .alert-table .p-datatable-thead > tr > th {
+  white-space: normal;
+  overflow-wrap: normal;
+  vertical-align: top;
+}
+
+:host ::ng-deep .alert-table .p-datatable-table {
+  width: 100%;
+  table-layout: auto;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 6px;
+}
+
+:host ::ng-deep .alert-table .p-datatable-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.alert-table .wrap-col {
+  min-width: 140px;
+}
+
+.alert-table .severity-col .chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.chip-severe {
+  color: #b91c1c;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.chip-med {
+  color: #9a4a00;
+  background: #fde7c3;
+  border-color: #f9d29b;
+}
+
+.chip-minor {
+  color: #92400e;
+  background: #fef3c7;
+  border-color: #fde68a;
+}
+
+.chip-unk {
+  color: #334155;
+  background: #e5e7eb;
+  border-color: #cbd5e1;
+}
+
+.alert-table .include-col {
+  width: 140px;
+  text-align: center;
+}
+
+.alert-table-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}

@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 
 import { htmlProcessingResult } from '../../../services/html-normalization.service';
 
-import { AI_FREE_MODELS, AiFreeModelOptions, AiPaidModelOptions } from '../../../common/ai-models.config';
+import { AI_DEFAULT_MODEL, AiFreeModelOptions, AiPaidModelOptions } from '../../../common/ai-models.config';
 import { SourceVersion } from '../../../common/data.model';
 import { PagePromptKey } from '../../../common/prompts/prompt.model';
 
@@ -38,5 +38,5 @@ export class CompareService {
   public readonly selectedTask = signal<AiTaskOption>('default');
   public readonly selectedPrompt = signal<keyof typeof PagePromptKey>('Tense');
   public readonly selectedTense = signal<AiTenseOption>('present');
-  public readonly selectedModel = signal<AiFreeModelOptions | AiPaidModelOptions>(AI_FREE_MODELS[0]);
+  public readonly selectedModel = signal<AiFreeModelOptions | AiPaidModelOptions>(AI_DEFAULT_MODEL);
 }

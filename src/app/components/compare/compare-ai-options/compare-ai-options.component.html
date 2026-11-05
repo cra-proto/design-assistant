@@ -4,7 +4,7 @@
     <p>
       <strong>{{ 'compare.aiOptions.aiSource' | translate }}</strong> {{ 'common.source.' + compareService.selectedBefore() | translate }}
     </p>
-    <p-accordion value="1" class="flex flex-column gap-3">
+    <p-accordion [multiple]="true" [value]="['1']" class="flex flex-column gap-3">
       <!--TASK OPTIONS-->
       @if (!prod) {
         <p-accordion-panel value="0" class="border-1 border-round border-surface">
@@ -139,7 +139,7 @@
   [style]="{ width: '50vw' }"
   header="{{ 'compare.aiOptions.comparison.header' | translate }}"
 >
-  @for (paragraph of ('compare.aiOptions.comparison.help' | translate).split('|'); track paragraph; let first = $first) {
+  @for (paragraph of ('compare.aiOptions.comparison.help' | translate).split('|'); track $index; let first = $first) {
     <p [class.mt-0]="$first" class="text-color-secondary">{{ paragraph }}</p>
   }
 </p-dialog>

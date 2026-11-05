@@ -1,0 +1,23 @@
+{
+  "Misuse": { "severity": "Medium" },
+  "Too wordy": { "severity": "Medium" },
+  "Generic titles": { "severity": "High" },
+  "Generic title": { "severity": "High" },
+  "Unclear impact": { "severity": "Low" },
+  "Outdated": { "severity": "Medium" },
+  "Missing heading": { "severity": "High" },
+  "Wrong type": { "severity": "Medium" },
+  "Hidden content": { "severity": "Medium" },
+  "Wrong component": { "severity": "Medium" },
+  "Missing alert semantics": { "severity": "Low", "include": false, "display": false, "severityOverride": true, "recommendationOverride": "problems.alerts.recommendation.missingAlertSemantics" },
+  "Accessibility/code": { "severity": "High", "include": false },
+  "Too many links": { "severity": "Medium" },
+  "Wrong placement": { "severity": "Medium" },
+  "Alert overload": { "severity": "High" },
+  "Low relevance": { "severity": "High" },
+  "Incorrect hierarchy": { "severity": "High" },
+  "Nothing actionable": { "severity": "Low" },
+  "Focus order": { "severity": "High" },
+  "Content clarity": { "severity": "Medium" },
+  "Non-text content": { "severity": "High" }
+}

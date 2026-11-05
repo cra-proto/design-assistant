@@ -21,7 +21,10 @@ import { CollaboratorService } from '../../services/github/collaborator.service'
 import { ExportGitHubService } from '../../services/github/export-github.service';
 import { GitHubAuthService } from '../../services/github/github-auth.service';
 import { SignInService } from '../../services/github/sign-in.service';
+import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
+
+import { AidaLinks } from '../../common/aidaLinks.config';
 
 export type DialogMode = 'PAT' | 'userSettings' | 'setupProject' | 'setupRepo' | 'addPages' | 'addCollabs';
 
@@ -49,6 +52,7 @@ export class MenuProjectComponent {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly translate = inject(TranslateService);
   private readonly projectState = inject(ProjectStateService);
+  private readonly projectCache = inject(ProjectCacheService);
   private readonly collaboratorService = inject(CollaboratorService);
   private readonly authService = inject(GitHubAuthService);
   protected readonly exportGitHubService = inject(ExportGitHubService);
@@ -124,6 +128,59 @@ export class MenuProjectComponent {
             command: () => {
               this.showDialog('addCollabs');
             },
+          },
+        ],
+      },
+      {
+        label: this.translate.instant('export._title'),
+        items: [
+          {
+            label: this.translate.instant('export.github'),
+            icon: 'file_upload',
+            command: () => {
+              this.projectState.getProject().repoType = 'github';
+              this.projectCache.checkLocalStatus();
+              this.router.navigate([AidaLinks.ProjectExport]);
+            },
+          },
+          {
+            label: this.translate.instant('export.html'),
+            icon: 'file_download',
+            command: () => {
+              this.projectState.getProject().repoType = 'local';
+              this.projectCache.checkLocalStatus();
+              this.router.navigate([AidaLinks.ProjectExport]);
+            },
+          },
+          {
+            separator: true,
+          },
+          {
+            label: this.translate.instant('export.csv.inventory'),
+            icon: 'checklist_rtl',
+            command: () => {
+              this.projectState.exportTreeAsCsv();
+            },
+            disabled: false,
+          },
+          {
+            label: this.translate.instant('export.csv.tree'),
+            icon: 'account_tree',
+            command: () => {
+              this.projectState.exportAsTreeCsv();
+            },
+            disabled: false,
+          },
+          {
+            separator: true,
+          },
+          {
+            label: this.translate.instant('export.json'),
+            icon: 'code',
+            command: () => {
+              this.projectState.exportProjectAsJson();
+            },
+            disabled: false,
           },
         ],
       },

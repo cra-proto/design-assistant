@@ -1,25 +1,30 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, input, TemplateRef, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, TemplateRef, viewChild } from '@angular/core';
 
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 
 import { AccordionModule } from 'primeng/accordion';
 
 import { DesignComponentsComponent } from './design-components/design-components.component';
 
 import { htmlProcessingResult } from '../../../services/html-normalization.service';
+import { CompareService } from '../../../views/tasks/compare/compare.service';
+import { AlertService } from './design-components/alerts/alert.service';
 
 import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'aida-compare-problems',
-  imports: [CommonModule, TranslatePipe, AccordionModule, DesignComponentsComponent],
+  imports: [CommonModule, AccordionModule, DesignComponentsComponent],
   templateUrl: './compare-problems.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompareProblemsComponent {
   private readonly translate = inject(TranslateService);
+  private readonly alertService = inject(AlertService);
+  private readonly compareService = inject(CompareService);
   protected readonly production = environment.production;
+  private autoOpenedReportKey = '';
 
   // Inputs
   public readonly beforeContent = input<htmlProcessingResult | undefined>();
@@ -29,6 +34,23 @@ export class CompareProblemsComponent {
   protected readonly dataTemplate = viewChild.required<TemplateRef<unknown>>('data');
   protected readonly componentsTemplate = viewChild.required<TemplateRef<unknown>>('components');
   protected readonly linksTemplate = viewChild.required<TemplateRef<unknown>>('links');
+
+  constructor() {
+    effect(() => {
+      const html = (this.afterContent() ?? this.beforeContent())?.html ?? '';
+      const pagePath = this.compareService.selectedPage();
+      const report = html && pagePath ? this.alertService.getRetainedAnalysis(html, pagePath) : null;
+      if (!report) {
+        this.autoOpenedReportKey = '';
+        return;
+      }
+
+      const reportKey = `${pagePath}\u0000${report.analyzedAt}`;
+      if (reportKey === this.autoOpenedReportKey) return;
+      this.autoOpenedReportKey = reportKey;
+      this.openPanel('components');
+    });
+  }
 
   // Accordion content
   protected get tools(): { key: string; header: string; description: string; template: TemplateRef<unknown>; icon: string; visible: boolean }[] {

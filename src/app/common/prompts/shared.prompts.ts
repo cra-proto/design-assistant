@@ -34,6 +34,7 @@ export const RubricFragment: Record<RubricKey, string[]> = {
     - "tax credit" → "crédit d'impôt"
     - "deduction" → "déduction"
     - "tax-free savings account (TFSA)" → "compte d'épargne libre d'impôt (CELI)"
+    - "payroll deductions" → "retenues sur la paie"
     - "registered retirement savings plan (RRSP)" → "régime enregistré d'épargne-retraite (REER)"`,
   ],
   [RubricKey.NoCommentary]: ['Response contains no preamble or explanatory text beyond what was requested.'],

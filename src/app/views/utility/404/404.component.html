@@ -1,7 +1,7 @@
 <div class="flex flex-column align-items-center mt-5">
   <div>
     <h1 id="wb-cont" class="noline mb-0">{{ random404Title | translate }}</h1>
-    @for (paragraph of (random404Description | translate).split('|'); track paragraph) {
+    @for (paragraph of (random404Description | translate).split('|'); track $index) {
       <p>{{ paragraph }}</p>
     }
     <img [alt]="" [src]="mascotSrc" class="opacity-80 h-12rem" />

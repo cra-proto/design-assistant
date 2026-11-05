@@ -34,18 +34,8 @@ import { CompareService } from '../compare/compare.service';
 import { IaDiagramService } from '../ia-diagram/ia-diagram.service';
 
 import { AidaLinks } from '../../../common/aidaLinks.config';
-import {
-  COLUMN_GROUPS,
-  ColumnGroups,
-  FIELD_FILTERS,
-  FlattenedTreeNode,
-  GLOBAL_FIELDS,
-  MetadataField,
-  MetadataReview,
-  MetadataReviewStatus,
-  PageTemplate,
-  TableColumn,
-} from '../../../common/data.model';
+import { COLUMN_GROUPS, ColumnGroups, FIELD_FILTERS, FlattenedTreeNode, GLOBAL_FIELDS, TableColumn } from '../../../common/data-patch.model';
+import { MetadataField, MetadataReview, MetadataReviewStatus, PageTemplate } from '../../../common/data.model';
 import { isKnownNumber } from '../../../common/phone-numbers.config';
 import { InventoryPrompts } from '../../../common/prompts/inventory.prompts';
 import { InventoryPromptKey } from '../../../common/prompts/prompt.model';
