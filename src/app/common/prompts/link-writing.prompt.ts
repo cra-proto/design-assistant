@@ -12,11 +12,6 @@ export interface LinkWritingRule {
 
 export const LinkWritingRules: readonly LinkWritingRule[] = [
   {
-    id: 'L1_keep_links_default',
-    condition: 'always',
-    text: 'Keep links by default. If the original alert has exactly one <a> link, the rewritten alert must include one real <a> element with the same href.',
-  },
-  {
     id: 'L2_keep_url_change_text',
     condition: 'always',
     text: 'Link text may be rewritten, but any kept link must keep its original URL. Do not convert a kept link to plain text, omit it, or replace it with placeholder text.',
@@ -64,7 +59,7 @@ export const LinkWritingRules: readonly LinkWritingRule[] = [
   {
     id: 'L9_do_not_remove_without_issue',
     condition: 'not_too_many_links',
-    text: 'Do not remove links unless the original alert has multiple links and a too-many-links issue is identified. If only one link is present, preserve a real <a> element with the original href.',
+    text: 'When a too-many-links issue is not identified, preserve all original links.',
   },
   {
     id: 'L10_concise_link_text',
@@ -79,7 +74,7 @@ export const LinkWritingRules: readonly LinkWritingRule[] = [
   {
     id: 'L12_lead_in_selection',
     condition: 'always',
-    text: 'Choose the lead-in that matches the destination and keep it in its own paragraph when the sentence mainly directs the user to the link. Prefer placing that paragraph last in the content, but treat this as a preference rather than a strict rule. Prefer "Refer to:" when the link is needed to complete a task, access a service, sign in, apply, register, submit, get a code, or take a required next step. Prefer "For details:" when the link provides supporting detail, reference, explanation, or more context. Prefer "Learn more:" when the link provides optional background, status, or update information. Use "Learn about" without a colon when the linked text naturally completes the phrase for explainer or topic pages. If the phrase needs an article, place it before the anchor, for example "Learn about the <a>Canada Groceries and Essentials Benefit</a>". Avoid repeating the topic noun outside the link if the anchor already names it.',
+    text: 'Choose the lead-in that matches the destination. Prefer "Refer to:" when the link is needed to complete a task, access a service, sign in, apply, register, submit, get a code, or take a required next step. Prefer "For details:" when the link provides supporting detail, reference, explanation, or more context. Prefer "Learn more:" when the link provides optional background, status, or update information. Use "Learn about" without a colon when the linked text naturally completes the phrase for explainer or topic pages. If the phrase needs an article, place it before the anchor, for example "Learn about the <a>Canada Groceries and Essentials Benefit</a>". Avoid repeating the topic noun outside the link if the anchor already names it.',
   },
   {
     id: 'L13_action_link_no_lead_in',
