@@ -12,11 +12,6 @@ export interface LinkWritingRule {
 
 export const LinkWritingRules: readonly LinkWritingRule[] = [
   {
-    id: 'L1_keep_links_default',
-    condition: 'always',
-    text: 'Keep links by default. If the original alert has exactly one <a> link, the rewritten alert must include one real <a> element with the same href.',
-  },
-  {
     id: 'L2_keep_url_change_text',
     condition: 'always',
     text: 'Link text may be rewritten, but any kept link must keep its original URL. Do not convert a kept link to plain text, omit it, or replace it with placeholder text.',
@@ -44,7 +39,7 @@ export const LinkWritingRules: readonly LinkWritingRule[] = [
   {
     id: 'L7_standalone_link_structure',
     condition: 'always',
-    text: 'If a link is an entire sentence, or if a sentence mainly directs the user to a link, move it to a new paragraph. When possible, place that standalone link paragraph last in the content. Add a natural lead-in before the anchor when the standalone link text does not already contain a clear action verb.',
+    text: 'If a link is an entire sentence, or if a sentence mainly directs the user to a link, move the link direction to a new paragraph; do not append it to an explanatory sentence. When possible, place that standalone link paragraph last in the content. Add a natural lead-in before the anchor when the standalone link text does not already contain a clear action verb.',
   },
   {
     id: 'L7a_multiple_standalone_links_list',
@@ -59,12 +54,12 @@ export const LinkWritingRules: readonly LinkWritingRule[] = [
   {
     id: 'L8_remove_only_when_too_many',
     condition: 'too_many_links',
-    text: 'Only remove links when the original alert has multiple links and a too-many-links issue is identified; keep one primary <a> link with its original href.',
+    text: "For a too-many-links issue, retain at most two original links. Keep two only when they serve distinct, complementary purposes—for example, one provides information or guidance and the other provides account access or a direct action. Otherwise, keep the single link most relevant to the alert's primary purpose. Prefer information central to the alert unless completing an action is its primary purpose. If more than two seem necessary, the alert's purpose is unclear; keep only the single most relevant link. Base the choice on the alert text, link text, URL, and surrounding context; do not assume unsupported destination details. Preserve original href values.",
   },
   {
     id: 'L9_do_not_remove_without_issue',
     condition: 'not_too_many_links',
-    text: 'Do not remove links unless the original alert has multiple links and a too-many-links issue is identified. If only one link is present, preserve a real <a> element with the original href.',
+    text: 'When a too-many-links issue is not identified, preserve all original links.',
   },
   {
     id: 'L10_concise_link_text',
@@ -79,7 +74,7 @@ export const LinkWritingRules: readonly LinkWritingRule[] = [
   {
     id: 'L12_lead_in_selection',
     condition: 'always',
-    text: 'Choose the lead-in that matches the destination and keep it in its own paragraph when the sentence mainly directs the user to the link. Prefer placing that paragraph last in the content, but treat this as a preference rather than a strict rule. Prefer "Refer to:" when the link is needed to complete a task, access a service, sign in, apply, register, submit, get a code, or take a required next step. Prefer "For details:" when the link provides supporting detail, reference, explanation, or more context. Prefer "Learn more:" when the link provides optional background, status, or update information. Use "Learn about" without a colon when the linked text naturally completes the phrase for explainer or topic pages. If the phrase needs an article, place it before the anchor, for example "Learn about the <a>Canada Groceries and Essentials Benefit</a>". Avoid repeating the topic noun outside the link if the anchor already names it.',
+    text: 'Choose the lead-in that matches the destination. Prefer "Refer to:" when the link is needed to complete a task, access a service, sign in, apply, register, submit, get a code, or take a required next step. Prefer "For details:" when the link provides supporting detail, reference, explanation, or more context. Prefer "Learn more:" when the link provides optional background, status, or update information. Use "Learn about" without a colon when the linked text naturally completes the phrase for explainer or topic pages. If the phrase needs an article, place it before the anchor, for example "Learn about the <a>Canada Groceries and Essentials Benefit</a>". Avoid repeating the topic noun outside the link if the anchor already names it.',
   },
   {
     id: 'L13_action_link_no_lead_in',

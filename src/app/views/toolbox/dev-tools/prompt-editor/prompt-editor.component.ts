@@ -25,7 +25,11 @@ import { AiPromptService } from '../../../../services/ai/prompt.service';
 import { ExportGitHubService } from '../../../../services/github/export-github.service';
 import { UserSettingsService } from '../../../../services/user-settings.service';
 
+import { AlertRewriteExamples, type AlertRewriteExample } from '../../../../common/prompts/alert-rewrite.examples';
+import { AlertRewriteRules } from '../../../../common/prompts/alert-rewrite.prompt';
+import { CanadaCaStyleExamples, CanadaCaStyleRules } from '../../../../common/prompts/canada-ca-style.prompt';
 import { InventoryPrompts } from '../../../../common/prompts/inventory.prompts';
+import { getLinkWritingPromptRules } from '../../../../common/prompts/link-writing.prompt';
 import { PagePrompts } from '../../../../common/prompts/page.prompts';
 import { ProblemPrompts } from '../../../../common/prompts/problems.prompts';
 import { InventoryPromptKey, OutputKey, PagePromptKey, ProblemPromptKey, PromptConfig, RoleKey, RubricKey } from '../../../../common/prompts/prompt.model';
@@ -44,6 +48,23 @@ interface TabConfig {
   fragments?: { key: string; label: string; data: PromptEntry[] }[];
   tool: string;
   original: string;
+}
+
+interface PromptPipelineSection {
+  key: string;
+  label: string;
+  content?: string;
+  bulletItems?: string[];
+  collapsed?: boolean;
+  options?: PromptPipelineOption[];
+}
+
+interface PromptPipelineOption {
+  key: string;
+  label: string;
+  content?: string;
+  bulletItems?: string[];
+  collapsed: boolean;
 }
 
 @Component({
@@ -79,6 +100,13 @@ interface TabConfig {
       word-break: break-word;
       overflow-x: hidden;
     }
+
+    .prompt-bullet-list {
+      display: grid;
+      gap: 0.4rem;
+      margin: 0;
+      padding-inline-start: 1.5rem;
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -109,6 +137,14 @@ export class PromptEditorComponent {
 
   protected isPromptString(entry: PromptEntry): entry is PromptEntry & { promptText: string } {
     return typeof entry.promptText === 'string';
+  }
+
+  protected isAlertRewritePipeline(entry: PromptEntry): boolean {
+    return entry.enumKey === 'AlertRewrite';
+  }
+
+  protected isAlertRewriteExamples(entry: PromptEntry): boolean {
+    return entry.enumKey === 'AlertExamples';
   }
 
   protected isFragmentsTab(tab: TabConfig): boolean {
@@ -190,7 +226,11 @@ export class PromptEditorComponent {
     promptText: ProblemPrompts[ProblemPromptKey[enumKey as keyof typeof ProblemPromptKey]],
   }));
 
-  selectedPrompts = new Set<string>([this.inventoryPrompts[0]?.enumKey, this.pagePrompts[0]?.enumKey, this.problemPrompts[0]?.enumKey].filter(Boolean));
+  protected readonly alertRewritePipelineSections: PromptPipelineSection[] = this.buildAlertRewritePipelineSections();
+  protected readonly alertProblemsSections: PromptPipelineSection[] = this.buildAlertProblemsSections();
+  protected readonly alertRewriteExamples = AlertRewriteExamples;
+
+  selectedPrompts = new Set<string>([this.pagePrompts[0]?.enumKey, this.problemPrompts[0]?.enumKey].filter(Boolean));
 
   togglePrompt(enumKey: string) {
     if (this.selectedPrompts.has(enumKey)) {
@@ -215,19 +255,225 @@ export class PromptEditorComponent {
 
   // Dropdown
   protected readonly promptGroups = [
+    {
+      label: 'aiPrompt.alerts._title',
+      items: [
+        ...this.problemPrompts.filter((prompt) => prompt.enumKey === 'AlertsProblems' || prompt.enumKey === 'TranslateIssueDetails'),
+        ...this.pagePrompts.filter((prompt) => prompt.enumKey === 'AlertRewrite'),
+        {
+          enumKey: 'AlertExamples',
+          translationKey: 'aiPrompt.page.alertExamples',
+          promptText: '',
+        },
+      ],
+    },
     { label: 'aiPrompt.inventory._title', items: this.inventoryPrompts },
-    { label: 'aiPrompt.pages._title', items: this.pagePrompts },
-    { label: 'aiPrompt.problems._title', items: this.problemPrompts },
+    {
+      label: 'aiPrompt.pages._title',
+      items: this.pagePrompts.filter((prompt) => prompt.enumKey !== 'AlertRewrite'),
+    },
   ];
-  protected readonly selectedPrompt = signal<PromptEntry | undefined>(this.problemPrompts.find((p) => p.enumKey === 'Alerts'));
+  protected readonly selectedPrompt = signal<PromptEntry | undefined>(this.pagePrompts.find((prompt) => prompt.enumKey === 'AlertRewrite'));
+  protected readonly selectedPromptIsAlertRewritePipeline = computed(() => {
+    const selected = this.selectedPrompt();
+    return !!selected && this.isAlertRewritePipeline(selected);
+  });
+  protected readonly selectedPromptIsAlertRewriteExamples = computed(() => {
+    const selected = this.selectedPrompt();
+    return !!selected && this.isAlertRewriteExamples(selected);
+  });
+  protected readonly selectedPromptIsAlertProblems = computed(() => this.selectedPrompt()?.enumKey === 'AlertsProblems');
   protected readonly aiPrompt = computed(() => {
     const selected = this.selectedPrompt();
     if (!selected || !this.isPromptConfig(selected)) return '';
     return this.aiPromptService.composePrompt(selected.promptText);
   });
 
+  private buildAlertRewritePipelineSections(): PromptPipelineSection[] {
+    const rules = AlertRewriteRules.alertRewrite;
+    return [
+      {
+        key: 'role',
+        label: 'dev.prompts.alertRewrite.role',
+        content: rules.role,
+        collapsed: false,
+      },
+      {
+        key: 'aiInstructions',
+        label: 'dev.prompts.alertRewrite.aiInstructions',
+        options: [
+          {
+            key: 'systemWithExamples',
+            label: 'dev.prompts.alertRewrite.examplesIncluded',
+            bulletItems: rules.systemPromptWithExamplesLines,
+            collapsed: false,
+          },
+          {
+            key: 'systemWithoutExamples',
+            label: 'dev.prompts.alertRewrite.examplesNotIncluded',
+            bulletItems: rules.systemPromptWithoutExamplesLines,
+            collapsed: false,
+          },
+        ],
+      },
+      {
+        key: 'outputRequirement',
+        label: 'dev.prompts.alertRewrite.outputRequirement',
+        content: rules.outputRequirement,
+        collapsed: false,
+      },
+      {
+        key: 'outputSchemas',
+        label: 'dev.prompts.alertRewrite.outputSchemas',
+        options: [
+          {
+            key: 'outputSchemaWithExamples',
+            label: 'dev.prompts.alertRewrite.examplesIncluded',
+            content: this.formatPromptSchema(rules.outputSchemas.withExamples),
+            collapsed: false,
+          },
+          {
+            key: 'outputSchemaWithoutExamples',
+            label: 'dev.prompts.alertRewrite.examplesNotIncluded',
+            content: this.formatPromptSchema(rules.outputSchemas.withoutExamples),
+            collapsed: false,
+          },
+        ],
+      },
+      {
+        key: 'baseRules',
+        label: 'dev.prompts.alertRewrite.baseRules',
+        bulletItems: rules.styleRulesBase,
+        collapsed: false,
+      },
+      {
+        key: 'canadaCaStyleRules',
+        label: 'dev.prompts.alertRewrite.canadaCaStyle',
+        content: this.formatCanadaCaStyleRulesJson(),
+        collapsed: false,
+      },
+      {
+        key: 'canadaCaStyleExamples',
+        label: 'dev.prompts.alertRewrite.canadaCaStyleExamples',
+        content: this.formatCanadaCaStyleExamplesJson(),
+        collapsed: false,
+      },
+      {
+        key: 'linkRulesDefault',
+        label: 'dev.prompts.alertRewrite.linkRulesDefault',
+        content: this.formatPromptJson(getLinkWritingPromptRules({ hasTooManyLinksIssue: false })),
+        collapsed: false,
+      },
+      {
+        key: 'linkRulesTooMany',
+        label: 'dev.prompts.alertRewrite.linkRulesTooMany',
+        content: this.formatPromptJson(getLinkWritingPromptRules({ hasTooManyLinksIssue: true })),
+        collapsed: false,
+      },
+      {
+        key: 'conditionalInstructions',
+        label: 'dev.prompts.alertRewrite.conditionalInstructions',
+        content: this.formatPromptJson(rules.conditionalInstructions),
+        collapsed: false,
+      },
+      {
+        key: 'retryInstructions',
+        label: 'dev.prompts.alertRewrite.retryInstructions',
+        content: this.formatPromptJson(rules.retryInstructions),
+        collapsed: false,
+      },
+    ];
+  }
+
+  private buildAlertProblemsSections(): PromptPipelineSection[] {
+    const prompt = ProblemPrompts[ProblemPromptKey.AlertsProblems];
+    const rubric = prompt.rubric.flatMap((key) => RubricFragment[key]);
+
+    return [
+      {
+        key: 'role',
+        label: 'aiPrompt.component.role',
+        content: RoleFragment[prompt.role],
+        collapsed: false,
+      },
+      {
+        key: 'task',
+        label: 'aiPrompt.component.task',
+        content: prompt.task,
+        collapsed: false,
+      },
+      ...(rubric.length
+        ? [
+            {
+              key: 'rubric',
+              label: 'aiPrompt.component.rubric',
+              content: rubric.map((criterion, index) => `${index + 1}. ${criterion}`).join('\n'),
+              collapsed: false,
+            },
+          ]
+        : []),
+      {
+        key: 'outputRequirement',
+        label: 'dev.prompts.alertRewrite.outputRequirement',
+        content: OutputFragment[prompt.output],
+        collapsed: false,
+      },
+      ...(prompt.jsonSchema
+        ? [
+            {
+              key: 'jsonSchema',
+              label: 'aiPrompt.component.jsonSchema',
+              content: prompt.jsonSchema,
+              collapsed: false,
+            },
+          ]
+        : []),
+    ];
+  }
+
+  protected getAlertRewriteExampleLegend(example: AlertRewriteExample): string {
+    return `${example.id} — ${example.egHeading || example.egText}`;
+  }
+
+  private formatPromptJson(value: unknown): string {
+    return JSON.stringify(value, null, 2);
+  }
+
+  private formatPromptSchema(schema: string): string {
+    try {
+      const lines = JSON.stringify(JSON.parse(schema), null, 2)
+        .replace(/\[\n\s+("(?:\\.|[^"\\])*")\n\s+\]/g, '[$1]')
+        .split('\n');
+
+      if (lines.length < 3) return lines.join('\n');
+
+      lines[1] = `{ ${lines[1].trimStart()}`;
+      lines[lines.length - 2] = `${lines[lines.length - 2]} }`;
+      return lines.slice(1, -1).join('\n');
+    } catch {
+      return schema;
+    }
+  }
+
+  private formatCanadaCaStyleRulesJson(): string {
+    const rules = CanadaCaStyleRules.map((rule) => `{\n      "id": ${JSON.stringify(rule.id)}, "severity": ${JSON.stringify(rule.severity)},\n      "text": ${JSON.stringify(rule.text)} }`).join(
+      ',\n    ',
+    );
+
+    return `{ "rules": [ ${rules} ]}`;
+  }
+
+  private formatCanadaCaStyleExamplesJson(): string {
+    const examples = CanadaCaStyleExamples.map(
+      (example) => `{ "ruleId": ${JSON.stringify(example.ruleId)},\n      "avoid": ${JSON.stringify(example.avoid)},\n      "prefer": ${JSON.stringify(example.prefer)} }`,
+    ).join(',\n    ');
+
+    return `{ "examples": [\n    ${examples} ]}`;
+  }
+
   markForTranslation() {
     marker('aiPrompt.shared._title');
+    marker('aiPrompt.alerts._title');
     marker('aiPrompt.inventory._title');
     marker('aiPrompt.pages._title');
     marker('aiPrompt.problems._title');
@@ -239,6 +485,21 @@ export class PromptEditorComponent {
     marker('aiPrompt.component.jsonSchema');
 
     marker('dev.prompts.button.openPR');
+    marker('dev.prompts.alertRewrite.baseRules');
+    marker('dev.prompts.alertRewrite.canadaCaStyle');
+    marker('dev.prompts.alertRewrite.canadaCaStyleExamples');
+    marker('dev.prompts.alertRewrite.conditionalInstructions');
+    marker('dev.prompts.alertRewrite.linkRulesDefault');
+    marker('dev.prompts.alertRewrite.linkRulesTooMany');
+    marker('dev.prompts.alertRewrite.outputRequirement');
+    marker('dev.prompts.alertRewrite.outputSchemas');
+    marker('dev.prompts.alertRewrite.retryInstructions');
+    marker('dev.prompts.alertRewrite.role');
+    marker('dev.prompts.alertRewrite.aiInstructions');
+    marker('dev.prompts.alertRewrite.examplesIncluded');
+    marker('dev.prompts.alertRewrite.examplesNotIncluded');
+    marker('dev.prompts.alertRewrite.testUnavailable');
+    marker('aiPrompt.page.alertExamples');
   }
 
   // Test prompts

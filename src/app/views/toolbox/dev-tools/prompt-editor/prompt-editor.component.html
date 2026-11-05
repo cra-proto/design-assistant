@@ -56,7 +56,46 @@
                   </p-iftalabel>
                 }
                 <!-- Config editor -->
-                @if (isPromptConfig(prompt) && isPromptVisible(prompt.enumKey)) {
+                @if (isPromptConfig(prompt) && isPromptVisible(prompt.enumKey) && isAlertRewritePipeline(prompt)) {
+                  <h2 class="my-0">{{ prompt.translationKey | translate }}</h2>
+                  @for (section of alertRewritePipelineSections; track section.key) {
+                    @if (section.options?.length) {
+                      <section>
+                        <h3>{{ section.label | translate }}</h3>
+                        <div class="grid">
+                          @for (option of section.options; track option.key) {
+                            <div class="col-12 lg:col-6">
+                              <p-fieldset [collapsed]="option.collapsed" [legend]="option.label | translate" [toggleable]="true" styleClass="h-full">
+                                @if (option.bulletItems?.length) {
+                                  <ul class="prompt-bullet-list">
+                                    @for (item of option.bulletItems; track $index) {
+                                      <li>{{ item }}</li>
+                                    }
+                                  </ul>
+                                } @else {
+                                  <pre class="prompt-preview">{{ option.content }}</pre>
+                                }
+                              </p-fieldset>
+                            </div>
+                          }
+                        </div>
+                      </section>
+                    } @else {
+                      <p-fieldset [collapsed]="section.collapsed" [legend]="section.label | translate" [toggleable]="true">
+                        @if (section.bulletItems?.length) {
+                          <ul class="prompt-bullet-list">
+                            @for (item of section.bulletItems; track $index) {
+                              <li>{{ item }}</li>
+                            }
+                          </ul>
+                        } @else {
+                          <pre class="prompt-preview">{{ section.content }}</pre>
+                        }
+                      </p-fieldset>
+                    }
+                  }
+                }
+                @if (isPromptConfig(prompt) && isPromptVisible(prompt.enumKey) && !isAlertRewritePipeline(prompt)) {
                   <h2 class="my-0">{{ prompt.translationKey | translate }}</h2>
                   <!--Fragment dropdowns-->
                   <div class="flex flex-column lg:flex-row gap-2">
@@ -160,21 +199,90 @@
   <ng-template #selectedItem let-selected>{{ selected.translationKey | translate }}</ng-template>
   <ng-template #item let-prompt>{{ prompt.translationKey | translate }}</ng-template>
 </p-select>
-<pre class="prompt-preview">{{ aiPrompt() }}</pre>
-<h2>Test description</h2>
-<p>{{ description }}</p>
-<p-button (click)="testResult()">Test result</p-button>
-<p>Result: {{ result }}</p>
-<p-button (click)="testResponse()">Test response</p-button>
-<pre class="prompt-preview">Response: {{ response | json }}</pre>
-@if (aiState().loading) {
-  <p-progressspinner />
-}
-@if (aiState().error) {
-  <p-message [text]="aiState().error!" severity="error" />
-}
-@if (aiState().respondingModel) {
-  <small>Answered by: {{ aiState().respondingModel }}</small>
+@if (selectedPromptIsAlertRewritePipeline()) {
+  <p>{{ 'dev.prompts.alertRewrite.testUnavailable' | translate }}</p>
+  @for (section of alertRewritePipelineSections; track section.key) {
+    @if (section.options?.length) {
+      <section>
+        <h3>{{ section.label | translate }}</h3>
+        <div class="grid">
+          @for (option of section.options; track option.key) {
+            <div class="col-12 lg:col-6">
+              <p-fieldset [collapsed]="option.collapsed" [legend]="option.label | translate" [toggleable]="true" styleClass="h-full">
+                @if (option.bulletItems?.length) {
+                  <ul class="prompt-bullet-list">
+                    @for (item of option.bulletItems; track $index) {
+                      <li>{{ item }}</li>
+                    }
+                  </ul>
+                } @else {
+                  <pre class="prompt-preview">{{ option.content }}</pre>
+                }
+              </p-fieldset>
+            </div>
+          }
+        </div>
+      </section>
+    } @else {
+      <p-fieldset [collapsed]="section.collapsed" [legend]="section.label | translate" [toggleable]="true">
+        @if (section.bulletItems?.length) {
+          <ul class="prompt-bullet-list">
+            @for (item of section.bulletItems; track $index) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        } @else {
+          <pre class="prompt-preview">{{ section.content }}</pre>
+        }
+      </p-fieldset>
+    }
+  }
+} @else if (selectedPromptIsAlertRewriteExamples()) {
+  <div class="flex flex-column gap-3 mt-3">
+    @for (example of alertRewriteExamples; track example.id) {
+      <p-fieldset [collapsed]="true" [legend]="getAlertRewriteExampleLegend(example)" [toggleable]="true">
+        <pre class="prompt-preview">{{ example | json }}</pre>
+      </p-fieldset>
+    }
+  </div>
+} @else if (selectedPromptIsAlertProblems()) {
+  @for (section of alertProblemsSections; track section.key) {
+    <p-fieldset [collapsed]="section.collapsed" [legend]="section.label | translate" [toggleable]="true">
+      <pre class="prompt-preview">{{ section.content }}</pre>
+    </p-fieldset>
+  }
+  <h2>Test description</h2>
+  <p>{{ description }}</p>
+  <p-button (click)="testResult()">Test result</p-button>
+  <p>Result: {{ result }}</p>
+  <p-button (click)="testResponse()">Test response</p-button>
+  <pre class="prompt-preview">Response: {{ response | json }}</pre>
+  @if (aiState().loading) {
+    <p-progressspinner />
+  }
+  @if (aiState().error) {
+    <p-message [text]="aiState().error!" severity="error" />
+  }
+  @if (aiState().respondingModel) {
+    <small>Answered by: {{ aiState().respondingModel }}</small>
+  }
+} @else {
+  <pre class="prompt-preview">{{ aiPrompt() }}</pre>
+  <h2>Test description</h2>
+  <p>{{ description }}</p>
+  <p-button (click)="testResult()">Test result</p-button>
+  <p>Result: {{ result }}</p>
+  <p-button (click)="testResponse()">Test response</p-button>
+  <pre class="prompt-preview">Response: {{ response | json }}</pre>
+  @if (aiState().loading) {
+    <p-progressspinner />
+  }
+  @if (aiState().error) {
+    <p-message [text]="aiState().error!" severity="error" />
+  }
+  @if (aiState().respondingModel) {
+    <small>Answered by: {{ aiState().respondingModel }}</small>
+  }
 }
 
 @if (hasChanges()) {

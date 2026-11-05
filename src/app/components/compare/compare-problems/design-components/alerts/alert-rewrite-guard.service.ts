@@ -82,6 +82,25 @@ export class AlertRewriteGuardService {
     }
   }
 
+  // Keeps the source alert type unless a selected issue authorizes changing it.
+  preserveOriginalAlertType(rewrittenHtml: string, originalHtml: string): string {
+    try {
+      const typeClasses = ['alert-info', 'alert-warning', 'alert-danger', 'alert-error', 'alert-success'];
+      const originalDoc = new DOMParser().parseFromString(originalHtml || '', 'text/html');
+      const rewrittenDoc = new DOMParser().parseFromString(rewrittenHtml || '', 'text/html');
+      const originalAlert = originalDoc.body.querySelector<HTMLElement>('.alert');
+      const rewrittenAlert = rewrittenDoc.body.querySelector<HTMLElement>('.alert');
+      if (!originalAlert || !rewrittenAlert) return rewrittenHtml;
+
+      const originalTypeClasses = typeClasses.filter((className) => originalAlert.classList.contains(className));
+      typeClasses.forEach((className) => rewrittenAlert.classList.remove(className));
+      originalTypeClasses.forEach((className) => rewrittenAlert.classList.add(className));
+      return rewrittenAlert.outerHTML.trim();
+    } catch {
+      return rewrittenHtml;
+    }
+  }
+
   // Rejects outputs where link-direction text is malformed:
   // link-only sentences, embedded lead-ins, or lead-ins in the wrong paragraph shape.
   hasFullSentenceLinkWithoutAllowedLeadIn(alertHtml: string): boolean {
@@ -131,7 +150,7 @@ export class AlertRewriteGuardService {
           const nonLinkText = sentenceWithoutLinks.replace(/[:;,.!?()\-\u2013\u2014]/g, '').trim();
           const linkSentenceOnly = !nonLinkText;
 
-          if (hasAllowedLeadIn && sentences.length > 1) {
+          if ((hasAllowedLeadIn || hasDirectionalLeadIn) && sentences.length > 1) {
             return 'linkLeadInNotStandalone';
           }
 
@@ -155,49 +174,82 @@ export class AlertRewriteGuardService {
     }
   }
 
-  repairEmbeddedStandaloneLeadInParagraphs(alertHtml: string): string {
+  repairEmbeddedStandaloneLeadInParagraphs(alertHtml: string, contentLanguage: 'en' | 'fr' = 'en'): string {
     try {
       const doc = new DOMParser().parseFromString(alertHtml || '', 'text/html');
       const root = doc.body.firstElementChild as HTMLElement | null;
       if (!root) return alertHtml;
 
       Array.from(root.querySelectorAll('p')).forEach((paragraph) => {
-        const anchors = Array.from(paragraph.querySelectorAll('a'));
-        if (anchors.length !== 1) return;
+        const anchors = Array.from(paragraph.querySelectorAll('a')).filter((anchor) => anchor.parentElement === paragraph);
+        if (!anchors.length) return;
 
-        const anchor = anchors[0];
-        if (anchor.parentElement !== paragraph) return;
+        const anchor = anchors[anchors.length - 1];
 
         const childNodes = Array.from(paragraph.childNodes);
         const anchorIndex = childNodes.indexOf(anchor);
-        if (anchorIndex !== 1) return;
+        if (anchorIndex === 0) {
+          const afterNodes = childNodes.slice(1);
+          if (anchors.length !== 1 || afterNodes.some((node) => node.nodeType !== Node.TEXT_NODE)) return;
+          const afterText = afterNodes.map((node) => node.textContent || '').join('');
+          if (afterText.replace(/[:;,.!?\s]/g, '')) return;
 
-        const beforeNode = childNodes[0];
+          paragraph.insertBefore(doc.createTextNode(`${this.getDefaultStandaloneLinkLeadIn(contentLanguage)} `), anchor);
+          afterNodes.forEach((node) => node.remove());
+          return;
+        }
+        if (anchorIndex < 1) return;
+
+        const beforeNode = childNodes[anchorIndex - 1];
         if (beforeNode.nodeType !== Node.TEXT_NODE) return;
         const afterNodes = childNodes.slice(anchorIndex + 1);
         if (afterNodes.some((node) => node.nodeType !== Node.TEXT_NODE)) return;
 
         const beforeText = beforeNode.textContent || '';
         const afterText = afterNodes.map((node) => node.textContent || '').join('');
-        if (afterText.replace(/[.!?\s]/g, '')) return;
+        if (afterText.replace(/[:;,.!?\s]/g, '')) return;
 
         const split = beforeText.match(/^([\s\S]*[.!?])\s+([^.!?]+)$/);
-        if (!split) return;
+        if (split) {
+          const explanatoryText = (split[1] || '').trim();
+          const leadInText = (split[2] || '').trim();
+          const repairedLeadInText = this.getRepairedStandaloneLinkLeadIn(leadInText);
+          if (!explanatoryText || !repairedLeadInText) {
+            return;
+          }
 
-        const explanatoryText = (split[1] || '').trim();
-        const leadInText = (split[2] || '').trim();
-        if (!explanatoryText || !this.isValidStandaloneLinkLeadIn(leadInText)) {
+          beforeNode.textContent = explanatoryText;
+          const repairedAnchor = anchor.cloneNode(true);
+          anchor.remove();
+          afterNodes.forEach((node) => node.remove());
+
+          const linkParagraph = doc.createElement('p');
+          linkParagraph.appendChild(doc.createTextNode(`${repairedLeadInText} `));
+          linkParagraph.appendChild(repairedAnchor);
+
+          paragraph.insertAdjacentElement('afterend', linkParagraph);
           return;
         }
 
-        const explanatoryParagraph = doc.createElement('p');
-        explanatoryParagraph.textContent = explanatoryText;
+        const repairedLeadInText = this.getRepairedStandaloneLinkLeadIn(beforeText.trim());
+        if (!repairedLeadInText) return;
 
-        const linkParagraph = doc.createElement('p');
-        linkParagraph.appendChild(doc.createTextNode(`${leadInText} `));
-        linkParagraph.appendChild(anchor.cloneNode(true));
+        const hasEarlierContent = childNodes.slice(0, anchorIndex - 1).some((node) => node.nodeType === Node.ELEMENT_NODE || !!(node.textContent || '').trim());
+        if (hasEarlierContent) {
+          const repairedAnchor = anchor.cloneNode(true);
+          beforeNode.remove();
+          anchor.remove();
+          afterNodes.forEach((node) => node.remove());
 
-        paragraph.replaceWith(explanatoryParagraph, linkParagraph);
+          const linkParagraph = doc.createElement('p');
+          linkParagraph.appendChild(doc.createTextNode(`${repairedLeadInText} `));
+          linkParagraph.appendChild(repairedAnchor);
+          paragraph.insertAdjacentElement('afterend', linkParagraph);
+          return;
+        }
+
+        beforeNode.textContent = `${repairedLeadInText} `;
+        afterNodes.forEach((node) => node.remove());
       });
 
       return root.outerHTML.trim();
@@ -216,6 +268,7 @@ export class AlertRewriteGuardService {
     plan: AlertRewritePlan;
     selectedExamples: AlertRewriteExample[];
     allowLinkRemoval: boolean;
+    contentLanguage?: 'en' | 'fr';
   }): AlertRewriteResult | null {
     const originalHasAnchor = /<a\b/i.test(params.originalAlertHtml);
 
@@ -259,7 +312,7 @@ export class AlertRewriteGuardService {
     if (!originalHasAnchor) {
       repairedHtml = this.removeAnchorsPreservingText(repairedHtml);
     } else if (!/<a\b/i.test(repairedHtml)) {
-      repairedHtml = this.ensureAtLeastOneOriginalLink(repairedHtml, params.originalAlertHtml);
+      repairedHtml = this.ensureAtLeastOneOriginalLink(repairedHtml, params.originalAlertHtml, params.contentLanguage ?? 'en');
     }
     if (!this.hasSemanticHeading(repairedHtml)) {
       repairedHtml = this.ensureSemanticHeading(repairedHtml, candidate.rewrittenHeading || params.originalHeading || '');
@@ -443,7 +496,16 @@ export class AlertRewriteGuardService {
     const normalized = this.normalizeLeadInText(leadInText.replace(/[.!?]\s*$/g, ''));
     if (!normalized) return false;
 
-    if (normalized === 'refer to:' || normalized === 'for details:' || normalized === 'learn more:' || /^learn about(?: the)?$/.test(normalized)) {
+    if (
+      normalized === 'refer to:' ||
+      normalized === 'for details:' ||
+      normalized === 'learn more:' ||
+      normalized === 'en savoir plus :' ||
+      normalized === 'consultez :' ||
+      /^learn about(?: the)?$/.test(normalized) ||
+      /^(?:consultez la page|renseignez-vous sur)$/.test(normalized) ||
+      /^(?:en savoir plus|renseignez-vous) sur(?: (?:le|la|les|l['’]))?$/.test(normalized)
+    ) {
       return true;
     }
     return normalized.startsWith('find out');
@@ -455,7 +517,38 @@ export class AlertRewriteGuardService {
     const normalized = this.normalizeLeadInText(leadInText.replace(/[.!?]\s*$/g, ''));
     if (!normalized) return false;
 
-    return /\b(?:for details|learn more)\b/.test(normalized);
+    if (normalized === 'apprenez-en' || normalized.startsWith('apprenez-en ')) return true;
+    return (
+      /\b(?:refer to|for details|learn more|en savoir plus|apprenez-en plus|consultez|renseignez-vous sur)\b/.test(normalized) ||
+      /^pour plus d['’](?:informations|information),?\s+consultez la page:?$/.test(normalized) ||
+      /^pour plus de renseignements,?\s+consultez la page:?$/.test(normalized)
+    );
+  }
+
+  private getRepairedStandaloneLinkLeadIn(leadInText: string): string | null {
+    const normalized = this.normalizeLeadInText(leadInText.replace(/[.!?]\s*$/g, ''));
+    if (normalized === 'refer to' || normalized === 'refer to:' || /^(?:for details|for more information),?\s+refer to:?$/.test(normalized)) {
+      return 'Refer to:';
+    }
+    if (
+      normalized === 'en savoir plus' ||
+      normalized === 'en savoir plus :' ||
+      /^pour plus d['’](?:informations|information),?\s+consultez la page:?$/.test(normalized) ||
+      /^pour plus de renseignements,?\s+consultez la page:?$/.test(normalized)
+    ) {
+      return 'En savoir plus :';
+    }
+    if (normalized === 'apprenez-en' || normalized.startsWith('apprenez-en ')) {
+      return 'En savoir plus :';
+    }
+    if (normalized === 'consultez' || normalized === 'consultez :') {
+      return 'Consultez :';
+    }
+    return this.isValidStandaloneLinkLeadIn(leadInText) ? leadInText.trim() : null;
+  }
+
+  private getDefaultStandaloneLinkLeadIn(contentLanguage: 'en' | 'fr'): string {
+    return contentLanguage === 'fr' ? 'En savoir plus :' : 'Refer to:';
   }
 
   private hasStandaloneActionVerbLinkText(sentence: string, markerPrefix: string, markerSuffix: string): boolean {
@@ -585,7 +678,7 @@ export class AlertRewriteGuardService {
 
   // Restores one original link when the rewrite incorrectly removed a required anchor.
   // Keep it in a standalone final paragraph so link-direction validation can pass.
-  private ensureAtLeastOneOriginalLink(rewrittenHtml: string, originalAlertHtml: string): string {
+  private ensureAtLeastOneOriginalLink(rewrittenHtml: string, originalAlertHtml: string, contentLanguage: 'en' | 'fr'): string {
     try {
       const sourceDoc = new DOMParser().parseFromString(originalAlertHtml, 'text/html');
       const sourceAnchor = sourceDoc.body.querySelector('a');
@@ -596,7 +689,7 @@ export class AlertRewriteGuardService {
       if (!root) return rewrittenHtml;
       if (root.querySelector('a')) return root.outerHTML.trim();
 
-      const leadIn = this.getOriginalStandaloneLinkLeadIn(sourceAnchor) || 'Refer to:';
+      const leadIn = this.getOriginalStandaloneLinkLeadIn(sourceAnchor) || this.getDefaultStandaloneLinkLeadIn(contentLanguage);
       const linkParagraph = rewrittenDoc.createElement('p');
       linkParagraph.insertAdjacentHTML('beforeend', `${leadIn} ${sourceAnchor.outerHTML}`);
       root.appendChild(linkParagraph);
