@@ -39,7 +39,7 @@ export const LinkWritingRules: readonly LinkWritingRule[] = [
   {
     id: 'L7_standalone_link_structure',
     condition: 'always',
-    text: 'If a link is an entire sentence, or if a sentence mainly directs the user to a link, move it to a new paragraph. When possible, place that standalone link paragraph last in the content. Add a natural lead-in before the anchor when the standalone link text does not already contain a clear action verb.',
+    text: 'If a link is an entire sentence, or if a sentence mainly directs the user to a link, move the link direction to a new paragraph; do not append it to an explanatory sentence. When possible, place that standalone link paragraph last in the content. Add a natural lead-in before the anchor when the standalone link text does not already contain a clear action verb.',
   },
   {
     id: 'L7a_multiple_standalone_links_list',
