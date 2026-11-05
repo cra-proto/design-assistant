@@ -456,17 +456,16 @@ export class PromptEditorComponent {
   }
 
   private formatCanadaCaStyleRulesJson(): string {
-    const rules = CanadaCaStyleRules.map(
-      (rule) => `{\n      "id": ${JSON.stringify(rule.id)},\n      "severity": ${JSON.stringify(rule.severity)},\n      "text": ${JSON.stringify(rule.text)} }`,
-    ).join(',\n    ');
+    const rules = CanadaCaStyleRules.map((rule) => `{\n      "id": ${JSON.stringify(rule.id)}, "severity": ${JSON.stringify(rule.severity)},\n      "text": ${JSON.stringify(rule.text)} }`).join(
+      ',\n    ',
+    );
 
     return `{ "rules": [ ${rules} ]}`;
   }
 
   private formatCanadaCaStyleExamplesJson(): string {
     const examples = CanadaCaStyleExamples.map(
-      (example) =>
-        `{ "ruleId": ${JSON.stringify(example.ruleId)},\n      "avoid": ${JSON.stringify(example.avoid)},\n      "prefer": ${JSON.stringify(example.prefer)} }`,
+      (example) => `{ "ruleId": ${JSON.stringify(example.ruleId)},\n      "avoid": ${JSON.stringify(example.avoid)},\n      "prefer": ${JSON.stringify(example.prefer)} }`,
     ).join(',\n    ');
 
     return `{ "examples": [\n    ${examples} ]}`;
