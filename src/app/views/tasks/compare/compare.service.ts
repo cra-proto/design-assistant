@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 
 import { htmlProcessingResult } from '../../../services/html-normalization.service';
 
-import { AI_DEFAULT_MODEL, AiFreeModelOptions, AiPaidModelOptions } from '../../../common/ai-models.config';
+import { AiFreeModelOptions, AiPaidModelOptions } from '../../../common/ai-models.config';
 import { SourceVersion } from '../../../common/data.model';
 import { PagePromptKey } from '../../../common/prompts/prompt.model';
 
@@ -36,7 +36,7 @@ export class CompareService {
 
   public readonly aiDrawerVisible = signal<boolean>(false);
   public readonly selectedTask = signal<AiTaskOption>('default');
-  public readonly selectedPrompt = signal<keyof typeof PagePromptKey>('Tense');
+  public readonly selectedPrompt = signal<keyof typeof PagePromptKey>('AlertRewrite');
   public readonly selectedTense = signal<AiTenseOption>('present');
-  public readonly selectedModel = signal<AiFreeModelOptions | AiPaidModelOptions>(AI_DEFAULT_MODEL);
+  public readonly selectedModel = signal<AiFreeModelOptions | AiPaidModelOptions>('google/gemini-3.1-flash-lite');
 }
