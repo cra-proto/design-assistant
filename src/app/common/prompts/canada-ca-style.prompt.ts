@@ -52,11 +52,6 @@ export const CanadaCaStyleExamples: readonly CanadaCaStyleExample[] = [
     avoid: 'Prior to submitting your application, verify that all required fields have been completed.',
     prefer: 'Before you submit your application, make sure you have completed all required fields.',
   },
-  {
-    ruleId: 'C3_plain_language',
-    avoid: 'Individuals experiencing difficulty accessing their account may contact us for assistance.',
-    prefer: 'If you cannot access your account, contact us for help.',
-  },
 ];
 
 export function getCanadaCaStylePromptRules(options: CanadaCaStylePromptOptions = {}): string[] {
