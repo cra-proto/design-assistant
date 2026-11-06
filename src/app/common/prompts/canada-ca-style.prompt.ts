@@ -67,16 +67,6 @@ export const CanadaCaStyleExamples: readonly CanadaCaStyleExample[] = [
     avoid: 'Individuals experiencing difficulty accessing their account may contact us for assistance.',
     prefer: 'If you cannot access your account, contact us for help.',
   },
-  {
-    ruleId: 'C4_preserve_required_meaning',
-    avoid: 'Apply by June 30 to keep receiving payments.',
-    prefer: 'Apply by June 30 to keep receiving payments.',
-  },
-  {
-    ruleId: 'C4_preserve_required_meaning',
-    avoid: 'You must be 18 years of age or older and live in Canada to apply.',
-    prefer: 'You must be 18 years of age or older and live in Canada to apply.',
-  },
 ];
 
 export function getCanadaCaStylePromptRules(options: CanadaCaStylePromptOptions = {}): string[] {

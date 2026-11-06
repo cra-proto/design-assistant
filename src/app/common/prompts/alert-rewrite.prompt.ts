@@ -40,7 +40,7 @@ export const AlertRewriteRules: AlertRewritePromptRules = {
       'Add or preserve a short, descriptive heading.',
       'Do not rewrite alert content into accordions, disclosure widgets, expand-collapse components, or other containers that hide content from visual display. Inline assistive text that uses the wb-inv class is allowed: preserve it when it is needed, keep it in its original reading order, and make sure it flows with the surrounding visible text. Do not treat wb-inv text as prohibited hidden content.',
       'Do not add new images or icons. Preserve meaningful non-text content and useful existing text alternatives. When a selected issue identifies a missing or incorrect text alternative for retained non-text content, add or correct it using only information supported by the source content. Keep decorative non-text content hidden from assistive technology with an empty text alternative where appropriate.',
-      'State what happened, then include a clear next step when possible.',
+      'State what happened. Include a clear next step only when supported by the source; do not invent an action merely to make the alert actionable.',
       'Use plain, active, neutral language.',
       'Keep alert content concise for UI.',
       'Ensure each applicable selected issue that can be fixed within the alert results in a meaningful change. Do not claim an issue is fixed when the alert is unchanged, or alter valid content merely to show a change. Issues outside the alert, including placement, do not by themselves require a content change.',
