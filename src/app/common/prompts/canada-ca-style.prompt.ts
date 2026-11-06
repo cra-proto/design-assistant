@@ -48,16 +48,6 @@ export const CanadaCaStyleExamples: readonly CanadaCaStyleExample[] = [
   { ruleId: 'C1_avoid_please', avoid: 'Please note that processing times may vary.', prefer: 'Processing times may vary.' },
   { ruleId: 'C1_avoid_please', avoid: 'Please ensure your information is accurate.', prefer: 'Make sure your information is accurate.' },
   {
-    ruleId: 'C2_direct_instructions',
-    avoid: 'You may want to review your information before submitting.',
-    prefer: 'Review your information before submitting.',
-  },
-  {
-    ruleId: 'C2_direct_instructions',
-    avoid: 'It is important that you keep a copy for your records.',
-    prefer: 'Keep a copy for your records.',
-  },
-  {
     ruleId: 'C3_plain_language',
     avoid: 'Prior to submitting your application, verify that all required fields have been completed.',
     prefer: 'Before you submit your application, make sure you have completed all required fields.',
