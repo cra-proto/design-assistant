@@ -65,6 +65,7 @@ export class CompareAiOptionsComponent {
       .map(({ enumKey, value }) => ({
         label: this.translate.instant(value),
         value: enumKey,
+        styleClass: !PagePrompts[value].available ? 'text-red' : '',
       }));
   }
 

@@ -48,6 +48,7 @@ testem.log
 /scripts/list-eslint-fixable.mjs
 /TODO.md
 *demo*
+*diagram-fieldflow*
 
 # Python reference files
 /metadata-python

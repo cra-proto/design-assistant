@@ -47,7 +47,7 @@
             <span class="material-icons">{{ isExpanded.tasks ? 'expand_less' : 'expand_more' }}</span>
           </div>
           <p class="text-sm text-white-alpha-80 hidden md:flex white-space-nowrap overflow-hidden text-overflow-clip mt-0">
-            {{ hasName ? projectState.getProject().projectName.slice(0, 30) : 'common.autosave' }}
+            {{ hasName ? projectState.getProject().projectName.slice(0, 30) : ('common.autosave' | translate) }}
           </p>
           <div id="tasks" [class.md:hidden]="!isExpanded.tasks" aria-labelledby="menu-tasks" role="region">
             <ng-container *ngTemplateOutlet="link; context: { path: AidaLinks.ProjectDashboard, icon: 'view_quilt', text: ('dashboard._nav' | translate) }" />
@@ -100,4 +100,4 @@
   }
 </ng-template>
 
-<p-confirmpopup />
+<p-confirmpopup key="overwrite" />

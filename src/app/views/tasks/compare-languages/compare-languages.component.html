@@ -98,7 +98,9 @@
   </div>
 }
 <ng-template #summary>
-  <h2 class="mt-0">{{ 'languages.summary.header' | translate }}</h2>
+  @if (!summaryMode()) {
+    <h2 class="mt-0">{{ 'languages.summary.header' | translate }}</h2>
+  }
   @if (!compareService.selectedPage()) {
     <p-message icon="pi pi-info-circle" severity="info">{{ 'pageOptions.description.0' | translate }}</p-message>
   } @else {
