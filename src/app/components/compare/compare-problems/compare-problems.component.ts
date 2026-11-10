@@ -5,6 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { AccordionModule } from 'primeng/accordion';
 
+import { CompareLanguagesComponent } from '../../../views/tasks/compare-languages/compare-languages.component';
 import { ComparePageDataComponent } from './compare-page-data/compare-page-data.component';
 import { DesignComponentsComponent } from './design-components/design-components.component';
 
@@ -16,7 +17,7 @@ import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'aida-compare-problems',
-  imports: [CommonModule, AccordionModule, ComparePageDataComponent, DesignComponentsComponent],
+  imports: [CommonModule, AccordionModule, CompareLanguagesComponent, ComparePageDataComponent, DesignComponentsComponent],
   templateUrl: './compare-problems.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -32,6 +33,7 @@ export class CompareProblemsComponent {
   public readonly afterContent = input<htmlProcessingResult | undefined>();
 
   // Template references
+  protected readonly languageTemplate = viewChild.required<TemplateRef<unknown>>('languages');
   protected readonly dataTemplate = viewChild.required<TemplateRef<unknown>>('data');
   protected readonly componentsTemplate = viewChild.required<TemplateRef<unknown>>('components');
   protected readonly linksTemplate = viewChild.required<TemplateRef<unknown>>('links');
@@ -57,12 +59,20 @@ export class CompareProblemsComponent {
   protected get tools(): { key: string; header: string; description: string; template: TemplateRef<unknown>; icon: string; visible: boolean }[] {
     return [
       {
+        key: 'languages',
+        header: this.translate.instant('languages._title'),
+        description: this.translate.instant('languages.description'),
+        template: this.languageTemplate(),
+        icon: 'language',
+        visible: true,
+      },
+      {
         key: 'data',
         header: this.translate.instant('problems.data.header'),
         description: this.translate.instant('problems.data.description'),
         template: this.dataTemplate(),
         icon: 'analytics',
-        visible: true,
+        visible: false,
       },
       {
         key: 'components',
