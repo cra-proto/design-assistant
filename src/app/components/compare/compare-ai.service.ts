@@ -8,7 +8,7 @@ import { MessageService } from 'primeng/api';
 import { OpenRouterService } from '../../services/ai/openrouter.service';
 import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
-import { CompareService } from '../../views/tasks/compare/compare.service';
+import { CompareService } from '../../views/tasks/compare-versions/compare-versions.service';
 import { AlertRewriteOrchestratorService } from './compare-problems/design-components/alerts/alert-rewrite-orchestrator.service';
 import { AlertService } from './compare-problems/design-components/alerts/alert.service';
 

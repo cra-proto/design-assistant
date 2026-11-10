@@ -1,0 +1,196 @@
+@if (summaryMode()) {
+  <ng-container *ngTemplateOutlet="summary" />
+} @else {
+  <h1 id="wb-cont">{{ 'languages._title' | translate }}</h1>
+  <p>{{ 'languages.description' | translate }}{{ 'languages.description2' | translate }}</p>
+
+  <div class="flex flex-column gap-2">
+    <div class="flex flex-column xl:flex-row gap-2">
+      <div [class]="styleCardService.cardStyles()">
+        <aida-compare-select [versionsToShow]="1" />
+      </div>
+      <div [class]="styleCardService.cardStyles()" class="min-w-max">
+        <ng-container *ngTemplateOutlet="summary" />
+      </div>
+    </div>
+
+    <div [class]="styleCardService.cardStyles()">
+      <h2 id="compare-tools" class="mt-0">{{ 'languages.tools.header' | translate }}</h2>
+      @let page = compareService.selectedPage();
+      @if (!page) {
+        <p-message icon="pi pi-info-circle" severity="info">{{ 'pageOptions.description.0' | translate }}</p-message>
+      } @else {
+        <p-tabs [value]="activeTab()" class="mt-3">
+          <p-tablist>
+            <p-tab value="0">
+              <div class="flex align-items-center gap-2">
+                <span class="material-icons-outlined">checklist</span>
+                {{ 'languages.dataCompare.tab' | translate }}
+                @if (projectState.refreshing().baseline || projectState.refreshing().prototype || projectState.refreshing().live) {
+                  <i class="pi pi-spin pi-spinner text-primary text-lg"></i>
+                } @else {
+                  <p-badge [severity]="dataProblems().live === 0 ? 'success' : 'danger'" [value]="dataProblems().base + ' / ' + dataProblems().proto + ' / ' + dataProblems().live" />
+                }
+              </div>
+            </p-tab>
+            <p-tab value="1">
+              <div class="flex align-items-center gap-2">
+                <span class="material-icons-outlined">code</span>
+                {{ 'languages.htmlStructure.tab' | translate }}
+                <p-badge [severity]="htmlProblems() === 0 ? 'success' : 'danger'" [value]="htmlProblems()" />
+              </div>
+            </p-tab>
+            <p-tab value="2">
+              <div class="flex align-items-center gap-2">
+                <span class="material-icons-outlined">visibility_off</span>
+                {{ 'languages.hidden.tab' | translate }}
+                <p-badge [severity]="hiddenProblems() === 0 ? 'success' : 'danger'" [value]="hiddenProblems()" />
+              </div>
+            </p-tab>
+            <p-tab value="3">
+              <div class="flex align-items-center gap-2">
+                <span class="material-icons-outlined">numbers</span>
+                {{ 'languages.numbers.tab' | translate }}
+                <p-badge [severity]="numberProblems() === 0 ? 'success' : 'danger'" [value]="numberProblems()" />
+              </div>
+            </p-tab>
+            <p-tab value="4">
+              <div class="flex align-items-center gap-2">
+                <span class="material-icons-outlined">auto_awesome</span>
+                {{ 'languages.aiSummary.tab' | translate }}
+                @if (aiProblems().status === 'pending') {
+                  <i class="pi pi-spin pi-spinner text-primary text-lg"></i>
+                } @else if (aiProblems().status === 'error') {
+                  <i class="pi pi-exclamation-circle text-red text-lg"></i>
+                } @else if (aiProblems().status === 'done') {
+                  <p-badge [severity]="aiProblems().result === 0 ? 'success' : 'danger'" [value]="aiProblems().result" />
+                } @else {
+                  <i class="pi pi-question-circle text-blue text-lg"></i>
+                }
+              </div>
+            </p-tab>
+            <p-tab value="5">
+              <div class="flex align-items-center gap-2">
+                <span class="material-icons-outlined">compare</span>
+                {{ 'languages.webView.tab' | translate }}
+              </div>
+            </p-tab>
+          </p-tablist>
+          <p-tabpanels class="border-1 border-top-none border-round-bottom surface-border">
+            <!-- Data comparison -->
+            <p-tabpanel value="0"><ng-container *ngTemplateOutlet="data" /></p-tabpanel>
+            <!-- HTML comparison -->
+            <p-tabpanel value="1"><ng-container *ngTemplateOutlet="html" /></p-tabpanel>
+            <!-- Hidden comparison -->
+            <p-tabpanel value="2"><ng-container *ngTemplateOutlet="hidden" /></p-tabpanel>
+            <!-- Numbers comparison -->
+            <p-tabpanel value="3"><ng-container *ngTemplateOutlet="numbers" /></p-tabpanel>
+            <!-- AI summary comparison -->
+            <p-tabpanel value="4"><ng-container *ngTemplateOutlet="ai" /></p-tabpanel>
+            <!-- Rendered page comparison -->
+            <p-tabpanel value="5">
+              <aida-compare-web [iframeEnglish]="iframeEnglish()" [iframeFrench]="iframeFrench()" [is404]="is404()" />
+            </p-tabpanel>
+          </p-tabpanels>
+        </p-tabs>
+      }
+    </div>
+  </div>
+}
+<ng-template #summary>
+  @if (!summaryMode()) {
+    <h2 class="mt-0">{{ 'languages.summary.header' | translate }}</h2>
+  }
+  @if (!compareService.selectedPage()) {
+    <p-message icon="pi pi-info-circle" severity="info">{{ 'pageOptions.description.0' | translate }}</p-message>
+  } @else {
+    <div class="flex justify-content-between align-items-center gap-4">
+      <h3 class="m-0">{{ 'languages.tools.header' | translate }}</h3>
+      @if (totalProblems() === 0) {
+        <span class="text-green pr-2">{{ 'languages.summary.noProblems' | translate }}</span>
+      } @else {
+        <span class="text-red pr-2">{{ 'languages.summary.toReview' | translate: { count: totalProblems() } }}</span>
+      }
+    </div>
+
+    <ul class="list-none mx-0 my-1 p-0">
+      @for (row of summaryRows(); track row.tab) {
+        <li>
+          <p-button
+            [styleClass]="
+              activeTab() === row.tab && !summaryMode()
+                ? 'h-3rem flex justify-content-between gap-2 border-1 secondary-border bg-primary-light hover:bg-primary-light'
+                : 'h-3rem flex justify-content-between gap-2'
+            "
+            [text]="activeTab() !== row.tab || summaryMode()"
+            (onClick)="!summaryMode() ? openTab(row.tab) : openDialog.set(row)"
+            fluid
+          >
+            <div class="flex gap-2 align-items-center">
+              <span class="material-icons-outlined">{{ row.icon }}</span>
+              <span>{{ row.label | translate }}</span>
+              @if (row.state === 'loading') {
+                <i class="pi pi-spin pi-spinner text-primary text-lg"></i>
+              } @else if (row.state === 'error') {
+                <i class="pi pi-exclamation-circle text-red text-lg"></i>
+              } @else if (row.state === 'ok' || row.state === 'problem') {
+                @if (row.detail) {
+                  <p-badge [severity]="row.state === 'problem' ? 'danger' : 'success'" [value]="row.detail" />
+                } @else {
+                  <p-badge [severity]="row.state === 'problem' ? 'danger' : 'success'" [value]="row.count" />
+                }
+              } @else {
+                <i class="pi pi-question-circle text-blue text-lg"></i>
+              }
+            </div>
+            <div class="flex gap-1 align-items-center">
+              <span [class]="row.state === 'problem' || row.state === 'error' ? 'text-red' : row.state === 'ok' ? 'text-green' : 'text-color-secondary'">
+                {{ 'languages.summary.' + row.state | translate: { count: row.count } }}
+                @if (row.state === 'loading') {
+                  <span class="loading-dots -ml-1"></span>
+                }
+              </span>
+              <i [class]="summaryMode() ? 'pi pi-question-circle text-primary' : 'pi pi-chevron-right text-color-secondary'"></i>
+            </div>
+          </p-button>
+        </li>
+        @if (openDialog(); as row) {
+          <p-dialog [header]="row.label | translate" [maximizable]="true" [modal]="true" [visible]="true" (visibleChange)="$event || openDialog.set(null)" styleClass="w-10">
+            <ng-template #headless>
+              <div class="flex flex-column gap-2 px-4 pt-4 pb-2">
+                <ng-container *ngTemplateOutlet="row.template" />
+                <p-button [label]="'common.close' | translate" (onClick)="openDialog.set(null)" class="align-self-end" outlined severity="secondary" styleClass="secondary-outline" />
+              </div>
+            </ng-template>
+          </p-dialog>
+        }
+      }
+    </ul>
+    @if (summaryMode()) {
+      <div class="flex justify-content-end align-items-center gap-2 mt-4 text-primary hover:text-primary">
+        <a [routerLink]="AidaLinks.ProjectLanguages">{{ 'languages._title' | translate }}</a>
+        <i class="pi pi-arrow-right"></i>
+      </div>
+    }
+  }
+</ng-template>
+
+<ng-template #data>
+  <aida-compare-data [is404]="is404()" [selectedBase]="selectedBase()" [selectedLive]="selectedLive()" [selectedNode]="selectedNode()" [selectedProto]="selectedProto()" />
+</ng-template>
+
+<ng-template #html>
+  <aida-compare-html [htmlRows]="htmlRows()" [is404]="is404()" />
+</ng-template>
+
+<ng-template #hidden>
+  <aida-compare-hidden [hiddenRows]="hiddenRows()" [is404]="is404()" />
+</ng-template>
+
+<ng-template #numbers>
+  <aida-compare-numbers [is404]="is404()" [numberRows]="numberRows()" />
+</ng-template>
+
+<ng-template #ai>
+  <aida-compare-ai-lang [aiEnglish]="aiEnglish()" [aiFrench]="aiFrench()" [is404]="is404()" />
+</ng-template>

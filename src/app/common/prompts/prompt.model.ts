@@ -24,6 +24,7 @@ function markForTranslation() {
   marker('aiPrompt.inventory.metadata');
   marker('aiPrompt.inventory.description');
   marker('aiPrompt.inventory.keywords');
+  marker('aiPrompt.inventory.languages');
 
   marker('aiPrompt.page.headings');
   marker('aiPrompt.page.doormats');
@@ -80,6 +81,7 @@ export enum InventoryPromptKey {
   Metadata = 'aiPrompt.inventory.metadata',
   Description = 'aiPrompt.inventory.description',
   Keywords = 'aiPrompt.inventory.keywords',
+  Languages = 'aiPrompt.inventory.languages',
 }
 
 //Page task fragments

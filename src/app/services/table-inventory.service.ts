@@ -5,10 +5,10 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { TreeNode } from 'primeng/api';
 
-import { FetchService } from './fetch.service';
-import { ProjectMetadataService } from './project-metadata.service';
 import { LabelItem } from './style-table.service';
 import { StyleTreeNodeService } from './style-treenode.service';
+import { TableMetadataService } from './table-metadata.service';
+import { UserSettingsService } from './user-settings.service';
 
 import { PageTemplate, TreeNodeData } from '../common/data.model';
 
@@ -127,11 +127,11 @@ export interface FlattenedInventory {
  * Flattened version of page data for content inventory
  */
 @Injectable({ providedIn: 'root' })
-export class ProjectInventoryService {
+export class TableInventoryService {
   private readonly translate = inject(TranslateService);
   private readonly styleTreeNodeService = inject(StyleTreeNodeService);
-  private readonly fetchService = inject(FetchService);
-  private readonly projectMetadata = inject(ProjectMetadataService);
+  private readonly tableMetadata = inject(TableMetadataService);
+  private readonly settingsService = inject(UserSettingsService);
 
   public flattenInventory(tree: TreeNode<TreeNodeData>[]): FlattenedInventory[] {
     const flatNodes: FlattenedInventory[] = [];
@@ -193,7 +193,7 @@ export class ProjectInventoryService {
         const data = node.data;
         const allColours = this.styleTreeNodeService.contextStyles;
         if (!data) continue;
-        const style = data.status.isNew ? allColours.new : data.status.isROT ? allColours.rot : data.status.isMoved ? allColours.move : undefined;
+        const style = !this.settingsService.colorMode() ? undefined : data.status.isNew ? allColours.new : data.status.isROT ? allColours.rot : data.status.isMoved ? allColours.move : undefined;
         const splitList = (content?: string) =>
           content
             ?.split(';')
@@ -571,7 +571,7 @@ export class ProjectInventoryService {
             group: metadata,
             column: metaApproval,
             type: 'boolean',
-            content: this.projectMetadata.approvalStatus(data),
+            content: this.tableMetadata.approvalStatus(data),
           },
         });
 

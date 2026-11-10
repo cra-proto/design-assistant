@@ -7,6 +7,7 @@ import { TreeNode } from 'primeng/api';
 import { FetchService } from './fetch.service';
 import { LabelItem } from './style-table.service';
 import { StyleTreeNodeService } from './style-treenode.service';
+import { UserSettingsService } from './user-settings.service';
 
 import { TreeNodeData } from '../common/data.model';
 
@@ -19,6 +20,7 @@ export interface TableItem {
 export interface FlattenedMetadata {
   label: Record<'en' | 'fr', LabelItem>;
   style?: string;
+  status?: string[];
   approved?: boolean;
   //English title
   titleEnBase: TableItem;
@@ -56,10 +58,11 @@ export interface FlattenedMetadata {
  * Flattened version of metadata
  */
 @Injectable({ providedIn: 'root' })
-export class ProjectMetadataService {
+export class TableMetadataService {
   private readonly translate = inject(TranslateService);
   private readonly styleTreeNodeService = inject(StyleTreeNodeService);
   private readonly fetchService = inject(FetchService);
+  private readonly settingsService = inject(UserSettingsService);
 
   public flattenMetadata(tree: TreeNode<TreeNodeData>[]): FlattenedMetadata[] {
     const flatNodes: FlattenedMetadata[] = [];
@@ -85,7 +88,13 @@ export class ProjectMetadataService {
         const data = node.data;
         const allColours = this.styleTreeNodeService.contextStyles;
         if (!data) continue;
-        const style = data.status.isNew ? allColours.new : data.status.isROT ? allColours.rot : data.status.isMoved ? allColours.move : undefined;
+        const style = !this.settingsService.colorMode() ? undefined : data.status.isNew ? allColours.new : data.status.isROT ? allColours.rot : data.status.isMoved ? allColours.move : undefined;
+        const statusList = [];
+        if (data.status.isNew) statusList.push('inventory.header.isNew');
+        if (data.status.isROT) statusList.push('inventory.header.isROT');
+        if (data.status.isMoved) statusList.push('inventory.header.isMoved');
+        if (data.prototype?.en.isArchived || data.prototype?.fr.isArchived) statusList.push('inventory.header.isArchived');
+        if (data.prototype?.en.noindex || data.prototype?.fr.noindex) statusList.push('inventory.header.noindex');
         const approved = this.approvalStatus(data);
         if (data.status?.inScope !== false) {
           flatNodes.push({
@@ -102,6 +111,7 @@ export class ProjectMetadataService {
               },
             },
             style: style,
+            status: statusList,
             approved: approved,
             // English title
             titleEnBase: {

@@ -14,7 +14,7 @@ export enum AidaLinks {
   ProjectExport = '/active-project/export-pages',
   ProjectEdit = '/active-project/edit-pages',
   ProjectCompare = '/active-project/compare-pages',
-  ProjectLanguages = '/active-project/review-languages',
+  ProjectLanguages = '/active-project/compare-languages',
   //Phase topic pages
   PhaseDiscover = '/phase/discover',
   PhaseAssess = '/phase/assess',

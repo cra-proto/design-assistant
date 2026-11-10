@@ -21,10 +21,10 @@ import { ViewPagesComponent } from '../../../components/view-pages/view-pages.co
 
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
-import { FlattenedInventory, ProjectInventoryService, TableItem } from '../../../services/project-inventory.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { StyleCardService } from '../../../services/style-card.service';
 import { buildFilterFields, ColumnVisibility, createRowSelection, groupSpans, persisted, rowsPerPageOptions, TableService, trackStuck } from '../../../services/style-table.service';
+import { FlattenedInventory, TableInventoryService, TableItem } from '../../../services/table-inventory.service';
 
 import { TooltipDirective } from '../../../common/tooltip.directive';
 
@@ -42,7 +42,7 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
  ** add sorting & filtering?
  */
 @Component({
-  selector: 'aida-page-inventory',
+  selector: 'aida-table-inventory',
   imports: [
     CommonModule,
     FormsModule,
@@ -60,14 +60,14 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
     TooltipDirective,
     ViewPagesComponent,
   ],
-  templateUrl: 'page-inventory.component.html',
+  templateUrl: 'table-inventory.component.html',
   styleUrl: '../../../../sticky.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PageInventoryComponent implements OnInit {
+export class TableInventoryComponent implements OnInit {
   protected readonly projectState = inject(ProjectStateService);
   protected readonly projectCache = inject(ProjectCacheService);
-  protected readonly projectInventory = inject(ProjectInventoryService);
+  protected readonly tableInventory = inject(TableInventoryService);
   protected readonly tableService = inject(TableService);
   protected readonly styleCardService = inject(StyleCardService);
   protected readonly fetchService = inject(FetchService);
@@ -99,7 +99,7 @@ export class PageInventoryComponent implements OnInit {
 
   /** All table rows */
   protected readonly rows = computed(() => {
-    return this.projectInventory.flattenInventory(this.projectState.getProject().projectData);
+    return this.tableInventory.flattenInventory(this.projectState.getProject().projectData);
   });
 
   /** Selected table rows */

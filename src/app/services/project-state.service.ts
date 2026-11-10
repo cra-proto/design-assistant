@@ -113,6 +113,11 @@ export class ProjectStateService {
     baseline: false,
   });
 
+  public readonly isRefreshing = computed(() => {
+    const refresh = this.refreshing();
+    return refresh.baseline || refresh.prototype || refresh.live;
+  });
+
   /* Stores loading state for data refresh & ai content generation */
   private readonly loadingKeys = signal<ReadonlySet<string>>(new Set());
 

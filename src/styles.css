@@ -245,6 +245,10 @@ font-family: 'Noto Sans';
   color: light-dark(var(--p-green-500), var(--p-green-400)) !important;
 }
 
+.text-blue {
+  color: light-dark(var(--p-blue-500), var(--p-blue-400)) !important;
+}
+
 .bg-red {
   background-color: light-dark(var(--p-red-50), var(--p-red-900)) !important;
 }
@@ -303,6 +307,29 @@ font-family: 'Noto Sans';
 .hover\:bg-green:hover.text-green,
 .hover\:bg-green:hover .text-green {
   color: light-dark(var(--p-green-900), var(--p-green-50)) !important;
+}
+
+.hover\:text-primary.text-primary:hover {
+  color: light-dark(var(--p-primary-700), var(--p-primary-300)) !important;
+}
+
+.hover\:text-primary.text-primary a {
+  color: inherit;
+}
+
+.bg-primary-light {
+  background-color: light-dark(var(--p-primary-50), var(--p-primary-900)) !important;
+  color: light-dark(var(--p-primary-800), var(--p-primary-100)) !important;
+}
+
+.hover\:bg-primary-light:hover {
+  background-color: light-dark(var(--p-primary-50), var(--p-primary-900)) !important;
+  color: light-dark(var(--p-primary-900), var(--p-primary-50)) !important;
+}
+
+.hover\:bg-primary-light.bg-primary-light:hover {
+  background-color: light-dark(var(--p-primary-100), var(--p-primary-800)) !important;
+  color: light-dark(var(--p-primary-900), var(--p-primary-50)) !important;
 }
 
 .border-primary-50 {
@@ -480,6 +507,10 @@ font-family: 'Noto Sans';
   max-height: 75vh;
 }
 
+.h-75vh {
+  height: 75vh;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -591,6 +622,9 @@ code.custom {
 
 .h-1\.5 {
   height: 1.5rem;
+}
+.h-2\.75rem {
+  height: 2.75rem;
 }
 .min-h-1\.5 {
   min-height: 1.5rem;

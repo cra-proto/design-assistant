@@ -1,0 +1,32 @@
+<div class="flex justify-content-between">
+  <div>
+    <h2 class="mt-0">{{ 'languages.webView.header' | translate }}</h2>
+    <p>{{ 'languages.webView.description' | translate }}</p>
+  </div>
+  <p-button [label]="'common.fullScreen' | translate" (onClick)="toggleFullscreen()" icon="pi pi-window-maximize" outlined styleClass="secondary-outline" />
+</div>
+@if (is404()) {
+  <p-message icon="pi pi-times-circle font-bold" severity="error">{{ 'languages.is404' | translate }}</p-message>
+}
+@if (iframeEnglish() && iframeFrench()) {
+  <div class="flex gap-2 surface-card h-75vh" #wrapper>
+    <div [class]="styleCardService.cardStyles(undefined, undefined, true)" class="flex flex-column flex-1 min-w-0">
+      <div class="flex justify-content-between gap-2 border-bottom-1 surface-border">
+        <h2 class="px-4 pt-4 pb-2 m-0 h-4rem">{{ 'languages.webView.englishPage' | translate }}</h2>
+        @if (isFullScreen()) {
+          <p-button (onClick)="toggleFullscreen()" icon="pi pi-times" rounded text />
+        }
+      </div>
+      <iframe [srcdoc]="iframeEnglish()" (load)="onFrameLoad()" class="w-full flex-1 border-none" #enFrame sandbox="allow-same-origin"></iframe>
+    </div>
+    <div [class]="styleCardService.cardStyles(undefined, undefined, true)" class="flex flex-column flex-1 min-w-0">
+      <div class="flex justify-content-between gap-2 border-bottom-1 surface-border">
+        <h2 class="px-4 pt-4 pb-2 m-0 h-4rem">{{ 'languages.webView.frenchPage' | translate }}</h2>
+        @if (isFullScreen()) {
+          <p-button (onClick)="toggleFullscreen()" icon="pi pi-times" rounded text />
+        }
+      </div>
+      <iframe [srcdoc]="iframeFrench()" (load)="onFrameLoad()" class="w-full flex-1 border-none" #frFrame sandbox="allow-same-origin"></iframe>
+    </div>
+  </div>
+}

@@ -30,7 +30,7 @@ import { OpenRouterService } from '../../../services/ai/openrouter.service';
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { StyleCardService } from '../../../services/style-card.service';
-import { CompareService } from '../compare/compare.service';
+import { CompareService } from '../compare-versions/compare-versions.service';
 import { IaDiagramService } from '../ia-diagram/ia-diagram.service';
 
 import { AidaLinks } from '../../../common/aidaLinks.config';

@@ -30,6 +30,8 @@
             {{ selectedItem.label }}
           </ng-template>
         </p-select>
+
+        <p-togglebutton [(ngModel)]="selectedMode" [offLabel]="'settings.colorCode.off' | translate" [onLabel]="'settings.colorCode.on' | translate" />
       </div>
     </div>
   }

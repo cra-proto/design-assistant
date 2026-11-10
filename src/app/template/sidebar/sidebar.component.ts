@@ -93,6 +93,7 @@ export class SidebarComponent {
     if (this.hasPages && !this.hasName) {
       this.confirmationService.confirm({
         target: event?.target as EventTarget,
+        key: 'overwrite',
         message: this.translate.instant('project.new.confirmMessage'),
         icon: 'pi pi-exclamation-circle text-red',
         acceptButtonProps: {

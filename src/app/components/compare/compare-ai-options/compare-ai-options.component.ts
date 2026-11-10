@@ -14,7 +14,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { TooltipModule } from 'primeng/tooltip';
 
 import { OpenRouterService } from '../../../services/ai/openrouter.service';
-import { AiTaskOption, AiTenseOption, CompareService } from '../../../views/tasks/compare/compare.service';
+import { AiTaskOption, AiTenseOption, CompareService } from '../../../views/tasks/compare-versions/compare-versions.service';
 import { CompareAiService } from '../compare-ai.service';
 
 import { environment } from '../../../../environments/environment';
@@ -65,6 +65,7 @@ export class CompareAiOptionsComponent {
       .map(({ enumKey, value }) => ({
         label: this.translate.instant(value),
         value: enumKey,
+        styleClass: !PagePrompts[value].available ? 'text-red' : '',
       }));
   }
 

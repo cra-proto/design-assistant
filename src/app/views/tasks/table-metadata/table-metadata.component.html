@@ -16,7 +16,7 @@
               @if (selectedRow(); as row) {
                 <div
                   [class.no-preview]="noPreviewPath() === row.label[projectCache.uiLang()].path"
-                  [class]="row.approved ? 'hover:bg-green hover:border-green text-green' : 'hover:bg-red hover:border-red text-red'"
+                  [class]="row.approved ? 'hover:bg-green hover:border-green' : 'hover:bg-red hover:border-red'"
                   (click)="$event.stopPropagation(); noPreviewPath.set(row.label[projectCache.uiLang()].path); updateApproval(!row.approved, row.label[projectCache.uiLang()].path)"
                   (keydown.enter)="$event.stopPropagation(); updateApproval(!row.approved, row.label[projectCache.uiLang()].path)"
                   (mouseleave)="noPreviewPath.set(null)"
@@ -185,12 +185,22 @@
                 <span class="text-lg font-medium text-color-secondary">{{ row.label[projectCache.uiLang()].doubleH1 }}</span>
                 <span class="text-xl">{{ row.label[projectCache.uiLang()].h1 }}</span>
                 <span [aidaTooltip]="row.label[projectCache.uiLang()].path" class="text-sm font-medium text-color-secondary">{{ '/' + row.label[projectCache.uiLang()].path.split('/').pop() }}</span>
+                @if (row.status.length > 0) {
+                  <div class="mt-3 mb-0">
+                    {{ 'common.notes' | translate }}
+                    <ul class="mt-0">
+                      @for (status of row.status; track status) {
+                        <li>{{ status | translate }}</li>
+                      }
+                    </ul>
+                  </div>
+                }
               </div>
             </th>
             <td class="border-left-3">
               <div
                 [class.no-preview]="noPreviewPath() === row.label[projectCache.uiLang()].path"
-                [class]="row.approved ? 'hover:bg-green hover:border-green text-green' : 'hover:bg-red hover:border-red text-red'"
+                [class]="row.approved ? 'hover:bg-green hover:border-green' : 'hover:bg-red hover:border-red'"
                 (click)="$event.stopPropagation(); noPreviewPath.set(row.label[projectCache.uiLang()].path); updateApproval(!row.approved, row.label[projectCache.uiLang()].path)"
                 (keydown.enter)="$event.stopPropagation(); updateApproval(!row.approved, row.label[projectCache.uiLang()].path)"
                 (mouseleave)="noPreviewPath.set(null)"
@@ -222,37 +232,28 @@
                         <aida-menu-page-actions [metadataOnly]="true" [selectedNodes]="node" />
                       </div>
                     } @else if (column.type === 'prototype') {
-                      <p-button
-                        [label]="'metadata.editButton' | translate"
-                        (onClick)="editMeta(row.label[projectCache.uiLang()].path)"
-                        class="flex justify-content-center p-5"
-                        fluid
-                        icon="pi pi-pen-to-square"
-                        outlined
-                        styleClass="secondary-outline"
-                      />
+                      <ng-container *ngTemplateOutlet="protoButtons; context: { row: row, column: column }" />
                     } @else {
                       <div [aidaTooltip]="'common.noChange' | translate" class="flex justify-content-center p-3">
                         <i class="pi pi-minus text-xl text-color-secondary"></i>
                       </div>
                     }
                   } @else {
-                    <div [class]="countClasses(row[column.key].content, column.key)" class="px-3 py-1 h-2rem border-bottom-1 border-300 white-space-nowrap min-w-max text-center">
+                    <div
+                      [aidaTooltip]="tooltip(row[column.key].content, row.label, column.key) | translate"
+                      [class]="colorClasses(row[column.key].content, row.label, column.key)"
+                      class="px-3 py-1 h-2rem border-bottom-1 border-300 white-space-nowrap min-w-max flex justify-content-center align-items-center gap-1"
+                    >
+                      @if (!isMatchForH1(row[column.key].content, row.label, column.key)) {
+                        <span class="material-icons-outlined">sync_problem</span>
+                      }
                       {{ row[column.key].content.length }}/{{ column.key.startsWith('title') ? '60' : '160' }} {{ 'common.characters' | translate }}
                     </div>
-                    <div [aidaTooltip]="tooltip(row[column.key].content, row.label, column.key) | translate" [class.text-red]="isRed(row[column.key].content, row.label, column.key)" class="px-3 py-1">
+                    <div class="px-3 py-1">
                       {{ row[column.key].content }}
                     </div>
                     @if (column.type === 'prototype') {
-                      <p-button
-                        [label]="'metadata.editButton' | translate"
-                        (onClick)="editMeta(row.label[projectCache.uiLang()].path)"
-                        class="flex justify-content-center px-5 py-2"
-                        fluid
-                        icon="pi pi-pen-to-square"
-                        outlined
-                        styleClass="secondary-outline"
-                      />
+                      <ng-container *ngTemplateOutlet="protoButtons; context: { row: row, column: column }" />
                     }
                   }
                 }
@@ -349,3 +350,27 @@
     </ng-template>
   </p-drawer>
 </div>
+
+<ng-template #protoButtons let-column="column" let-row="row">
+  <p-button
+    [label]="'metadata.editButton' | translate"
+    (onClick)="editMeta(row.label[projectCache.uiLang()].path)"
+    class="flex justify-content-center px-5 py-2"
+    fluid
+    icon="pi pi-pen-to-square"
+    outlined
+    styleClass="secondary-outline"
+  />
+  @if (showSync(row, column.key)) {
+    <p-button
+      [aidaTooltip]="'metadata.tooltip.generateTitle' | translate"
+      [label]="'metadata.syncTitle' | translate"
+      (onClick)="generateTitleFromH1(row.label[projectCache.uiLang()])"
+      class="flex justify-content-center px-5 py-2"
+      fluid
+      icon="pi pi-sync"
+      outlined
+      styleClass="secondary-outline"
+    />
+  }
+</ng-template>

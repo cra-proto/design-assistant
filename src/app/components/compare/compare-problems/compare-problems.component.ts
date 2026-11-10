@@ -5,17 +5,19 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { AccordionModule } from 'primeng/accordion';
 
+import { CompareLanguagesComponent } from '../../../views/tasks/compare-languages/compare-languages.component';
+import { ComparePageDataComponent } from './compare-page-data/compare-page-data.component';
 import { DesignComponentsComponent } from './design-components/design-components.component';
 
 import { htmlProcessingResult } from '../../../services/html-normalization.service';
-import { CompareService } from '../../../views/tasks/compare/compare.service';
+import { CompareService } from '../../../views/tasks/compare-versions/compare-versions.service';
 import { AlertService } from './design-components/alerts/alert.service';
 
 import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'aida-compare-problems',
-  imports: [CommonModule, AccordionModule, DesignComponentsComponent],
+  imports: [CommonModule, AccordionModule, CompareLanguagesComponent, ComparePageDataComponent, DesignComponentsComponent],
   templateUrl: './compare-problems.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -31,6 +33,7 @@ export class CompareProblemsComponent {
   public readonly afterContent = input<htmlProcessingResult | undefined>();
 
   // Template references
+  protected readonly languageTemplate = viewChild.required<TemplateRef<unknown>>('languages');
   protected readonly dataTemplate = viewChild.required<TemplateRef<unknown>>('data');
   protected readonly componentsTemplate = viewChild.required<TemplateRef<unknown>>('components');
   protected readonly linksTemplate = viewChild.required<TemplateRef<unknown>>('links');
@@ -56,6 +59,14 @@ export class CompareProblemsComponent {
   protected get tools(): { key: string; header: string; description: string; template: TemplateRef<unknown>; icon: string; visible: boolean }[] {
     return [
       {
+        key: 'languages',
+        header: this.translate.instant('languages._title'),
+        description: this.translate.instant('languages.description'),
+        template: this.languageTemplate(),
+        icon: 'language',
+        visible: true,
+      },
+      {
         key: 'data',
         header: this.translate.instant('problems.data.header'),
         description: this.translate.instant('problems.data.description'),
@@ -69,7 +80,7 @@ export class CompareProblemsComponent {
         description: this.translate.instant('problems.components.description'),
         template: this.componentsTemplate(),
         icon: 'draw',
-        visible: false,
+        visible: true,
       },
       {
         key: 'links',

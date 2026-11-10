@@ -32,7 +32,7 @@ export class HomeComponent {
   protected readonly AidaLinks = AidaLinks;
 
   protected readonly title = signal<string>(this.translate.instant('home._title', { org: '' }));
-  protected readonly taskDoormats: DoormatKey[] = ['dashboard', 'problems', 'iaDiagram', 'inventory', 'search', 'metadata', 'exportPages', 'editPages', 'compare'];
+  protected readonly taskDoormats: DoormatKey[] = ['dashboard', 'problems', 'iaDiagram', 'inventory', 'search', 'metadata', 'exportPages', 'editPages', 'compare', 'languages'];
   protected readonly settingsDoormats: DoormatKey[] = ['setupProject', 'addPages'];
   protected readonly helpDoormats: DoormatKey[] = ['help', 'contact'];
 

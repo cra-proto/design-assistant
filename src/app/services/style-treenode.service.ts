@@ -80,20 +80,20 @@ export class StyleTreeNodeService {
   }
 
   contextStylesLight: Record<NodeContext, string> = {
-    new: 'bg-green-200 hover:bg-green-300 border-dashed text-black',
-    rot: 'bg-red-200 hover:bg-red-300 border-dashed text-black',
-    move: 'bg-yellow-200 hover:bg-yellow-300 border-dashed text-black',
-    navChild: 'bg-blue-200 hover:bg-blue-300 border-dashed text-black',
+    new: 'bg-green-100 hover:bg-green-200 border-dashed text-black',
+    rot: 'bg-red-100 hover:bg-red-200 border-dashed text-black',
+    move: 'bg-yellow-100 hover:bg-yellow-200 border-dashed text-black',
+    navChild: 'bg-blue-100 hover:bg-blue-200 border-dashed text-black',
     navChildTemp: 'surface-200 hover:surface-300 border-dashed text-black',
     template: 'surface-200 hover:surface-300 text-black',
   };
 
   contextStylesDark: Record<NodeContext, string> = {
-    new: 'bg-green-700 hover:bg-green-600 border-dashed text-white',
-    rot: 'bg-red-700 hover:bg-red-600 border-dashed text-white',
-    move: 'bg-yellow-700 hover:bg-yellow-600 border-dashed text-black',
-    navChild: 'bg-blue-700 hover:bg-blue-600 border-dashed text-white',
-    navChildTemp: 'surface-200 hover:surface-300 border-dashed text-white',
-    template: 'surface-200 hover:surface-300 text-white',
+    new: 'bg-green-900 hover:bg-green-800 border-dashed text-white',
+    rot: 'bg-red-900 hover:bg-red-800 border-dashed text-white',
+    move: 'bg-yellow-800 hover:bg-yellow-800 border-dashed text-black',
+    navChild: 'bg-blue-900 hover:bg-blue-800 border-dashed text-white',
+    navChildTemp: 'surface-100 hover:surface-200 border-dashed text-white',
+    template: 'surface-100 hover:surface-200 text-white',
   };
 }

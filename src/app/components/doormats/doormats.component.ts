@@ -40,6 +40,7 @@ export const DOORMATS = {
   exportPages: { path: AidaLinks.ProjectExport, titleKey: 'exportPages._title', descriptionKey: 'exportPages.description', icon: 'drive_folder_upload' },
   editPages: { path: AidaLinks.ProjectEdit, titleKey: 'editPages._title', descriptionKey: 'editPages.description', icon: 'auto_fix_high' },
   compare: { path: AidaLinks.ProjectCompare, titleKey: 'compare._title', descriptionKey: 'compare.description', icon: 'library_books' },
+  languages: { path: AidaLinks.ProjectLanguages, titleKey: 'languages._title', descriptionKey: 'languages.description', icon: 'language' },
   //Page Settings
   setupProject: { path: AidaLinks.ProjectSettings, titleKey: 'project._nav.edit', descriptionKey: 'project.edit.description', icon: 'settings' },
   addPages: { path: AidaLinks.ProjectAdd, titleKey: 'findPages._title', descriptionKey: 'addPages.description', icon: 'note_add' },
