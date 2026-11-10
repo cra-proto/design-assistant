@@ -7,6 +7,7 @@ import { TreeNode } from 'primeng/api';
 import { ProjectStateService } from '../services/project-state.service';
 import { StyleTreeNodeService } from '../services/style-treenode.service';
 import { ProjectCacheService } from './project-cache.service';
+import { UserSettingsService } from './user-settings.service';
 
 import { TreeNodeData } from '../common/data.model';
 
@@ -172,6 +173,7 @@ export class TableService {
   private readonly projectState = inject(ProjectStateService);
   private readonly projectCache = inject(ProjectCacheService);
   private readonly styleTreeNodeService = inject(StyleTreeNodeService);
+  private readonly settingsService = inject(UserSettingsService);
 
   private static readonly ENTRIES = [
     { flag: 'isNew', style: 'new', text: marker('editNode.isNew') },
@@ -181,6 +183,7 @@ export class TableService {
 
   /** Get dynamic legend items */
   public legendItems(): { context: string[]; text: string }[] {
+    if (!this.settingsService.colorMode()) return [];
     const tree = this.projectState.getProject().projectData;
     if (tree.length === 0) return [];
 

@@ -5,17 +5,18 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { AccordionModule } from 'primeng/accordion';
 
+import { ComparePageDataComponent } from './compare-page-data/compare-page-data.component';
 import { DesignComponentsComponent } from './design-components/design-components.component';
 
 import { htmlProcessingResult } from '../../../services/html-normalization.service';
-import { CompareService } from '../../../views/tasks/compare/compare.service';
+import { CompareService } from '../../../views/tasks/compare-versions/compare-versions.service';
 import { AlertService } from './design-components/alerts/alert.service';
 
 import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'aida-compare-problems',
-  imports: [CommonModule, AccordionModule, DesignComponentsComponent],
+  imports: [CommonModule, AccordionModule, ComparePageDataComponent, DesignComponentsComponent],
   templateUrl: './compare-problems.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -61,7 +62,7 @@ export class CompareProblemsComponent {
         description: this.translate.instant('problems.data.description'),
         template: this.dataTemplate(),
         icon: 'analytics',
-        visible: false,
+        visible: true,
       },
       {
         key: 'components',

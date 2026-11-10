@@ -271,6 +271,32 @@
 
   <section [class]="styleCardService.cardStyles()">
     <h2 id="release">Release notes</h2>
+    <h3 id="0-8-3">Release 0.8.4 (Nov 10, 2026)</h3>
+    <h4>New alert prompt in "Edit pages" view</h4>
+    <ul>
+      <li>Identifies any problems with the alerts on the page</li>
+      <li>Rewrites alerts to align with the guidance</li>
+    </ul>
+    <h4>New view for comparing English and French pages</h4>
+    <ul>
+      <li>
+        This view includes 6 tools
+        <ol>
+          <li><strong>Data:</strong> compares all the French and English data collected by AIDA</li>
+          <li><strong>HTML:</strong> compares element, class, and attribute counts to identify if structure is different or missing</li>
+          <li><strong>Hidden:</strong> pulls out all hidden content for user to compare side-by-side, flags identical content as a potential problem (missing translation)</li>
+          <li><strong>Numbers:</strong> pulls out all numbers for user to compare side-by-side, flags differences as potential problems</li>
+          <li><strong>AI summary:</strong> prompts AI to find differences in the pages</li>
+          <li><strong>Web pages:</strong> side-by-side view of the English and French pages</li>
+        </ol>
+      </li>
+    </ul>
+    <h4>Minor updates</h4>
+    <ul>
+      <li>Add new "Colour-coding" user setting that toggles row status highlighting on/off in tables</li>
+      <li>Prevent users from reaching "new page" view via back button</li>
+      <li>Adjust colours on IA diagram to improve contrast with text</li>
+    </ul>
     <h3 id="0-8-3">Release 0.8.3 (Nov 4, 2026)</h3>
     <h4>Minor updates</h4>
     <ul>

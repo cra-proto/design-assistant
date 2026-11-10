@@ -11,6 +11,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { ToggleButtonModule } from 'primeng/togglebutton';
 import { TooltipModule } from 'primeng/tooltip';
 
 import { DoormatsComponent } from '../doormats/doormats.component';
@@ -23,7 +24,19 @@ export type SettingsMode = 'all' | 'language' | 'theme' | 'versions' | 'autoChil
 
 @Component({
   selector: 'aida-user-settings',
-  imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, CheckboxModule, DialogModule, SelectButtonModule, SelectModule, TooltipModule, forwardRef(() => DoormatsComponent)],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslatePipe,
+    ButtonModule,
+    CheckboxModule,
+    DialogModule,
+    SelectButtonModule,
+    SelectModule,
+    ToggleButtonModule,
+    TooltipModule,
+    forwardRef(() => DoormatsComponent),
+  ],
   templateUrl: './user-settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -86,6 +99,14 @@ export class UserSettingsComponent {
 
   protected changeScheme() {
     this.settingsService.setColorScheme(this.selectedScheme);
+  }
+
+  protected get selectedMode(): boolean {
+    return this.settingsService.colorMode();
+  }
+
+  protected set selectedMode(value: boolean) {
+    this.settingsService.setColorMode(value);
   }
 
   // Versions

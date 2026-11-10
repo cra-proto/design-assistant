@@ -113,14 +113,18 @@ export class HtmlNormalizationService {
   // HTML processing functions
 
   // 1. Resolve relative URLs
-  private updateRelativeURLs(doc: Document, baseUrl: string): void {
+  public updateRelativeURLs(doc: Document, baseUrl: string): void {
     const anchors = doc.querySelectorAll<HTMLAnchorElement>('a');
     const images = doc.querySelectorAll<HTMLImageElement>('img');
+    const scripts = doc.querySelectorAll<HTMLScriptElement>('script');
+    const links = doc.querySelectorAll<HTMLLinkElement>('link');
+
+    const isRootRelative = (url: string | null): url is string => !!url && url.startsWith('/') && !url.startsWith('//');
 
     anchors.forEach((anchor) => {
       const href = anchor.getAttribute('href');
       if (href) {
-        if (href.startsWith('/')) {
+        if (isRootRelative(href)) {
           anchor.setAttribute('href', `${baseUrl}${href}`);
         }
       }
@@ -128,8 +132,24 @@ export class HtmlNormalizationService {
 
     images.forEach((img) => {
       const src = img.getAttribute('src');
-      if (src?.startsWith('/')) {
+      if (isRootRelative(src)) {
         img.setAttribute('src', `${baseUrl}${src}`);
+      }
+    });
+
+    scripts.forEach((script) => {
+      const src = script.getAttribute('src');
+      if (src) {
+        if (isRootRelative(src)) {
+          script.setAttribute('src', `${baseUrl}${src}`);
+        }
+      }
+    });
+
+    links.forEach((link) => {
+      const href = link.getAttribute('href');
+      if (isRootRelative(href)) {
+        link.setAttribute('href', `${baseUrl}${href}`);
       }
     });
   }

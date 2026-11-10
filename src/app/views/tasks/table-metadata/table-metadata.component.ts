@@ -24,11 +24,12 @@ import { ProjectSettingsComponent } from '../../../components/project-settings/p
 
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
-import { FlattenedMetadata, ProjectMetadataService, TableItem } from '../../../services/project-metadata.service';
 import { LoadingTypes, ProjectStateService } from '../../../services/project-state.service';
 import { StyleCardService } from '../../../services/style-card.service';
 import { buildFilterFields, ColumnVisibility, createRowSelection, groupSpans, LabelItem, persisted, rowsPerPageOptions, TableService, trackStuck } from '../../../services/style-table.service';
-import { CompareService } from '../compare/compare.service';
+import { FlattenedMetadata, TableItem, TableMetadataService } from '../../../services/table-metadata.service';
+import { UserSettingsService } from '../../../services/user-settings.service';
+import { CompareService } from '../compare-versions/compare-versions.service';
 
 import { TreeNodeData } from '../../../common/data.model';
 import { TooltipDirective } from '../../../common/tooltip.directive';
@@ -66,19 +67,20 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
     ProjectSettingsComponent,
     TooltipDirective,
   ],
-  templateUrl: 'metadata.component.html',
+  templateUrl: 'table-metadata.component.html',
   styleUrl: '../../../../sticky.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MetadataComponent implements OnInit {
+export class TableMetadataComponent implements OnInit {
   private readonly injector = inject(Injector);
   protected readonly projectState = inject(ProjectStateService);
   protected readonly projectCache = inject(ProjectCacheService);
-  protected readonly projectMetadata = inject(ProjectMetadataService);
+  protected readonly tableMetadata = inject(TableMetadataService);
   protected readonly tableService = inject(TableService);
   protected readonly styleCardService = inject(StyleCardService);
   protected readonly fetchService = inject(FetchService);
   private readonly compareService = inject(CompareService);
+  protected readonly settingsService = inject(UserSettingsService);
 
   /* Search term for filtering table rows */
   protected readonly searchTerm = signal<string>('');
@@ -110,7 +112,7 @@ export class MetadataComponent implements OnInit {
 
   /** All table rows */
   protected readonly rows = computed(() => {
-    return this.projectMetadata.flattenMetadata(this.projectState.getProject().projectData);
+    return this.tableMetadata.flattenMetadata(this.projectState.getProject().projectData);
   });
 
   /** Selected table rows */
@@ -191,8 +193,6 @@ export class MetadataComponent implements OnInit {
     marker('metadata.status.changeLive');
     marker('metadata.status.noChangesPendingReview');
     marker('metadata.status.noChangesApproved');
-    marker('metadata.tooltip.tooLong');
-    marker('metadata.tooltip.notH1Match');
   }
 
   /***** END OF TABLE FUNCTIONS *****/
@@ -258,6 +258,17 @@ export class MetadataComponent implements OnInit {
     );
   }
 
+  /** Syncs H1 and double H1 to title */
+  generateTitleFromH1(label: LabelItem) {
+    const h1 = label.h1;
+    const doubleH1 = label.doubleH1 ? ` - ${label.doubleH1}` : '';
+    const title = h1 + doubleH1;
+    const nodeData = this.projectState.findNodeByPath(this.projectState.getProject().projectData, label.path, this.projectCache.uiLang())?.data;
+    if (!nodeData) return;
+    nodeData.prototype[this.projectCache.uiLang()].title = title;
+    this.projectState.setModifiedDate();
+  }
+
   /***** END OF EDITOR FUNCTIONS *****/
 
   /***** START OF APPROVAL FUNCTIONS *****/
@@ -267,7 +278,7 @@ export class MetadataComponent implements OnInit {
     const nodeData = this.projectState.findNodeByPath(this.projectState.getProject().projectData, path, this.projectCache.uiLang())?.data;
     if (!nodeData) return;
     if (value) {
-      nodeData.approved = { ...nodeData.approved, metadata: this.projectMetadata.hashMetadata(nodeData) };
+      nodeData.approved = { ...nodeData.approved, metadata: this.tableMetadata.hashMetadata(nodeData) };
       this.projectState.setModifiedDate();
     } else if (nodeData.approved) {
       nodeData.approved.metadata = undefined;
@@ -296,40 +307,45 @@ export class MetadataComponent implements OnInit {
 
   protected tooltip(content: string, label: Record<'en' | 'fr', LabelItem>, key: string): string | undefined {
     if (key.startsWith('title')) {
-      return !this.isMatchforH1(content, label, key) ? 'metadata.tooltip.notH1Match' : undefined;
+      return !this.isMatchForH1(content, label, key) ? marker('metadata.tooltip.notH1Match') : this.isTooLong(content, key) ? marker('metadata.tooltip.tooLongTitle') : undefined;
     } else {
-      return this.isTooLong(content) ? 'metadata.tooltip.tooLong' : undefined;
-    }
-  }
-
-  protected isRed(content: string, label: Record<'en' | 'fr', LabelItem>, key: string): boolean {
-    if (key.startsWith('title')) {
-      return !this.isMatchforH1(content, label, key);
-    } else {
-      return this.isTooLong(content);
+      return this.isTooLong(content, key) ? marker('metadata.tooltip.tooLong') : undefined;
     }
   }
 
   /** Checks if title matches H1 - Double H1 */
-  private isMatchforH1(title: string, label: Record<'en' | 'fr', LabelItem>, key: string): boolean {
+  protected isMatchForH1(content: string, label: Record<'en' | 'fr', LabelItem>, key: string): boolean {
+    if (!key.startsWith('title')) return true;
     const h1 = key.startsWith('titleEn') ? label.en.h1 : label.fr.h1;
     const doubleH1 = key.startsWith('titleEn') ? label.en.doubleH1 : label.fr.doubleH1;
     const expectedTitle = doubleH1 ? [' - ', ' – ', ' — ', ': ', ' : '].map((sep) => h1.trim() + sep + doubleH1.trim()) : [h1.trim()];
-    return expectedTitle.includes(title.trim());
+    return expectedTitle.includes(content.trim());
   }
 
   /** Checks if metadata is within accepted character length */
-  private isTooLong(content: string): boolean {
+  private isTooLong(content: string, key: string): boolean {
+    const max = key.startsWith('title') ? 60 : 160;
     if (content !== 'noChange') {
-      return content.length > 160;
+      return content.length > max;
     } else return false;
   }
 
   /** Checks if metadata is within accepted character length and returns green/red colour classes */
-  protected countClasses(content: string, key: string): string {
-    const max = key.startsWith('title') ? 60 : 160;
-    const tooLong = content.length > max;
-    const classes = tooLong ? 'bg-red text-red' : 'bg-green text-green';
-    return classes;
+  protected colorClasses(content: string, label: Record<'en' | 'fr', LabelItem>, key: string): string {
+    const tooLong = this.isTooLong(content, key);
+    const notMatch = !this.isMatchForH1(content, label, key);
+    return tooLong || notMatch ? 'bg-red text-red' : 'bg-green text-green';
+  }
+
+  /** Logic to determine if sync title button should be visible in a cell */
+  protected showSync(row: FlattenedMetadata, key: string): boolean {
+    if (!key.endsWith('Proto')) return false;
+    if (key.startsWith('titleEn')) {
+      const content = row.titleEnProto.content === 'noChange' ? row.titleEnBase.content : row.titleEnProto.content;
+      return !this.isMatchForH1(content, row.label, key);
+    } else if (key.startsWith('titleFr')) {
+      const content = row.titleFrProto.content === 'noChange' ? row.titleFrBase.content : row.titleFrProto.content;
+      return !this.isMatchForH1(content, row.label, key);
+    } else return false;
   }
 }

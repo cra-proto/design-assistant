@@ -1,0 +1,104 @@
+<div class="flex justify-content-between gap-2">
+  <div>
+    <h2 class="mt-0">{{ 'languages.dataCompare.header' | translate }}</h2>
+    <p class="mb-1">{{ 'languages.dataCompare.description.p1' | translate }}</p>
+    <ul class="mt-1">
+      @for (listItem of ('languages.dataCompare.description.list' | translate).split('|'); track $index) {
+        <li>{{ listItem }}</li>
+      }
+    </ul>
+    <p>{{ 'languages.dataCompare.description.p2' | translate }}</p>
+  </div>
+  <div class="flex flex-column gap-2">
+    <p-button
+      [disabled]="noRefresh().proto"
+      [label]="'languages.refreshProto' | translate"
+      [loading]="projectState.refreshing().prototype"
+      (onClick)="refresh('prototype')"
+      fluid
+      icon="pi pi-refresh"
+      outlined
+      styleClass="secondary-outline min-w-15rem"
+    />
+    <p-button
+      [disabled]="noRefresh().live"
+      [label]="'languages.refreshLive' | translate"
+      [loading]="projectState.refreshing().live"
+      (onClick)="refresh('live')"
+      fluid
+      icon="pi pi-refresh"
+      outlined
+      styleClass="secondary-outline min-w-15rem"
+    />
+  </div>
+</div>
+
+@let data = selectedNode()?.data;
+@if (data?.baseline) {
+  <ng-container [ngTemplateOutlet]="mismatchTable" [ngTemplateOutletContext]="{ title: 'baseline', rows: selectedBase(), loading: projectState.refreshing().baseline }" />
+}
+@if (data?.prototype) {
+  <ng-container [ngTemplateOutlet]="mismatchTable" [ngTemplateOutletContext]="{ title: 'prototype', rows: selectedProto(), loading: projectState.refreshing().prototype }" />
+}
+@if (data?.live) {
+  <ng-container [ngTemplateOutlet]="mismatchTable" [ngTemplateOutletContext]="{ title: 'live', rows: selectedLive(), loading: projectState.refreshing().live }" />
+}
+@if (!data) {
+  <p-message icon="pi pi-info-circle" severity="info">{{ 'pageOptions.description.0' | translate }}</p-message>
+}
+<ng-template #mismatchTable let-loading="loading" let-rows="rows" let-title="title">
+  <h3>{{ 'common.version.' + title | translate }}</h3>
+  <p-table [value]="rows" size="small" stripedRows>
+    <ng-template #header>
+      <tr>
+        <th class="w-2">{{ 'common.data' | translate }}</th>
+        <th class="w-5">{{ 'common.language.english' | translate }}</th>
+        <th class="w-5">{{ 'common.language.french' | translate }}</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr>
+        <td>
+          @if (loading) {
+            <i class="pi pi-spinner pi-spin text-xl"></i>
+          } @else {
+            {{ 'inventory.header.' + row.label | translate }}
+          }
+        </td>
+        <td>
+          @if (loading) {
+            <i class="pi pi-spinner pi-spin text-xl"></i>
+          } @else {
+            @if (row.en) {
+              {{ row.en | translate }}
+            } @else {
+              <i class="pi pi-minus text-xl"></i>
+            }
+          }
+        </td>
+        <td>
+          @if (loading) {
+            <i class="pi pi-spinner pi-spin text-xl"></i>
+          } @else {
+            @if (row.fr) {
+              {{ row.fr | translate }}
+            } @else {
+              <i class="pi pi-minus text-xl"></i>
+            }
+          }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td class="text-center" colspan="3">
+          @if (loading) {
+            <i class="pi pi-spinner pi-spin text-xl"></i>
+          } @else {
+            {{ 'languages.noMismatch' | translate }}
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</ng-template>

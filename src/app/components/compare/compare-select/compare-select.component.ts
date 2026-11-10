@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, input, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, OnInit, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Params, Router } from '@angular/router';
 
@@ -20,7 +20,7 @@ import { FetchService } from '../../../services/fetch.service';
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
-import { CompareService } from '../../../views/tasks/compare/compare.service';
+import { CompareService } from '../../../views/tasks/compare-versions/compare-versions.service';
 
 import { AidaLinks } from '../../../common/aidaLinks.config';
 import { ALL_SOURCES, SourceVersion } from '../../../common/data.model';
@@ -76,12 +76,18 @@ export class CompareSelectComponent implements OnInit {
       if (!hasVersion(this.compareService.selectedSource())) this.compareService.selectedSource.set(firstOption);
     });
     effect(() => {
-      void this.projectCache.selectedLang();
-      const bothPaths = this.projectState.getBothPaths(this.compareService.selectedPage());
-      if (!bothPaths) return;
-      const newPath = this.projectCache.selectedLang() === 'fr' ? bothPaths.fr : bothPaths.en;
-      this.compareService.selectedPage.set(newPath);
-      this.onPageSelectionChange(newPath);
+      const lang = this.projectCache.selectedLang();
+      untracked(() => {
+        const currentPath = this.compareService.selectedPage();
+        const bothPaths = this.projectState.getBothPaths(currentPath);
+        if (!bothPaths) return;
+
+        const newPath = lang === 'fr' ? bothPaths.fr : bothPaths.en;
+        this.compareService.selectedPage.set(newPath);
+        if (newPath === currentPath) return;
+
+        void this.onPageSelectionChange(newPath);
+      });
     });
   }
 

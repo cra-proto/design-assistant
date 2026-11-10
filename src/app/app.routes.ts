@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { Router, Routes } from '@angular/router';
-
+import { CanActivateFn } from '@angular/router';
 import { environment } from '../environments/environment';
 
 // Navigation views
@@ -52,7 +52,13 @@ export const editProjectGuard = () => {
   return true;
 };
 
-export const newProjectGuard = () => {
+export const newProjectGuard: CanActivateFn = () => {
+  //If using back button, send to home page instead of new project
+  const router = inject(Router);
+  if (router.currentNavigation()?.trigger === 'popstate') {
+    return router.createUrlTree([AidaLinks.Home]);
+  }
+  // Detect if project should reset
   const projectState = inject(ProjectStateService);
   const projectStorageService = inject(ProjectStorageService);
   const hasPages = !!projectState.getProject().baselinePages;
@@ -131,12 +137,12 @@ export const routes: Routes = [
       },
       {
         path: 'inventory',
-        loadComponent: () => import('./views/tasks/page-inventory/page-inventory.component').then((m) => m.PageInventoryComponent),
+        loadComponent: () => import('./views/tasks/table-inventory/table-inventory.component').then((m) => m.TableInventoryComponent),
         title: 'inventory._title',
       },
       {
         path: 'metadata',
-        loadComponent: () => import('./views/tasks/metadata/metadata.component').then((m) => m.MetadataComponent),
+        loadComponent: () => import('./views/tasks/table-metadata/table-metadata.component').then((m) => m.TableMetadataComponent),
         title: 'metadata._title',
       },
       {
@@ -146,15 +152,20 @@ export const routes: Routes = [
       },
       {
         path: 'edit-pages',
-        loadComponent: () => import('./views/tasks/compare/compare.component').then((m) => m.CompareComponent),
+        loadComponent: () => import('./views/tasks/compare-versions/compare-versions.component').then((m) => m.CompareComponent),
         title: 'editPages._title',
         data: { mode: 'ai' },
       },
       {
         path: 'compare-pages',
-        loadComponent: () => import('./views/tasks/compare/compare.component').then((m) => m.CompareComponent),
+        loadComponent: () => import('./views/tasks/compare-versions/compare-versions.component').then((m) => m.CompareComponent),
         title: 'compare._title',
         data: { mode: 'compare' },
+      },
+      {
+        path: 'compare-languages',
+        loadComponent: () => import('./views/tasks/compare-languages/compare-languages.component').then((m) => m.CompareLanguagesComponent),
+        title: 'languages._title',
       },
     ],
   },

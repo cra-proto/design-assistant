@@ -12,7 +12,7 @@ import { EditNodeComponent } from '../edit-node/edit-node.component';
 import { OpenRouterService } from '../../services/ai/openrouter.service';
 import { FetchService } from '../../services/fetch.service';
 import { ProjectStateService } from '../../services/project-state.service';
-import { CompareService } from '../../views/tasks/compare/compare.service';
+import { CompareService } from '../../views/tasks/compare-versions/compare-versions.service';
 
 import { AidaLinks } from '../../common/aidaLinks.config';
 import { TreeNodeData } from '../../common/data.model';

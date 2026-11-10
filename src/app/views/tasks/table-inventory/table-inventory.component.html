@@ -103,8 +103,8 @@
               <td [class.border-left-1]="!column.isGroupStart" [class.border-left-3]="column.isGroupStart" class="p-0 min-w-min">
                 @switch (cell.type) {
                   @case ('boolean') {
-                    <div [aidaTooltip]="projectInventory.getBooleanTooltip(cell.content, column.key) | translate" class="flex justify-content-center my-5 px-1">
-                      <i [class]="projectInventory.getBooleanIcon(cell.content, column.key)" class="text-2xl"></i>
+                    <div [aidaTooltip]="tableInventory.getBooleanTooltip(cell.content, column.key) | translate" class="flex justify-content-center my-5 px-1">
+                      <i [class]="tableInventory.getBooleanIcon(cell.content, column.key)" class="text-2xl"></i>
                     </div>
                   }
                   @case ('number') {

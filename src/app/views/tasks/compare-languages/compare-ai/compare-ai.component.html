@@ -1,0 +1,66 @@
+<div class="flex justify-content-between gap-2">
+  <div>
+    <h2 class="mt-0">{{ 'languages.aiSummary.header' | translate }}</h2>
+    <p>{{ 'languages.aiSummary.description' | translate }}</p>
+  </div>
+  @let status = reviewLanguagesService.getAiJobStatus(compareService.selectedPage());
+  <p-button
+    [disabled]="is404()"
+    [label]="'languages.generateSummary' | translate"
+    [loading]="status === 'pending'"
+    [outlined]="status"
+    (onClick)="getSummary()"
+    icon="pi pi-sparkles"
+    styleClass="secondary-outline"
+  />
+</div>
+@if (is404()) {
+  <p-message icon="pi pi-times-circle font-bold" severity="error">{{ 'languages.is404' | translate }}</p-message>
+}
+<div class="mt-2" role="status">
+  @switch (status) {
+    @case ('pending') {
+      <div class="flex justify-content-center align-items-center gap-2">
+        <i class="pi pi-spinner pi-spin text-5xl text-primary"></i><span>{{ 'compare.waitingForAI' | translate }}<span class="loading-dots"></span></span>
+      </div>
+    }
+    @case ('error') {
+      <p-message icon="pi pi-times-circle font-bold" severity="error">{{ 'languages.aiError' | translate }}</p-message>
+    }
+    @case ('done') {
+      @let diffs = reviewLanguagesService.getAiResponse(compareService.selectedPage());
+      @if (diffs.length > 0) {
+        <p-table [value]="diffs" scrollable scrollHeight="30rem" size="small" stripedRows>
+          <ng-template #header>
+            <tr>
+              <th class="w-4">{{ 'inventory.header.issue' | translate }}</th>
+              <th class="w-4">{{ 'common.language.english' | translate }}</th>
+              <th class="w-4">{{ 'common.language.french' | translate }}</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-diff>
+            <tr>
+              <td>{{ diff.issue }}</td>
+              <td>
+                @if (diff.english) {
+                  {{ diff.english }}
+                } @else {
+                  <i class="pi pi-minus text-xl"></i>
+                }
+              </td>
+              <td [attr.lang]="'fr'">
+                @if (diff.french) {
+                  {{ diff.french }}
+                } @else {
+                  <i class="pi pi-minus text-xl"></i>
+                }
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        <p-message icon="pi pi-check-circle font-bold" severity="success">{{ 'languages.noDiffs' | translate }}</p-message>
+      }
+    }
+  }
+</div>

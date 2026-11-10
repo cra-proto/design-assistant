@@ -18,14 +18,14 @@ import { htmlProcessingResult } from '../../../services/html-normalization.servi
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { StyleCardService } from '../../../services/style-card.service';
-import { CompareService } from './compare.service';
+import { CompareService } from './compare-versions.service';
 
 import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'aida-compare-versions',
   imports: [FormsModule, TranslatePipe, TabsModule, CompareProblemsComponent, CompareRenderedComponent, CompareSelectComponent, CompareSourceComponent, CompareToolsComponent, EditNodeComponent],
-  templateUrl: './compare.component.html',
+  templateUrl: './compare-versions.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompareComponent {

@@ -65,6 +65,7 @@
             <ng-container
               *ngTemplateOutlet="link; context: { path: AidaLinks.ProjectCompare, icon: 'library_books', text: ('compare._nav' | translate), isOutlined: true, onClick: compareVersions }"
             />
+            <ng-container *ngTemplateOutlet="link; context: { path: AidaLinks.ProjectLanguages, icon: 'language', text: ('languages._nav' | translate) }" />
           </div>
         </div>
       }

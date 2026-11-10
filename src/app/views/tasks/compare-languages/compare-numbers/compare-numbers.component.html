@@ -1,0 +1,60 @@
+<div class="flex justify-content-between">
+  <div>
+    <h2 class="mt-0">{{ 'languages.numbers.header' | translate }}</h2>
+    <p>{{ 'languages.numbers.description' | translate }}</p>
+  </div>
+  <p-togglebutton
+    [ngModel]="numberDiffsOnly()"
+    [offLabel]="'common.toggle.showingAll' | translate"
+    [onLabel]="'common.toggle.showingDiffs' | translate"
+    (ngModelChange)="numberDiffsOnly.set($event)"
+    class="h-2.75rem w-14rem min-w-max"
+    offIcon="pi pi-filter-slash"
+    onIcon="pi pi-filter"
+  />
+</div>
+@if (is404()) {
+  <p-message icon="pi pi-times-circle font-bold" severity="error">{{ 'languages.is404' | translate }}</p-message>
+} @else {
+  <p-table [value]="visibleRows()" scrollable scrollHeight="30rem" size="small" stripedRows>
+    <ng-template #header>
+      <tr>
+        <th class="w-6">{{ 'common.language.english' | translate }}</th>
+        <th class="w-6">{{ 'common.language.french' | translate }}</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr [class]="row.match ? null : 'bg-red'">
+        <td>
+          @if (row.en) {
+            <span class="text-color-secondary">{{ row.en.before }}</span>
+            <mark>{{ row.en.raw }}</mark>
+            <span class="text-color-secondary">{{ row.en.after }}</span>
+          } @else {
+            <i class="pi pi-minus text-xl"></i>
+          }
+        </td>
+        <td>
+          @if (row.fr) {
+            <span class="text-color-secondary">{{ row.fr.before }}</span>
+            <mark>{{ row.fr.raw }}</mark>
+            <span class="text-color-secondary">{{ row.fr.after }}</span>
+          } @else {
+            <i class="pi pi-minus text-xl"></i>
+          }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td class="text-center" colspan="3">
+          @if (numberDiffsOnly()) {
+            {{ 'languages.noMismatch' | translate }}
+          } @else {
+            {{ 'languages.noNumbers' | translate }}
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}

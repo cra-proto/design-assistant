@@ -12,7 +12,7 @@ import { TableModule } from 'primeng/table';
 import { AlertsComponent } from './alerts/alerts.component';
 
 import { htmlProcessingResult } from '../../../../services/html-normalization.service';
-import { CompareService } from '../../../../views/tasks/compare/compare.service';
+import { CompareService } from '../../../../views/tasks/compare-versions/compare-versions.service';
 import { AlertService } from './alerts/alert.service';
 
 import { coerceInteractiveResultLeadIns, getReportableAlertsFromHtml } from './alerts/alert-reportable.utils';

@@ -33,6 +33,10 @@ export class UserSettingsService {
   private readonly colorSchemeKey = 'color-scheme';
   public readonly colorScheme = signal<ColorScheme>(this.getStoredColorScheme());
 
+  // Colour-code mode
+  private readonly colorModeKey = 'color-mode';
+  public readonly colorMode = signal<boolean>(this.getStoredColorMode());
+
   // Toolbox visibility (used by sidebar, undecided if we should surface in user settings)
   public readonly toolbox = signal<string | null>(localStorage.getItem('myToolbox') || environment.myToolbox);
   // Toolbox visibility (undecided if we should surface in user settings)
@@ -147,6 +151,18 @@ export class UserSettingsService {
         darkModeSelector: '.dark-mode',
       },
     });
+  }
+
+  /**  Get color-code mode */
+  private getStoredColorMode(): boolean {
+    const stored = localStorage.getItem(this.colorModeKey);
+    return stored === 'true' ? true : false;
+  }
+
+  /**  Set color-code mode */
+  public setColorMode(mode: boolean) {
+    this.colorMode.set(mode);
+    localStorage.setItem(this.colorModeKey, mode.toString());
   }
 
   // UserId
