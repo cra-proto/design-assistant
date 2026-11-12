@@ -87,13 +87,13 @@ export class AiMetadataComponent {
 
   addonClasses(tooLong: boolean) {
     const colour = tooLong ? 'text-red' : 'text-green';
-    const width = this.projectCache.selectedLang() === 'both' ? 'w-2' : 'w-1';
+    const width = this.projectCache.selectedLangs() === 'both' ? 'w-2' : 'w-1';
     return `secondary-outline text-center min-w-min ${colour} ${width}`;
   }
 
   statusClasses(status: string) {
     const colour = status.startsWith('approve') ? 'bg-green text-green' : status === 'rejected' ? 'bg-red text-red' : '';
-    const width = this.projectCache.selectedLang() === 'both' ? 'w-3' : 'w-2';
+    const width = this.projectCache.selectedLangs() === 'both' ? 'w-3' : 'w-2';
     return `secondary-outline text-center min-w-min ${colour} ${width}`;
   }
 

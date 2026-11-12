@@ -4,16 +4,16 @@
   <div class="flex flex-row gap-1">
     <p-button [label]="('common.view' | translate) + ' ' + ('project.urls' | translate)" (click)="showUrls = true" icon="pi pi-list" outlined styleClass="secondary-outline w-full min-w-max" />
     <p-drawer [(visible)]="showUrls" [header]="'common.urls' | translate" appendTo="body" position="right" styleClass="w-6">
-      <aida-project-settings [allowBoth]="true" [allowLive]="true" [allowPreview]="true" [showDisplay]="true" [showLang]="true" [showScope]="true" [showSource]="true">
+      <aida-settings-project [allowLive]="true" [allowPreview]="true" [showDisplay]="true" [showLangs]="true" [showScope]="true" [showSource]="true">
         <p-button
           [label]="'common.copyUrls' | translate"
-          (onClick)="copyToClipboard(projectCache.selectedLang())"
+          (onClick)="copyToClipboard(projectCache.selectedLangs())"
           icon="pi pi-copy"
           outlined
           styleClass="secondary-outline white-space-nowrap h-3rem"
         />
-      </aida-project-settings>
-      @if (projectCache.selectedLang() === 'both') {
+      </aida-settings-project>
+      @if (projectCache.selectedLangs() === 'both') {
         <p-table [value]="pairedPagesForTable()">
           <ng-template #header>
             <tr>
@@ -47,7 +47,7 @@
           </ng-template>
         </p-table>
       } @else {
-        <h3>{{ projectCache.selectedLang() === 'en' ? ('common.language.english' | translate) : ('common.language.french' | translate) }} ({{ singlePageCount() }})</h3>
+        <h3>{{ projectCache.selectedLangs() === 'en' ? ('common.language.english' | translate) : ('common.language.french' | translate) }} ({{ singlePageCount() }})</h3>
         <ul>
           @for (url of singlePagesForList(); track url.url) {
             <li>

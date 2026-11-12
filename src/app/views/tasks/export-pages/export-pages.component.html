@@ -38,7 +38,7 @@
             }
           </div>
           <div class="flex flex-row flex-wrap row-gap-2 column-gap-5">
-            <aida-project-settings [allowBoth]="true" [isPrototype]="!projectData().github.hasBaselineRepo" [onlyValid]="true" [showLang]="true" [showSource]="true" [showVersion]="true" />
+            <aida-settings-project [isPrototype]="!projectData().github.hasBaselineRepo" [onlyValid]="true" [showLangs]="true" [showSource]="true" [showVersion]="true" />
           </div>
         </div>
       </div>
@@ -48,7 +48,7 @@
           <p-popover #settingsPopover styleClass="w-full lg:w-30rem">
             <aida-setup-repo mode="baseline" />
             @if (projectData().github.hasBaselineRepo) {
-              <aida-project-settings [showVersion]="true" />
+              <aida-settings-project [showVersion]="true" />
             }
           </p-popover>
         }
@@ -66,7 +66,7 @@
     <div [class]="styleCardService.cardStyles()" class="lg:mb-3 lg:w-4">
       <aida-setup-repo />
       @if (projectData().github.hasBaselineRepo) {
-        <aida-project-settings [showVersion]="true" />
+        <aida-settings-project [showVersion]="true" />
       }
     </div>
   } @else {

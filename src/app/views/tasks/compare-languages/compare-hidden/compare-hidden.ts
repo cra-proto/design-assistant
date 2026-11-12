@@ -2,7 +2,7 @@
  * Hidden content detection (see classify())
  *
  * Hidden from everyone ('all'):
- *   - class: hidden, hide
+ *   - class: hidden, hide, invisible
  *   - attribute: hidden
  *   - inline style: display:none, visibility:hidden
  * Hidden for visual users, available to screen readers ('visual'):
@@ -10,6 +10,12 @@
  *   - img alt text
  * Hidden for screen readers only, available to visual users ('screenreaders'):
  *   - attribute: aria-hidden="true"
+ * Hidden for browsers only, available under specifc conditions for print, basic HTML, and no JS ('web'):
+ *   - class: visible-print, wbdisable-show, nojs-show
+ * Hidden for print only ('print'):
+ *   - class: hidden-print
+ * Hidden for specific breakpoints ('responsive'):
+ *   - class: 'hidden-xs', 'hidden-sm', 'hidden-md', 'hidden-lg', 'visible-xs', 'visible-sm', 'visible-md', 'visible-lg'
  *
  * Rules:
  *   - visual + screenreaders on the same element = 'all'
@@ -23,7 +29,7 @@
  * shadow DOM, iframes
  */
 
-export type HiddenType = 'all' | 'visual' | 'screenreaders';
+export type HiddenType = 'all' | 'visual' | 'screenreaders' | 'web' | 'print' | 'responsive';
 export type HiddenStatus = 'ok' | 'missing' | 'identical' | 'wrongLanguage';
 
 export interface HiddenHit {
@@ -41,11 +47,17 @@ export interface HiddenRow {
 }
 
 // Hidden from everyone (display:none)
-const ALL_CLASSES = new Set(['hidden', 'hide']);
-// Hidden visually, still exposed to screen readers
+const ALL_CLASSES = new Set(['hidden', 'hide', 'invisible']);
+// Hidden for visual users (still exposed to screen readers)
 const VISUAL_CLASSES = new Set(['wb-inv', 'sr-only']);
+// Hidden for web users (available to print, basic HTML users, or non-js users)
+const WEB_CLASSES = new Set(['visible-print', 'wbdisable-show', 'nojs-show']);
+// Hidden for print users
+const PRINT_CLASSES = new Set(['hidden-print']);
+// Hidden for specific breakpoints
+const RESPONSIVE_CLASSES = new Set(['hidden-xs', 'hidden-sm', 'hidden-md', 'hidden-lg', 'visible-xs', 'visible-sm', 'visible-md', 'visible-lg']);
 
-const TYPE_ORDER: HiddenType[] = ['all', 'visual', 'screenreaders'];
+const TYPE_ORDER: HiddenType[] = ['all', 'visual', 'screenreaders', 'web', 'print', 'responsive'];
 const SPACES = /[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g;
 // Currency symbols, percent signs, and digits split by a comma or period (1,234 / 1.5) are formatted differently in EN and FR
 const LANGUAGE_SENSITIVE = /[$€£¥%]|\d[.,]\d/;
@@ -54,10 +66,16 @@ function classify(el: Element): { type: HiddenType; reasons: string[] } | null {
   const all: string[] = [];
   const visual: string[] = [];
   const sr: string[] = [];
+  const web: string[] = [];
+  const print: string[] = [];
+  const responsive: string[] = [];
 
   el.classList.forEach((c) => {
     if (ALL_CLASSES.has(c)) all.push(`class: ${c}`);
     else if (VISUAL_CLASSES.has(c)) visual.push(`class: ${c}`);
+    else if (WEB_CLASSES.has(c)) web.push(`class: ${c}`);
+    else if (PRINT_CLASSES.has(c)) print.push(`class: ${c}`);
+    else if (RESPONSIVE_CLASSES.has(c)) responsive.push(`class: ${c}`);
   });
 
   if (el.hasAttribute('hidden')) all.push('attribute: hidden');
@@ -68,12 +86,14 @@ function classify(el: Element): { type: HiddenType; reasons: string[] } | null {
 
   if (el.getAttribute('aria-hidden') === 'true') sr.push('attribute: aria-hidden="true"');
 
-  if (!all.length && !visual.length && !sr.length) return null;
+  if (!all.length && !visual.length && !sr.length && !web.length && !print.length && !responsive.length) {
+    return null;
+  }
 
   // Hidden both visually and from screen readers = hidden for all
-  const type: HiddenType = all.length || (visual.length && sr.length) ? 'all' : visual.length ? 'visual' : 'screenreaders';
+  const type: HiddenType = all.length || (visual.length && sr.length) ? 'all' : visual.length ? 'visual' : sr.length ? 'screenreaders' : web.length ? 'web' : print.length ? 'print' : 'responsive';
 
-  return { type, reasons: [...all, ...visual, ...sr] };
+  return { type, reasons: [...all, ...visual, ...sr, ...web, ...print, ...responsive] };
 }
 
 function normalizeText(s: string): string {
@@ -147,7 +167,7 @@ function wrongLanguageLinks(docEN: Document, docFR: Document): HiddenRow[] {
   const fr = getLinks(docFR);
   const aligned = en.length === fr.length;
   const rows: HiddenRow[] = [];
-  const row = (e?: string, f?: string): HiddenRow => ({ type: 'visual', name: 'attribute: href', en: e, fr: f, status: 'wrongLanguage' });
+  const row = (e?: string, f?: string): HiddenRow => ({ type: 'all', name: 'attribute: href', en: e, fr: f, status: 'wrongLanguage' });
 
   en.forEach((href, i) => {
     if (urlLang(href) === 'fr') rows.push(row(href, aligned ? fr[i] : undefined));

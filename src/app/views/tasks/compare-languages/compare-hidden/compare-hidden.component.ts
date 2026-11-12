@@ -34,5 +34,8 @@ export class CompareHiddenComponent {
     marker('languages.hidden.user.all');
     marker('languages.hidden.user.visual');
     marker('languages.hidden.user.screenreaders');
+    marker('languages.hidden.user.web');
+    marker('languages.hidden.user.print');
+    marker('languages.hidden.user.responsive');
   }
 }

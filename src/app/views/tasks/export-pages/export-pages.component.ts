@@ -20,7 +20,7 @@ import { TooltipModule } from 'primeng/tooltip';
 
 import { AddPagesLinkComponent } from '../../../components/add-pages/add-pages-link/add-pages-link.component';
 import { BookmarkletComponent } from '../../../components/bookmarklet/bookmarklet.component';
-import { ProjectSettingsComponent } from '../../../components/project-settings/project-settings.component';
+import { SettingsProjectComponent } from '../../../components/settings-project/settings-project.component';
 import { SetupRepoComponent } from '../../../components/setup-repo/setup-repo.component';
 import { SignInBannerComponent } from '../../../components/sign-in/sign-in-banner/sign-in-banner.component';
 
@@ -88,7 +88,7 @@ interface ExportMessage {
     TooltipModule,
     AddPagesLinkComponent,
     BookmarkletComponent,
-    ProjectSettingsComponent,
+    SettingsProjectComponent,
     SetupRepoComponent,
     SignInBannerComponent,
   ],
@@ -140,7 +140,7 @@ export class ExportPagesComponent {
     // Watch for changes to repo settings and run compareFiles()
     effect(async () => {
       void this.signInService.token(); // track signal
-      void this.projectCache.selectedLang(); // track signal
+      void this.projectCache.selectedLangs(); // track signal
       void this.projectCache.selectedVersion(); // track signal
       void this.owner(); // track computed signal
       void this.repo(); // track computed signal
@@ -213,7 +213,7 @@ export class ExportPagesComponent {
       this.repoType.set(this.projectData().repoType ?? 'github');
     }
 
-    const lang = this.projectCache.selectedLang();
+    const lang = this.projectCache.selectedLangs();
     const { source, repo, scope } = this.exportContext;
 
     const enPages = this.projectState.getAllPages('en', source, scope);
@@ -565,7 +565,7 @@ export class ExportPagesComponent {
     for (const path of templatePaths) {
       if (path === this.cdtsFiles[0]) {
         //Collect page paths for redirects
-        const lang = this.projectCache.selectedLang();
+        const lang = this.projectCache.selectedLangs();
         let allPagePaths;
         if (lang === 'both') {
           const enPages = this.projectState.getAllPages('en', 'live', scope).map((page) => page.path);
@@ -672,9 +672,9 @@ export class ExportPagesComponent {
 
     //Table headers
     const headers =
-      this.projectCache.selectedLang() === 'en'
+      this.projectCache.selectedLangs() === 'en'
         ? [this.translate.instant('common.language.englishPages')]
-        : this.projectCache.selectedLang() === 'fr'
+        : this.projectCache.selectedLangs() === 'fr'
           ? [this.translate.instant('common.language.frenchPages')]
           : [this.translate.instant('common.language.englishPages'), this.translate.instant('common.language.frenchPages')];
     const headerHtml = headers.map((h) => `<th>${h}</th>`).join('\n                  ');
@@ -700,7 +700,7 @@ export class ExportPagesComponent {
                 {"label": "${viewAIDA}", "href":"${this.fetchService.generateUrl(pair.fr.path, 'aida')}&title=${pair.fr.label}"}
               ]'>${pair.fr.label ?? pair.fr.path}</a>`
             : `<i class="fa fa-minus"></i>`;
-          const cells = this.projectCache.selectedLang() === 'en' ? [enCell] : this.projectCache.selectedLang() === 'fr' ? [frCell] : [enCell, frCell];
+          const cells = this.projectCache.selectedLangs() === 'en' ? [enCell] : this.projectCache.selectedLangs() === 'fr' ? [frCell] : [enCell, frCell];
           return `
         <tr>
             ${cells.map((cell) => `<td${rowStatus}>${cell}</td>`).join('\n        ')}
@@ -814,7 +814,7 @@ export class ExportPagesComponent {
     }
 
     let exportPages: PageData[] = [];
-    const lang = this.projectCache.selectedLang();
+    const lang = this.projectCache.selectedLangs();
     if (lang === 'both') {
       const enPages = await this.getUrlandContent(nodes[0], 'en', owner, repo, source);
       const frPages = await this.getUrlandContent(nodes[0], 'fr', owner, repo, source);

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -9,12 +9,12 @@ import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
 
 @Component({
-  selector: 'aida-project-settings',
+  selector: 'aida-settings-project',
   imports: [FormsModule, TranslatePipe, SelectButtonModule],
-  templateUrl: './project-settings.component.html',
+  templateUrl: './settings-project.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProjectSettingsComponent {
+export class SettingsProjectComponent {
   protected readonly projectCache = inject(ProjectCacheService);
   private readonly projectState = inject(ProjectStateService);
   private readonly translate = inject(TranslateService);
@@ -23,7 +23,7 @@ export class ProjectSettingsComponent {
   public readonly active = input<boolean>(true);
 
   public readonly showLang = input(false);
-  public readonly allowBoth = input(false);
+  public readonly showLangs = input(false);
 
   public readonly showScope = input(false);
 
@@ -46,10 +46,18 @@ export class ProjectSettingsComponent {
 
   constructor() {
     effect(() => {
-      if (!this.active()) return;
-      if (!this.allowBoth() && this.projectCache.selectedLang() === 'both') {
-        this.projectCache.selectedLang.set(this.projectState.detectPrimaryLanguage()); // fallback to project default
-      }
+      const lang = this.projectCache.selectedLangs();
+      untracked(() => {
+        if (lang !== 'both') {
+          this.projectCache.selectedLang.set(lang);
+        }
+      });
+    });
+    effect(() => {
+      const lang = this.projectCache.selectedLang();
+      untracked(() => {
+        this.projectCache.selectedLangs.set(lang);
+      });
     });
     effect(() => {
       if (!this.active()) return;
@@ -85,14 +93,25 @@ export class ProjectSettingsComponent {
     const primaryLang = this.projectState.detectPrimaryLanguage();
     const enLabel = { label: this.translate.instant('common.language.english'), value: 'en' };
     const frLabel = { label: this.translate.instant('common.language.french'), value: 'fr' };
-    const bothLabel = { label: this.translate.instant('common.both'), value: 'both' };
     if (primaryLang === 'en') {
       options.push(enLabel, frLabel);
     } else {
       options.push(frLabel, enLabel);
     }
-    if (this.allowBoth()) {
-      options.push(bothLabel);
+    return options;
+  }
+
+  //Choose languages
+  protected get languagesOptions() {
+    const options: { label: string; value: string }[] = [];
+    const primaryLang = this.projectState.detectPrimaryLanguage();
+    const enLabel = { label: this.translate.instant('common.language.english'), value: 'en' };
+    const frLabel = { label: this.translate.instant('common.language.french'), value: 'fr' };
+    const bothLabel = { label: this.translate.instant('common.both'), value: 'both' };
+    if (primaryLang === 'en') {
+      options.push(enLabel, frLabel, bothLabel);
+    } else {
+      options.push(frLabel, enLabel, bothLabel);
     }
     return options;
   }

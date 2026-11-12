@@ -35,7 +35,7 @@
       <ng-container *ngTemplateOutlet="pageSelect" />
     }
     @if (showLang()) {
-      <aida-project-settings [allowBoth]="allowBoth()" [allowLive]="true" [allowPreview]="true" [showLang]="true" />
+      <aida-settings-project [allowLive]="true" [allowPreview]="true" [showLang]="true" />
     }
   </div>
 } @else {
@@ -108,7 +108,7 @@
       <span class="text-primary font-bold">{{ 'common.versions' | translate }}</span>
     </span>
     <span class="p-menu-item-link py-0 hover:surface-100">
-      <aida-user-settings mode="versions" />
+      <aida-settings-user mode="versions" />
     </span>
   </ng-template>
 </p-menu>

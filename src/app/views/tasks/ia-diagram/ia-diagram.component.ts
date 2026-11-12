@@ -15,8 +15,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { AddPagesLinkComponent } from '../../../components/add-pages/add-pages-link/add-pages-link.component';
 import { EditNodeComponent } from '../../../components/edit-node/edit-node.component';
 import { IaTableComponent } from '../../../components/ia-table/ia-table.component';
-import { ProjectSettingsComponent } from '../../../components/project-settings/project-settings.component';
 import { SaveButtonComponent } from '../../../components/save-button/save-button.component';
+import { SettingsProjectComponent } from '../../../components/settings-project/settings-project.component';
 
 import { AddUrlsService } from '../../../components/add-pages/by-url/add-urls.service';
 import { FetchService } from '../../../services/fetch.service';
@@ -43,8 +43,8 @@ import { TreeNodeData } from '../../../common/data.model';
     AddPagesLinkComponent,
     EditNodeComponent,
     IaTableComponent,
-    ProjectSettingsComponent,
     SaveButtonComponent,
+    SettingsProjectComponent,
   ],
   templateUrl: './ia-diagram.component.html',
   styleUrl: './ia-diagram.component.css',
@@ -569,7 +569,7 @@ export class IaDiagramComponent {
   get hasIaOrphan() {
     const tree = this.projectTree();
     if (tree.length === 0 || this.projectCache.selectedDisplayIA() === 'list') return false;
-    const lang = this.projectCache.selectedLang() === 'both' ? this.projectState.detectPrimaryLanguage() : (this.projectCache.selectedLang() ?? 'en');
+    const lang = this.projectCache.selectedLang() ?? this.projectState.detectPrimaryLanguage() ?? 'en';
     return this.projectState.findNodeWhere(tree, (node) => node.data?.live?.[lang].isOrphan === true) !== null;
   }
 }

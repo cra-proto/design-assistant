@@ -16,7 +16,7 @@ import { Table, TableModule } from 'primeng/table';
 
 import { AddPagesComponent } from '../../../components/add-pages/add-pages.component';
 import { MenuPageActionsComponent } from '../../../components/menu-page-actions/menu-page-actions.component';
-import { ProjectSettingsComponent } from '../../../components/project-settings/project-settings.component';
+import { SettingsProjectComponent } from '../../../components/settings-project/settings-project.component';
 import { ViewPagesComponent } from '../../../components/view-pages/view-pages.component';
 
 import { FetchService } from '../../../services/fetch.service';
@@ -56,7 +56,7 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
     TableModule,
     AddPagesComponent,
     MenuPageActionsComponent,
-    ProjectSettingsComponent,
+    SettingsProjectComponent,
     TooltipDirective,
     ViewPagesComponent,
   ],
@@ -78,13 +78,13 @@ export class TableInventoryComponent implements OnInit {
   protected readonly stuck = trackStuck();
   /** Unique instance of visibility class */
   protected readonly visible = new ColumnVisibility('invHidden', [
-    persisted('invLang', this.projectCache.selectedLang, ['en', 'fr', 'both'] as const),
+    persisted('invLang', this.projectCache.selectedLangs, ['en', 'fr', 'both'] as const),
     persisted('invScope', this.projectCache.selectedScope, ['inScope', 'all'] as const),
   ]);
   /** Count of how many filters are applied */
   protected readonly filterCount = computed(() => {
     const scopeFilter = this.projectCache.selectedScope() !== 'all' ? 1 : 0;
-    const langFilter = this.projectCache.selectedLang() !== 'both' ? 1 : 0;
+    const langFilter = this.projectCache.selectedLangs() !== 'both' ? 1 : 0;
     const colFilter = this.visibleColumns().length !== this.columns().length ? 1 : 0;
     const searchFilter = this.searchTerm() ? 1 : 0;
     return (scopeFilter + langFilter + colFilter + searchFilter).toString();
@@ -126,7 +126,7 @@ export class TableInventoryComponent implements OnInit {
     const first = this.rows()[0] as unknown as Record<string, TableItem> | undefined;
     if (!first) return [];
 
-    const selectedLang = this.projectCache.selectedLang();
+    const selectedLang = this.projectCache.selectedLangs();
 
     const excluded = selectedLang === 'en' ? ['Fr'] : selectedLang === 'fr' ? ['En'] : [];
 

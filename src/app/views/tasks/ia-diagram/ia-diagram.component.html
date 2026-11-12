@@ -33,7 +33,7 @@
   <div class="overflow-auto">
     <!--Toggle View-->
     <div class="flex flex-row absolute z-1 ml-4">
-      <aida-project-settings [active]="!editNode" [allowLive]="true" [allowPreview]="true" [showDisplayIA]="true" [showLang]="true" [showViewIA]="true" />
+      <aida-settings-project [active]="!editNode" [allowLive]="true" [allowPreview]="true" [showDisplayIA]="true" [showLang]="true" [showViewIA]="true" />
     </div>
     @if (projectTree().length > 0) {
       @if (projectCache.selectedDisplayIA() === 'tree') {

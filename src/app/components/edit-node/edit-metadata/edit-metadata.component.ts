@@ -30,7 +30,7 @@ export class EditMetadataComponent {
 
   addonClasses(tooLong: boolean) {
     const colour = tooLong ? 'text-red' : 'text-green';
-    const width = this.projectCache.selectedLang() === 'both' ? 'w-2' : 'w-1';
+    const width = this.projectCache.selectedLangs() === 'both' ? 'w-2' : 'w-1';
     return `secondary-outline text-center min-w-min ${colour} ${width}`;
   }
 

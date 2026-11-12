@@ -193,7 +193,7 @@
         <p-button (onClick)="showDrawer = false" class="-mr-3" icon="pi pi-times" rounded severity="secondary" text />
       </div>
       <div class="flex gap-2">
-        <aida-project-settings [allowBoth]="true" [allowLive]="true" [allowPreview]="true" [showScope]="true">
+        <aida-settings-project [allowLive]="true" [allowPreview]="true" [showScope]="true">
           <p-iconfield>
             <input
               id="search"
@@ -206,7 +206,7 @@
             />
             <p-inputicon class="pi pi-search" />
           </p-iconfield>
-        </aida-project-settings>
+        </aida-settings-project>
       </div>
       <div class="flex align-items-end gap-4">
         <h2 class="mb-0">{{ 'common.columnFilters' | translate }}</h2>
@@ -216,7 +216,7 @@
           </span>
         }
       </div>
-      <aida-project-settings [allowBoth]="true" [allowLive]="true" [allowPreview]="true" [showLang]="true" />
+      <aida-settings-project [allowLive]="true" [allowPreview]="true" [showLangs]="true" />
       <p class="mb-0">{{ 'common.chooseColumns' | translate }}</p>
     </div>
   </ng-template>
