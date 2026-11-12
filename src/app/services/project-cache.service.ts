@@ -48,8 +48,11 @@ export class ProjectCacheService {
 
   // Track user choices on select buttons (for managing UI state)
 
+  /** Signal defaults to project language */
+  public readonly selectedLang = signal<'en' | 'fr'>(this.projectState.detectPrimaryLanguage());
+
   /** Signal defaults to project language if 'both' is not a valid option */
-  public readonly selectedLang = signal<'en' | 'fr' | 'both'>(this.projectState.detectPrimaryLanguage());
+  public readonly selectedLangs = signal<'en' | 'fr' | 'both'>(this.projectState.detectPrimaryLanguage());
 
   /** Signal can be used to display all project pages or just the inScope pages */
   public readonly selectedScope = signal<'inScope' | 'all'>('inScope');

@@ -28,6 +28,7 @@
     <ul>
       <li><a [routerLink]="[]" fragment="data">How AIDA collects its data</a></li>
       <li><a [routerLink]="[]" fragment="urls">How AIDA generates new URLs</a></li>
+      <li><a [routerLink]="[]" fragment="hidden">How AIDA identifies hidden content</a></li>
     </ul>
   </li>
   <li><a [routerLink]="[]" fragment="release">Release notes</a></li>
@@ -267,10 +268,68 @@
         </ul>
       </div>
     </div>
+
+    <h3 id="hidden">How AIDA identifies hidden content</h3>
+    <p>AIDA looks for specific classes, attributes, and inline styles to identify content that is hidden to some users.</p>
+    <p-table [value]="[{}]" size="small" stripedRows>
+      <ng-template #header>
+        <tr>
+          <th>Hidden for</th>
+          <th>Classes</th>
+          <th>Attributes</th>
+          <th>Other</th>
+        </tr>
+      </ng-template>
+      <ng-template #body>
+        <tr>
+          <td>{{ 'languages.hidden.user.all' | translate }}</td>
+          <td>hidden, hide, invisible</td>
+          <td>hidden</td>
+          <td>Inline styles: display:none, visibility:hidden</td>
+        </tr>
+        <tr>
+          <td>{{ 'languages.hidden.user.visual' | translate }}</td>
+          <td>wb-inv, sr-only</td>
+          <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
+          <td>Image alt text</td>
+        </tr>
+        <tr>
+          <td>{{ 'languages.hidden.user.screenreaders' | translate }}</td>
+          <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
+          <td>aria-hidden="true"</td>
+          <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
+        </tr>
+        <tr>
+          <td>{{ 'languages.hidden.user.print' | translate }}</td>
+          <td>hidden-print</td>
+          <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
+          <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
+        </tr>
+        <tr>
+          <td>{{ 'languages.hidden.user.web' | translate }}</td>
+          <td>visible-print, wbdisable-show, nojs-show</td>
+          <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
+          <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
+        </tr>
+        <tr>
+          <td>{{ 'languages.hidden.user.responsive' | translate }}</td>
+          <td>hidden-xs, hidden-sm, hidden-md, hidden-lg, visible-xs, visible-sm, visible-md, visible-lg</td>
+          <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
+          <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
+        </tr>
+      </ng-template>
+    </p-table>
   </section>
 
   <section [class]="styleCardService.cardStyles()">
     <h2 id="release">Release notes</h2>
+    <h3 id="0-8-5">Release 0.8.5 (Nov 12, 2026)</h3>
+    <h4>Minor updates</h4>
+    <ul>
+      <li>Add more hidden classes to hidden content comparison</li>
+      <li>Adjust how English/French/Both toggle works for tools without "Both" as an option</li>
+    </ul>
+
     <h3 id="0-8-4">Release 0.8.4 (Nov 10, 2026)</h3>
     <h4>New alert prompt in "Edit pages" view</h4>
     <ul>

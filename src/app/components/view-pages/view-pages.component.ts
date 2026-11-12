@@ -8,7 +8,7 @@ import { DrawerModule } from 'primeng/drawer';
 import { TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { ProjectSettingsComponent } from '../project-settings/project-settings.component';
+import { SettingsProjectComponent } from '../settings-project/settings-project.component';
 
 import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
@@ -18,7 +18,7 @@ import { AidaLinks } from '../../common/aidaLinks.config';
 
 @Component({
   selector: 'aida-view-pages',
-  imports: [RouterLink, TranslatePipe, ButtonModule, DrawerModule, TableModule, TooltipModule, ProjectSettingsComponent],
+  imports: [RouterLink, TranslatePipe, ButtonModule, DrawerModule, TableModule, TooltipModule, SettingsProjectComponent],
   templateUrl: './view-pages.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -41,8 +41,7 @@ export class ViewPagesComponent {
 
   //URL drawer - One language
   protected readonly singlePagesForList = computed(() => {
-    const selectedLang = this.projectCache.selectedLang();
-    const lang = selectedLang === 'both' ? this.projectState.detectPrimaryLanguage() : selectedLang;
+    const lang = this.projectCache.selectedLang();
     return this.projectState.getAllPages(lang, this.projectCache.selectedSource(), this.projectCache.selectedScope());
   });
 

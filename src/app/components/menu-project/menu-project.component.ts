@@ -12,10 +12,10 @@ import { Menu, MenuModule } from 'primeng/menu';
 
 import { AddCollaboratorsComponent } from '../add-collaborators/add-collaborators.component';
 import { AddPagesComponent } from '../add-pages/add-pages.component';
+import { SettingsUserComponent } from '../settings-user/settings-user.component';
 import { SetupProjectComponent } from '../setup-project/setup-project.component';
 import { SetupRepoComponent } from '../setup-repo/setup-repo.component';
 import { PatComponent } from '../sign-in/pat/pat.component';
-import { UserSettingsComponent } from '../user-settings/user-settings.component';
 
 import { CollaboratorService } from '../../services/github/collaborator.service';
 import { ExportGitHubService } from '../../services/github/export-github.service';
@@ -39,9 +39,9 @@ export type DialogMode = 'PAT' | 'userSettings' | 'setupProject' | 'setupRepo' |
     AddCollaboratorsComponent,
     AddPagesComponent,
     PatComponent,
+    SettingsUserComponent,
     SetupProjectComponent,
     SetupRepoComponent,
-    UserSettingsComponent,
   ],
   templateUrl: './menu-project.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

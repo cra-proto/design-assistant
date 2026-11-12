@@ -13,8 +13,8 @@ import { MenuModule } from 'primeng/menu';
 import { SelectModule } from 'primeng/select';
 
 import { AddPagesLinkComponent } from '../../add-pages/add-pages-link/add-pages-link.component';
-import { ProjectSettingsComponent } from '../../project-settings/project-settings.component';
-import { UserSettingsComponent } from '../../user-settings/user-settings.component';
+import { SettingsProjectComponent } from '../../settings-project/settings-project.component';
+import { SettingsUserComponent } from '../../settings-user/settings-user.component';
 
 import { FetchService } from '../../../services/fetch.service';
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
@@ -32,7 +32,7 @@ import { ALL_SOURCES, SourceVersion } from '../../../common/data.model';
  */
 @Component({
   selector: 'aida-compare-select',
-  imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, IftaLabelModule, MenuModule, SelectModule, AddPagesLinkComponent, ProjectSettingsComponent, UserSettingsComponent],
+  imports: [CommonModule, FormsModule, TranslatePipe, ButtonModule, IftaLabelModule, MenuModule, SelectModule, AddPagesLinkComponent, SettingsProjectComponent, SettingsUserComponent],
   templateUrl: './compare-select.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -93,11 +93,10 @@ export class CompareSelectComponent implements OnInit {
 
   /** Page dropdown options */
   get pageOptions() {
-    const selectedLang = this.projectCache.selectedLang() === 'fr' ? 'fr' : 'en';
     return this.projectState.getPairedPages('live', 'inScope').map((pair) => ({
       label: pair[this.projectCache.uiLang()].label,
       path: pair[this.projectCache.uiLang()].path,
-      value: pair[selectedLang].path,
+      value: pair[this.projectCache.selectedLang()].path,
     }));
   }
 

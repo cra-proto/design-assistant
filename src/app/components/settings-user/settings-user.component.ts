@@ -23,7 +23,7 @@ import { ColorScheme, UserSettingsService } from '../../services/user-settings.s
 export type SettingsMode = 'all' | 'language' | 'theme' | 'versions' | 'autoChildren';
 
 @Component({
-  selector: 'aida-user-settings',
+  selector: 'aida-settings-user',
   imports: [
     CommonModule,
     FormsModule,
@@ -37,10 +37,10 @@ export type SettingsMode = 'all' | 'language' | 'theme' | 'versions' | 'autoChil
     TooltipModule,
     forwardRef(() => DoormatsComponent),
   ],
-  templateUrl: './user-settings.component.html',
+  templateUrl: './settings-user.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UserSettingsComponent {
+export class SettingsUserComponent {
   protected readonly settingsService = inject(UserSettingsService);
   private readonly translate = inject(TranslateService);
   private readonly projectState = inject(ProjectStateService);

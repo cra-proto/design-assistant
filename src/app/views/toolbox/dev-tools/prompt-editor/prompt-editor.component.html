@@ -24,8 +24,9 @@
               @for (prompt of tab.prompts; track prompt.enumKey) {
                 <div class="flex flex-row align-content-center gap-2">
                   <p-checkbox [binary]="true" [inputId]="'show_' + prompt.enumKey" [ngModel]="isPromptVisible(prompt.enumKey)" (ngModelChange)="togglePrompt(prompt.enumKey)" />
-                  <label [for]="'show_' + prompt.enumKey" class="cursor-pointer font-semibold">{{ prompt.translationKey | translate }}</label>
+                  <label [class.text-red]="" [for]="'show_' + prompt.enumKey" class="cursor-pointer font-semibold">{{ prompt.translationKey | translate }}</label>
                 </div>
+                {{ isPromptConfig(prompt) ? prompt.promptText.available : '' }}
               }
             }
           </div>
@@ -67,11 +68,11 @@
                         [id]="prompt.enumKey + '_role'"
                         [options]="roleOptions"
                         (onChange)="updateDiff()"
+                        class="h-full"
                         appendTo="body"
                         fluid
                         optionLabel="label"
                         optionValue="value"
-                        styleClass="h-full"
                       >
                         <ng-template let-option pTemplate="item">
                           {{ option.label | translate }}

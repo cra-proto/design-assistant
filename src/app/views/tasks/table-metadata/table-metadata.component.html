@@ -9,7 +9,7 @@
           <div class="flex justify-content-between align-items-start">
             <div class="flex gap-3 align-items-end">
               <aida-compare-select [description]="'metadata.pageOptions.description' | translate" [versionsToShow]="0" />
-              <aida-project-settings [allowBoth]="true" [allowLive]="true" [allowPreview]="true" [showLang]="true" />
+              <aida-settings-project [allowLive]="true" [allowPreview]="true" [showLangs]="true" />
               @if (selectedNode(); as node) {
                 <aida-menu-page-actions [selectedNodes]="[node]" />
               }
@@ -48,7 +48,7 @@
             </div>
 
             <div class="flex gap-2 h-full">
-              @if (projectCache.selectedLang() !== 'fr') {
+              @if (projectCache.selectedLangs() !== 'fr') {
                 @if (nodeData.prototype?.en; as protoMeta) {
                   <p-fieldset [legend]="'common.language.english' | translate" class="flex-1 flex flex-column" styleClass="flex-1">
                     @if (nodeData.metadataReview?.en; as aiMeta) {
@@ -62,7 +62,7 @@
                   </p-fieldset>
                 }
               }
-              @if (projectCache.selectedLang() !== 'en') {
+              @if (projectCache.selectedLangs() !== 'en') {
                 @if (nodeData.prototype?.fr; as protoMeta) {
                   <p-fieldset [legend]="'common.language.french' | translate" class="flex-1 flex flex-column" styleClass="flex-1">
                     @if (nodeData.metadataReview?.fr; as aiMeta) {
@@ -285,7 +285,7 @@
           <p-button (onClick)="showDrawer = false" class="-mr-3" icon="pi pi-times" rounded severity="secondary" text />
         </div>
         <div class="flex gap-2">
-          <aida-project-settings [allowBoth]="true" [allowLive]="true" [allowPreview]="true" [showFilter]="true">
+          <aida-settings-project [allowLive]="true" [allowPreview]="true" [showFilter]="true">
             <p-iconfield>
               <input
                 id="search"
@@ -298,7 +298,7 @@
               />
               <p-inputicon class="pi pi-search" />
             </p-iconfield>
-          </aida-project-settings>
+          </aida-settings-project>
         </div>
         <div class="flex align-items-end gap-4">
           <h2 class="mb-0">{{ 'common.columnFilters' | translate }}</h2>
@@ -308,8 +308,8 @@
             </span>
           }
         </div>
-        <aida-project-settings [allowBoth]="true" [allowLive]="true" [allowPreview]="true" [showLang]="true" />
-        <aida-project-settings [allowBoth]="true" [allowLive]="true" [allowPreview]="true" [showMeta]="true" />
+        <aida-settings-project [allowLive]="true" [allowPreview]="true" [showLangs]="true" />
+        <aida-settings-project [allowLive]="true" [allowPreview]="true" [showMeta]="true" />
         <p class="mb-0">{{ 'common.chooseColumns' | translate }}</p>
       </div>
     </ng-template>

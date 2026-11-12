@@ -20,7 +20,7 @@ import { CompareSelectComponent } from '../../../components/compare/compare-sele
 import { AiMetadataComponent } from '../../../components/edit-node/ai-metadata/ai-metadata.component';
 import { EditMetadataComponent } from '../../../components/edit-node/edit-metadata/edit-metadata.component';
 import { MenuPageActionsComponent } from '../../../components/menu-page-actions/menu-page-actions.component';
-import { ProjectSettingsComponent } from '../../../components/project-settings/project-settings.component';
+import { SettingsProjectComponent } from '../../../components/settings-project/settings-project.component';
 
 import { FetchService } from '../../../services/fetch.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
@@ -64,7 +64,7 @@ import { TooltipDirective } from '../../../common/tooltip.directive';
     CompareSelectComponent,
     EditMetadataComponent,
     MenuPageActionsComponent,
-    ProjectSettingsComponent,
+    SettingsProjectComponent,
     TooltipDirective,
   ],
   templateUrl: 'table-metadata.component.html',
@@ -89,13 +89,13 @@ export class TableMetadataComponent implements OnInit {
   /** Unique instance of visibility class */
   protected readonly visible = new ColumnVisibility('metaHidden', [
     persisted('metaFilter', this.projectCache.selectedFilter, ['all', 'changes'] as const),
-    persisted('metaLang', this.projectCache.selectedLang, ['en', 'fr', 'both'] as const),
+    persisted('metaLang', this.projectCache.selectedLangs, ['en', 'fr', 'both'] as const),
     persisted('metaMeta', this.projectCache.selectedMeta, ['title', 'description', 'keywords'] as const),
   ]);
   /** Count of how many filters are applied */
   protected readonly filterCount = computed(() => {
     const filterFilter = this.projectCache.selectedFilter() !== 'all' ? 1 : 0;
-    const langFilter = this.projectCache.selectedLang() !== 'both' ? 1 : 0;
+    const langFilter = this.projectCache.selectedLangs() !== 'both' ? 1 : 0;
     const metaFilter = this.projectCache.selectedMeta() ? 1 : 0;
     const colFilter = this.visibleColumns().length !== this.columns().length ? 1 : 0;
     const searchFilter = this.searchTerm() ? 1 : 0;
@@ -105,7 +105,6 @@ export class TableMetadataComponent implements OnInit {
   protected showDrawer = false;
 
   ngOnInit() {
-    this.projectCache.selectedLang.set('both');
     /** Restores users default column settings on load */
     this.visible.restore();
   }
@@ -139,7 +138,7 @@ export class TableMetadataComponent implements OnInit {
     if (!first) return [];
 
     const selectedMeta = this.projectCache.selectedMeta();
-    const selectedLang = this.projectCache.selectedLang();
+    const selectedLang = this.projectCache.selectedLangs();
 
     const metas = selectedMeta?.length ? [selectedMeta] : ['title', 'description', 'keywords'];
     const langs = selectedLang === 'both' ? ['En', 'Fr'] : [selectedLang === 'en' ? 'En' : 'Fr'];

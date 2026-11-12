@@ -9,7 +9,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { MenuModule } from 'primeng/menu';
 
-import { UserSettingsComponent } from '../../user-settings/user-settings.component';
+import { SettingsUserComponent } from '../../settings-user/settings-user.component';
 import { PatComponent } from '../pat/pat.component';
 
 import { GitHubAuthService } from '../../../services/github/github-auth.service';
@@ -19,7 +19,7 @@ import { AidaLinks } from '../../../common/aidaLinks.config';
 
 @Component({
   selector: 'aida-sign-in-button',
-  imports: [TranslatePipe, AvatarModule, ButtonModule, DialogModule, MenuModule, PatComponent, UserSettingsComponent],
+  imports: [TranslatePipe, AvatarModule, ButtonModule, DialogModule, MenuModule, PatComponent, SettingsUserComponent],
   templateUrl: './sign-in-button.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

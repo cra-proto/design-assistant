@@ -10,7 +10,7 @@
   <li><a [routerLink]="[]" fragment="palettes">Full colour palettes</a></li>
 </ul>
 
-<aida-user-settings mode="theme" />
+<aida-settings-user mode="theme" />
 
 <!-- Semantic Color Grid -->
 <div class="mb-6">
@@ -574,7 +574,7 @@
     <div class="flex justify-content-between align-items-end gap-2 mt-2">
       <h3 class="mb-0">Preview</h3>
       <div class="flex align-items-end gap-2">
-        <aida-user-settings mode="theme" />
+        <aida-settings-user mode="theme" />
         <div class="flex flex-column border-round p-1 text-color-secondary hover:surface-100 hover:text-primary">
           <span class="text-xs my-1">Ground</span>
           <p-select [ngModel]="selectedGround()" [options]="groundOptions()" (ngModelChange)="selectedGround.set($event)" inputId="ground" />
@@ -636,7 +636,7 @@
     <!-- Color Palette Swatches -->
     <div class="mb-6">
       <h2 id="palettes" class="mb-3">Full colour palettes</h2>
-      <aida-user-settings mode="theme" />
+      <aida-settings-user mode="theme" />
       <div class="flex flex-row gap-2 mt-2">
         <div class="flex flex-column">
           Primary

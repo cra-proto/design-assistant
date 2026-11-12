@@ -19,7 +19,7 @@
   <div class="flex flex-column h-full">
     <div class="flex flex-row justify-content-between gap-2">
       <div class="flex flex-row flex-wrap gap-3">
-        <aida-project-settings [allowBoth]="true" [allowLive]="true" [showLang]="true" [showVersion]="true">
+        <aida-settings-project [allowLive]="true" [showLangs]="true" [showVersion]="true">
           <div class="flex flex-column hover:text-primary">
             <label class="text-xs font-semibold mb-1" for="refresh">{{ 'common.data' | translate }}</label>
             <div id="refresh" class="flex gap-2 align-items-center">
@@ -37,7 +37,7 @@
               </span>
             </div>
           </div>
-        </aida-project-settings>
+        </aida-settings-project>
 
         @if (node().data?.status) {
           <div class="flex flex-column hover:text-primary">
@@ -88,7 +88,7 @@
       <div class="flex-1 overflow-y-auto">
         @if (!toggleNotes()) {
           <div class="flex flex-row gap-2 min-w-min">
-            @if (projectCache.selectedLang() !== 'fr') {
+            @if (projectCache.selectedLangs() !== 'fr') {
               <p-fieldset [legend]="'common.language.english' | translate" class="flex-1">
                 <div class="flex flex-column gap-1">
                   <p-inputgroup>
@@ -409,7 +409,7 @@
                 </div>
               </p-fieldset>
             }
-            @if (projectCache.selectedLang() !== 'en') {
+            @if (projectCache.selectedLangs() !== 'en') {
               <p-fieldset [legend]="'common.language.french' | translate" class="flex-1">
                 <div class="flex flex-column gap-1">
                   <p-inputgroup>

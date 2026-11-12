@@ -18,7 +18,7 @@ import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 
-import { ProjectSettingsComponent } from '../project-settings/project-settings.component';
+import { SettingsProjectComponent } from '../settings-project/settings-project.component';
 import { EditMetadataComponent } from './edit-metadata/edit-metadata.component';
 
 import { ProjectCacheService } from '../../services/project-cache.service';
@@ -46,7 +46,7 @@ import { DataVersion, SourceVersion, TreeNodeData } from '../../common/data.mode
     TagModule,
     TextareaModule,
     EditMetadataComponent,
-    ProjectSettingsComponent,
+    SettingsProjectComponent,
   ],
   templateUrl: './edit-node.component.html',
   styleUrl: './edit-node.component.css',
@@ -287,7 +287,7 @@ export class EditNodeComponent {
       return Math.floor(diff / (1000 * 60 * 60 * 24));
     };
 
-    const lang = this.projectCache.selectedLang();
+    const lang = this.projectCache.selectedLangs();
     if (lang === 'en') return getDays(data.en.lastChecked);
     if (lang === 'fr') return getDays(data.fr.lastChecked);
 

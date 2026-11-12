@@ -14,7 +14,7 @@ import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 
-import { UserSettingsComponent } from '../../../../components/user-settings/user-settings.component';
+import { SettingsUserComponent } from '../../../../components/settings-user/settings-user.component';
 import { ColorPickerComponent } from './color-picker.component';
 import { CopyPresetComponent } from './copy-preset.component';
 
@@ -41,7 +41,7 @@ import { UserSettingsService } from '../../../../services/user-settings.service'
     TagModule,
     ColorPickerComponent,
     CopyPresetComponent,
-    UserSettingsComponent,
+    SettingsUserComponent,
   ],
   templateUrl: './color-generator.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
