@@ -274,7 +274,7 @@
     <p-table [value]="[{}]" size="small" stripedRows>
       <ng-template #header>
         <tr>
-          <th>Hidden for</th>
+          <th>{{ 'languages.hidden.forWho' | translate }}</th>
           <th>Classes</th>
           <th>Attributes</th>
           <th>Other</th>
@@ -283,13 +283,21 @@
       <ng-template #body>
         <tr>
           <td>{{ 'languages.hidden.user.all' | translate }}</td>
-          <td>hidden, hide, invisible</td>
+          <td>
+            @for (class of allClasses; track $index; let isLast = $last) {
+              {{ class }}{{ !isLast ? ',' : '' }}
+            }
+          </td>
           <td>hidden</td>
           <td>Inline styles: display:none, visibility:hidden</td>
         </tr>
         <tr>
           <td>{{ 'languages.hidden.user.visual' | translate }}</td>
-          <td>wb-inv, sr-only</td>
+          <td>
+            @for (class of visualClasses; track $index; let isLast = $last) {
+              {{ class }}{{ !isLast ? ',' : '' }}
+            }
+          </td>
           <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
           <td>Image alt text</td>
         </tr>
@@ -301,19 +309,31 @@
         </tr>
         <tr>
           <td>{{ 'languages.hidden.user.print' | translate }}</td>
-          <td>hidden-print</td>
+          <td>
+            @for (class of printClasses; track $index; let isLast = $last) {
+              {{ class }}{{ !isLast ? ',' : '' }}
+            }
+          </td>
           <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
           <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
         </tr>
         <tr>
           <td>{{ 'languages.hidden.user.web' | translate }}</td>
-          <td>visible-print, wbdisable-show, nojs-show</td>
+          <td>
+            @for (class of webClasses; track $index; let isLast = $last) {
+              {{ class }}{{ !isLast ? ',' : '' }}
+            }
+          </td>
           <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
           <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
         </tr>
         <tr>
           <td>{{ 'languages.hidden.user.responsive' | translate }}</td>
-          <td>hidden-xs, hidden-sm, hidden-md, hidden-lg, visible-xs, visible-sm, visible-md, visible-lg</td>
+          <td>
+            @for (class of responsiveClasses; track $index; let isLast = $last) {
+              {{ class }}{{ !isLast ? ',' : '' }}
+            }
+          </td>
           <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
           <td><i class="pi pi-minus text-2xl text-color-secondary"></i></td>
         </tr>
