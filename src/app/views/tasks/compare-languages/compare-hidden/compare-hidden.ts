@@ -47,15 +47,15 @@ export interface HiddenRow {
 }
 
 // Hidden from everyone (display:none)
-const ALL_CLASSES = new Set(['hidden', 'hide', 'invisible']);
+export const ALL_CLASSES = new Set(['hidden', 'hide', 'invisible']);
 // Hidden for visual users (still exposed to screen readers)
-const VISUAL_CLASSES = new Set(['wb-inv', 'sr-only']);
+export const VISUAL_CLASSES = new Set(['wb-inv', 'sr-only']);
 // Hidden for web users (available to print, basic HTML users, or non-js users)
-const WEB_CLASSES = new Set(['visible-print', 'wbdisable-show', 'nojs-show']);
+export const WEB_CLASSES = new Set(['visible-print', 'wbdisable-show', 'nojs-show']);
 // Hidden for print users
-const PRINT_CLASSES = new Set(['hidden-print']);
+export const PRINT_CLASSES = new Set(['hidden-print']);
 // Hidden for specific breakpoints
-const RESPONSIVE_CLASSES = new Set(['hidden-xs', 'hidden-sm', 'hidden-md', 'hidden-lg', 'visible-xs', 'visible-sm', 'visible-md', 'visible-lg']);
+export const RESPONSIVE_CLASSES = new Set(['hidden-xs', 'hidden-sm', 'hidden-md', 'hidden-lg', 'visible-xs', 'visible-sm', 'visible-md', 'visible-lg']);
 
 const TYPE_ORDER: HiddenType[] = ['all', 'visual', 'screenreaders', 'web', 'print', 'responsive'];
 const SPACES = /[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g;
