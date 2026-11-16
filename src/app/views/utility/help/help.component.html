@@ -343,6 +343,18 @@
 
   <section [class]="styleCardService.cardStyles()">
     <h2 id="release">Release notes</h2>
+    <h3 id="0-8-6">Release 0.8.6 (Nov 16, 2026)</h3>
+    <h4>Bug fixes</h4>
+    <ul>
+      <li>Strip query parameters from URLs when users add them to "Add pages" input</li>
+      <li>Remove key from confirmation dialog when deleting pages with child pages (was no longer needed, and prevented popup from showing)</li>
+    </ul>
+    <h4>Minor updates</h4>
+    <ul>
+      <li>Adjust some of the wording to be more scannable</li>
+      <li>Add additional toast message when adding pages to indicate how many were skipped or not found</li>
+      <li>Remove negative words from url small word exclusion list</li>
+    </ul>
     <h3 id="0-8-5">Release 0.8.5 (Nov 12, 2026)</h3>
     <h4>Minor updates</h4>
     <ul>

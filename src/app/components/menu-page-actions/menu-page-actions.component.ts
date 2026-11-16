@@ -213,6 +213,7 @@ export class MenuPageActionsComponent {
 
   /** DELETE */
   private onDeleteSelected() {
+    console.log(this.selectedNodes());
     if (!this.selectedNodes().length) return;
     const additionalDeletions = this.projectState.checkNodeDeletionImpact(this.selectedNodes());
     if (additionalDeletions.length > 0) {
@@ -274,7 +275,6 @@ export class MenuPageActionsComponent {
     message = message.trim();
 
     this.confirmationService.confirm({
-      key: 'inventory',
       message,
       header: this.translate.instant('inventory.delete._title'),
       icon: 'pi pi-exclamation-triangle',

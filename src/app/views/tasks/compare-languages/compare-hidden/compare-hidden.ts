@@ -29,10 +29,10 @@
  * shadow DOM, iframes
  */
 
-export type HiddenType = 'all' | 'visual' | 'screenreaders' | 'web' | 'print' | 'responsive';
-export type HiddenStatus = 'ok' | 'missing' | 'identical' | 'wrongLanguage';
+type HiddenType = 'all' | 'visual' | 'screenreaders' | 'web' | 'print' | 'responsive';
+type HiddenStatus = 'ok' | 'missing' | 'identical' | 'wrongLanguage';
 
-export interface HiddenHit {
+interface HiddenHit {
   type: HiddenType;
   name: string; // classes or attributes
   text: string;
@@ -193,31 +193,30 @@ function status(en?: string, fr?: string): HiddenStatus {
   return isLanguageNeutral(en) ? 'ok' : 'identical';
 }
 
-/** Aligns EN and FR hidden elements by type + name (LCS), since the text itself differs between languages */
+/** Aligns EN and FR hidden elements by type + name (longest common subsequence, LCS), since the text itself differs between languages */
 export function compareHidden(docEN: Document, docFR: Document): HiddenRow[] {
   const en = extractHidden(docEN);
   const fr = extractHidden(docFR);
-  const n = en.length,
-    m = fr.length;
 
-  const dp = Array.from({ length: n + 1 }, () => new Array<number>(m + 1).fill(0));
-  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) dp[i][j] = keyOf(en[i]) === keyOf(fr[j]) ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const lcsLength = Array.from({ length: en.length + 1 }, () => new Array<number>(fr.length + 1).fill(0));
+  for (let i = en.length - 1; i >= 0; i--)
+    for (let j = fr.length - 1; j >= 0; j--) lcsLength[i][j] = keyOf(en[i]) === keyOf(fr[j]) ? lcsLength[i + 1][j + 1] + 1 : Math.max(lcsLength[i + 1][j], lcsLength[i][j + 1]);
 
   const rows: HiddenRow[] = [];
-  const push = (e?: HiddenHit, f?: HiddenHit) => {
-    const src = (e ?? f)!;
-    rows.push({ type: src.type, name: src.name, en: e?.text, fr: f?.text, status: status(e?.text, f?.text) });
+  const push = (english?: HiddenHit, french?: HiddenHit) => {
+    const src = (english ?? french)!;
+    rows.push({ type: src.type, name: src.name, en: english?.text, fr: french?.text, status: status(english?.text, french?.text) });
   };
 
-  let i = 0,
-    j = 0;
-  while (i < n && j < m) {
+  let i = 0;
+  let j = 0;
+  while (i < en.length && j < fr.length) {
     if (keyOf(en[i]) === keyOf(fr[j])) push(en[i++], fr[j++]);
-    else if (dp[i + 1][j] >= dp[i][j + 1]) push(en[i++]);
+    else if (lcsLength[i + 1][j] >= lcsLength[i][j + 1]) push(en[i++]);
     else push(undefined, fr[j++]);
   }
-  while (i < n) push(en[i++]);
-  while (j < m) push(undefined, fr[j++]);
+  while (i < en.length) push(en[i++]);
+  while (j < fr.length) push(undefined, fr[j++]);
 
   // Array.sort is stable, so document order is kept within each type
   return [...rows, ...wrongLanguageLinks(docEN, docFR)].sort((x, y) => TYPE_ORDER.indexOf(x.type) - TYPE_ORDER.indexOf(y.type));
