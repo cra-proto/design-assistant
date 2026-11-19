@@ -274,6 +274,11 @@ export const routes: Routes = [
         loadComponent: () => import('./views/toolbox/dev-tools/prompt-editor/prompt-editor.component').then((m) => m.PromptEditorComponent),
         title: 'dev.prompts._title',
       },
+      {
+        path: 'skill-editor',
+        loadComponent: () => import('./views/toolbox/dev-tools/skill-editor/skill-editor.component').then((m) => m.SkillEditorComponent),
+        title: 'dev.skills._title',
+      },
     ],
   },
   //404

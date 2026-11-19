@@ -1,4 +1,4 @@
-import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
 
 import { TranslateService } from '@ngx-translate/core';
 
@@ -93,6 +93,10 @@ export class ProjectCacheService {
       void this.projectState.getGitHub().repo;
       this.hasLocal.set(null);
       this.hasLocalBL.set(null);
+    });
+    effect(() => {
+      const langs = this.selectedLangs();
+      if (langs !== 'both') untracked(() => this.selectedLang.set(langs));
     });
   }
 
@@ -335,5 +339,17 @@ export class ProjectCacheService {
     const map = new Map(this.aiJobs());
     map.delete(path);
     this.aiJobs.set(map);
+  }
+
+  /** Keep languages in sync with language (en | fr) */
+  setLang(lang: 'en' | 'fr') {
+    this.selectedLang.set(lang);
+    this.selectedLangs.set(lang);
+  }
+
+  /** Keep language in sync with languages unless languages is set to both */
+  setLangs(langs: 'en' | 'fr' | 'both') {
+    this.selectedLangs.set(langs);
+    if (langs !== 'both') this.selectedLang.set(langs);
   }
 }

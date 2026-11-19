@@ -93,7 +93,7 @@ export class CompareSelectComponent implements OnInit {
 
   /** Page dropdown options */
   get pageOptions() {
-    return this.projectState.getPairedPages('live', 'inScope').map((pair) => ({
+    return this.projectState.getPairedPages('protoGH', 'inScope').map((pair) => ({
       label: pair[this.projectCache.uiLang()].label,
       path: pair[this.projectCache.uiLang()].path,
       value: pair[this.projectCache.selectedLang()].path,

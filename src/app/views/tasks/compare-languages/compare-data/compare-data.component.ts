@@ -1,6 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 
+import { marker } from '@colsen1991/ngx-translate-extract-marker';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { TreeNode } from 'primeng/api';
@@ -47,5 +48,9 @@ export class CompareDataComponent {
     this.projectState.refreshing.update((r) => ({ ...r, [version]: true }));
     await this.projectState.refreshNode(node, urlVersion);
     this.projectState.refreshing.update((r) => ({ ...r, [version]: false }));
+  }
+
+  markForTranslations() {
+    marker('languages.dataCompare.description.list');
   }
 }

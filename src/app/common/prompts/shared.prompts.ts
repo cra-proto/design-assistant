@@ -27,7 +27,7 @@ export const RubricFragment: Record<RubricKey, string[]> = {
     `Important CRA-specific translations:
     - "Canada Revenue Agency" → "Agence du revenu du Canada"
     - "income tax" → "impôt sur le revenu"
-    - "benefits" → "prestations"
+    - "benefits" → "prestations" or "allocations"
     - "tax return" → "déclaration de revenus"
     - "GST/HST" → "TPS/TVH"
     - "business number" → "numéro d'entreprise"

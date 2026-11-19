@@ -23,13 +23,15 @@ import { TextareaModule } from 'primeng/textarea';
 import { OpenRouterResponse, OpenRouterService } from '../../../../services/ai/openrouter.service';
 import { AiPromptService } from '../../../../services/ai/prompt.service';
 import { ExportGitHubService } from '../../../../services/github/export-github.service';
+import { SignInService } from '../../../../services/github/sign-in.service';
+import { StyleCardService } from '../../../../services/style-card.service';
 import { UserSettingsService } from '../../../../services/user-settings.service';
 
-import { InventoryPrompts } from '../../../../common/prompts/inventory.prompts';
 import { PagePrompts } from '../../../../common/prompts/page.prompts';
 import { ProblemPrompts } from '../../../../common/prompts/problems.prompts';
-import { InventoryPromptKey, OutputKey, PagePromptKey, ProblemPromptKey, PromptConfig, RoleKey, RubricKey } from '../../../../common/prompts/prompt.model';
+import { OutputKey, PagePromptKey, ProblemPromptKey, PromptConfig, RoleKey, RubricKey, ToolsPromptKey } from '../../../../common/prompts/prompt.model';
 import { OutputFragment, RoleFragment, RubricFragment } from '../../../../common/prompts/shared.prompts';
+import { ToolsPrompts } from '../../../../common/prompts/tools.prompts';
 
 interface PromptEntry {
   enumKey: string;
@@ -39,6 +41,7 @@ interface PromptEntry {
 
 interface TabConfig {
   title: string;
+  description: string;
   value: number;
   prompts?: PromptEntry[];
   fragments?: { key: string; label: string; data: PromptEntry[] }[];
@@ -88,16 +91,19 @@ export class PromptEditorComponent {
   private readonly settingsService = inject(UserSettingsService);
   private readonly openRouterService = inject(OpenRouterService);
   private readonly aiPromptService = inject(AiPromptService);
+  protected readonly signInService = inject(SignInService);
+  protected readonly styleCardService = inject(StyleCardService);
 
   constructor() {
     effect(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const isDarkMode = this.settingsService.darkMode(); //watching for changes to dark mode to update diff theme
+      void this.settingsService.darkMode(); //watching for changes to dark mode to update diff theme
       this.updateDiff();
     });
     effect(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const tab = this.selectedTab; //watching for changes to selected tab
+      const tab = this.selectedTab(); //watching for changes to selected tab
+      if (tab < 5) {
+        this.selectedPromptTab.set(tab);
+      }
       this.updateDiff();
     });
   }
@@ -137,9 +143,9 @@ export class PromptEditorComponent {
   }));
 
   fragments = [
-    { key: 'role', label: 'aiPrompt.component.role', data: this.roleFragment },
-    { key: 'output', label: 'aiPrompt.component.output', data: this.outputFragment },
-    { key: 'rubric', label: 'aiPrompt.component.rubric', data: this.rubricFragment },
+    { key: 'role', label: marker('aiPrompt.component.role'), data: this.roleFragment },
+    { key: 'output', label: marker('aiPrompt.component.output'), data: this.outputFragment },
+    { key: 'rubric', label: marker('aiPrompt.component.rubric'), data: this.rubricFragment },
   ];
 
   selectedFragment = 'role';
@@ -172,10 +178,10 @@ export class PromptEditorComponent {
   }));
 
   // Prompts
-  inventoryPrompts: PromptEntry[] = Object.keys(InventoryPromptKey).map((enumKey) => ({
+  inventoryPrompts: PromptEntry[] = Object.keys(ToolsPromptKey).map((enumKey) => ({
     enumKey,
-    translationKey: InventoryPromptKey[enumKey as keyof typeof InventoryPromptKey],
-    promptText: InventoryPrompts[InventoryPromptKey[enumKey as keyof typeof InventoryPromptKey]],
+    translationKey: ToolsPromptKey[enumKey as keyof typeof ToolsPromptKey],
+    promptText: ToolsPrompts[ToolsPromptKey[enumKey as keyof typeof ToolsPromptKey]],
   }));
 
   pagePrompts: PromptEntry[] = Object.keys(PagePromptKey).map((enumKey) => ({
@@ -205,18 +211,40 @@ export class PromptEditorComponent {
   }
 
   // Tabs
-  selectedTab = 1;
+  protected readonly selectedTab = signal<number>(1);
+  protected readonly selectedPromptTab = signal<number>(1);
   tabs: TabConfig[] = [
-    { title: 'aiPrompt.shared._title', value: 0, fragments: this.fragments, tool: 'Shared', original: this.rebuildSharedFile() },
-    { title: 'aiPrompt.inventory._title', value: 1, prompts: this.inventoryPrompts, tool: 'Inventory', original: this.rebuildPromptFile('Inventory', this.inventoryPrompts) },
-    { title: 'aiPrompt.pages._title', value: 2, prompts: this.pagePrompts, tool: 'Page', original: this.rebuildPromptFile('Page', this.pagePrompts) },
-    { title: 'aiPrompt.problems._title', value: 3, prompts: this.problemPrompts, tool: 'Problem', original: this.rebuildPromptFile('Problem', this.problemPrompts) },
+    { title: marker('aiPrompt.shared._title'), description: marker('aiPrompt.shared._description'), value: 0, fragments: this.fragments, tool: 'Shared', original: this.rebuildSharedFile() },
+    {
+      title: marker('aiPrompt.tools._title'),
+      description: marker('aiPrompt.tools._description'),
+      value: 1,
+      prompts: this.inventoryPrompts,
+      tool: 'Tools',
+      original: this.rebuildPromptFile('Tools', this.inventoryPrompts),
+    },
+    {
+      title: marker('aiPrompt.page._title'),
+      description: marker('aiPrompt.page._description'),
+      value: 2,
+      prompts: this.pagePrompts,
+      tool: 'Page',
+      original: this.rebuildPromptFile('Page', this.pagePrompts),
+    },
+    {
+      title: marker('aiPrompt.problems._title'),
+      description: marker('aiPrompt.problems._description'),
+      value: 3,
+      prompts: this.problemPrompts,
+      tool: 'Problem',
+      original: this.rebuildPromptFile('Problem', this.problemPrompts),
+    },
   ];
 
   // Dropdown
   protected readonly promptGroups = [
-    { label: 'aiPrompt.inventory._title', items: this.inventoryPrompts },
-    { label: 'aiPrompt.pages._title', items: this.pagePrompts },
+    { label: 'aiPrompt.tools._title', items: this.inventoryPrompts },
+    { label: 'aiPrompt.page._title', items: this.pagePrompts },
     { label: 'aiPrompt.problems._title', items: this.problemPrompts },
   ];
   protected readonly selectedPrompt = signal<PromptEntry | undefined>(this.problemPrompts.find((p) => p.enumKey === 'Alerts'));
@@ -226,24 +254,8 @@ export class PromptEditorComponent {
     return this.aiPromptService.composePrompt(selected.promptText);
   });
 
-  markForTranslation() {
-    marker('aiPrompt.shared._title');
-    marker('aiPrompt.inventory._title');
-    marker('aiPrompt.pages._title');
-    marker('aiPrompt.problems._title');
-
-    marker('aiPrompt.component.role');
-    marker('aiPrompt.component.output');
-    marker('aiPrompt.component.rubric');
-    marker('aiPrompt.component.task');
-    marker('aiPrompt.component.jsonSchema');
-
-    marker('dev.prompts.button.openPR');
-  }
-
   // Test prompts
   readonly aiState = this.openRouterService.state;
-  //aiPrompt = this.aiPromptService.composePrompt(InventoryPrompts[InventoryPromptKey.Metadata]);
   description = 'Official CRA information on Canadian taxes. File your return, manage payments, and explore credits and deductions for individuals and businesses.';
   response: OpenRouterResponse | null = null;
   result = '';
@@ -271,14 +283,16 @@ export class PromptEditorComponent {
         } else {
           throw new Error(`Unsupported prompt value for ${prompt.enumKey}`);
         }
-        return `  [${tool}PromptKey.${prompt.enumKey}]: ${value},`;
+        return `\t[${tool}PromptKey.${prompt.enumKey}]: ${value},`;
       })
       .join('\n');
 
-    return `import { OutputKey, ${tool}PromptKey, PromptConfig, RoleKey, RubricKey } from './prompt.model';\n\nexport const ${tool}Prompts: Record<${tool}PromptKey, PromptConfig> = {\n${updatedPrompts}\n};\n`;
+    const imports = ['OutputKey', `${tool}PromptKey`, 'PromptConfig', 'RoleKey', 'RubricKey'].sort();
+
+    return `import { ${imports.join(', ')} } from './prompt.model';\n\nexport const ${tool}Prompts: Record<${tool}PromptKey, PromptConfig> = {\n${updatedPrompts}\n};\n`;
   }
 
-  private getSelectedPromptConfig(): PromptConfig | null {
+  protected getSelectedPromptConfig(): PromptConfig | null {
     const selected = this.selectedPrompt();
     return selected && this.isPromptConfig(selected) ? selected.promptText : null;
   }
@@ -286,15 +300,15 @@ export class PromptEditorComponent {
   private serializePromptConfig(config: PromptConfig): string {
     const lines = [
       '{',
-      `    role: RoleKey.${this.getEnumKey(RoleKey, config.role)},`,
-      `    task: ${this.toTemplateLiteral(config.task)},`,
-      `    rubric: [${config.rubric.map((rubric) => `RubricKey.${this.getEnumKey(RubricKey, rubric)}`).join(', ')}],`,
-      `    output: OutputKey.${this.getEnumKey(OutputKey, config.output)},`,
+      `\t\trole: RoleKey.${this.getEnumKey(RoleKey, config.role)},`,
+      `\t\ttask: ${this.toTemplateLiteral(config.task)},`,
+      `\t\trubric: [${config.rubric.map((rubric) => `RubricKey.${this.getEnumKey(RubricKey, rubric)}`).join(', ')}],`,
+      `\t\toutput: OutputKey.${this.getEnumKey(OutputKey, config.output)},`,
     ];
 
-    if (config.jsonSchema !== undefined) lines.push(`    jsonSchema: ${this.toTemplateLiteral(config.jsonSchema)},`);
-    if (config.examples !== undefined) lines.push(`    examples: ${this.toTemplateLiteral(config.examples)},`);
-    if (config.available !== undefined) lines.push(`    available: ${config.available},`);
+    if (config.jsonSchema !== undefined) lines.push(`\t\tjsonSchema: ${this.toTemplateLiteral(config.jsonSchema)},`);
+    if (config.examples !== undefined) lines.push(`\t\texamples: ${this.toTemplateLiteral(config.examples)},`);
+    if (config.available !== undefined) lines.push(`\t\tavailable: ${config.available},`);
     lines.push('  }');
     return lines.join('\n');
   }
@@ -317,42 +331,47 @@ export class PromptEditorComponent {
   }
 
   rebuildSharedFile(): string {
-    const roleEntries = this.roleFragment.map((p) => ` [RoleKey.${p.enumKey}]: \`${p.promptText}\`,`).join('\n');
+    const roleEntries = this.roleFragment.map((p) => `\t[RoleKey.${p.enumKey}]: \`${p.promptText}\`,`).join('\n');
 
-    const outputEntries = this.outputFragment.map((p) => ` [OutputKey.${p.enumKey}]: \`${p.promptText}\`,`).join('\n');
+    const outputEntries = this.outputFragment.map((p) => `\t[OutputKey.${p.enumKey}]: \`${p.promptText}\`,`).join('\n');
 
-    const rubricEntries = this.rubricFragment.map((p) => ` [RubricKey.${p.enumKey}]: \`${p.promptText}\`,`).join('\n');
+    const rubricEntries = this.rubricFragment.map((p) => `\t[RubricKey.${p.enumKey}]: \`${p.promptText}\`,`).join('\n');
 
     return `import { RoleKey, OutputKey, RubricKey } from './prompt.model'
 
-    export const RoleFragment: Record<RoleKey, string> = {
-        ${roleEntries}
-        }
+export const RoleFragment: Record<RoleKey, string> = {
+${roleEntries}
+}
 
-        export const OutputFragment: Record<OutputKey, string> = {
-            ${outputEntries}
-            }
+export const OutputFragment: Record<OutputKey, string> = {
+${outputEntries}
+}
 
-            export const RubricFragment: Record<RubricKey, string> = {
-                ${rubricEntries}
-                }`;
+export const RubricFragment: Record<RubricKey, string> = {
+${rubricEntries}
+}`;
   }
 
-  // Tracks if changes have been made to current tab
-  hasChanges(): boolean {
-    if (!this.selectedTab) return false;
-    const prompts = this.tabs[this.selectedTab].prompts;
-    if (!prompts) return false;
-    const tab = this.tabs[this.selectedTab];
-    const updatedContent = this.rebuildPromptFile(tab.tool, prompts);
+  /** Tracks if changes have been made to current tab */
+  hasChanges(promptTab?: number): boolean {
+    const tabNumber = promptTab ?? this.selectedPromptTab();
+    const tab = this.tabs[tabNumber];
+    if (tabNumber === 0) {
+      const updatedContent = this.rebuildSharedFile();
+      const originalContent = tab.original;
+      return updatedContent !== originalContent;
+    }
+    if (!tab?.prompts) return false;
+    const updatedContent = this.rebuildPromptFile(tab.tool, tab.prompts);
     const originalContent = tab.original;
     return updatedContent !== originalContent;
   }
 
   // Open pull request
   pullRequestUrl: string | null = null;
-  async openPullRequest(tool: string, prompts: PromptEntry[]) {
-    const content = this.rebuildPromptFile(tool, prompts);
+  /** Open pull request for selected tab */
+  async openPullRequest(tool: string, prompts?: PromptEntry[]) {
+    const content = !prompts ? this.rebuildSharedFile() : this.rebuildPromptFile(tool, prompts);
     const toolLC = tool.toLowerCase();
     try {
       const result = await this.exportGitHubService.createPullRequestForPrompts(toolLC, `src/app/common/prompts/${toolLC}.prompts.ts`, `${toolLC}.prompts.ts`, content);
@@ -362,17 +381,16 @@ export class PromptEditorComponent {
     }
   }
 
-  // Update prompts diff
+  /** Update prompts diff */
   protected readonly diffContainer = viewChild<ElementRef<HTMLElement>>('diffContainer');
   async updateDiff() {
     const diffContainer = this.diffContainer();
     if (!diffContainer) return;
-    const prompts = this.tabs[this.selectedTab].prompts;
-    if (!prompts) return;
+
     // Lazy load both modules
-    const [{ createPatch }, { Diff2HtmlUI }] = await Promise.all([import('diff'), import('diff2html/lib/ui/js/diff2html-ui-slim')]);
-    const tab = this.tabs[this.selectedTab];
-    const updatedContent = this.rebuildPromptFile(tab.tool, prompts);
+    const [{ createPatch }, { Diff2HtmlUI }] = await Promise.all([import('diff'), import('diff2html/lib-esm/ui/js/diff2html-ui-slim')]);
+    const tab = this.tabs[this.selectedPromptTab()];
+    const updatedContent = this.selectedPromptTab() === 0 ? this.rebuildSharedFile() : tab.prompts ? this.rebuildPromptFile(tab.tool, tab.prompts) : '';
     const originalContent = tab.original;
 
     // Create the patch
@@ -393,12 +411,12 @@ export class PromptEditorComponent {
     this.highlightFilePreview();
   }
 
-  // Highlight code for export preview
+  /** Highlight code for export preview */
   protected readonly filePreview = viewChild<ElementRef<HTMLPreElement>>('filePreview');
   async highlightFilePreview(): Promise<void> {
     const filePreview = this.filePreview();
     if (!filePreview) return;
-    const prompts = this.tabs[this.selectedTab].prompts;
+    const prompts = this.tabs[this.selectedPromptTab()].prompts;
     if (!prompts) return;
 
     try {
@@ -415,7 +433,7 @@ export class PromptEditorComponent {
         pre.removeAttribute('data-highlighted');
         pre.removeAttribute('tabindex');
         codeBlock.className = 'language-typescript';
-        codeBlock.textContent = this.rebuildPromptFile(this.tabs[this.selectedTab].tool, prompts);
+        codeBlock.textContent = this.rebuildPromptFile(this.tabs[this.selectedPromptTab()].tool, prompts);
         Prism.highlightElement(codeBlock);
       }
     } catch (error) {
@@ -423,7 +441,7 @@ export class PromptEditorComponent {
     }
   }
 
-  // Load light/dark prism theme
+  /** Load light/dark prism theme */
   private loadPrismTheme(isDarkMode: boolean): void {
     const existingLink = document.getElementById('prism-theme') as HTMLLinkElement;
     const newHref = isDarkMode ? 'css/prism-okaidia.min.css' : 'css/prism.min.css';

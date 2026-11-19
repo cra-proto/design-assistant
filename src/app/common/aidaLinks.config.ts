@@ -30,6 +30,7 @@ export enum AidaLinks {
   DevColours = '/dev/colour-generator',
   DevPatterns = '/dev/design-patterns',
   DevPrompts = '/dev/prompt-editor',
+  DevSkills = '/dev/skill-editor',
   //Utility
   Help = '/help',
   About = '/about-us',

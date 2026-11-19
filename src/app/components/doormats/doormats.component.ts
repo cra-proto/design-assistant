@@ -60,6 +60,7 @@ export const DOORMATS = {
   colors: { path: AidaLinks.DevColours, titleKey: 'dev.colors._title', descriptionKey: 'dev.colors.description' },
   patterns: { path: AidaLinks.DevPatterns, titleKey: 'dev.patterns._title', descriptionKey: 'dev.patterns.description' },
   prompts: { path: AidaLinks.DevPrompts, titleKey: 'dev.prompts._title', descriptionKey: 'dev.prompts.description' },
+  skills: { path: AidaLinks.DevSkills, titleKey: 'dev.skills._title', descriptionKey: 'dev.skills.description', hideInProd: true },
   //External
   ucdgDiscover: { path: 'ucdg.discover.link', titleKey: 'ucdg.discover.title', descriptionKey: 'ucdg.discover.description', isExternal: true },
 } as const satisfies Record<string, DoormatItem>;

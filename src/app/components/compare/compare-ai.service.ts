@@ -59,6 +59,7 @@ export class CompareAiService {
       let response: string;
       let fallbackCount = 0;
       if (promptKey === 'AlertRewrite') {
+        const selectedPageLanguage = this.projectCache.selectedLang();
         if (this.alertService.getRetainedAnalysis(initialAfter.html, pagePath) === null) {
           await this.alertService.analyze(initialAfter.html, pagePath, this.compareService.selectedModel());
         }
@@ -70,6 +71,7 @@ export class CompareAiService {
           includeExamples: true,
           useCompactAlertsPageContext: true,
           forceLocalRepairForTesting: false,
+          contentLanguage: selectedPageLanguage === 'en' || selectedPageLanguage === 'fr' ? selectedPageLanguage : undefined,
         });
         response = rewriteResult.formattedHtml;
         fallbackCount = rewriteResult.fallbackNotices.length;

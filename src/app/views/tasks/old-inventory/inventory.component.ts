@@ -37,8 +37,8 @@ import { AidaLinks } from '../../../common/aidaLinks.config';
 import { COLUMN_GROUPS, ColumnGroups, FIELD_FILTERS, FlattenedTreeNode, GLOBAL_FIELDS, TableColumn } from '../../../common/data-patch.model';
 import { MetadataField, MetadataReview, MetadataReviewStatus, PageTemplate } from '../../../common/data.model';
 import { isKnownNumber } from '../../../common/phone-numbers.config';
-import { InventoryPrompts } from '../../../common/prompts/inventory.prompts';
-import { InventoryPromptKey } from '../../../common/prompts/prompt.model';
+import { ToolsPromptKey } from '../../../common/prompts/prompt.model';
+import { ToolsPrompts } from '../../../common/prompts/tools.prompts';
 import { TooltipDirective } from '../../../common/tooltip.directive';
 
 export interface BooleanToggleItem extends MenuItem {
@@ -669,7 +669,7 @@ export class InventoryComponent implements OnInit {
       // Call OpenRouter
       let response: string;
       try {
-        response = await this.openRouterService.getTextFromAI(InventoryPrompts[InventoryPromptKey.Metadata], JSON.stringify(context));
+        response = await this.openRouterService.getTextFromAI(ToolsPrompts[ToolsPromptKey.Metadata], JSON.stringify(context));
       } catch (error) {
         console.warn(`Skipping ${enUrl} — AI call failed`, error);
         continue;
@@ -693,7 +693,7 @@ export class InventoryComponent implements OnInit {
               keywords: { ai: parsed.fr.keywords, status: 'pending' },
             },
           },
-          InventoryPrompts[InventoryPromptKey.Metadata],
+          ToolsPrompts[ToolsPromptKey.Metadata],
         );
       } catch (error) {
         console.warn(`Skipping ${path} — could not parse AI response`, error);

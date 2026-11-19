@@ -26,12 +26,17 @@ export class StyleCardService {
 
   /** Custom or default background for non-active cards */
   private bgClass(customBG?: string): string {
-    return customBG ?? 'surface-card';
+    return customBG ? customBG + ' ' : 'surface-card ';
   }
 
   /** Custom or default border colour for non-active cards */
   private borderClass(customBorder?: string): string {
-    return customBorder ?? 'surface-border';
+    return customBorder ? customBorder + ' ' : 'surface-border ';
+  }
+
+  /** Custom class or empty string */
+  private customClass(customClass?: string): string {
+    return customClass ? customClass + ' ' : '';
   }
 
   /** Parameters are set to false by default so static cards can be displayed without adding anything
@@ -41,13 +46,23 @@ export class StyleCardService {
    ** noPadding - set to true if you need to use custom padding for your card
    ** customBG - set to a background class if you need to override the default background colour (does not affect hover colour)
    ** customBorder - set to a border colour class if you need to override the default border colour (does not affect active or hover colour)
+   ** customClass - any other class you want to add
    */
-  public cardStyles(interactive = false, active = false, noPadding = false, customBG?: string, customBorder?: string): string {
+  public cardStyles(interactive = false, active = false, noPadding = false, customBG?: string, customBorder?: string, customClass?: string): string {
     const isDark = this.settingsService.darkMode();
     const padding = noPadding ? 'w-full min-w-min' : 'p-4 w-full min-w-min';
     if (active) return this.fiaClasses() + this.iaClasses() + (isDark ? this.adClasses() : this.alClasses()) + padding;
     if (interactive)
-      return this.fiaClasses() + this.fiClasses() + this.iaClasses() + this.bgClass(customBG) + ' ' + this.borderClass(customBorder) + ' ' + (isDark ? this.idClasses() : this.ilClasses()) + padding;
-    else return this.fiaClasses() + this.fiClasses() + this.bgClass(customBG) + ' ' + this.borderClass(customBorder) + ' ' + padding;
+      return (
+        this.fiaClasses() +
+        this.fiClasses() +
+        this.iaClasses() +
+        this.bgClass(customBG) +
+        this.borderClass(customBorder) +
+        this.customClass(customClass) +
+        (isDark ? this.idClasses() : this.ilClasses()) +
+        padding
+      );
+    else return this.fiaClasses() + this.fiClasses() + this.bgClass(customBG) + this.borderClass(customBorder) + this.customClass(customClass) + padding;
   }
 }

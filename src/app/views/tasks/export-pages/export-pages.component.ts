@@ -655,7 +655,7 @@ export class ExportPagesComponent {
     //EXPORTED_BY will be filled out via .ps1 extraction tool
     const exporterHtml = `<p class="gc-byline">${this.translate.instant('exportPages.exportedBy')} {{EXPORTED_BY}}</p>`;
     //Paired pages
-    const exportedPairs = this.projectState.getPairedPages('live', scope).filter((pair) => paths.has(pair.en.path) || paths.has(pair.fr.path));
+    const exportedPairs = this.projectState.getPairedPages('protoGH', scope).filter((pair) => paths.has(pair.en.path) || paths.has(pair.fr.path));
     //Labels
     const viewCanada = this.translate.instant('common.viewOnCanada');
     const viewUPD = this.translate.instant('common.viewOnUPD');

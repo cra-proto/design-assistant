@@ -864,7 +864,7 @@ ${mermaidChart}
   // Pull request method for prompt updates
   public async createPullRequestForPrompts(category: string, path: string, filename: string, content: string): Promise<{ prUrl: string; branchName: string }> {
     const owner = this.templateOrg;
-    const repo = 'ai-design-assistant';
+    const repo = 'design-assistant';
     const baseBranch = 'dev';
     const token = this.signInService.token();
 
@@ -906,34 +906,53 @@ ${mermaidChart}
       throw new Error(`Failed to create branch: ${createBranchResponse.status} ${error.message || ''}`);
     }
 
-    // 4. Push the file to the new branch
-    await this.exportToGitHub(owner, repo, branchName, path, filename, content, token, new Map(), true, false);
+    try {
+      // 4. Get SHA of the file being updated
+      const existingFile = new Map<string, string>();
+      const fileResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(branchName)}`, { headers: { Authorization: `token ${token}` } });
+      if (fileResponse.ok) {
+        existingFile.set(path, (await fileResponse.json()).sha);
+      } else if (fileResponse.status !== 404) {
+        throw new Error(`Failed to check existing file: ${fileResponse.status}`);
+      }
 
-    // 5. Create the pull request
-    const prResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
-      method: 'POST',
-      headers: {
-        Authorization: `token ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: `Update ${category} prompts`,
-        head: branchName,
-        base: baseBranch,
-        body: `Update  to ${category} prompts via Design Assistant.\n\n**File:** \`${path}\`\n**Branch:** \`${branchName}\`\n**UserID:** \`${this.signInService.user()?.id}\`\n**Username:** \`${this.signInService.user()?.login}\``,
-      }),
-    });
+      // 5. Push the file to the new branch
+      await this.exportToGitHub(owner, repo, branchName, path, filename, content, token, existingFile, true, false);
 
-    if (!prResponse.ok) {
-      const error = await prResponse.json().catch(() => ({}));
-      throw new Error(`Failed to create PR: ${prResponse.status} ${error.message || ''}`);
+      // 6. Create the pull request
+      const prResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
+        method: 'POST',
+        headers: {
+          Authorization: `token ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: `Update ${category} prompts`,
+          head: branchName,
+          base: baseBranch,
+          body: `Update to ${category} prompts via Design Assistant.\n\n**File:** \`${path}\`\n**Branch:** \`${branchName}\`\n**UserID:** \`${this.signInService.user()?.id}\`\n**Username:** \`${this.signInService.user()?.login}\``,
+        }),
+      });
+
+      if (!prResponse.ok) {
+        const error = await prResponse.json().catch(() => ({}));
+        throw new Error(`Failed to create PR: ${prResponse.status} ${error.message || ''}`);
+      }
+
+      const prData = await prResponse.json();
+
+      return {
+        prUrl: prData.html_url,
+        branchName: branchName,
+      };
+    } catch (error) {
+      await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branchName}`, {
+        method: 'DELETE',
+        headers: { Authorization: `token ${token}` },
+      }).catch(() => {
+        console.log('Failed to delete temporary branch');
+      });
+      throw error;
     }
-
-    const prData = await prResponse.json();
-
-    return {
-      prUrl: prData.html_url,
-      branchName: branchName,
-    };
   }
 }

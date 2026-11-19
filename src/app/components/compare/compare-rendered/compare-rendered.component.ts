@@ -12,7 +12,7 @@ import { SplitButtonModule } from 'primeng/splitbutton';
 import { TooltipModule } from 'primeng/tooltip';
 
 import { FetchService } from '../../../services/fetch.service';
-import { htmlProcessingResult } from '../../../services/html-normalization.service';
+import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
 import { CompareRenderedService } from './compare-rendered.service';
 
 export enum WebViewType {
@@ -42,6 +42,7 @@ export class CompareRenderedComponent implements AfterViewInit, OnDestroy {
   private readonly messageService = inject(MessageService);
   private readonly compareRenderedService = inject(CompareRenderedService);
   private readonly fetchService = inject(FetchService);
+  private readonly htmlNormalizationService = inject(HtmlNormalizationService);
 
   // Inputs
   public readonly beforeContent = input<htmlProcessingResult | undefined>();
@@ -361,7 +362,7 @@ export class CompareRenderedComponent implements AfterViewInit, OnDestroy {
       //save
       editable.setAttribute('contenteditable', 'false');
 
-      const updatedContent = this.compareRenderedService.undoInitShadowPlugins(editable).innerHTML;
+      const updatedContent = await this.htmlNormalizationService.formatHtml(this.compareRenderedService.undoInitShadowPlugins(editable).innerHTML);
 
       const beforeContent = this.resolvedBefore();
       const afterContent = this.resolvedAfter();
@@ -412,7 +413,7 @@ export class CompareRenderedComponent implements AfterViewInit, OnDestroy {
   }
 
   // Process Accept/Reject
-  protected processDiffChange(mode: 'accept' | 'reject'): void {
+  protected async processDiffChange(mode: 'accept' | 'reject'): Promise<void> {
     //Get diff container
     const shadowRoot = this.shadowDOM();
     if (!shadowRoot) {
@@ -511,7 +512,7 @@ export class CompareRenderedComponent implements AfterViewInit, OnDestroy {
     this.compareRenderedService.resetLastSelection();
 
     //Merge with modified HTML
-    const updatedContent = this.compareRenderedService.undoInitShadowPlugins(diffContainer).innerHTML;
+    const updatedContent = await this.htmlNormalizationService.formatHtml(this.compareRenderedService.undoInitShadowPlugins(diffContainer).innerHTML);
 
     const beforeContent = this.resolvedBefore();
     const afterContent = this.resolvedAfter();

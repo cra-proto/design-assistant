@@ -46,6 +46,15 @@ main.container {
   flex: 1 0 auto;
 }
 
+.w-limited {
+  width: calc(100vw - var(--mobile-nav-width) - 3rem);
+  max-width: calc(100vw - var(--mobile-nav-width) - 3rem);
+}
+
+.surface-ground {
+  background-color: var(--surface-ground) !important;
+}
+
 /* ========== Navigation ========== */
 .l-navbar {
   position: fixed;
@@ -71,6 +80,11 @@ main.container {
 
   div.container {
     padding-left: var(--desktop-nav-width);
+  }
+
+  .w-limited {
+    width: calc(100vw - var(--desktop-nav-width) - 10rem);
+    max-width: calc(100vw - var(--desktop-nav-width) - 10rem);
   }
 }
 

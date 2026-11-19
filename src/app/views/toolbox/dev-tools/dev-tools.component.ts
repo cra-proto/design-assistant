@@ -12,7 +12,7 @@ import { DoormatKey, DoormatsComponent } from '../../../components/doormats/door
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DevToolsComponent {
-  protected readonly devDoormats: DoormatKey[] = ['monitoring', 'colors', 'patterns', 'prompts'];
+  protected readonly devDoormats: DoormatKey[] = ['monitoring', 'colors', 'patterns', 'prompts', 'skills'];
   //TODO: add an indicator for when static files need updating (vanity URLs, phone numbers, etc. should be updated monthly, CDTS templates should be reviewed bi-anually, etc. )
   /**
    * Translation markers for visual separators in translation files.

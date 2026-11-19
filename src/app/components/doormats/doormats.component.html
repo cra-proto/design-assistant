@@ -4,17 +4,19 @@
       @if (!isHiddenInProd(key) || !prod) {
         @if (style() === 'topic') {
           <div class="col-12 md:col-6 lg:col-4">
-            <div [class.text-red]="isHiddenInProd(key)">
-              @if (isExternal(key)) {
-                <a [href]="item.path | translate" target="_blank">
+            @if (isExternal(key)) {
+              <a [href]="item.path | translate" target="_blank">
+                <div [class.text-red]="isHiddenInProd(key)">
                   <ng-container *ngTemplateOutlet="doormatHeader; context: { $implicit: item.titleKey, external: isExternal(key) }" />
-                </a>
-              } @else {
-                <a [routerLink]="item.path ? item.path : undefined">
+                </div>
+              </a>
+            } @else {
+              <a [routerLink]="item.path ? item.path : undefined">
+                <div [class.text-red]="isHiddenInProd(key)">
                   <ng-container *ngTemplateOutlet="doormatHeader; context: { $implicit: item.titleKey, hidden: item.hideInProd }" />
-                </a>
-              }
-            </div>
+                </div>
+              </a>
+            }
             <p class="text-color-secondary mt-2">{{ item.descriptionKey | translate }}</p>
           </div>
         } @else if (style() === 'card') {

@@ -288,7 +288,6 @@ export class CompareRenderedService {
     this.undoInitTabs(clone);
     //this.undoInitFieldFlow(shadowRoot);
     //this.undoInitDetails(shadowRoot);
-    this.htmlNormalizationService.formatHtml(clone.toString());
     return clone;
   }
 
@@ -335,6 +334,9 @@ export class CompareRenderedService {
         a.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
         a.setAttribute('aria-controls', detailId);
         a.setAttribute('tabindex', i === 0 ? '0' : '-1');
+
+        const tabLabel = summary?.cloneNode(true) as HTMLElement | undefined;
+        tabLabel?.querySelectorAll('[data-id]').forEach((el) => el.removeAttribute('data-id'));
         a.innerHTML = summary?.innerHTML || '';
 
         li.appendChild(a);
@@ -573,45 +575,27 @@ export class CompareRenderedService {
         }
     
         */
-    // Unwrap diff elements from parent tags like <mark>, <strong>, etc. if the parent contains nothing but the diff element
-    diffDoc.querySelectorAll('ins, del').forEach((diffEl) => {
-      const parent = diffEl.parentElement;
-      if (
-        parent &&
-        parent.tagName !== 'BODY' &&
-        parent.tagName !== 'UL' &&
-        parent.tagName !== 'OL' &&
-        parent.tagName !== 'SUMMARY' &&
-        parent.tagName !== 'DETAILS' &&
-        !parent.classList.contains('diffmod') &&
-        !parent.classList.contains('diffins') &&
-        !parent.classList.contains('diffdel') &&
-        parent.children.length === 1 &&
-        parent.textContent?.trim() === diffEl.textContent?.trim()
-      ) {
-        parent.replaceWith(diffEl);
-
-        const inlineElements = ['STRONG', 'EM', 'B', 'I', 'MARK', 'CODE', 'ABBR', 'SPAN'];
-
-        if (inlineElements.includes(parent.tagName)) {
-          // Move parent element inside diff to preserve style
-          const parentClone = parent.cloneNode(false) as Element;
-          while (diffEl.firstChild) {
-            parentClone.appendChild(diffEl.firstChild);
-          }
-          diffEl.appendChild(parentClone);
-          parent.replaceWith(diffEl);
-        } else {
-          // UNWRAP: for structural elements, just remove the parent
-          parent.replaceWith(diffEl);
-        }
+    // Unwrap any ins/del that aren't diff markers
+    diffDoc.querySelectorAll('ins:not(.diffins):not(.diffmod), del:not(.diffdel):not(.diffmod)').forEach((diffEl) => {
+      while (diffEl.firstChild) {
+        diffEl.parentNode?.insertBefore(diffEl.firstChild, diffEl);
       }
-      if (diffEl.matches('ins:not(.diffins):not(.diffmod)') || diffEl.matches('del:not(.diffdel):not(.diffmod)')) {
-        // Unwrap non-standard ins/del
+      diffEl.remove();
+    });
+
+    // Move inline parents inside the diff, keep block parents as-is
+    const inlineElements = ['A', 'ABBR', 'B', 'CITE', 'CODE', 'EM', 'I', 'MARK', 'S', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'U'];
+
+    diffDoc.querySelectorAll('ins, del').forEach((diffEl) => {
+      let parent = diffEl.parentElement;
+      while (parent && inlineElements.includes(parent.tagName) && parent.children.length === 1 && parent.textContent?.trim() === diffEl.textContent?.trim()) {
+        const parentClone = parent.cloneNode(false) as Element;
         while (diffEl.firstChild) {
-          diffEl.parentNode?.insertBefore(diffEl.firstChild, diffEl);
+          parentClone.appendChild(diffEl.firstChild);
         }
-        diffEl.remove();
+        diffEl.appendChild(parentClone);
+        parent.replaceWith(diffEl);
+        parent = diffEl.parentElement; // check the next level up (e.g. <strong><em><ins>)
       }
     });
 
@@ -684,32 +668,10 @@ export class CompareRenderedService {
         wrapper.appendChild(toMove);
       }
 
-      // If no ins.diffmod siblings found, look across block boundaries
+      // If no ins.diffmod siblings found, treat as a plain deletion
       if (!wrapper.querySelector('ins.diffmod')) {
-        // Search in next sibling blocks (up to 3 levels deep)
-        let searchNode: Element | null = del.parentElement;
-        let depth = 0;
-
-        while (searchNode && searchNode.tagName !== 'BODY' && depth < 3) {
-          const nextBlock = searchNode.nextElementSibling;
-          if (nextBlock) {
-            // Look for first ins.diffmod in next block
-            const firstIns = nextBlock.querySelector('ins.diffmod');
-            if (firstIns) {
-              // Only pair if it's a small change (heuristic to avoid pairing unrelated content)
-              const insText = firstIns.textContent?.trim() || '';
-              const delText = del.textContent?.trim() || '';
-
-              // Pair if ins is small OR similar length to del (likely a word replacement)
-              if (insText.length < 50 || Math.abs(insText.length - delText.length) < 20) {
-                wrapper.appendChild(firstIns);
-                break;
-              }
-            }
-          }
-          searchNode = searchNode.parentElement;
-          depth++;
-        }
+        wrapper.replaceWith(del);
+        del.classList.replace('diffmod', 'diffdel');
       }
     });
 

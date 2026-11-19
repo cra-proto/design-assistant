@@ -111,7 +111,7 @@ export class FetchService {
     return url;
   }
 
-  //Uses specified fetch method and retries if initial fetch fails (can happen due to intermittent server issues etc.)
+  //Uses specified fetch method and retries if initial fetch fails (can happen due to intermittent server issues, Akamai etc.)
   public async fetchWithRetry(url: string, mode: 'GET' | 'HEAD' = 'HEAD', retries = 3, delay: number | 'random' | 'none' = 'none', suppressErrors = false): Promise<Response> {
     for (let attempt = 1; attempt <= retries; attempt++) {
       await this.simulateDelay(delay);

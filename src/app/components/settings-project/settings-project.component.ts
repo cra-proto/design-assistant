@@ -46,20 +46,6 @@ export class SettingsProjectComponent {
 
   constructor() {
     effect(() => {
-      const lang = this.projectCache.selectedLangs();
-      untracked(() => {
-        if (lang !== 'both') {
-          this.projectCache.selectedLang.set(lang);
-        }
-      });
-    });
-    effect(() => {
-      const lang = this.projectCache.selectedLang();
-      untracked(() => {
-        this.projectCache.selectedLangs.set(lang);
-      });
-    });
-    effect(() => {
       if (!this.active()) return;
       if (!this.allowLive() && this.projectCache.selectedVersion() === 'live') {
         this.projectCache.selectedVersion.set('prototype'); // fallback to prototype if live was selected and not available
