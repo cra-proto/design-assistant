@@ -291,7 +291,7 @@
                 id="search"
                 [(ngModel)]="searchTerm"
                 [placeholder]="'common.search' | translate"
-                (input)="dt.filterGlobal(fetchService.generatePath($event.target.value), 'contains')"
+                (input)="dt.filterGlobal(generatePath($event.target.value), 'contains')"
                 class="min-w-min md:min-w-max w-full"
                 pInputText
                 type="text"

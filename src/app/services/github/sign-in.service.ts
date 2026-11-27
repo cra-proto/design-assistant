@@ -10,8 +10,9 @@ import { MessageService } from 'primeng/api';
 
 import { GitHubAuthService } from './github-auth.service';
 
-import { environment } from '../../../environments/environment';
 import { GitHubUser } from '../../common/data.model';
+
+import { environment } from '../../../environments/environment';
 
 /*
  * Use this service to coordinate OAuth and PAT sign-in status (GitHub token & user)

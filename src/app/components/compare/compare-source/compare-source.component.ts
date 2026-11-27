@@ -10,10 +10,11 @@ import { ContextMenu, ContextMenuModule } from 'primeng/contextmenu';
 import { MessageModule } from 'primeng/message';
 import { RadioButtonModule } from 'primeng/radiobutton';
 
-import { FetchService } from '../../../services/fetch.service';
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
 import { CompareSourceService } from './compare-source.service';
+
+import { generatePath, isValidUrl } from '../../../utilities/html/link.util';
 
 import { GCWEB_SNIPPETS_ENG, GCWEB_SNIPPETS_FRA, GCwebSnippet } from '../../../common/gcweb-snippets.config';
 
@@ -41,9 +42,7 @@ export class CompareSourceComponent implements OnDestroy {
   private readonly translate = inject(TranslateService);
   private readonly messageService = inject(MessageService);
   private readonly compareSourceService = inject(CompareSourceService);
-  private readonly fetchService = inject(FetchService);
   private readonly htmlNormalizationService = inject(HtmlNormalizationService);
-
   private readonly settingsService = inject(UserSettingsService);
 
   // Inputs
@@ -141,8 +140,8 @@ export class CompareSourceComponent implements OnDestroy {
   async rebuildSourceContent(container: HTMLElement, viewType: SourceViewType, beforeContent: htmlProcessingResult, afterContent: htmlProcessingResult): Promise<void> {
     const token = ++this.renderToken;
 
-    const beforePath = this.fetchService.generatePath(beforeContent.url ?? '');
-    const afterPath = this.fetchService.generatePath(afterContent.url ?? '');
+    const beforePath = generatePath(beforeContent.url ?? '');
+    const afterPath = generatePath(afterContent.url ?? '');
 
     const beforeHTML = await this.htmlNormalizationService.formatHtml(beforeContent.html);
     const afterHTML = await this.htmlNormalizationService.formatHtml(afterContent.html);
@@ -250,7 +249,7 @@ export class CompareSourceComponent implements OnDestroy {
   protected getUrl(): string | null {
     const url = this.sourceSelectedView() === SourceViewType.Original ? this.beforeContent()?.url : this.sourceSelectedView() === SourceViewType.Modified ? this.afterContent()?.url : null;
 
-    return this.fetchService.isValidUrl(url) ? url : null;
+    return isValidUrl(url) ? url : null;
   }
 
   //Context menu

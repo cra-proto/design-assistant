@@ -3,6 +3,8 @@ import { inject, Injectable } from '@angular/core';
 //import * as parserHtml from 'prettier/parser-html';
 import { FetchService } from './fetch.service';
 
+import { stringToDoc } from '../utilities/html/extract-content.util';
+
 import { SourceVersion } from '../common/data.model';
 
 export interface htmlProcessingResult {
@@ -73,9 +75,9 @@ export class HtmlNormalizationService {
     if (mode === 'url') {
       doc = await this.fetchService.fetchContent(`${page}?_=${Date.now()}`, 'both');
     } else if (mode === 'proxy') {
-      doc = this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(page));
+      doc = stringToDoc(await this.fetchService.fetchViaProxy(page));
     } else {
-      doc = this.fetchService.stringToDoc(page);
+      doc = stringToDoc(page);
     }
     if (!doc) return;
 

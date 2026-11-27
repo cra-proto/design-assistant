@@ -54,7 +54,8 @@
                 <p-badge [severity]="numberProblems() === 0 ? 'success' : 'danger'" [value]="numberProblems()" />
               </div>
             </p-tab>
-            <p-tab value="4">
+
+            <p-tab value="5">
               <div class="flex align-items-center gap-2">
                 <span class="material-icons-outlined">auto_awesome</span>
                 {{ 'languages.aiSummary.tab' | translate }}
@@ -69,7 +70,7 @@
                 }
               </div>
             </p-tab>
-            <p-tab value="5">
+            <p-tab value="6">
               <div class="flex align-items-center gap-2">
                 <span class="material-icons-outlined">compare</span>
                 {{ 'languages.webView.tab' | translate }}
@@ -85,10 +86,11 @@
             <p-tabpanel value="2"><ng-container *ngTemplateOutlet="hidden" /></p-tabpanel>
             <!-- Numbers comparison -->
             <p-tabpanel value="3"><ng-container *ngTemplateOutlet="numbers" /></p-tabpanel>
+
             <!-- AI summary comparison -->
-            <p-tabpanel value="4"><ng-container *ngTemplateOutlet="ai" /></p-tabpanel>
+            <p-tabpanel value="5"><ng-container *ngTemplateOutlet="ai" /></p-tabpanel>
             <!-- Rendered page comparison -->
-            <p-tabpanel value="5">
+            <p-tabpanel value="6">
               <aida-compare-web [iframeEnglish]="iframeEnglish()" [iframeFrench]="iframeFrench()" [is404]="is404()" />
             </p-tabpanel>
           </p-tabpanels>
@@ -115,45 +117,47 @@
 
     <ul class="list-none mx-0 my-1 p-0">
       @for (row of summaryRows(); track row.tab) {
-        <li>
-          <p-button
-            [styleClass]="
-              activeTab() === row.tab && !summaryMode()
-                ? 'h-3rem flex justify-content-between gap-2 border-1 secondary-border bg-primary-light hover:bg-primary-light'
-                : 'h-3rem flex justify-content-between gap-2'
-            "
-            [text]="activeTab() !== row.tab || summaryMode()"
-            (onClick)="!summaryMode() ? openTab(row.tab) : openDialog.set(row)"
-            fluid
-          >
-            <div class="flex gap-2 align-items-center">
-              <span class="material-icons-outlined">{{ row.icon }}</span>
-              <span>{{ row.label | translate }}</span>
-              @if (row.state === 'loading') {
-                <i class="pi pi-spin pi-spinner text-primary text-lg"></i>
-              } @else if (row.state === 'error') {
-                <i class="pi pi-exclamation-circle text-red text-lg"></i>
-              } @else if (row.state === 'ok' || row.state === 'problem') {
-                @if (row.detail) {
-                  <p-badge [severity]="row.state === 'problem' ? 'danger' : 'success'" [value]="row.detail" />
-                } @else {
-                  <p-badge [severity]="row.state === 'problem' ? 'danger' : 'success'" [value]="row.count" />
-                }
-              } @else {
-                <i class="pi pi-question-circle text-blue text-lg"></i>
-              }
-            </div>
-            <div class="flex gap-1 align-items-center">
-              <span [class]="row.state === 'problem' || row.state === 'error' ? 'text-red' : row.state === 'ok' ? 'text-green' : 'text-color-secondary'">
-                {{ 'languages.summary.' + row.state | translate: { count: row.count } }}
+        @if (!isProd || !row.hideInProd) {
+          <li>
+            <p-button
+              [styleClass]="
+                activeTab() === row.tab && !summaryMode()
+                  ? 'h-3rem flex justify-content-between gap-2 border-1 secondary-border bg-primary-light hover:bg-primary-light'
+                  : 'h-3rem flex justify-content-between gap-2'
+              "
+              [text]="activeTab() !== row.tab || summaryMode()"
+              (onClick)="!summaryMode() ? openTab(row.tab) : openDialog.set(row)"
+              fluid
+            >
+              <div class="flex gap-2 align-items-center">
+                <span class="material-icons-outlined">{{ row.icon }}</span>
+                <span [class.text-red]="row.hideInProd">{{ row.label | translate }}</span>
                 @if (row.state === 'loading') {
-                  <span class="loading-dots -ml-1"></span>
+                  <i class="pi pi-spin pi-spinner text-primary text-lg"></i>
+                } @else if (row.state === 'error') {
+                  <i class="pi pi-exclamation-circle text-red text-lg"></i>
+                } @else if (row.state === 'ok' || row.state === 'problem') {
+                  @if (row.detail) {
+                    <p-badge [severity]="row.state === 'problem' ? 'danger' : 'success'" [value]="row.detail" />
+                  } @else {
+                    <p-badge [severity]="row.state === 'problem' ? 'danger' : 'success'" [value]="row.count" />
+                  }
+                } @else {
+                  <i class="pi pi-question-circle text-blue text-lg"></i>
                 }
-              </span>
-              <i [class]="summaryMode() ? 'pi pi-question-circle text-primary' : 'pi pi-chevron-right text-color-secondary'"></i>
-            </div>
-          </p-button>
-        </li>
+              </div>
+              <div class="flex gap-1 align-items-center">
+                <span [class]="row.state === 'problem' || row.state === 'error' ? 'text-red' : row.state === 'ok' ? 'text-green' : 'text-color-secondary'">
+                  {{ 'languages.summary.' + row.state | translate: { count: row.count } }}
+                  @if (row.state === 'loading') {
+                    <span class="loading-dots -ml-1"></span>
+                  }
+                </span>
+                <i [class]="summaryMode() ? 'pi pi-question-circle text-primary' : 'pi pi-chevron-right text-color-secondary'"></i>
+              </div>
+            </p-button>
+          </li>
+        }
         @if (openDialog(); as row) {
           <p-dialog [header]="row.label | translate" [maximizable]="true" [modal]="true" [visible]="true" (visibleChange)="$event || openDialog.set(null)" styleClass="w-10">
             <ng-template #headless>

@@ -10,6 +10,8 @@ import { AlertContextService } from './alert-context.service';
 import { AlertRewriteGuardService } from './alert-rewrite-guard.service';
 import { AlertRewriteIssueInput, AlertRewriteRepairCandidate, AlertRewriteResult, AlertRewriteService } from './alert-rewrite.service';
 
+import { PagePromptKey } from '../../../../../common/prompts/prompt.model';
+
 import {
   CraTerminologyEntries,
   CraTerminologyInstructions,
@@ -20,7 +22,6 @@ import {
   type ResolvedCraTerminologyEntry,
 } from '../../../../../common/prompts/cra-terminology.prompt';
 import { PagePrompts } from '../../../../../common/prompts/page.prompts';
-import { PagePromptKey } from '../../../../../common/prompts/prompt.model';
 import { coerceInteractiveResultLeadIns, getReportableAlerts } from './alert-reportable.utils';
 
 export interface AlertRewriteFallbackNotice {
@@ -29,15 +30,7 @@ export interface AlertRewriteFallbackNotice {
 }
 
 type AlertRewriteTimingKey =
-  | 'parseAlertsMs'
-  | 'loadExamplesMs'
-  | 'buildCompactContextMs'
-  | 'rewritePromptMs'
-  | 'rewriteAiMs'
-  | 'parseAndGuardMs'
-  | 'localRepairMs'
-  | 'applyRewritesMs'
-  | 'formatHtmlMs';
+  'parseAlertsMs' | 'loadExamplesMs' | 'buildCompactContextMs' | 'rewritePromptMs' | 'rewriteAiMs' | 'parseAndGuardMs' | 'localRepairMs' | 'applyRewritesMs' | 'formatHtmlMs';
 
 type AlertRewriteTimings = Record<AlertRewriteTimingKey, number>;
 

@@ -4,10 +4,11 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { TreeNode } from 'primeng/api';
 
-import { FetchService } from './fetch.service';
 import { LabelItem } from './style-table.service';
 import { StyleTreeNodeService } from './style-treenode.service';
 import { UserSettingsService } from './user-settings.service';
+
+import { hashString } from '../utilities/html/hash.util';
 
 import { TreeNodeData } from '../common/data.model';
 
@@ -61,7 +62,6 @@ export interface FlattenedMetadata {
 export class TableMetadataService {
   private readonly translate = inject(TranslateService);
   private readonly styleTreeNodeService = inject(StyleTreeNodeService);
-  private readonly fetchService = inject(FetchService);
   private readonly settingsService = inject(UserSettingsService);
 
   public flattenMetadata(tree: TreeNode<TreeNodeData>[]): FlattenedMetadata[] {
@@ -270,6 +270,6 @@ export class TableMetadataService {
       nodeData.prototype.fr.keywords,
     ];
     const jsonMeta = JSON.stringify(allMeta);
-    return this.fetchService.hashString(jsonMeta);
+    return hashString(jsonMeta);
   }
 }

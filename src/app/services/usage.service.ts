@@ -5,8 +5,9 @@ import { firstValueFrom, Observable } from 'rxjs';
 
 import { UserSettingsService } from './user-settings.service';
 
-import { environment } from '../../environments/environment';
 import { MetadataReview } from '../common/data.model';
+
+import { environment } from '../../environments/environment';
 
 export interface UsageStats {
   uniqueUsersTotal: number;

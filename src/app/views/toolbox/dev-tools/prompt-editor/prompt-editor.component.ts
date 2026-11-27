@@ -31,10 +31,13 @@ import { StyleCardService } from '../../../../services/style-card.service';
 import { UserSettingsService } from '../../../../services/user-settings.service';
 import { CompareService } from '../../../tasks/compare-versions/compare-versions.service';
 
+import { stringToDoc } from '../../../../utilities/html/extract-content.util';
+
+import { OutputKey, PagePromptKey, ProblemPromptKey, PromptConfig, RoleKey, RubricKey, ToolsPromptKey } from '../../../../common/prompts/prompt.model';
+
 import { AlertRewriteExamples, type AlertRewriteExample } from '../../../../common/prompts/alert-rewrite.examples';
 import { PagePrompts } from '../../../../common/prompts/page.prompts';
 import { ProblemPrompts } from '../../../../common/prompts/problems.prompts';
-import { OutputKey, PagePromptKey, ProblemPromptKey, PromptConfig, RoleKey, RubricKey, SkillPromptKey, ToolsPromptKey } from '../../../../common/prompts/prompt.model';
 import { OutputFragment, RoleFragment, RubricFragment } from '../../../../common/prompts/shared.prompts';
 import { SkillPromptConfig, SkillPromptRule, SkillPrompts } from '../../../../common/prompts/skills.prompts';
 import { ToolsPrompts } from '../../../../common/prompts/tools.prompts';
@@ -885,7 +888,7 @@ export class PromptEditorComponent {
       try {
         doc = await this.fetchService.fetchContent(url, 'both', 3, 'none');
       } catch {
-        doc = this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(url));
+        doc = stringToDoc(await this.fetchService.fetchViaProxy(url));
       }
 
       const payload = this.alertContextService.buildCompactAlertsIssuesPayload(doc.documentElement.outerHTML);

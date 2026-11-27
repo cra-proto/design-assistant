@@ -17,10 +17,12 @@ import { OpenRouterService } from '../../../services/ai/openrouter.service';
 import { AiTaskOption, AiTenseOption, CompareService } from '../../../views/tasks/compare-versions/compare-versions.service';
 import { CompareAiService } from '../compare-ai.service';
 
-import { environment } from '../../../../environments/environment';
 import { AI_FREE_MODELS, AI_PAID_MODELS } from '../../../common/ai-models.config';
-import { PagePrompts } from '../../../common/prompts/page.prompts';
+
 import { PagePromptKey } from '../../../common/prompts/prompt.model';
+
+import { environment } from '../../../../environments/environment';
+import { PagePrompts } from '../../../common/prompts/page.prompts';
 
 /**
  * Reviewed: 2026-08-19 (ng21)

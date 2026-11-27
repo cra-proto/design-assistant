@@ -26,6 +26,8 @@ import { StyleTreeNodeService } from '../../../services/style-treenode.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
 import { IaDiagramService } from './ia-diagram.service';
 
+import { generateUrl } from '../../../utilities/html/link.util';
+
 import { TreeNodeData } from '../../../common/data.model';
 
 @Component({
@@ -299,11 +301,11 @@ export class IaDiagramComponent {
           //Toggle on
           const type = this.projectState.getProject().repoType;
           const version = type === 'github' && this.projectCache.hasGitHub() ? 'protoGH' : type === 'local' && this.projectCache.hasLocal() ? 'protoUT' : 'live';
-          const url = this.fetchService.generateUrl(path, version, this.projectData().github.owner, this.projectData().github.repo);
+          const url = generateUrl(path, version, this.projectData().github.owner, this.projectData().github.repo);
           const viaProxy = version.endsWith('UT');
           let linkedPaths = await this.fetchService.getPaths(url, viaProxy);
           if (version !== 'live' && linkedPaths.length === 0) {
-            const urlLive = this.fetchService.generateUrl(path, 'live');
+            const urlLive = generateUrl(path, 'live');
             linkedPaths = await this.fetchService.getPaths(urlLive, false);
           }
           const projectPaths = new Set(this.projectState.getAllPages(this.primaryLang).map((p) => p.path));

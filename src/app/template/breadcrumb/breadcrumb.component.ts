@@ -19,8 +19,9 @@ import { MenuProjectComponent } from '../../components/menu-project/menu-project
 import { CollaboratorService } from '../../services/github/collaborator.service';
 import { ProjectStateService } from '../../services/project-state.service';
 
-import { environment } from '../../../environments/environment';
 import { AidaLinks } from '../../common/aidaLinks.config';
+
+import { environment } from '../../../environments/environment';
 
 const HOME: MenuItem = { label: 'home._nav', route: AidaLinks.Home, icon: 'pi pi-home' };
 const DASHBOARD: MenuItem = { label: 'dashboard._title', route: AidaLinks.ProjectDashboard };

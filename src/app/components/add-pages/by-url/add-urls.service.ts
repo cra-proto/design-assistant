@@ -13,6 +13,9 @@ import { ProjectStorageService } from '../../../services/storage/project-storage
 import { StyleTreeNodeService } from '../../../services/style-treenode.service';
 import { GetChildPagesService } from '../by-children/get-child-urls.service';
 
+import { extractPageData, getBreadcrumb, getLinks } from '../../../utilities/html/extract-content.util';
+import { generatePath, generateUrl, getUrlLang } from '../../../utilities/html/link.util';
+
 import { LangData, PageActions, PageTemplate } from '../../../common/data.model';
 
 //Interfaces
@@ -231,7 +234,7 @@ export class AddUrlsService {
     const urlsToAdd: AddItem[] = validated
       .filter((url) => url.status === 'ok' || url.status === 'redirect')
       .filter((url) => {
-        const path = this.fetchService.generatePath(url.href);
+        const path = generatePath(url.href);
         const node = this.projectState.findNodeByPath(tree, path, this.projectLang);
         if (node) {
           if (!node.data?.status?.inScope) {
@@ -358,8 +361,8 @@ export class AddUrlsService {
     const inTree = this.projectState.urlExists(url);
     if (inTree) {
       if (inScope) {
-        const path = this.fetchService.generatePath(url);
-        const lang = this.fetchService.getLang(url) ?? 'en';
+        const path = generatePath(url);
+        const lang = getUrlLang(url) ?? 'en';
         this.projectState.setScope([path], lang);
       }
       return false;
@@ -367,7 +370,7 @@ export class AddUrlsService {
 
     // Step 2: Fetch page data
     const doc = await this.fetchService.fetchContent(url, 'prod', 3, 'none');
-    const breadcrumb = this.fetchService.getBreadcrumb(doc, 'https://www.canada.ca');
+    const breadcrumb = getBreadcrumb(doc, 'https://www.canada.ca');
     // Step 2a: Early return for find child mode
     if (parent && breadcrumb) {
       if (parent !== breadcrumb.at(-1)?.url) return false;
@@ -380,12 +383,12 @@ export class AddUrlsService {
     }
 
     // Step 3: Collect English & French data
-    const pageData = await this.fetchService.extractPageMetadata(doc, url);
+    const pageData = await extractPageData(doc, url);
 
     const oppDoc = pageData.oppUrl ? await this.fetchService.fetchContent(pageData.oppUrl, 'prod', 3, 'none') : undefined;
-    const oppPageData = oppDoc ? await this.fetchService.extractPageMetadata(oppDoc, pageData.oppUrl!) : undefined;
+    const oppPageData = oppDoc ? await extractPageData(oppDoc, pageData.oppUrl!) : undefined;
 
-    const urlLang = this.fetchService.getLang(url);
+    const urlLang = getUrlLang(url);
     if (!urlLang) return false;
 
     const pageDataEN = urlLang === 'en' ? pageData : oppPageData;
@@ -400,18 +403,18 @@ export class AddUrlsService {
     if (enUrl) this.linkCache.set(enUrl, pageDataEN?.links ?? []);
     if (frUrl) this.linkCache.set(frUrl, pageDataFR?.links ?? []);
 
-    const enParentUrl = this.fetchService.generateUrl(pageDataEN?.parentPath ?? '', 'live');
-    const frParentUrl = this.fetchService.generateUrl(pageDataFR?.parentPath ?? '', 'live');
+    const enParentUrl = generateUrl(pageDataEN?.parentPath ?? '', 'live');
+    const frParentUrl = generateUrl(pageDataFR?.parentPath ?? '', 'live');
 
     //Add parent to link cache if missing
     if (enParentUrl && !this.linkCache.has(enParentUrl)) {
       const parentDoc = await this.fetchService.fetchContent(enParentUrl, 'prod', 3, 'none');
-      if (parentDoc) this.linkCache.set(enParentUrl, this.fetchService.getLinks(parentDoc, enParentUrl));
+      if (parentDoc) this.linkCache.set(enParentUrl, getLinks(parentDoc, enParentUrl));
     }
 
     if (frParentUrl && !this.linkCache.has(frParentUrl)) {
       const parentDoc = await this.fetchService.fetchContent(frParentUrl, 'prod', 3, 'none');
-      if (parentDoc) this.linkCache.set(frParentUrl, this.fetchService.getLinks(parentDoc, frParentUrl));
+      if (parentDoc) this.linkCache.set(frParentUrl, getLinks(parentDoc, frParentUrl));
     }
 
     const enOrphan = pageDataEN?.parentPath ? !this.linkCache.get(enParentUrl)?.includes(enUrl ?? '') : false;
@@ -509,8 +512,8 @@ export class AddUrlsService {
       data: {
         lang: urlLang,
         path: {
-          en: this.fetchService.generatePath(enUrl),
-          fr: this.fetchService.generatePath(frUrl),
+          en: generatePath(enUrl),
+          fr: generatePath(frUrl),
         },
         visits: {
           en: this.updService.findVisitsByUrl(enUrl.replace('https://', '')),
@@ -610,7 +613,7 @@ export class AddUrlsService {
   // Add child pages
   public async addChildren(node: TreeNode | null, lang: 'en' | 'fr', autoAdd = true): Promise<void> {
     if (!node) return;
-    const parentLink = this.fetchService.generateUrl(node.data?.path[lang], 'live');
+    const parentLink = generateUrl(node.data?.path[lang], 'live');
     if (!parentLink) return;
     const existingPages = new Set(this.projectState.getAllPages(lang, 'live', 'inScope').map((page) => page.url));
 
@@ -621,7 +624,7 @@ export class AddUrlsService {
       const allLinks = new Set<string>();
       try {
         const doc = await this.fetchService.fetchContent(parentLink, 'prod', 3, 'none');
-        const links = this.fetchService.getLinks(doc, parentLink);
+        const links = getLinks(doc, parentLink);
         links.filter((link) => link.includes('canada.ca')).forEach((link) => allLinks.add(link));
       } catch (error) {
         console.warn(`Failed to fetch page ${parentLink}: ${error}`);

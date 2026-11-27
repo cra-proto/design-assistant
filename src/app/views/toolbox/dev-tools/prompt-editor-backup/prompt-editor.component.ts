@@ -27,9 +27,10 @@ import { SignInService } from '../../../../services/github/sign-in.service';
 import { StyleCardService } from '../../../../services/style-card.service';
 import { UserSettingsService } from '../../../../services/user-settings.service';
 
+import { OutputKey, PagePromptKey, ProblemPromptKey, PromptConfig, RoleKey, RubricKey, ToolsPromptKey } from '../../../../common/prompts/backup-prompts/prompt.model';
+
 import { PagePrompts } from '../../../../common/prompts/backup-prompts/page.prompts';
 import { ProblemPrompts } from '../../../../common/prompts/backup-prompts/problems.prompts';
-import { OutputKey, PagePromptKey, ProblemPromptKey, PromptConfig, RoleKey, RubricKey, ToolsPromptKey } from '../../../../common/prompts/backup-prompts/prompt.model';
 import { OutputFragment, RoleFragment, RubricFragment } from '../../../../common/prompts/backup-prompts/shared.prompts';
 import { ToolsPrompts } from '../../../../common/prompts/backup-prompts/tools.prompts';
 

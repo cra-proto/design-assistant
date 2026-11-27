@@ -16,6 +16,12 @@
     "",
     "^\\.{1,2}/.*\\.service$",
     "",
+    "^\\.{1,2}/.*\\.util$",
+    "",
+    "^\\.{1,2}/.*\\.config$",
+    "",
+    "^\\.{1,2}/.*\\.model$",
+    "",
     "^[./]"
   ],
   "importOrderParserPlugins": ["typescript", "decorators-legacy"],

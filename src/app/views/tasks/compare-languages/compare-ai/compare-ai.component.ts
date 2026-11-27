@@ -11,7 +11,9 @@ import { CompareService } from '../../compare-versions/compare-versions.service'
 import { LanguageDifference, ReviewLanguagesService } from '../compare-languages.service';
 
 import { AI_PAID_MODELS } from '../../../../common/ai-models.config';
+
 import { ToolsPromptKey } from '../../../../common/prompts/prompt.model';
+
 import { ToolsPrompts } from '../../../../common/prompts/tools.prompts';
 
 @Component({

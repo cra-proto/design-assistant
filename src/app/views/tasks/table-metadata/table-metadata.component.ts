@@ -22,7 +22,6 @@ import { EditMetadataComponent } from '../../../components/edit-node/edit-metada
 import { MenuPageActionsComponent } from '../../../components/menu-page-actions/menu-page-actions.component';
 import { SettingsProjectComponent } from '../../../components/settings-project/settings-project.component';
 
-import { FetchService } from '../../../services/fetch.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { LoadingTypes, ProjectStateService } from '../../../services/project-state.service';
 import { StyleCardService } from '../../../services/style-card.service';
@@ -31,8 +30,11 @@ import { FlattenedMetadata, TableItem, TableMetadataService } from '../../../ser
 import { UserSettingsService } from '../../../services/user-settings.service';
 import { CompareService } from '../compare-versions/compare-versions.service';
 
+import { generatePath } from '../../../utilities/html/link.util';
+
 import { TreeNodeData } from '../../../common/data.model';
-import { TooltipDirective } from '../../../common/tooltip.directive';
+
+import { TooltipDirective } from '../../../common/core/tooltip.directive';
 
 /**
  * Reviewed: 2026-08-14 (ng21)
@@ -78,9 +80,9 @@ export class TableMetadataComponent implements OnInit {
   protected readonly tableMetadata = inject(TableMetadataService);
   protected readonly tableService = inject(TableService);
   protected readonly styleCardService = inject(StyleCardService);
-  protected readonly fetchService = inject(FetchService);
   private readonly compareService = inject(CompareService);
   protected readonly settingsService = inject(UserSettingsService);
+  protected readonly generatePath = generatePath;
 
   /* Search term for filtering table rows */
   protected readonly searchTerm = signal<string>('');

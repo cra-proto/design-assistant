@@ -16,9 +16,10 @@ import { TooltipModule } from 'primeng/tooltip';
 
 import { EditNodeComponent } from '../../../edit-node/edit-node.component';
 
-import { FetchService } from '../../../../services/fetch.service';
 import { ProjectStateService } from '../../../../services/project-state.service';
 import { AddUrlsService } from '../add-urls.service';
+
+import { generatePath, getUrlLang } from '../../../../utilities/html/link.util';
 
 @Component({
   selector: 'aida-invalid-urls',
@@ -30,7 +31,6 @@ export class InvalidUrlsComponent {
   private readonly addUrlsService = inject(AddUrlsService);
   private readonly projectState = inject(ProjectStateService);
   private readonly translate = inject(TranslateService);
-  private readonly fetchService = inject(FetchService);
 
   protected readonly urlsBroken = computed(() => this.addUrlsService.urlState().urlsToReview.filter((url) => url.status === 'bad'));
   protected readonly urlsRedirect = computed(() => this.addUrlsService.urlState().urlsToReview.filter((url) => url.status === 'redirect'));
@@ -96,8 +96,8 @@ export class InvalidUrlsComponent {
   protected editNode = false; // Tracks if currently making dialog edits
   protected selectedNode: TreeNode = {}; // TreeNode data for edit node dialog
   protected edit(url: string) {
-    const path = this.fetchService.generatePath(url);
-    const lang = this.fetchService.getLang(url) ?? 'en';
+    const path = generatePath(url);
+    const lang = getUrlLang(url) ?? 'en';
     this.selectedNode = this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, lang) ?? {};
     this.editNode = true;
   }

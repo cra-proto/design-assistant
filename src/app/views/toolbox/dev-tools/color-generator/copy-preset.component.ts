@@ -3,8 +3,8 @@ import { ChangeDetectionStrategy, Component, computed, input, signal } from '@an
 import { ButtonModule } from 'primeng/button';
 import { TextareaModule } from 'primeng/textarea';
 
-import { ColorConverter } from '../../../../common/color-converter.util';
-import { ContrastUtil } from '../../../../common/contrast.util';
+import { ColorConverter } from '../../../../utilities/colour/color-converter.util';
+import { ContrastUtil } from '../../../../utilities/colour/contrast.util';
 
 /**
  * Reviewed: 2026-08-25 (ng21)

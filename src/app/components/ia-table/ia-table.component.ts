@@ -10,12 +10,13 @@ import { TreeModule, TreeNodeDropEvent } from 'primeng/tree';
 
 import { EditNodeComponent } from '../edit-node/edit-node.component';
 
-import { FetchService } from '../../services/fetch.service';
 import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { StyleTreeNodeService } from '../../services/style-treenode.service';
 import { UserSettingsService } from '../../services/user-settings.service';
 import { AddUrlsService } from '../add-pages/by-url/add-urls.service';
+
+import { generateUrl } from '../../utilities/html/link.util';
 
 @Component({
   selector: 'aida-ia-table',
@@ -32,7 +33,6 @@ export class IaTableComponent {
   private readonly settingsService = inject(UserSettingsService);
   private readonly translate = inject(TranslateService);
   private readonly addUrlsService = inject(AddUrlsService);
-  private readonly fetchService = inject(FetchService);
 
   public readonly projectTree = input<TreeNode[]>(this.projectState.getProject().projectData);
 
@@ -192,11 +192,11 @@ export class IaTableComponent {
 
     // Open in new tab
     const github = this.projectState.getProject().github;
-    const liveUrl = this.fetchService.generateUrl(path, 'live');
-    const previewUrl = this.fetchService.generateUrl(path, 'preview');
-    const prototypeUrl = this.fetchService.generateUrl(path, 'protoGH', github.owner, github.repo);
-    const baselineUrl = this.fetchService.generateUrl(path, 'baseGH', github.owner, github.repo);
-    const updUrl = this.fetchService.generateUrl(path, 'upd');
+    const liveUrl = generateUrl(path, 'live');
+    const previewUrl = generateUrl(path, 'preview');
+    const prototypeUrl = generateUrl(path, 'protoGH', github.owner, github.repo);
+    const baselineUrl = generateUrl(path, 'baseGH', github.owner, github.repo);
+    const updUrl = generateUrl(path, 'upd', undefined, undefined, this.translate.currentLang() ?? undefined);
     if (!isContainer) {
       this.options[1].items!.push(
         {

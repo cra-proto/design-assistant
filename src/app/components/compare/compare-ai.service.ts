@@ -13,8 +13,10 @@ import { AlertRewriteOrchestratorService } from './compare-problems/design-compo
 import { AlertService } from './compare-problems/design-components/alerts/alert.service';
 
 import { AidaLinks } from '../../common/aidaLinks.config';
-import { PagePrompts } from '../../common/prompts/page.prompts';
+
 import { PagePromptKey } from '../../common/prompts/prompt.model';
+
+import { PagePrompts } from '../../common/prompts/page.prompts';
 
 export type TargetTense = 'past' | 'present' | 'future';
 

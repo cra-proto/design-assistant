@@ -11,9 +11,10 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { FetchService } from '../../../services/fetch.service';
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
 import { CompareRenderedService } from './compare-rendered.service';
+
+import { isValidUrl } from '../../../utilities/html/link.util';
 
 export enum WebViewType {
   Original = 'original',
@@ -41,7 +42,6 @@ export class CompareRenderedComponent implements AfterViewInit, OnDestroy {
   private readonly translate = inject(TranslateService);
   private readonly messageService = inject(MessageService);
   private readonly compareRenderedService = inject(CompareRenderedService);
-  private readonly fetchService = inject(FetchService);
   private readonly htmlNormalizationService = inject(HtmlNormalizationService);
 
   // Inputs
@@ -409,7 +409,7 @@ export class CompareRenderedComponent implements AfterViewInit, OnDestroy {
   protected getUrl(): string | null {
     const url = this.webSelectedView() === WebViewType.Original ? this.beforeContent()?.url : this.webSelectedView() === WebViewType.Modified ? this.afterContent()?.url : null;
 
-    return this.fetchService.isValidUrl(url) ? url : null;
+    return isValidUrl(url) ? url : null;
   }
 
   // Process Accept/Reject

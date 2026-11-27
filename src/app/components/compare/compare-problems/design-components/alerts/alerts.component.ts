@@ -12,8 +12,9 @@ import { TableModule } from 'primeng/table';
 
 import { AlertService } from './alert.service';
 
-import { coerceInteractiveResultLeadIns, getReportableAlertsFromHtml } from './alert-reportable.utils';
 import { ALERT_SEVERITY_RANK, AlertGuidanceState, AlertIssue, computeAlertCategories, computeAlertMaxSeverity, getAlertCategoryI18nKey, getAlertSeverityI18nKey, isNoAlertIssue } from './alert.config';
+
+import { coerceInteractiveResultLeadIns, getReportableAlertsFromHtml } from './alert-reportable.utils';
 
 @Component({
   selector: 'aida-alerts',

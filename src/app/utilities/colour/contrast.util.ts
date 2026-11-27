@@ -1,4 +1,4 @@
-import { ColorConverter } from './color-converter.util';
+import { ColorConverter } from '../../utilities/colour/color-converter.util';
 
 export class ContrastUtil {
   /**

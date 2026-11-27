@@ -32,10 +32,12 @@ import { ProjectStorageService } from '../../../services/storage/project-storage
 import { StyleCardService } from '../../../services/style-card.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
 
-import { environment } from '../../../../environments/environment';
 import { AidaLinks } from '../../../common/aidaLinks.config';
+
 import { ProjectMetadata, ProjectPhase } from '../../../common/data.model';
-import { TooltipDirective } from '../../../common/tooltip.directive';
+
+import { environment } from '../../../../environments/environment';
+import { TooltipDirective } from '../../../common/core/tooltip.directive';
 
 //TODO: FIX HARDCODED TRANSLATIONS
 

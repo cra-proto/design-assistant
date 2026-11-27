@@ -4,8 +4,9 @@ import { Router } from '@angular/router';
 
 import { catchError, firstValueFrom, of } from 'rxjs';
 
-import { environment } from '../../../environments/environment';
 import { GitHubUser } from '../../common/data.model';
+
+import { environment } from '../../../environments/environment';
 
 interface GitHubTokenResponse {
   access_token: string;

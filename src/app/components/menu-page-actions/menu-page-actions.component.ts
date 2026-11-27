@@ -14,11 +14,16 @@ import { FetchService } from '../../services/fetch.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import { CompareService } from '../../views/tasks/compare-versions/compare-versions.service';
 
+import { stringToDoc } from '../../utilities/html/extract-content.util';
+import { generateUrl } from '../../utilities/html/link.util';
+
 import { AidaLinks } from '../../common/aidaLinks.config';
+
 import { TreeNodeData } from '../../common/data.model';
 import { ToolsPromptKey } from '../../common/prompts/prompt.model';
+
+import { TooltipDirective } from '../../common/core/tooltip.directive';
 import { ToolsPrompts } from '../../common/prompts/tools.prompts';
-import { TooltipDirective } from '../../common/tooltip.directive';
 
 export interface BooleanToggleItem extends MenuItem {
   type: 'booleanToggle';
@@ -80,8 +85,8 @@ export class MenuPageActionsComponent {
       for (const node of nodes) {
         if (!node.data?.path) continue;
         // Set URLs to fetch
-        const enUrl = this.fetchService.generateUrl(node.data.path.en, urlVersion, project.github.owner, project.github.repo);
-        const frUrl = this.fetchService.generateUrl(node.data.path.fr, urlVersion, project.github.owner, project.github.repo);
+        const enUrl = generateUrl(node.data.path.en, urlVersion, project.github.owner, project.github.repo);
+        const frUrl = generateUrl(node.data.path.fr, urlVersion, project.github.owner, project.github.repo);
         if (!enUrl && !frUrl) {
           console.warn(`Skipping ${enUrl} — missing EN & FR URLs`);
           continue;
@@ -91,11 +96,11 @@ export class MenuPageActionsComponent {
         let frMain: string | null = null;
         try {
           if (enUrl) {
-            const enDoc = urlVersion !== 'protoUT' ? await this.fetchService.fetchContent(enUrl, 'prod', 3, 'none', true) : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(enUrl));
+            const enDoc = urlVersion !== 'protoUT' ? await this.fetchService.fetchContent(enUrl, 'prod', 3, 'none', true) : stringToDoc(await this.fetchService.fetchViaProxy(enUrl));
             enMain = enDoc.querySelector('main')?.innerHTML ?? enDoc.body.innerHTML;
           }
           if (frUrl) {
-            const frDoc = urlVersion !== 'protoUT' ? await this.fetchService.fetchContent(frUrl, 'prod', 3, 'none', true) : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(frUrl));
+            const frDoc = urlVersion !== 'protoUT' ? await this.fetchService.fetchContent(frUrl, 'prod', 3, 'none', true) : stringToDoc(await this.fetchService.fetchViaProxy(frUrl));
             frMain = frDoc.querySelector('main')?.innerHTML ?? frDoc.body.innerHTML;
           }
         } catch (error) {
@@ -350,21 +355,21 @@ export class MenuPageActionsComponent {
                   label: this.translate.instant('inventory.menu.newTab.liveUrl'),
                   icon: 'pi pi-external-link',
                   command: () => {
-                    window.open(this.fetchService.generateUrl(path, 'live'), '_blank');
+                    window.open(generateUrl(path, 'live'), '_blank');
                   },
                 },
                 {
                   label: this.translate.instant('inventory.menu.newTab.previewUrl'),
                   icon: 'pi pi-external-link',
                   command: () => {
-                    window.open(this.fetchService.generateUrl(path, 'preview'), '_blank');
+                    window.open(generateUrl(path, 'preview'), '_blank');
                   },
                 },
                 {
                   label: this.translate.instant('inventory.menu.newTab.prototypeUrl'),
                   icon: 'pi pi-external-link',
                   command: () => {
-                    window.open(this.fetchService.generateUrl(path, protoVersion, project.github.owner, project.github.repo), '_blank');
+                    window.open(generateUrl(path, protoVersion, project.github.owner, project.github.repo), '_blank');
                   },
                 },
               ],
@@ -376,7 +381,7 @@ export class MenuPageActionsComponent {
         label: this.translate.instant('inventory.menu.newTab.baselineUrl'),
         icon: 'pi pi-external-link',
         command: () => {
-          window.open(this.fetchService.generateUrl(path, baseVersion, project.github.owner, project.github.repo), '_blank');
+          window.open(generateUrl(path, baseVersion, project.github.owner, project.github.repo), '_blank');
         },
       });
     }
@@ -385,7 +390,7 @@ export class MenuPageActionsComponent {
         label: this.translate.instant('inventory.menu.newTab.UPD'),
         icon: 'pi pi-external-link',
         command: () => {
-          window.open(this.fetchService.generateUrl(path, 'upd'), '_blank');
+          window.open(generateUrl(path, 'upd', undefined, undefined, this.translate.currentLang() ?? undefined), '_blank');
         },
       });
     }

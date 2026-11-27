@@ -5,8 +5,9 @@ import { catchError, firstValueFrom, of } from 'rxjs';
 
 import { SignInService } from '../github/sign-in.service';
 
-import { environment } from '../../../environments/environment';
 import { Project, ProjectMetadata } from '../../common/data.model';
+
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class CloudStorageService {

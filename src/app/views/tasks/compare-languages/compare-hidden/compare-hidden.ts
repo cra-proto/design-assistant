@@ -29,6 +29,8 @@
  * shadow DOM, iframes
  */
 
+import { normalizeText } from '../../../../utilities/html/normalizer.util';
+
 type HiddenType = 'all' | 'visual' | 'screenreaders' | 'web' | 'print' | 'responsive';
 type HiddenStatus = 'ok' | 'missing' | 'identical' | 'wrongLanguage';
 
@@ -58,7 +60,6 @@ export const PRINT_CLASSES = new Set(['hidden-print']);
 export const RESPONSIVE_CLASSES = new Set(['hidden-xs', 'hidden-sm', 'hidden-md', 'hidden-lg', 'visible-xs', 'visible-sm', 'visible-md', 'visible-lg']);
 
 const TYPE_ORDER: HiddenType[] = ['all', 'visual', 'screenreaders', 'web', 'print', 'responsive'];
-const SPACES = /[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g;
 // Currency symbols, percent signs, and digits split by a comma or period (1,234 / 1.5) are formatted differently in EN and FR
 const LANGUAGE_SENSITIVE = /[$€£¥%]|\d[.,]\d/;
 
@@ -94,14 +95,6 @@ function classify(el: Element): { type: HiddenType; reasons: string[] } | null {
   const type: HiddenType = all.length || (visual.length && sr.length) ? 'all' : visual.length ? 'visual' : sr.length ? 'screenreaders' : web.length ? 'web' : print.length ? 'print' : 'responsive';
 
   return { type, reasons: [...all, ...visual, ...sr, ...web, ...print, ...responsive] };
-}
-
-export function normalizeText(s: string): string {
-  return s
-    .replace(/[\u00AD\u200B-\u200D\uFEFF]/g, '')
-    .replace(SPACES, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 export function extractHidden(doc: Document): HiddenHit[] {

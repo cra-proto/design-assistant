@@ -33,9 +33,15 @@ import { ProjectStateService } from '../../../services/project-state.service';
 import { StyleCardService } from '../../../services/style-card.service';
 import { UsageService } from '../../../services/usage.service';
 
+import { stringToDoc } from '../../../utilities/html/extract-content.util';
+import { generateSHA } from '../../../utilities/html/hash.util';
+import { generateUrl, getUrlLang } from '../../../utilities/html/link.util';
+
 import { AidaLinks } from '../../../common/aidaLinks.config';
-import { CDTS_TEMPLATE_ENG, CDTS_TEMPLATE_FRA, EXIT_PAGE_TEMPLATE_ENG, EXIT_PAGE_TEMPLATE_FRA, INDEX_PAGE_TEMPLATE_ENG, INDEX_PAGE_TEMPLATE_FRA, LINK_DETOUR_JS } from '../../../common/cdts.template';
+
 import { SourceVersion } from '../../../common/data.model';
+
+import { CDTS_TEMPLATE_ENG, CDTS_TEMPLATE_FRA, EXIT_PAGE_TEMPLATE_ENG, EXIT_PAGE_TEMPLATE_FRA, INDEX_PAGE_TEMPLATE_ENG, INDEX_PAGE_TEMPLATE_FRA, LINK_DETOUR_JS } from '../../../common/cdts.template';
 
 enum ExportStatus {
   ExportNew = 'exportPages.export.status.addToGitHub', // Export - New page
@@ -228,7 +234,7 @@ export class ExportPagesComponent {
       if (requestId !== this.compareFilesRequestId) return;
       const localPaths = [...projectPaths, ...this.cdtsFiles];
       const table: FileStatus[] = localPaths.map((path) => {
-        const pathLang = this.fetchService.getLang(path);
+        const pathLang = getUrlLang(path);
         const node = pathLang ? this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, pathLang) : null;
         const version = scope === 'inScope' ? 'prototype' : 'baseline';
         const previouslyExported = pathLang ? node?.data[version][pathLang].localSha : null;
@@ -283,7 +289,7 @@ export class ExportPagesComponent {
     const table: FileStatus[] = [];
     for (const path of allPaths) {
       // Get path language for node lookup
-      const pathLang = this.fetchService.getLang(path);
+      const pathLang = getUrlLang(path);
       const node = pathLang ? this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, pathLang) : null;
 
       // Status indicators
@@ -476,8 +482,8 @@ export class ExportPagesComponent {
       .map((item) => item.path);
 
     for (const path of projectPaths) {
-      const url = this.fetchService.generateUrl(path, source, this.gitHubData().owner, repo); //Source for fetching content
-      const lang = this.fetchService.getLang(url);
+      const url = generateUrl(path, source, this.gitHubData().owner, repo); //Source for fetching content
+      const lang = getUrlLang(url);
       if (!lang) continue;
       const node = this.projectState.findNodeByPath(this.projectState.getProjectTree(), path, lang);
 
@@ -490,8 +496,8 @@ export class ExportPagesComponent {
       const keywords = node?.data.prototype[lang].keywords;
       const robots = node?.data.prototype[lang].noindex ? 'noindex, nofollow' : 'index, follow';
 
-      const enUrl = this.fetchService.generateUrl(node?.data.path.en, 'live');
-      const frUrl = this.fetchService.generateUrl(node?.data.path.fr, 'live');
+      const enUrl = generateUrl(node?.data.path.en, 'live');
+      const frUrl = generateUrl(node?.data.path.fr, 'live');
 
       const breadcrumbs = this.projectState
         .getBreadcrumbChain(path, lang)
@@ -518,7 +524,7 @@ export class ExportPagesComponent {
 
       try {
         const retries = isNewPage ? 1 : 2;
-        const doc = !source.endsWith('UT') ? await this.fetchService.fetchContent(url, 'both', retries) : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(url));
+        const doc = !source.endsWith('UT') ? await this.fetchService.fetchContent(url, 'both', retries) : stringToDoc(await this.fetchService.fetchViaProxy(url));
         if (!doc) {
           throw new Error(`No document returned for ${url}`);
         }
@@ -554,7 +560,7 @@ export class ExportPagesComponent {
         });
         zip.file(`${repo}/${path}`, html);
         //Set local SHA
-        const localSha = await this.fetchService.generateSHA(html);
+        const localSha = await generateSHA(html);
         this.projectState.setPageSha(path, localSha, scope === 'inScope' ? 'prototype' : 'baseline', lang, 'local');
       } catch (error) {
         console.error(`Failed to zip page "${path}":`, error);
@@ -685,19 +691,19 @@ export class ExportPagesComponent {
         .map((pair) => {
           const rowStatus = statusClassMap[pair.status] ?? '';
           const enCell = paths.has(pair.en.path)
-            ? `<a href="${this.fetchService.generateUrl(pair.en.path, 'protoUT', this.gitHubData().owner, repo)}" target="_blank"
+            ? `<a href="${generateUrl(pair.en.path, 'protoUT', this.gitHubData().owner, repo)}" target="_blank"
               data-versions='[
                 {"label": "${viewCanada}", "href":"${pair.en.url}"},
-                {"label": "${viewUPD}", "href":"${this.fetchService.generateUrl(pair.en.path, 'upd')}"}
-                {"label": "${viewAIDA}", "href":"${this.fetchService.generateUrl(pair.en.path, 'aida')}&title=${pair.en.label}"}
+                {"label": "${viewUPD}", "href":"${generateUrl(pair.en.path, 'upd', undefined, undefined, this.translate.currentLang() ?? undefined)}"}
+                {"label": "${viewAIDA}", "href":"${generateUrl(pair.en.path, 'aida')}&title=${pair.en.label}"}
               ]'>${pair.en.label ?? pair.en.path}</a>`
             : `<i class="fa fa-minus"></i>`;
           const frCell = paths.has(pair.fr.path)
-            ? `<a href="${this.fetchService.generateUrl(pair.fr.path, 'protoUT', this.gitHubData().owner, repo)}" target="_blank"
+            ? `<a href="${generateUrl(pair.fr.path, 'protoUT', this.gitHubData().owner, repo)}" target="_blank"
               data-versions='[
                 {"label": "${viewCanada}", "href":"${pair.fr.url}"},
-                {"label": "${viewUPD}", "href":"${this.fetchService.generateUrl(pair.fr.path, 'upd')}"}
-                {"label": "${viewAIDA}", "href":"${this.fetchService.generateUrl(pair.fr.path, 'aida')}&title=${pair.fr.label}"}
+                {"label": "${viewUPD}", "href":"${generateUrl(pair.fr.path, 'upd', undefined, undefined, this.translate.currentLang() ?? undefined)}"}
+                {"label": "${viewAIDA}", "href":"${generateUrl(pair.fr.path, 'aida')}&title=${pair.fr.label}"}
               ]'>${pair.fr.label ?? pair.fr.path}</a>`
             : `<i class="fa fa-minus"></i>`;
           const cells = this.projectCache.selectedLangs() === 'en' ? [enCell] : this.projectCache.selectedLangs() === 'fr' ? [frCell] : [enCell, frCell];
@@ -751,7 +757,7 @@ export class ExportPagesComponent {
   private async getUrlandContent(node: TreeNode, lang: 'en' | 'fr' = 'en', owner: string, repo: string, source: SourceVersion): Promise<PageData[]> {
     const pages: PageData[] = [];
     const path = node.data?.path[lang];
-    const url = this.fetchService.generateUrl(path, source, owner, repo);
+    const url = generateUrl(path, source, owner, repo);
 
     if (path && repo) {
       try {
@@ -770,7 +776,7 @@ export class ExportPagesComponent {
             const content = this.exportGitHubService.formatNewPageAsJekyll(node, breadcrumbs, this.gitHubData().owner, repo, lang);
             pages.push({ url, path, filename, content });
           } else {
-            const doc = !source.endsWith('UT') ? await this.fetchService.fetchContent(url, 'both') : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(url));
+            const doc = !source.endsWith('UT') ? await this.fetchService.fetchContent(url, 'both') : stringToDoc(await this.fetchService.fetchViaProxy(url));
             const breadcrumbs = this.projectCache.selectedVersion() === 'prototype' ? this.projectState.getBreadcrumbChain(node.data.path[lang], lang).slice(1) : undefined; //baseline uses live breadcrumb
             const content = await this.exportGitHubService.formatDocumentAsJekyll(doc, url, this.gitHubData().owner, repo, breadcrumbs);
             //console.log(url);

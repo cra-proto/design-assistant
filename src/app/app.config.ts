@@ -14,7 +14,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 
 import { routes } from './app.routes';
-import { CustomTitleStrategy } from './common/custom-title-strategy';
+import { CustomTitleStrategy } from './common/core/custom-title-strategy';
 import MyPreset from './common/theme-presets/preset';
 
 registerLocaleData(localeFr);

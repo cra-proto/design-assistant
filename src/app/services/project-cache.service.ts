@@ -7,7 +7,10 @@ import { htmlProcessingResult } from './html-normalization.service';
 import { ProjectStateService } from './project-state.service';
 import { UserSettingsService } from './user-settings.service';
 
+import { generateUrl } from '../utilities/html/link.util';
+
 import { DataVersion, SourceVersion } from '../common/data.model';
+
 import { DiffUndoStack } from '../components/compare/compare-undo.store';
 
 export interface PageEditState {
@@ -116,10 +119,10 @@ export class ProjectCacheService {
     const repo = this.projectState.getProject().github.repo;
     if (!owner || !repo) return;
     this.localCheckInProgress = true;
-    const url = this.fetchService.generateUrl('index.html', 'protoUT', owner, repo);
+    const url = generateUrl('index.html', 'protoUT', owner, repo);
     const checks: Promise<void>[] = [this.fetchService.fetchStatusViaProxy(url).then((result) => this.hasLocal.set(result))];
     if (this.settingsService.includeBaseline()) {
-      const urlBL = this.fetchService.generateUrl('index.html', 'baseUT', owner, repo);
+      const urlBL = generateUrl('index.html', 'baseUT', owner, repo);
       checks.push(this.fetchService.fetchStatusViaProxy(urlBL).then((result) => this.hasLocalBL.set(result)));
     }
     Promise.all(checks).finally(() => {
@@ -142,10 +145,10 @@ export class ProjectCacheService {
     const repo = this.projectState.getProject().github.repo;
     if (!owner || !repo) return;
     this.githubCheckInProgress = true;
-    const url = this.fetchService.generateUrl('index.html', 'protoGH', owner, repo);
+    const url = generateUrl('index.html', 'protoGH', owner, repo);
     const checks: Promise<void>[] = [this.fetchService.fetchStatus(url, 'proto', 1).then((response) => this.hasGitHub.set(response.ok))];
     if (this.settingsService.includeBaseline()) {
-      const urlBL = this.fetchService.generateUrl('index.html', 'baseGH', owner, repo);
+      const urlBL = generateUrl('index.html', 'baseGH', owner, repo);
       checks.push(this.fetchService.fetchStatus(urlBL, 'proto', 1).then((response) => this.hasGitHubBL.set(response.ok)));
     }
     Promise.all(checks).finally(() => {
@@ -166,7 +169,7 @@ export class ProjectCacheService {
     if (this.hasPreview() !== null) return;
     if (!this.settingsService.includePreview()) return;
     this.previewCheckInProgress = true;
-    const url = this.fetchService.generateUrl('', 'preview');
+    const url = generateUrl('', 'preview');
     const checks: Promise<void>[] = [this.fetchService.fetchStatusViaProxy(url).then((result) => this.hasPreview.set(result))];
     Promise.all(checks).finally(() => {
       this.previewCheckInProgress = false;
@@ -221,19 +224,17 @@ export class ProjectCacheService {
   /** Get list of versions to check the status of for a given page path */
   public getVersionsToCheck(path: string): { url: string; version: SourceVersion }[] {
     const project = this.projectState.getProject();
-    const versions: { url: string; version: SourceVersion }[] = [{ url: this.fetchService.generateUrl(path, 'live'), version: 'live' }];
+    const versions: { url: string; version: SourceVersion }[] = [{ url: generateUrl(path, 'live'), version: 'live' }];
     if (this.settingsService.includePreview()) {
-      versions.push({ url: this.fetchService.generateUrl(path, 'preview'), version: 'preview' });
+      versions.push({ url: generateUrl(path, 'preview'), version: 'preview' });
     }
     if (project.lastExported && this.settingsService.includeGitHub()) {
-      versions.push({ url: this.fetchService.generateUrl(path, 'protoGH', project.github.owner, project.github.repo), version: 'protoGH' });
-      if (project.github.hasBaselineRepo && this.settingsService.includeBaseline())
-        versions.push({ url: this.fetchService.generateUrl(path, 'baseGH', project.github.owner, project.github.repo), version: 'baseGH' });
+      versions.push({ url: generateUrl(path, 'protoGH', project.github.owner, project.github.repo), version: 'protoGH' });
+      if (project.github.hasBaselineRepo && this.settingsService.includeBaseline()) versions.push({ url: generateUrl(path, 'baseGH', project.github.owner, project.github.repo), version: 'baseGH' });
     }
     if (project.lastDownloaded && this.settingsService.includeLocal()) {
-      versions.push({ url: this.fetchService.generateUrl(path, 'protoUT', project.github.owner, project.github.repo), version: 'protoUT' });
-      if (project.github.hasBaselineRepo && this.settingsService.includeBaseline())
-        versions.push({ url: this.fetchService.generateUrl(path, 'baseUT', project.github.owner, project.github.repo), version: 'baseUT' });
+      versions.push({ url: generateUrl(path, 'protoUT', project.github.owner, project.github.repo), version: 'protoUT' });
+      if (project.github.hasBaselineRepo && this.settingsService.includeBaseline()) versions.push({ url: generateUrl(path, 'baseUT', project.github.owner, project.github.repo), version: 'baseUT' });
     }
     return versions;
   }

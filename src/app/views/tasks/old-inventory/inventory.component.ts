@@ -33,13 +33,18 @@ import { StyleCardService } from '../../../services/style-card.service';
 import { CompareService } from '../compare-versions/compare-versions.service';
 import { IaDiagramService } from '../ia-diagram/ia-diagram.service';
 
+import { stringToDoc } from '../../../utilities/html/extract-content.util';
+import { generatePath, generateUrl } from '../../../utilities/html/link.util';
+
 import { AidaLinks } from '../../../common/aidaLinks.config';
+import { isKnownNumber } from '../../../common/phone-numbers.config';
+
 import { COLUMN_GROUPS, ColumnGroups, FIELD_FILTERS, FlattenedTreeNode, GLOBAL_FIELDS, TableColumn } from '../../../common/data-patch.model';
 import { MetadataField, MetadataReview, MetadataReviewStatus, PageTemplate } from '../../../common/data.model';
-import { isKnownNumber } from '../../../common/phone-numbers.config';
 import { ToolsPromptKey } from '../../../common/prompts/prompt.model';
+
+import { TooltipDirective } from '../../../common/core/tooltip.directive';
 import { ToolsPrompts } from '../../../common/prompts/tools.prompts';
-import { TooltipDirective } from '../../../common/tooltip.directive';
 
 export interface BooleanToggleItem extends MenuItem {
   type: 'booleanToggle';
@@ -546,7 +551,7 @@ export class InventoryComponent implements OnInit {
   // 4b. Global filter
   protected filterFields = [...GLOBAL_FIELDS];
   protected normalizeSearchValue(value: string): string {
-    return this.fetchService.generatePath(value);
+    return generatePath(value);
   }
 
   // 5. Ex/Hides
@@ -625,8 +630,8 @@ export class InventoryComponent implements OnInit {
     const urlVersion = mode === 'live' ? 'live' : this.projectState.getProject().repoType === 'github' ? 'protoGH' : 'protoUT';
     for (const node of this.selectedNodes) {
       // Set URLs to fetch
-      const enUrl = this.fetchService.generateUrl(node.enPath, urlVersion, this.github.owner, this.github.repo);
-      const frUrl = this.fetchService.generateUrl(node.frPath, urlVersion, this.github.owner, this.github.repo);
+      const enUrl = generateUrl(node.enPath, urlVersion, this.github.owner, this.github.repo);
+      const frUrl = generateUrl(node.frPath, urlVersion, this.github.owner, this.github.repo);
 
       if (!enUrl && !frUrl) {
         console.warn(`Skipping ${enUrl} — missing EN & FR URLs`);
@@ -638,11 +643,11 @@ export class InventoryComponent implements OnInit {
       let frMain: string | null = null;
       try {
         if (enUrl) {
-          const enDoc = urlVersion !== 'protoUT' ? await this.fetchService.fetchContent(enUrl, 'prod', 3, 'none', true) : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(enUrl));
+          const enDoc = urlVersion !== 'protoUT' ? await this.fetchService.fetchContent(enUrl, 'prod', 3, 'none', true) : stringToDoc(await this.fetchService.fetchViaProxy(enUrl));
           enMain = enDoc.querySelector('main')?.innerHTML ?? enDoc.body.innerHTML;
         }
         if (frUrl) {
-          const frDoc = urlVersion !== 'protoUT' ? await this.fetchService.fetchContent(frUrl, 'prod', 3, 'none', true) : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(frUrl));
+          const frDoc = urlVersion !== 'protoUT' ? await this.fetchService.fetchContent(frUrl, 'prod', 3, 'none', true) : stringToDoc(await this.fetchService.fetchViaProxy(frUrl));
           frMain = frDoc.querySelector('main')?.innerHTML ?? frDoc.body.innerHTML;
         }
       } catch (error) {
@@ -1005,11 +1010,11 @@ export class InventoryComponent implements OnInit {
           const baseVersion = repoType === 'github' ? 'baseGH' : 'baseUT';
           const hasBaseline = this.projectState.getProject().github.hasBaselineRepo;
           const path = this.translate.getCurrentLang()?.startsWith('fr') ? node.frPath : node.enPath;
-          const liveUrl = this.fetchService.generateUrl(path, 'live');
-          const previewUrl = this.fetchService.generateUrl(path, 'preview');
-          const prototypeUrl = this.fetchService.generateUrl(path, protoVersion, this.github.owner, this.github.repo);
-          const baselineUrl = this.fetchService.generateUrl(path, baseVersion, this.github.owner, this.github.repo);
-          const updUrl = this.fetchService.generateUrl(path, 'upd');
+          const liveUrl = generateUrl(path, 'live');
+          const previewUrl = generateUrl(path, 'preview');
+          const prototypeUrl = generateUrl(path, protoVersion, this.github.owner, this.github.repo);
+          const baselineUrl = generateUrl(path, baseVersion, this.github.owner, this.github.repo);
+          const updUrl = generateUrl(path, 'upd', undefined, undefined, this.translate.currentLang() ?? undefined);
           this.itemsDropdown = [
             {
               label: this.translate.instant('common.edit'),
@@ -1083,10 +1088,10 @@ export class InventoryComponent implements OnInit {
           const repoType = this.projectState.getProject().repoType;
           const protoVersion = repoType === 'github' ? 'protoGH' : 'protoUT';
           const baseVersion = repoType === 'github' ? 'baseGH' : 'baseUT';
-          const liveUrl = this.fetchService.generateUrl(path, 'live');
-          const previewUrl = this.fetchService.generateUrl(path, 'preview');
-          const prototypeUrl = this.fetchService.generateUrl(path, protoVersion, this.github.owner, this.github.repo);
-          const baselineUrl = this.fetchService.generateUrl(path, baseVersion, this.github.owner, this.github.repo);
+          const liveUrl = generateUrl(path, 'live');
+          const previewUrl = generateUrl(path, 'preview');
+          const prototypeUrl = generateUrl(path, protoVersion, this.github.owner, this.github.repo);
+          const baselineUrl = generateUrl(path, baseVersion, this.github.owner, this.github.repo);
           this.itemsDropdown = [
             {
               label: this.translate.instant('common.openNewTab'),
@@ -1385,7 +1390,7 @@ export class InventoryComponent implements OnInit {
 
   // 5. Open in UPD
   protected openInUPD(node: FlattenedTreeNode): void {
-    const updLink = this.fetchService.generateUrl(this.lang === 'fr' ? node.frPath : node.enPath, 'upd');
+    const updLink = generateUrl(this.lang === 'fr' ? node.frPath : node.enPath, 'upd', undefined, undefined, this.translate.currentLang() ?? undefined);
     window.open(updLink, '_blank');
   }
 

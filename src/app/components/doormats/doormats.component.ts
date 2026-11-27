@@ -11,8 +11,9 @@ import { MailtoService } from '../../services/mailto.service';
 import { StyleCardService } from '../../services/style-card.service';
 import { UserSettingsService } from '../../services/user-settings.service';
 
-import { environment } from '../../../environments/environment';
 import { AidaLinks } from '../../common/aidaLinks.config';
+
+import { environment } from '../../../environments/environment';
 
 export interface DoormatItem {
   path?: string;

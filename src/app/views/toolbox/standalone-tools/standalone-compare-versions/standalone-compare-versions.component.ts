@@ -11,9 +11,10 @@ import { TabsModule } from 'primeng/tabs';
 import { CompareRenderedComponent } from '../../../../components/compare/compare-rendered/compare-rendered.component';
 import { CompareSourceComponent } from '../../../../components/compare/compare-source/compare-source.component';
 
-import { FetchService } from '../../../../services/fetch.service';
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../../services/html-normalization.service';
 import { StyleCardService } from '../../../../services/style-card.service';
+
+import { isValidUrl } from '../../../../utilities/html/link.util';
 
 import { DiffUndoStack } from '../../../../components/compare/compare-undo.store';
 
@@ -28,7 +29,6 @@ export class StandaloneCompareComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   protected readonly styleCardService = inject(StyleCardService);
   public readonly htmlNormalizationService = inject(HtmlNormalizationService);
-  private readonly fetchService = inject(FetchService);
 
   // Signals
   protected readonly originalHtml = signal<htmlProcessingResult | undefined>(undefined);
@@ -46,7 +46,7 @@ export class StandaloneCompareComponent implements OnInit {
       const allParams = { ...params };
       // Handle before
       if (params['before'] !== undefined) {
-        if (!this.fetchService.isValidUrl(params['before'])) return;
+        if (!isValidUrl(params['before'])) return;
         this.beforeUrl = params['before'];
         const before = await this.loadContent(params['before']);
         this.originalHtml.set(before);
@@ -54,7 +54,7 @@ export class StandaloneCompareComponent implements OnInit {
       }
       // Handle after
       if (params['after'] !== undefined) {
-        if (!this.fetchService.isValidUrl(params['after'])) return;
+        if (!isValidUrl(params['after'])) return;
         this.afterUrl = params['after'];
         const after = await this.loadContent(params['after']);
         this.modifiedHtml.set(after);
@@ -76,7 +76,7 @@ export class StandaloneCompareComponent implements OnInit {
   }
 
   protected async updateHtml(url: string, version: 'before' | 'after') {
-    if (!this.fetchService.isValidUrl(url)) return;
+    if (!isValidUrl(url)) return;
     const content = await this.loadContent(url);
     if (version === 'before') {
       this.originalHtml.set(content);

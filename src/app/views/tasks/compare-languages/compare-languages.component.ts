@@ -28,8 +28,13 @@ import { StyleCardService } from '../../../services/style-card.service';
 import { CompareService } from '../compare-versions/compare-versions.service';
 import { ReviewLanguagesService } from './compare-languages.service';
 
+import { generateUrl } from '../../../utilities/html/link.util';
+
 import { AidaLinks } from '../../../common/aidaLinks.config';
+
 import { DataVersion, TreeNodeData } from '../../../common/data.model';
+
+import { environment } from '../../../../environments/environment';
 import { compareHidden, HiddenRow } from './compare-hidden/compare-hidden';
 import { compareHTML, CountRow } from './compare-html/compare-html';
 import { alignNumbers, extractNumbers, NumberRow } from './compare-numbers/compare-numbers';
@@ -50,6 +55,7 @@ interface SummaryRow {
   state: SummaryState;
   count: number;
   detail?: string;
+  hideInProd?: boolean;
 }
 
 @Component({
@@ -87,6 +93,8 @@ export class CompareLanguagesComponent {
   public readonly summaryMode = input<boolean>(false);
   protected readonly activeTab = signal<string | number>('0');
   protected readonly openDialog = signal<SummaryRow | null>(null);
+
+  protected readonly isProd = environment.production;
 
   AidaLinks = AidaLinks;
 
@@ -142,13 +150,13 @@ export class CompareLanguagesComponent {
     return { base: (this.selectedBase() ?? []).length, proto: (this.selectedProto() ?? []).length, live: (this.selectedLive() ?? []).length };
   });
   protected readonly htmlProblems = computed(() => {
-    return this.htmlRows().filter((r) => r.en !== r.fr).length;
+    return this.htmlRows().filter((row) => row.en !== row.fr).length;
   });
   protected readonly hiddenProblems = computed(() => {
-    return this.hiddenRows().filter((r) => r.status !== 'ok').length;
+    return this.hiddenRows().filter((row) => row.status !== 'ok').length;
   });
   protected readonly numberProblems = computed(() => {
-    return this.numberRows().filter((r) => !r.match).length;
+    return this.numberRows().filter((row) => !row.match).length;
   });
   protected readonly aiProblems = computed(() => {
     const page = this.compareService.selectedPage();
@@ -174,8 +182,8 @@ export class CompareLanguagesComponent {
         }
 
         const { owner, repo } = this.projectState.getProject().github;
-        const urlEN = this.fetchService.generateUrl(bothPaths.en, version, owner, repo);
-        const urlFR = this.fetchService.generateUrl(bothPaths.fr, version, owner, repo);
+        const urlEN = generateUrl(bothPaths.en, version, owner, repo);
+        const urlFR = generateUrl(bothPaths.fr, version, owner, repo);
         let stale = false;
         onCleanup(() => (stale = true));
         this.setHTML(urlEN, urlFR, () => stale);
@@ -290,6 +298,7 @@ export class CompareLanguagesComponent {
   private readonly html = viewChild.required<TemplateRef<unknown>>('html');
   private readonly hidden = viewChild.required<TemplateRef<unknown>>('hidden');
   private readonly numbers = viewChild.required<TemplateRef<unknown>>('numbers');
+  private readonly links = viewChild.required<TemplateRef<unknown>>('links');
   private readonly ai = viewChild.required<TemplateRef<unknown>>('ai');
 
   /** Gets a summary of all problems */
@@ -324,7 +333,7 @@ export class CompareLanguagesComponent {
       { tab: '1', template: this.html(), icon: 'code', label: 'languages.htmlStructure.tab', state: countState(htmlCount), count: htmlCount },
       { tab: '2', template: this.hidden(), icon: 'visibility_off', label: 'languages.hidden.tab', state: countState(hiddenCount), count: hiddenCount },
       { tab: '3', template: this.numbers(), icon: 'numbers', label: 'languages.numbers.tab', state: countState(numberCount), count: numberCount },
-      { tab: '4', template: this.ai(), icon: 'auto_awesome', label: 'languages.aiSummary.tab', state: aiState, count: ai.result },
+      { tab: '5', template: this.ai(), icon: 'auto_awesome', label: 'languages.aiSummary.tab', state: aiState, count: ai.result },
     ];
   });
 

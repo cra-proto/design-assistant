@@ -19,6 +19,7 @@ import { CollaboratorService } from '../../services/github/collaborator.service'
 import { ProjectStateService } from '../../services/project-state.service';
 
 import { AidaLinks } from '../../common/aidaLinks.config';
+
 import { ProjectPhase } from '../../common/data.model';
 
 @Component({

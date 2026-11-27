@@ -16,13 +16,15 @@ import { AddPagesLinkComponent } from '../../add-pages/add-pages-link/add-pages-
 import { SettingsProjectComponent } from '../../settings-project/settings-project.component';
 import { SettingsUserComponent } from '../../settings-user/settings-user.component';
 
-import { FetchService } from '../../../services/fetch.service';
 import { HtmlNormalizationService, htmlProcessingResult } from '../../../services/html-normalization.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { CompareService } from '../../../views/tasks/compare-versions/compare-versions.service';
 
+import { generateUrl } from '../../../utilities/html/link.util';
+
 import { AidaLinks } from '../../../common/aidaLinks.config';
+
 import { ALL_SOURCES, SourceVersion } from '../../../common/data.model';
 
 /**
@@ -43,7 +45,6 @@ export class CompareSelectComponent implements OnInit {
   private readonly projectState = inject(ProjectStateService);
   private readonly projectCache = inject(ProjectCacheService);
   protected readonly compareService = inject(CompareService);
-  private readonly fetchService = inject(FetchService);
   private readonly htmlNormalizationService = inject(HtmlNormalizationService);
 
   public readonly versionsToShow = input.required<0 | 1 | 2>();
@@ -220,7 +221,7 @@ export class CompareSelectComponent implements OnInit {
     if (!this.compareService.selectedPage()) return;
     // Get URL
     const project = this.projectState.getProject();
-    const url = this.fetchService.generateUrl(this.compareService.selectedPage(), version, project.github.owner, project.github.repo);
+    const url = generateUrl(this.compareService.selectedPage(), version, project.github.owner, project.github.repo);
 
     // Check cache for content
     const cachedContent = this.projectCache.getCachedHtml(url);

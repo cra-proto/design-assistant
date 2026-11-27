@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 import { Injectable } from '@angular/core';
 
+import { ChatMessage, PagePromptKey } from '../../../../../common/prompts/prompt.model';
+
 import { AlertRewriteExamples, type AlertRewriteExample } from '../../../../../common/prompts/alert-rewrite.examples';
 import { PagePrompts } from '../../../../../common/prompts/page.prompts';
-import { ChatMessage, PagePromptKey } from '../../../../../common/prompts/prompt.model';
 import { OutputFragment, RoleFragment } from '../../../../../common/prompts/shared.prompts';
 import { getCanadaCaStylePromptRules, getLinkWritingPromptRules } from '../../../../../common/prompts/skills.prompts';
 import { countStructurallyStandaloneLinks } from './alert-link-structure.utils';

@@ -23,9 +23,11 @@ import { ProjectStateService } from '../../../services/project-state.service';
 import { StyleCardService } from '../../../services/style-card.service';
 import { UserSettingsService } from '../../../services/user-settings.service';
 
-import { environment } from '../../../../environments/environment';
 import { AidaLinks } from '../../../common/aidaLinks.config';
+
 import { CurrentPhase, GitHubRepo, PhaseStatus, ProjectPhase } from '../../../common/data.model';
+
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'aida-dashboard',

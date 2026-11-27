@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { ChatMessage, PromptConfig, RubricKey } from '../../common/prompts/prompt.model';
+
 import { OutputFragment, RoleFragment, RubricFragment } from '../../common/prompts/shared.prompts';
 
 @Injectable({ providedIn: 'root' })

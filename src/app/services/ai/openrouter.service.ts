@@ -6,9 +6,11 @@ import { firstValueFrom } from 'rxjs';
 import { HtmlNormalizationService } from '../html-normalization.service';
 import { AiPromptService } from './prompt.service';
 
-import { environment } from '../../../environments/environment';
 import { AI_FREE_MODELS } from '../../common/ai-models.config';
+
 import { ChatMessage, OutputKey, PromptConfig } from '../../common/prompts/prompt.model';
+
+import { environment } from '../../../environments/environment';
 
 export interface OpenRouterResponse {
   id: string;

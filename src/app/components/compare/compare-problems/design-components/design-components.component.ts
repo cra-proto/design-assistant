@@ -15,8 +15,9 @@ import { htmlProcessingResult } from '../../../../services/html-normalization.se
 import { CompareService } from '../../../../views/tasks/compare-versions/compare-versions.service';
 import { AlertService } from './alerts/alert.service';
 
-import { coerceInteractiveResultLeadIns, getReportableAlertsFromHtml } from './alerts/alert-reportable.utils';
 import { ALERT_SEVERITY_RANK, AlertGuidanceState, computeAlertCategories, computeAlertMaxSeverity, getAlertCategoryI18nKey } from './alerts/alert.config';
+
+import { coerceInteractiveResultLeadIns, getReportableAlertsFromHtml } from './alerts/alert-reportable.utils';
 
 interface GuidanceRow {
   id: 'alerts';

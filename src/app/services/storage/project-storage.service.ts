@@ -4,14 +4,16 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { MessageService, TreeNode } from 'primeng/api';
 
-import { FetchService } from '../fetch.service';
 import { UserSettingsService } from '../user-settings.service';
 import { CloudStorageService } from './cloud-storage.service';
 
-import { version as appVersion } from '../../../../package.json';
-import { environment } from '../../../environments/environment';
+import { generatePath } from '../../utilities/html/link.util';
+
 import { ProjectTreeNodeData } from '../../common/data-patch.model';
 import { LangData, PageTemplate, Project, ProjectMetadata, ProjectPhase, TreeNodeData } from '../../common/data.model';
+
+import { version as appVersion } from '../../../../package.json';
+import { environment } from '../../../environments/environment';
 
 export interface ActiveProject {
   key: string;
@@ -26,7 +28,6 @@ export class ProjectStorageService {
   private readonly messageService = inject(MessageService);
   private readonly cloudStorageService = inject(CloudStorageService);
   private readonly settingsService = inject(UserSettingsService);
-  private readonly fetchService = inject(FetchService);
 
   // Local storage keys
   private readonly ACTIVE_PROJECT_KEY = 'activeProject';
@@ -548,8 +549,8 @@ export class ProjectStorageService {
     const oppUrl = old.metadata?.oppUrl;
     const enUrl = urlLang === 'en' ? old.url : oppUrl;
     const frUrl = urlLang === 'fr' ? old.url : oppUrl;
-    const enPath = enUrl ? this.fetchService.generatePath(enUrl) : undefined;
-    const frPath = frUrl ? this.fetchService.generatePath(frUrl) : undefined;
+    const enPath = enUrl ? generatePath(enUrl) : undefined;
+    const frPath = frUrl ? generatePath(frUrl) : undefined;
 
     const enData: LangData = {
       h1: urlLang === 'en' ? old.h1 : (old.metadata?.oppTitle ?? ''),
@@ -571,7 +572,7 @@ export class ProjectStorageService {
       email: old.metadata?.email,
       lastPublished: old.metadata?.lastPublished instanceof Date ? old.metadata.lastPublished.toISOString() : old.metadata?.lastPublished,
       lastModified: old.metadata?.lastModified instanceof Date ? old.metadata.lastModified.toISOString() : old.metadata?.lastModified,
-      parentPath: old.originalParent ? this.fetchService.generatePath(old.originalParent) : undefined,
+      parentPath: old.originalParent ? generatePath(old.originalParent) : undefined,
       wordCount: old.metadata?.wordCount ?? -1,
       linkCount: -1,
       fleschKincaid: -1,
@@ -601,7 +602,7 @@ export class ProjectStorageService {
       email: old.metadata?.email,
       lastPublished: old.metadata?.lastPublished instanceof Date ? old.metadata.lastPublished.toISOString() : old.metadata?.lastPublished,
       lastModified: old.metadata?.lastModified instanceof Date ? old.metadata.lastModified.toISOString() : old.metadata?.lastModified,
-      parentPath: old.originalParent ? this.fetchService.generatePath(old.originalParent) : undefined,
+      parentPath: old.originalParent ? generatePath(old.originalParent) : undefined,
       wordCount: old.metadata?.wordCount ?? -1,
       linkCount: -1,
       fleschKincaid: -1,

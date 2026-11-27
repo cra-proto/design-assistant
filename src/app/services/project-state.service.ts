@@ -16,8 +16,11 @@ import { SignInService } from './github/sign-in.service';
 import { UsageService } from './usage.service';
 import { UserSettingsService } from './user-settings.service';
 
-import { version as appVersion } from '../../../package.json';
-import { environment } from '../../environments/environment';
+import { extractPageData, getLinks, stringToDoc } from '../utilities/html/extract-content.util';
+import { generatePath, generateUrl, getUrlLang } from '../utilities/html/link.util';
+
+import { STOP_WORDS } from '../common/url-word-exclusions.config';
+
 import { FlattenedTreeNode, TableColumn } from '../common/data-patch.model';
 import {
   AlertIssuesReport,
@@ -33,7 +36,9 @@ import {
   TreeNodeData,
   TreeNodeTypes,
 } from '../common/data.model';
-import { STOP_WORDS } from '../common/url-word-exclusions.config';
+
+import { version as appVersion } from '../../../package.json';
+import { environment } from '../../environments/environment';
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
 export type LoadingTypes = 'baseline' | 'prototype' | 'live' | 'aiMetadata' | 'aiEdit';
@@ -331,7 +336,7 @@ export class ProjectStateService {
 
   public setMetadataReview(path: string, review: MetadataReview, promptConfig?: object): void {
     const tree = this.getProjectTree();
-    const lang = this.fetchService.getLang(path) ?? 'en';
+    const lang = getUrlLang(path) ?? 'en';
     const node = this.findNodeByPath(tree, path, lang);
 
     if (node?.data) {
@@ -478,9 +483,9 @@ export class ProjectStateService {
 
   // Check if URL already exists in tree
   public urlExists(url: string): boolean {
-    const urlLang = this.fetchService.getLang(url);
+    const urlLang = getUrlLang(url);
     if (!urlLang) return false;
-    const urlPath = this.fetchService.generatePath(url);
+    const urlPath = generatePath(url);
     const search = (nodes: TreeNode<TreeNodeData>[]): boolean => {
       for (const node of nodes) {
         if (node.data?.path[urlLang] === urlPath) return true;
@@ -499,7 +504,7 @@ export class ProjectStateService {
       for (const node of nodes) {
         const path = node.data?.path?.[lang] ?? '';
         const h1 = node.data?.[version]?.[lang]?.h1;
-        const url = this.fetchService.generateUrl(path, urlVersion, this.project().github.owner, this.project().github.repo);
+        const url = generateUrl(path, urlVersion, this.project().github.owner, this.project().github.repo);
         if (scope === 'inScope' && path && h1 && url && node.data?.status.inScope) {
           pages.push({ label: h1, path: path, url: url });
         } else if (scope === 'all' && path && h1 && url) {
@@ -524,11 +529,11 @@ export class ProjectStateService {
         const enPath = node.data?.path?.en ?? '';
         const enH1 = node.data?.[version]?.en?.h1;
         const enSection = node.data?.[version]?.en?.doubleH1 ?? '';
-        const enUrl = this.fetchService.generateUrl(enPath, urlVersion, this.project().github.owner, this.project().github.repo);
+        const enUrl = generateUrl(enPath, urlVersion, this.project().github.owner, this.project().github.repo);
         const frPath = node.data?.path?.fr ?? '';
         const frH1 = node.data?.[version]?.fr?.h1;
         const frSection = node.data?.[version]?.fr?.doubleH1 ?? '';
-        const frUrl = this.fetchService.generateUrl(frPath, urlVersion, this.project().github.owner, this.project().github.repo);
+        const frUrl = generateUrl(frPath, urlVersion, this.project().github.owner, this.project().github.repo);
         const status = !node.data?.status.inScope ? 'isBaseline' : node.data?.status.isNew ? 'isNew' : node.data?.status.isROT ? 'isROT' : node.data?.status.isMoved ? 'isMoved' : '';
         const hasAllData = !!(enPath && enH1 && enUrl && frPath && frH1 && frUrl);
         const inScope = !!node.data?.status?.inScope;
@@ -621,7 +626,7 @@ export class ProjectStateService {
 
   /*Retrieve both English and French paths for a given path*/
   public getBothPaths(path: string): { en: string; fr: string } | null {
-    const lang = this.fetchService.getLang(path);
+    const lang = getUrlLang(path);
     if (!lang) return null;
     for (const node of this.project().projectData) {
       const found = node.data.path[lang] === path ? node : node.children ? this.findNodeByPath(node.children, path, lang) : null;
@@ -1456,7 +1461,7 @@ export class ProjectStateService {
         if (node.data?.path[lang] === targetPath) {
           for (const ancestor of ancestors) {
             if (ancestor.data?.path[lang]) {
-              const url = this.fetchService.generateUrl(ancestor.data.path[lang], 'live');
+              const url = generateUrl(ancestor.data.path[lang], 'live');
               const h1 = ancestor.data.live?.[lang].h1;
               breadcrumbs.push({
                 title: h1 ?? '',
@@ -1488,12 +1493,12 @@ export class ProjectStateService {
 
     await this.withLoading([data.path.en], version, async () => {
       // URLs to fetch content from
-      const enUrl = this.fetchService.generateUrl(data.path.en, source, owner, repo);
-      const frUrl = this.fetchService.generateUrl(data.path.fr, source, owner, repo);
+      const enUrl = generateUrl(data.path.en, source, owner, repo);
+      const frUrl = generateUrl(data.path.fr, source, owner, repo);
       console.log(`Refreshing ${enUrl}`);
       // Live URLs for json, airtable & UPD lookups
-      const liveEnUrl = this.fetchService.generateUrl(data.path.en, 'live');
-      const liveFrUrl = this.fetchService.generateUrl(data.path.fr, 'live');
+      const liveEnUrl = generateUrl(data.path.en, 'live');
+      const liveFrUrl = generateUrl(data.path.fr, 'live');
       // Load UPD, Airtable, & vanity data
       await this.updService.fetchData();
       await this.airtableService.fetchTasks();
@@ -1502,8 +1507,8 @@ export class ProjectStateService {
       // Fetch EN
       if (enUrl) {
         try {
-          const doc = sourceType !== 'local' ? await this.fetchService.fetchContent(enUrl, 'both', 2, 'none') : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(enUrl));
-          const pageData = await this.fetchService.extractPageMetadata(doc, enUrl);
+          const doc = sourceType !== 'local' ? await this.fetchService.fetchContent(enUrl, 'both', 2, 'none') : stringToDoc(await this.fetchService.fetchViaProxy(enUrl));
+          const pageData = await extractPageData(doc, enUrl);
 
           const jsonData = await (async () => {
             try {
@@ -1513,19 +1518,19 @@ export class ProjectStateService {
             }
           })();
 
-          const parentUrl = pageData.parentPath ? this.fetchService.generateUrl(pageData.parentPath, source, owner, repo) : undefined;
+          const parentUrl = pageData.parentPath ? generateUrl(pageData.parentPath, source, owner, repo) : undefined;
           const parentDoc = await (async () => {
             try {
               return parentUrl && sourceType !== 'local'
                 ? await this.fetchService.fetchContent(parentUrl, 'both', 2, 'none')
                 : parentUrl && sourceType !== 'local'
-                  ? this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(parentUrl))
+                  ? stringToDoc(await this.fetchService.fetchViaProxy(parentUrl))
                   : undefined;
             } catch {
               return undefined;
             }
           })();
-          const parentLinks = parentDoc && liveEnUrl ? this.fetchService.getLinks(parentDoc, liveEnUrl) : undefined;
+          const parentLinks = parentDoc && liveEnUrl ? getLinks(parentDoc, liveEnUrl) : undefined;
 
           const lastModified = source !== 'live' ? await this.exportGitHubService.getLastModified(enUrl, owner, repo, branch, this.signInService.token() ?? undefined) : undefined;
 
@@ -1541,7 +1546,7 @@ export class ProjectStateService {
             keywords: pageData.keywords,
             //Status
             is404: false,
-            ...(parentLinks ? { isOrphan: !parentLinks.some((link) => this.fetchService.generatePath(link) === this.fetchService.generatePath(liveEnUrl ?? '')) } : {}),
+            ...(parentLinks ? { isOrphan: !parentLinks.some((link) => generatePath(link) === generatePath(liveEnUrl ?? '')) } : {}),
             noindex: pageData.noindex ?? false,
             isArchived: pageData.isArchived ?? false,
             linksToPortal: pageData.linksToPortal ?? false,
@@ -1577,8 +1582,8 @@ export class ProjectStateService {
       // Fetch FR
       if (frUrl) {
         try {
-          const doc = sourceType !== 'local' ? await this.fetchService.fetchContent(frUrl, 'both', 2, 'none') : this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(frUrl));
-          const pageData = await this.fetchService.extractPageMetadata(doc, frUrl);
+          const doc = sourceType !== 'local' ? await this.fetchService.fetchContent(frUrl, 'both', 2, 'none') : stringToDoc(await this.fetchService.fetchViaProxy(frUrl));
+          const pageData = await extractPageData(doc, frUrl);
 
           const jsonData = await (async () => {
             try {
@@ -1588,19 +1593,19 @@ export class ProjectStateService {
             }
           })();
 
-          const parentUrl = pageData.parentPath ? this.fetchService.generateUrl(pageData.parentPath, source, owner, repo) : undefined;
+          const parentUrl = pageData.parentPath ? generateUrl(pageData.parentPath, source, owner, repo) : undefined;
           const parentDoc = await (async () => {
             try {
               return parentUrl && sourceType !== 'local'
                 ? await this.fetchService.fetchContent(parentUrl, 'both', 2, 'none')
                 : parentUrl && sourceType !== 'local'
-                  ? this.fetchService.stringToDoc(await this.fetchService.fetchViaProxy(parentUrl))
+                  ? stringToDoc(await this.fetchService.fetchViaProxy(parentUrl))
                   : undefined;
             } catch {
               return undefined;
             }
           })();
-          const parentLinks = parentDoc && liveFrUrl ? this.fetchService.getLinks(parentDoc, liveFrUrl) : undefined;
+          const parentLinks = parentDoc && liveFrUrl ? getLinks(parentDoc, liveFrUrl) : undefined;
 
           const lastModified = source !== 'live' ? await this.exportGitHubService.getLastModified(frUrl, owner, repo, branch, this.signInService.token() ?? undefined) : undefined;
 
@@ -1616,7 +1621,7 @@ export class ProjectStateService {
             keywords: pageData.keywords,
             //Status
             is404: false,
-            ...(parentLinks ? { isOrphan: !parentLinks.some((link) => this.fetchService.generatePath(link) === this.fetchService.generatePath(liveFrUrl ?? '')) } : {}),
+            ...(parentLinks ? { isOrphan: !parentLinks.some((link) => generatePath(link) === generatePath(liveFrUrl ?? '')) } : {}),
             noindex: pageData.noindex ?? false,
             isArchived: pageData.isArchived ?? false,
             linksToPortal: pageData.linksToPortal ?? false,
@@ -1700,8 +1705,8 @@ export class ProjectStateService {
     const parentPathEN = parent.data?.path?.en ?? '.html';
     const parentPathFR = parent.data?.path?.fr ?? '.html';
 
-    const placeholderPathEN = url && this.fetchService.getLang(url) === 'en' ? this.fetchService.generatePath(url) : parentPathEN.replace('.html', `/new-page-${date}.html`);
-    const placeholderPathFR = url && this.fetchService.getLang(url) === 'fr' ? this.fetchService.generatePath(url) : parentPathFR.replace('.html', `/nouvelle-page-${date}.html`);
+    const placeholderPathEN = url && getUrlLang(url) === 'en' ? generatePath(url) : parentPathEN.replace('.html', `/new-page-${date}.html`);
+    const placeholderPathFR = url && getUrlLang(url) === 'fr' ? generatePath(url) : parentPathFR.replace('.html', `/nouvelle-page-${date}.html`);
 
     const placeholderH1EN =
       url
@@ -1869,8 +1874,8 @@ export class ProjectStateService {
     }
 
     // Compare normalized prototype parentUrls to baseline parentUrls
-    const enMoved = this.fetchService.generatePath(node.data.prototype.en.parentPath) !== this.fetchService.generatePath(node.data.baseline.en.parentPath ?? '');
-    const frMoved = this.fetchService.generatePath(node.data.prototype.fr.parentPath) !== this.fetchService.generatePath(node.data.baseline.fr.parentPath ?? '');
+    const enMoved = generatePath(node.data.prototype.en.parentPath) !== generatePath(node.data.baseline.en.parentPath ?? '');
+    const frMoved = generatePath(node.data.prototype.fr.parentPath) !== generatePath(node.data.baseline.fr.parentPath ?? '');
     node.data.status.isMoved = enMoved || frMoved;
 
     if (previousMoveStatus !== node.data.status.isMoved) {

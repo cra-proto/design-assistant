@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -9,9 +9,9 @@ import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { TextareaModule } from 'primeng/textarea';
 
-import { FetchService } from '../../../../services/fetch.service';
+import { getTextReadability } from '../../../../utilities/html/readability.util';
 
-import { TooltipDirective } from '../../../../common/tooltip.directive';
+import { TooltipDirective } from '../../../../common/core/tooltip.directive';
 
 interface ScratchInput {
   id: number;
@@ -32,8 +32,6 @@ interface ScratchInput {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ScratchPadComponent {
-  private readonly fetchService = inject(FetchService);
-
   private nextId = 1;
   protected readonly inputs = signal<ScratchInput[]>([{ id: this.nextId++, text: '' }]);
 
@@ -60,7 +58,7 @@ export class ScratchPadComponent {
         .trim()
         .split(/\s+/)
         .filter((word) => word.length > 0).length,
-      grade: i.text.trim() ? this.fetchService.getTextReadability(i.text.trim()) : { fleschKincaid: 0, gunningFog: 0 },
+      grade: i.text.trim() ? getTextReadability(i.text.trim()) : { fleschKincaid: 0, gunningFog: 0 },
     })),
   );
 }

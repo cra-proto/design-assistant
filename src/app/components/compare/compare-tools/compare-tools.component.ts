@@ -12,9 +12,11 @@ import { MessageModule } from 'primeng/message';
 import { CompareAiOptionsComponent } from '../compare-ai-options/compare-ai-options.component';
 
 import { OpenRouterService } from '../../../services/ai/openrouter.service';
-import { FetchService } from '../../../services/fetch.service';
 import { CompareService } from '../../../views/tasks/compare-versions/compare-versions.service';
 import { CompareAiService } from '../compare-ai.service';
+
+import { stringToDoc } from '../../../utilities/html/extract-content.util';
+import { getHTMLReadability } from '../../../utilities/html/readability.util';
 
 @Component({
   selector: 'aida-compare-tools',
@@ -26,7 +28,6 @@ export class CompareToolsComponent {
   protected readonly messageService = inject(MessageService);
   protected readonly compareService = inject(CompareService);
   protected readonly compareAiService = inject(CompareAiService);
-  private readonly fetchService = inject(FetchService);
   protected readonly openrouterService = inject(OpenRouterService);
 
   protected readonly readabilityBefore = signal(0);
@@ -40,8 +41,8 @@ export class CompareToolsComponent {
       const originalHTML = this.compareService.originalHtml()?.html ?? '';
       const modifiedHTML = this.compareService.modifiedHtml()?.html ?? '';
       //Calculate readability scores
-      const originalRead = this.fetchService.getReadability(this.fetchService.stringToDoc(originalHTML));
-      const modifiedRead = this.fetchService.getReadability(this.fetchService.stringToDoc(modifiedHTML));
+      const originalRead = getHTMLReadability(stringToDoc(originalHTML));
+      const modifiedRead = getHTMLReadability(stringToDoc(modifiedHTML));
       const before = Math.max(0, Math.min(originalRead.fleschKincaid, originalRead.gunningFog));
       const after = Math.max(0, Math.min(modifiedRead.fleschKincaid, modifiedRead.gunningFog));
       //Set scores

@@ -156,59 +156,88 @@
     <p class="mb-1"><strong>Navigation templates:</strong></p>
     <ul class="mt-1">
       <li>
-        <strong>topic</strong> - has classes <code class="custom">most-requested-bullets</code> or <code class="custom">gc-srvinfo</code> or <code class="custom">mwsdoormat-links-container</code>
+        <strong>{{ PageTemplate.Topic | translate }}</strong> - has classes <code class="custom">most-requested-bullets</code> or <code class="custom">gc-srvinfo</code> or
+        <code class="custom">mwsdoormat-links-container</code>
       </li>
-      <li><strong>old topic</strong> - has class <code class="custom">list-group-item</code> where more than 80% are links</li>
-      <li><strong>subway</strong> - has class <code class="custom">gc-subway</code></li>
-      <li><strong>old subway</strong> - has class <code class="custom">gc-navseq</code></li>
-      <li><strong>navigation</strong> - where none of the above apply and more than 70% of the text is links</li>
+      <li>
+        <strong>{{ PageTemplate.OldTopic | translate }}</strong> - has class <code class="custom">list-group-item</code> where more than 80% are links
+      </li>
+      <li>
+        <strong>{{ PageTemplate.Subway | translate }}</strong> - has class <code class="custom">gc-subway</code>
+      </li>
+      <li>
+        <strong>{{ PageTemplate.OldSubway | translate }}</strong> - has class <code class="custom">gc-navseq</code>
+      </li>
+      <li>
+        <strong>{{ PageTemplate.Navigation | translate }}</strong> - where none of the above apply and more than 70% of the text is links
+      </li>
     </ul>
 
     <p><strong>Content templates</strong></p>
     <ul>
-      <li><strong>multimedia gallery</strong> - url includes <code class="custom">/news/cra-multimedia-library/</code> or <code class="custom">/nouvelles/bibliotheque-multimedia-arc/</code></li>
-      <li><strong>video transcript</strong> - has <code class="custom">&lt;video&gt;</code> element, H2 contains "transcript", and is a child of the multimedia gallery</li>
-      <li><strong>contact</strong> - h1 starts with "Contact" or "Contactez"</li>
-      <li><strong>brochure</strong> - has classes <code class="custom">panel-heading bg-primary</code></li>
       <li>
-        <strong>pdf download</strong> - has a pdf link with classes <code class="custom">btn stretched-link</code> and either the <code class="custom">thumbnail</code> class or a
-        <code class="custom">&lt;small&gt;</code> element with "PDF, # KB, # page" or "PDF, # Ko, # page"
+        <strong>{{ PageTemplate.MultimediaGallery | translate }}</strong> - url includes <code class="custom">/news/cra-multimedia-library/</code> or
+        <code class="custom">/nouvelles/bibliotheque-multimedia-arc/</code>
       </li>
-      <li><strong>content</strong> - if no other page templates apply</li>
+      <li>
+        <strong>{{ PageTemplate.VideoTranscript | translate }}</strong> - has <code class="custom">&lt;video&gt;</code> element, H2 contains "transcript", and is a child of the multimedia gallery
+      </li>
+      <li>
+        <strong>{{ PageTemplate.Contact | translate }}</strong> - h1 starts with "Contact" or "Contactez"
+      </li>
+      <li>
+        <strong>{{ PageTemplate.Brochure | translate }}</strong> - has classes <code class="custom">panel-heading bg-primary</code>
+      </li>
+      <li>
+        <strong>{{ PageTemplate.PdfDownload | translate }}</strong> - has a pdf link with classes <code class="custom">btn stretched-link</code> and either the
+        <code class="custom">thumbnail</code> class or a <code class="custom">&lt;small&gt;</code> element with "PDF, # KB, # page" or "PDF, # Ko, # page"
+      </li>
+      <li>
+        <strong>{{ PageTemplate.Content | translate }}</strong> - if no other page templates apply
+      </li>
     </ul>
 
     <p><strong>Newsroom templates:</strong></p>
     <ul class="mt-1">
-      <li><strong>newsroom</strong> - url includes <code class="custom">/news/####</code> or <code class="custom">/nouvelles/####</code></li>
-      <li><strong>taxtip</strong> - url includes <code class="custom">/newsroom/tax-tips/</code> or <code class="custom">/salle-presse/conseils-fiscaux/</code></li>
       <li>
-        <strong>tax filing season media kit</strong> - url includes <code class="custom">/tax-tips/tax-filing-season-media-kit</code> or
+        <strong>{{ PageTemplate.Newsroom | translate }}</strong> - url includes <code class="custom">/news/####</code> or <code class="custom">/nouvelles/####</code>
+      </li>
+      <li>
+        <strong>{{ PageTemplate.Taxtip | translate }}</strong> - url includes <code class="custom">/newsroom/tax-tips/</code> or <code class="custom">/salle-presse/conseils-fiscaux/</code>
+      </li>
+      <li>
+        <strong>{{ PageTemplate.TaxFilingSeasonMediaKit | translate }}</strong> - url includes <code class="custom">/tax-tips/tax-filing-season-media-kit</code> or
         <code class="custom">/salle-presse/mesures-relatives-enquetes-criminelles-accusations-condamnations</code>
       </li>
       <li>
-        <strong>enforcement notice</strong> - url includes <code class="custom">/newsroom/criminal-investigations-actions-charges-convictions</code> or
+        <strong>{{ PageTemplate.EnforcementNotice | translate }}</strong> - url includes <code class="custom">/newsroom/criminal-investigations-actions-charges-convictions</code> or
         <code class="custom">/salle-presse/mesures-relatives-enquetes-criminelles-accusations-condamnations</code>
       </li>
-      <li><strong>campaign</strong> - url includes <code class="custom">/campaigns/</code> or <code class="custom">/campagnes/</code></li>
+      <li>
+        <strong>{{ PageTemplate.Campaign | translate }}</strong> - url includes <code class="custom">/campaigns/</code> or <code class="custom">/campagnes/</code>
+      </li>
     </ul>
 
     <p><strong>Forms and publications templates:</strong></p>
     <ul>
-      <li><strong>readme (form)</strong> - url includes <code class="custom">/forms-publications/forms/</code> or <code class="custom">/formulaires-publications/formulaires/</code></li>
       <li>
-        <strong>readme (guide)</strong> - url includes <code class="custom">/forms-publications/publications/[guide number].html</code> or
+        <strong>{{ PageTemplate.ReadmeForm | translate }}</strong> - url includes <code class="custom">/forms-publications/forms/</code> or
+        <code class="custom">/formulaires-publications/formulaires/</code>
+      </li>
+      <li>
+        <strong>{{ PageTemplate.ReadmeGuide | translate }}</strong> - url includes <code class="custom">/forms-publications/publications/[guide number].html</code> or
         <code class="custom">/formulaires-publications/publications/[guide number].html</code>
       </li>
       <li>
-        <strong>readme (T1)</strong> - url includes <code class="custom">/general-income-tax-benefit-package/[province]?/5###-[1 to 5 letters].html</code> or
+        <strong>{{ PageTemplate.ReadmeT1 | translate }}</strong> - url includes <code class="custom">/general-income-tax-benefit-package/[province]?/5###-[1 to 5 letters].html</code> or
         <code class="custom">/trousse-generale-impot-prestations/[province]?/5###-[1 to 5 letters].html</code>
       </li>
       <li>
-        <strong>readme (TD1)</strong> - url includes <code class="custom">/td1-forms-pay-received-on-january-1-[year]?-later/[filename].html</code> or
+        <strong>{{ PageTemplate.ReadmeTD1 | translate }}</strong> - url includes <code class="custom">/td1-forms-pay-received-on-january-1-[year]?-later/[filename].html</code> or
         <code class="custom">/formulaires-td1-paies-recues-1er-janvier-[year]?-apres/[filename].html</code>
       </li>
       <li>
-        <strong>readme (payroll)</strong> - url includes:
+        <strong>{{ PageTemplate.ReadmePayroll | translate }}</strong> - url includes:
         <ul>
           <li><code class="custom">/t4127-payroll-deductions-formulas/</code> or <code class="custom">/t4127-formules-calcul-retenues-paie/</code></li>
           <li><code class="custom">/payroll-deductions-t4127-payroll-deductions-formulas/</code> or <code class="custom">/t4127-formules-calcul-retenues-paie-annees-precedentes/</code></li>
@@ -222,11 +251,11 @@
         </ul>
       </li>
       <li>
-        <strong>guide</strong> - url includes <code class="custom">/forms-publications/publications/</code> or <code class="custom">/formulaires-publications/publications/</code> if readme (guide)
-        doesn't apply
+        <strong>{{ PageTemplate.Guide | translate }}</strong> - url includes <code class="custom">/forms-publications/publications/</code> or
+        <code class="custom">/formulaires-publications/publications/</code> if readme (guide) doesn't apply
       </li>
       <li>
-        <strong>guide (T1)</strong> - url includes:
+        <strong>{{ PageTemplate.GuideT1 | translate }}</strong> - url includes:
         <ul>
           <li><code class="custom">/general-income-tax-benefit-package/5000-g.html</code> or <code class="custom">/trousse-generale-impot-prestations/5000-g.html</code></li>
           <li>
@@ -343,11 +372,15 @@
 
   <section [class]="styleCardService.cardStyles()">
     <h2 id="release">Release notes</h2>
-    <!--h3 id="0-8-8">Release 0.8.8 (Nov 20, 2026)</h3>
-    <h4>Backend function</h4>
+    <h3 id="0-8-8">Release 0.8.8 (Nov 26, 2026)</h3>
+    <h4>New database</h4>
     <ul>
-      <li>Initial referring link DB (needs testing before we can surface referring links in AIDA)</li>
-    </ul-->
+      <li>Set up referring link DB & update schedule (still needs testing before we can surface referring links in AIDA)</li>
+    </ul>
+    <h4>Other changes</h4>
+    <ul>
+      <li>Reorganized files (fetch service has been split into several utilities)</li>
+    </ul>
     <h3 id="0-8-7">Release 0.8.7 (Nov 19, 2026)</h3>
     <h4>Bug fixes</h4>
     <ul>

@@ -3,17 +3,19 @@ import { inject, Injectable, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
 import { OpenRouterService } from '../../../../../services/ai/openrouter.service';
-import { FetchService } from '../../../../../services/fetch.service';
 import { ProjectStateService } from '../../../../../services/project-state.service';
 import { AlertContextService } from './alert-context.service';
 
+import { hashString } from '../../../../../utilities/html/hash.util';
+
 import { AI_ALERT_TRANSLATION_MODEL } from '../../../../../common/ai-models.config';
-import { AlertIssuesReport, AlertIssueTranslationData } from '../../../../../common/data.model';
-import { ProblemPrompts } from '../../../../../common/prompts/problems.prompts';
-import { ProblemPromptKey, ToolsPromptKey } from '../../../../../common/prompts/prompt.model';
-import { ToolsPrompts } from '../../../../../common/prompts/tools.prompts';
-import { coerceInteractiveResultLeadIns, getReportableAlerts } from './alert-reportable.utils';
 import { AlertIssue, isNoAlertIssue } from './alert.config';
+
+import { AlertIssuesReport, AlertIssueTranslationData } from '../../../../../common/data.model';
+import { ProblemPromptKey } from '../../../../../common/prompts/prompt.model';
+
+import { ProblemPrompts } from '../../../../../common/prompts/problems.prompts';
+import { coerceInteractiveResultLeadIns, getReportableAlerts } from './alert-reportable.utils';
 import fallbackSeverityJson from './severity-include-fallback.json';
 
 const ALERT_SEVERITY_ALIASES: Record<string, 'High' | 'Medium' | 'Low'> = {
@@ -44,7 +46,6 @@ interface AlertFallbackConfig {
 export class AlertService {
   private readonly openRouter = inject(OpenRouterService);
   private readonly alertContext = inject(AlertContextService);
-  private readonly fetchService = inject(FetchService);
   private readonly projectState = inject(ProjectStateService);
   private readonly translate = inject(TranslateService);
   private readonly translationRunIds = new Map<string, number>();
@@ -103,7 +104,7 @@ export class AlertService {
     return {
       ...report,
       issues: this.cloneIssues(report.issues),
-      isCurrent: report.analyzedHtmlHash === this.fetchService.hashString(sourceHtml),
+      isCurrent: report.analyzedHtmlHash === hashString(sourceHtml),
     };
   }
 
@@ -569,7 +570,7 @@ export class AlertService {
 
   private saveAnalysis(sourceHtml: string, pagePath: string, issues: AlertIssue[], model?: string): AlertIssuesReport {
     const report: AlertIssuesReport = {
-      analyzedHtmlHash: this.fetchService.hashString(sourceHtml),
+      analyzedHtmlHash: hashString(sourceHtml),
       analyzedAt: new Date().toISOString(),
       model,
       issues: this.normalizeAlertIssues(issues).map((issue, index) => ({ ...issue, translationId: String(index + 1) })),

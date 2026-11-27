@@ -19,14 +19,15 @@ import { MenuPageActionsComponent } from '../../../components/menu-page-actions/
 import { SettingsProjectComponent } from '../../../components/settings-project/settings-project.component';
 import { ViewPagesComponent } from '../../../components/view-pages/view-pages.component';
 
-import { FetchService } from '../../../services/fetch.service';
 import { ProjectCacheService } from '../../../services/project-cache.service';
 import { ProjectStateService } from '../../../services/project-state.service';
 import { StyleCardService } from '../../../services/style-card.service';
 import { buildFilterFields, ColumnVisibility, createRowSelection, groupSpans, persisted, rowsPerPageOptions, TableService, trackStuck } from '../../../services/style-table.service';
 import { FlattenedInventory, TableInventoryService, TableItem } from '../../../services/table-inventory.service';
 
-import { TooltipDirective } from '../../../common/tooltip.directive';
+import { generatePath } from '../../../utilities/html/link.util';
+
+import { TooltipDirective } from '../../../common/core/tooltip.directive';
 
 /**
  * Reviewed: 2026-08-14 (ng21)
@@ -70,7 +71,7 @@ export class TableInventoryComponent implements OnInit {
   protected readonly tableInventory = inject(TableInventoryService);
   protected readonly tableService = inject(TableService);
   protected readonly styleCardService = inject(StyleCardService);
-  protected readonly fetchService = inject(FetchService);
+  protected readonly generatePath = generatePath;
 
   /* Search term for filtering table rows */
   protected readonly searchTerm = signal<string>('');

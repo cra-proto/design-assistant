@@ -1,6 +1,8 @@
 import { inject, Injectable, signal } from '@angular/core';
 
-import { BreadcrumbNode, FetchService } from '../../../services/fetch.service';
+import { FetchService } from '../../../services/fetch.service';
+
+import { BreadcrumbNode, getBreadcrumb, getLinks } from '../../../utilities/html/extract-content.util';
 
 interface PageToAdd {
   url: string;
@@ -54,7 +56,7 @@ export class GetChildPagesService {
       const limited = this.skipFormsAndPubs.has(url);
       try {
         const doc = await this.fetchService.fetchContent(url, 'prod', 3, 50, false);
-        const links = this.fetchService.getLinks(doc, url);
+        const links = getLinks(doc, url);
         const limitedLinks = limited ? links.slice(0, this.PAGE_LIMIT) : links;
         allLinks.push(...limitedLinks);
       } catch (error) {
@@ -81,8 +83,8 @@ export class GetChildPagesService {
         const limited = this.skipFormsAndPubs.has(url);
         try {
           const { doc, finalUrl } = await this.fetchService.fetchContentAndStatus(url, 'prod', 3, 50, false);
-          const breadcrumbs = this.fetchService.getBreadcrumb(doc, finalUrl);
-          const links = this.fetchService.getLinks(doc, finalUrl);
+          const breadcrumbs = getBreadcrumb(doc, finalUrl);
+          const links = getLinks(doc, finalUrl);
           const limitedLinks = limited ? links.slice(0, this.PAGE_LIMIT) : links;
 
           let foundAncestor = false;

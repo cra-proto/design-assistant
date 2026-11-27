@@ -20,7 +20,7 @@ import { ProjectStorageService } from './services/storage/project-storage.servic
 import { UsageService } from './services/usage.service';
 import { UserSettingsService } from './services/user-settings.service';
 
-import { CustomTitleStrategy } from './common/custom-title-strategy';
+import { CustomTitleStrategy } from './common/core/custom-title-strategy';
 
 @Component({
   selector: 'aida-root',

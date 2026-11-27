@@ -14,9 +14,10 @@ import { MailtoService } from '../../services/mailto.service';
 import { ProjectCacheService } from '../../services/project-cache.service';
 import { ProjectStateService } from '../../services/project-state.service';
 
-import { environment } from '../../../environments/environment';
 import { AidaLinks } from '../../common/aidaLinks.config';
-import { TooltipDirective } from '../../common/tooltip.directive';
+
+import { environment } from '../../../environments/environment';
+import { TooltipDirective } from '../../common/core/tooltip.directive';
 
 /**
  * Reviewed: 2026-08-13 (ng21)
